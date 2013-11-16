@@ -1,0 +1,76 @@
+@{extends ListerControl.phtml}
+@{block #listerhead}
+
+{/block}
+@{block #listcontent}
+<table>
+    <tr>
+        <th>
+           	_"Name" 
+        </th>
+        <th>
+        </th>
+    </tr>
+	{foreach $data as $group}
+		{if (Auth::ADMINISTRATOR == Auth::isAuthorized(Auth::TYPE_GROUP,$group['group_id'])) || (Auth::isAuthorized(Auth::TYPE_GROUP,$group['group_id']) != Auth::UNAUTHORIZED && $group['group_status'] == 1)}
+        <tr>
+				<td>
+					<a href="javascript:void(0);" onClick="showGroupDetail(2,{$group['group_id']})">
+					{$group['group_name']}
+					</a>
+				</td>
+					{if Auth::ADMINISTRATOR == Auth::isAuthorized(Auth::TYPE_GROUP,$group['group_id'])}
+
+        {var formName => 'groupform' . $group['group_id']}
+        {control $formName begin}
+            <td>
+                {$control[$formName]['group_status']->control}
+            </td>
+
+            <td>
+                {$control[$formName]['update']->control}
+            </td>
+        {control $formName end}
+				<td>
+               <a href="{plink Group:edit, $group['group_id']}">_"edit"</a>
+            </td>
+				{else}
+					<td>{$group['group_status']}</td>
+					<td></td>
+					<td></td>
+				{/if}
+				<td>
+					<a href="{plink Group:default, $group['group_id']}">_"detail"</a>
+				</td>
+				{if $group['logged_user_member'] == 0}
+					<td>
+						<a href="javascript:void(0);" onClick='groupInsert_User({$group["group_id"]},{$user_id},{plink $refresh_path});'>join</a>
+					</td>
+				{/if}
+				{if $group['logged_user_member'] == 1}
+					<td>
+                                                <a href="javascript:void(0);" onClick='groupRemove_User({$group["group_id"]},{$user_id},{plink $refresh_path});'>_"leave"</a>
+                                        </td>
+
+				{/if}
+				{if $group['logged_user_member'] == -1}
+
+				{/if}
+				{ifset $resource_widget}
+            	{if !in_array($resource_id,$group['registered_resources'])}
+            		<td>
+               		<a href="javascript:void(0);" onClick='groupInsert_Resource({$group["group_id"]},{$resource_id},{plink $refresh_path, $resource_id});'>_"Link to resource."</a>
+            		</td>
+            	{else}
+            		<td>
+               		<a href="javascript:void(0);" onClick='groupRemove_Resource({$group["group_id"]},{$resource_id},{plink $refresh_path, $resource_id});'>_"Unlink from resource."</a>
+            		</td>
+            	{/if}
+            {/if}
+        </tr>
+		{/if}
+    {/foreach}
+</table> 
+{/block}
+@{block #listertail}
+{/block}

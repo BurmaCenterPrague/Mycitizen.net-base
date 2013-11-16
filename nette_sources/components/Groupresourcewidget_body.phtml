@@ -1,0 +1,69 @@
+@{extends ListerControlMain_base_body.phtml}
+@{block #listerhead}
+
+{/block}
+@{block #listcontent}
+<table>
+    <tr>
+        <th>
+           	{_"Name"} 
+        </th>
+        <th>
+        </th>
+    </tr>
+	{foreach $data as $row}
+			{var $res => Resource::create($template_variables['resource_id'])}
+        <tr>
+				<td>
+					<a href="javascript:void(0);" onClick="showObjectDetail({$row['type']},{$row['id']})">
+					{$row['name']}
+					</a>
+				</td>
+				<td>
+					{if $row['type_name'] == "group"}
+					<a href="{plink Group:default, $row['id']}">detail</a>
+					{/if}
+					{if $row['type_name'] == "user"}
+               		<a href="{plink User:default, $row['id']}">detail</a>
+               		{/if}
+					{if $row['type_name'] == "resource"}
+               		<a href="{plink Resource:default, $row['id']}">detail</a>
+               		{/if}
+				</td>
+					{if $row['type_name'] == "user"}
+					{if $res->getOwner()->getUserId() == $row['id']}
+					<td>
+						{_"Owner"}
+					</td>
+				{else}
+				{if !in_array($template_variables['resource_id'],$row['registered_resources'])}
+                  <td>
+							
+                     <a href="javascript:void(0);" onClick='userInsert_Resource({$row["id"]},{$template_variables['resource_id']},{plink $refresh_path, $template_variables['resource_id']});'>Subscribe to resource.</a>
+                  </td>
+               {else}
+                  <td>
+                     <a href="javascript:void(0);" onClick='userRemove_Resource({$row["id"]},{$template_variables['resource_id']},{plink $refresh_path, $template_variables['resource_id']});'>Unsubscribe from resource.</a>
+                  </td>
+               {/if}
+				{/if}
+				{/if}
+				{if $row['type_name'] == "group"}
+					{if !in_array($template_variables['resource_id'],$row['registered_resources'])}
+                  <td>
+                     <a href="javascript:void(0);" onClick='groupInsert_Resource({$row["id"]},{$template_variables['resource_id']},{plink $refresh_path, $template_variables['resource_id']});'>_"Subscribe to resource."</a>
+                  </td>
+               {else}
+                  <td>
+                     <a href="javascript:void(0);" onClick='groupRemove_Resource({$row["id"]},{$template_variables['resource_id']},{plink $refresh_path, $template_variables['resource_id']});'>_"Unsubscribe from resource."</a>
+                  </td>
+               {/if}
+
+				{/if}
+
+        </tr>
+    {/foreach}
+</table> 
+{/block}
+@{block #listertail}
+{/block}

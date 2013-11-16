@@ -1,0 +1,55 @@
+{var load_js_css_zxcvbn => true}
+{block title}{_"User Signup"}{/block}
+{block content}
+<div class="wrapper-text">
+		{control registerform error}
+		{control registerform}
+
+<script>
+	var oldText,oldRepeat;
+	$(document).ready(function(){
+		$("#frmregisterform-user_password").keyup(function(){
+			var color;
+			var password = $("#frmregisterform-user_password").val();
+			if (password == oldText) { return true;}
+			var user_inputs = new Array();
+			var user_name = $("#frmregisterform-user_login").val();
+			if (user_name != '') user_inputs.push(user_name);
+			var result = zxcvbn(password, user_inputs);
+			switch(result.score) {
+				case 0: color = "#FF0000"; break;
+				case 1: color = "#FFBF00"; break;
+				case 2: color = "#FFFF00"; break;
+				case 3: color = "#80FF00"; break;
+				case 4: color = "#01DF01"; break;
+			}
+			if (color != '') {
+				$('#frmregisterform-user_password').css({ "background-color":color});
+			}
+			oldText = password;
+			oldRepeat = "";
+		});
+		$("#frmregisterform-password_again").keyup(function(){ comparePasswords()});
+		$("#frmregisterform-user_password").keyup(function(){ comparePasswords()});
+	});
+	
+	function comparePasswords(){
+			var color;
+			var again = $("#frmregisterform-password_again").val();
+			if (again == oldRepeat) { return true;}
+			var password = $("#frmregisterform-user_password").val();
+			if (again.length == 0) {
+
+			} else {
+			if (password == again) {
+				color = "transparent";
+			} else {
+				color = "#FF0000";
+			}
+			}
+			$('#frmregisterform-password_again').css({ "background-color":color});			
+			oldRepeat = again;
+		}
+</script>
+</div>
+{/block}

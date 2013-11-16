@@ -1,0 +1,156 @@
+{block title}{_"Resources"}{/block}
+@{block #content}
+<div class="resource_default_main">
+
+	<div class="resource_default_filter">
+		<div class="filter-body filter-body-{control defaultresourceresourcelister:filterstatus}">
+			<a href="#filter_container" id="filter_box_a" class="filter-button-{control defaultresourceresourcelister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control defaultresourceresourcelister:filtercheck}</a>
+			<div id="filter_container" style="display:none;">
+				{control defaultresourceresourcelister:filter}
+			</div>
+			<script>
+			$(document).ready(function(){
+				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+					$('#frmfilter-reset').hide();
+				}
+			});
+			</script>
+			<script type="text/javascript">
+			$(function() {
+				$("#filter_box_a").fancybox({
+					minWidth:700,
+					minHeight:500,
+					closeBtn : true,
+					helpers : {
+						overlay :null,
+						 title : null
+					},
+				});
+			});
+			</script>
+		</div>
+	</div>
+
+    <div class="resource_default_B">
+        <div class="resource_default_rsources">
+			<h2>{_"Resources"}</h2>
+            {control defaultresourceresourcelister:body}
+        </div>
+
+		<div class="wrapper">
+        	<div class="resource_default_info">
+				{ifset $default_data}
+				<div class="item-resource" onclick=window.location='{link Resource:default, $default_data['object_data']['resource_id']}'>
+				
+					{? $resource_name = array(
+									1=>'1',
+									2=>'event',
+									3=>'org',
+									4=>'doc',
+									6=>'other',
+									7=>'7',
+									8=>'8',
+									9=>'friendship',
+									'media_soundcloud'=>'audio',
+									'media_youtube'=>'video',
+									'media_vimeo'=>'video',
+									'media_bambuser'=>'live-video'
+									)}
+					{? $resource_type = $default_data['object_data']['resource_type']==5 ? $resource_name[$default_data['object_data']['media_type']] : $resource_name[$default_data['object_data']['resource_type']]}
+					<div class="resource-image" title="{$resource_type_label}"><b class="icon-{$resource_type}"></b></div>
+				
+					{if Auth::ADMINISTRATOR == Auth::isAuthorized(3,$default_data['object_data']["resource_id"])}
+                	<div class="resource-edit">
+						<a href="{link Resource:edit, $default_data['object_data']["resource_id"]}"><b class="icon-resource-edit" title="{_"edit"}"></b></a>
+               		</div>
+            		{/if}
+            		
+
+					{ifset $default_data['object_data']['logged_user_member']}
+						{if $default_data['object_data']['logged_user_member'] == 1}
+							<b class="icon-subscriber" title="{_"I am subscribed."}"></b>
+						{else}
+							<b class="icon-no-subscriber" title="{_"I am not subscribed."}"></b>
+						{/if}
+	
+						{if $default_data['object_data']['resource_visibility_level'] == 1}
+							<b class="icon-world"  title="{_"visible to the world"}"></b>
+						{elseif $default_data['object_data']['resource_visibility_level'] == 2}
+							<b class="icon-registered" title="{_"only visible to registered users"}"></b>
+						{else}
+							<b class="icon-person" title="{_"only visible to friends"}"></b>
+						{/if}
+
+					<div class="resource-name">
+						<span{ifset $screenshot} title='{!$screenshot}'{/if}>{$default_data['object_data']['resource_name']}</span>
+					</div>
+					{/if}
+				</div> <!-- item-resource -->
+	
+            
+        		<div class="resource-description">
+        			{$default_data['object_data']['resource_description']}
+        		</div>
+
+				{ifset $default_data['object_data']['logged_user_member']}
+					{if $default_data['object_data']['logged_user_member'] == 0 && $default_data['object_data']['resource_visibility_level'] != 3}
+						<div class="resource-connection">
+							<a href="javascript:void(0);" onClick='userInsert_Resource({$logged_user},{$default_data['object_data']["resource_id"]},{link Resource:default});' class="button">{_"Subscribe to resource"}</a>
+						</div>
+					{/if}
+					{if $default_data['object_data']['logged_user_member'] == 1}
+						{ifset $iamowner}
+						<div class="resource-owner">
+							<b class="icon-owner" title="{_"This is my resource."}"></b>
+						</div>
+						{else}
+						<div class="resource-connection">
+							<a href="javascript:void(0);" onClick='userRemove_Resource({$logged_user},{$default_data['object_data']["resource_id"]},{link Resource:default});' class="button">{_"Unsubscribe from resource"}</a>
+						</div>
+						{/if}
+					{/if}
+					
+					{if Auth::MODERATOR <= Auth::isAuthorized(3,$default_data['object_data']["resource_id"])}
+						<div class="administration">
+						<h3>{_"Administration"}</h3>
+						{control resourceadministrator begin}
+							<label>{_"Enabled"}</label>{$control['resourceadministrator']['status']->control}
+						 	{$control['resourceadministrator']['send']->control}
+						{control resourceadministrator end}
+						</div>
+					{/if}
+				{/if}
+			</div> <!-- resource_default_info -->
+			{else}
+				<h3>{_"Select a resource for more details."}</h3>
+			{/if}
+		
+			<div class="resource_default_members">
+				{ifset $default_data}
+					<h2>{_"Subscribed Users"}</h2>
+					{if $default_data['object_data']['resource_visibility_level']<3 || (isset($default_data['object_data']['logged_user_member']) && $default_data['object_data']['logged_user_member'] == 1) }
+						{control defaultresourcememberlister:body}
+					{else}
+						<p>{_"You are not allowed to see the subscribed users."}</p>
+					{/if}
+				{/if}
+			</div>
+		 
+			<div class="resource_default_groups">
+				{ifset $default_data}
+					<h2>{_"Subscribed Groups"}</h2>
+					{if $default_data['object_data']['resource_visibility_level']<3 || (isset($default_data['object_data']['logged_user_member']) && $default_data['object_data']['logged_user_member'] == 1) }
+						{control defaultresourcegrouplister:body}
+					{else}
+						<p>{_"You are not allowed to see the subscribed groups."}</p>
+					{/if}
+
+				{/if}
+        	</div>
+    	</div> <!-- .wrapper -->
+
+	</div>
+
+</div>
+{/block}
+

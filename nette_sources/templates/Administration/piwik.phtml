@@ -1,0 +1,8 @@
+{block title}{_"Administration - Web Statistics"}{/block}
+{block content}
+	{control adminmenu}
+<div class="wrapper-text">
+	<h1>Web Statistics</h1>
+	<iframe src="{$PIWIK_URL}/index.php?module=Widgetize&action=iframe&moduleToWidgetize=Dashboard&actionToWidgetize=index&idSite={$PIWIK_ID}&period=day&date=today&token_auth={$PIWIK_TOKEN}" frameborder="0" marginheight="0" marginwidth="0" style="height:100%; min-height:1100px; width:100%"><img src="/images/ajax-loader.gif"/> Loading...</iframe>
+</div>
+{/block}

@@ -1,0 +1,143 @@
+{block title}{_"Groups"}{/block}
+@{block #content}
+<div class="group_default_main">
+
+    <div class="group_default_filter"> 
+		<div class="filter-body filter-body-{control grouplister:filterstatus}">
+			<a href="#filter_container" id="filter_box_a" class="filter-button-{control grouplister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control grouplister:filtercheck}</a>
+			<div id="filter_container" style="display:none;">
+				{control grouplister:filter}
+			</div>
+			<script>
+			$(document).ready(function(){
+				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+					$('#frmfilter-reset').hide();
+				}
+			});
+			</script>
+			
+			<script type="text/javascript">
+			$(function() {
+				$("#filter_box_a").fancybox({
+					minWidth:700,
+					minHeight:500,
+					closeBtn : true,
+					helpers : {
+						overlay : null,
+						 title : null
+					},
+				});
+			});
+			</script>
+		</div>
+	</div>
+
+    <div class="group_default_B">
+        <div class="group_default_groups">
+			<h2>{_"Groups"}</h2>
+            {control grouplister:body}
+         </div>
+         
+		<div class="wrapper">
+			<div class="group_default_info">
+				{ifset $default_data}
+				<div class="item-group" onclick=window.location='{link Group:default, $default_data['object_data']['group_id']}'>
+					<div class="group-image">
+						{!$large_icon}
+					</div>
+					{if Auth::ADMINISTRATOR == Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+					<div class="group-edit">
+						<a href="{plink Group:edit, $default_data['object_data']["group_id"]}"><b class="icon-group-edit" title="{_"edit"}"></b></a>
+					</div>
+					{/if}
+					
+					{ifset $default_data['object_data']['logged_user_member']}
+						{if $default_data['object_data']['logged_user_member'] == 1}
+							<b class="icon-member" title="{_"I am a member."}"></b>
+						{else}
+							<b class="icon-no-member" title="{_"I am not a member."}"></b>
+						{/if}
+						
+						{if $default_data['object_data']['group_visibility_level'] == 1}
+							<b class="icon-world"  title="{_"visible to the world"}"></b>
+						{elseif $default_data['object_data']['group_visibility_level'] == 2}
+							<b class="icon-registered" title="{_"only visible to registered users"}"></b>
+						{else}
+							<b class="icon-person" title="{_"only visible to members"}"></b>
+						{/if}
+
+					<div class="group-name">
+						{$default_data['object_data']['group_name']}
+					</div>
+					{/if}
+				</div> <!-- item-group -->
+
+					{ifset $default_data['object_data']['logged_user_member']}
+						<div class="group-description">
+								{$default_data['object_data']['group_description']}<br/>
+						</div>
+
+						{if $default_data['object_data']['logged_user_member'] == 0}
+						<div class="group-connection">
+						{if $default_data['object_data']['group_visibility_level'] == 3}
+							{_"On invitation only"}
+						{else}
+							<a href="javascript:void(0);" onClick='groupInsert_User({$default_data['object_data']["group_id"]},{$logged_user},{link Group:default});' class="button">{_"Join group"}</a>
+						{/if}
+						</div>
+						{/if}
+						{if $default_data['object_data']['logged_user_member'] == 1}
+							{ifset $iamowner}
+							<div class="group-owner">
+								<b class="icon-owner" title="{_"This is my group."}"></b>
+							</div>
+							{else}
+						<div class="group-connection">
+							<a href="javascript:void(0);" onClick='groupRemove_User({$default_data['object_data']["group_id"]},{$logged_user},{link Group:default});' class="button">{_"Leave group"}</a>
+						</div>
+							{/if}
+						{/if}
+
+						{if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+						<div class="administration">
+						   <h3>{_"Administration"}</h3>
+						   {control groupadministrator begin}
+							  <label>{_"Enabled"}</label>{$control['groupadministrator']['status']->control}
+							  {$control['groupadministrator']['send']->control}
+						   {control groupadministrator end}
+						</div>
+						{/if}
+				{/if}
+			</div> <!-- group_default_info -->
+			{else}
+				<h3>{_"Select a group for more details."}</h3>
+			{/if}
+         
+			<div class="group_default_users">
+			{ifset $default_data}
+				<h2>{_"Group members"}</h2>
+				{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
+				{control defaultgroupuserlister:body}
+				{else}
+					<p>{_"You are not allowed to see the members."}</p>
+				{/if}
+			{/if}
+			</div>
+		
+			<div class="group_default_resources">
+			{ifset $default_data}
+				<h2>{_"Group resources"}</h2>
+				{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
+				{control defaultgroupresourcelister:body}
+				{else}
+					<p>{_"You are not allowed to see the subscriptions."}</p>
+				{/if}
+			{/if}
+			</div>
+			
+    	</div> <!-- .wrapper -->
+
+	</div>
+
+</div>
+{/block}

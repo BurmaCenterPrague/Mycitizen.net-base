@@ -1,0 +1,87 @@
+{block title}Administration{/block}
+{block content}
+	{control adminmenu}
+<div class="wrapper-text">
+	<h1>Statistics</h1>
+	<table class="admin-table" style="min-width:700px;" cellspacing="0">
+	<tr class="tr-header">
+		<td colspan="2"><h4>Users</h4></td>
+	</tr>
+	<tr>
+		<td><b>{_"total"}:</b></td><td><b>{$stats['users']}</b></td>
+	</tr>
+	<tr>
+		<td><b class="icon-administrator"></b>{_"administrators"}</td><td>{$stats['admins']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-moderator"></b>{_"moderators"}</td><td>{$stats['mods']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-warning"></b>{_"creation rights removed"}</td><td>{$stats['no_creation_rights']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-cancel"></b>{_"deactivated"}</td><td>{$stats['deactivated_users']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-cancel"></b>{_"banned"}</td><td>{$stats['banned_users']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-world"></b>{_"visbility 'world'"}</td><td>{$stats['users_v_1']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-registered"></b>{_"visbility 'registered'"}</td><td>{$stats['users_v_2']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-person"></b>{_"visbility 'friends'"}</td><td>{$stats['users_v_3']}</td>
+	</tr>
+
+	<tr class="tr-header">
+		<td colspan="2"><h4>Groups</h4></td>
+	</tr>
+	<tr>
+		<td><b>{_"total"}:</b></td><td><b>{$stats['groups']}</b></td>
+	</tr>
+	<tr>
+		<td><b class="icon-cancel"></b>{_"deactivated"}</td><td>{$stats['deactivated_groups']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-world"></b>{_"visbility 'world'"}</td><td>{$stats['groups_v_1']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-registered"></b>{_"visbility 'registered'"}</td><td>{$stats['groups_v_2']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-person"></b>{_"visbility 'members'"}</td><td>{$stats['groups_v_3']}</td>
+	</tr>
+
+	<tr class="tr-header">
+		<td colspan="2"><h4>Resources</h4></td>
+	</tr>
+	<tr>
+		<td><b>{_"total"}:</b></td><td><b>{$stats['resources']}</b></td>
+	</tr>
+	<tr>
+		<td><b class="icon-cancel"></b>{_"deactivated"}</td><td>{$stats['deactivated_resources']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-world"></b>{_"visbility 'world'"}</td><td>{$stats['resources_v_1']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-registered"></b>{_"visbility 'registered'"}</td><td>{$stats['resources_v_2']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-person"></b>{_"visbility 'susbcribed'"}</td><td>{$stats['resources_v_3']}</td>
+	</tr>
+
+	<tr class="tr-header">
+		<td colspan="2"><h4>Messages</h4></td>
+	</tr>
+	<tr>
+		<td><b class="icon-no-message"></b>{_"private messages"}</td><td>{$stats['private_messages']}</td>
+	</tr>
+	<tr>
+		<td><b class="icon-no-message"></b>{_"chat messages"}</td><td>{$stats['chat_messages']}</td>
+	</tr>
+
+	</table>	
+</div>{/block}

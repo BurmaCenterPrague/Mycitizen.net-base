@@ -1,0 +1,56 @@
+@{extends ListerControl.phtml}
+@{block #listerhead}
+{/block}
+@{block #listcontent}
+<table>
+    <tr>
+        <th>
+            {_"Login"}
+        </th>
+        <th>
+            {_"Name"}
+        </th>
+        <th>
+            {_"Surname"}
+        </th>
+        <th>
+            {_"Access Level"}
+        </th>
+        <th>
+            {_"Enabled"}
+        </th>
+    </tr>
+	{foreach $data as $user}
+        <tr>
+            <td>
+                [{$user['user_login']}]
+            </td>
+            <td>
+                {$user['user_name']}
+            </td>
+            <td>
+                {$user['user_surname']}
+            </td>
+        {var formName => 'userform' . $user['user_id']}
+        {control $formName begin}
+            <td>
+                {$control[$formName]['group_user_access_level']->control}
+            </td>
+
+            <td>
+                {$control[$formName]['group_user_status']->control}
+            </td>
+
+            <td>
+                {$control[$formName]['update']->control}
+            </td>
+        {control $formName end}
+				<td>
+					<a href="{plink User:default, $user['user_id']}">{_"View details."}</a>
+				</td>
+        </tr>
+    {/foreach}
+</table> 
+{/block}
+@{block #listertail}
+{/block}

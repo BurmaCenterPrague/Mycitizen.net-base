@@ -1,0 +1,177 @@
+<div class="lister-body">
+   {snippet list_body}
+
+
+	{foreach $data as $row}
+    {var $res => Resource::Create($row['id'])}
+    {? $id=$row['id']}
+
+	{var r_data => $res->getResourceData()}
+	{var r_author => User::create($r_data['resource_author'])->getUserData()}
+	{? $icon = User::getImage($r_data['resource_author'],'icon')}
+
+	{? $date=(array)$r_data['resource_creation_date']}
+	{? date_default_timezone_set($date['timezone'])}
+	{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
+
+        	<div class="chat-item" id="chat_message_{$id}">
+        		<div class="chat-header">
+					<div class="chat-avatar">
+						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{!$icon}</a>{else}{!$icon}{/if}
+					</div>
+					<div class="chat-author">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{$r_author['user_login']}</a>{else}{$r_author['user_login']}{/if}
+						{if $r_author['user_access_level']>1}
+							<b class="icon-moderator" title="{_"moderator"}"></b>
+						{/if}
+					</div>
+					<div id="{$id}_date" class="chat-time">
+						{$date_formatted}
+					</div>
+
+					{if Auth::MODERATOR<=Auth::isAuthorized(2,$template_variables['group_id'])}
+						<div class="move-to-trash">
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessage({$id});" title="{_"Remove this message."}"><b class="icon-message-to-trash"></b></a>	
+						</div>
+					{/if}
+					
+					{if ($template_variables['is_member']) && ($r_author['user_login'] != $template_variables['user_login'])}
+					<div class="chat-reply">
+						{if $res->getOwner()->isActive()}
+						<a href="javascript:void(0);" id="reply_0000{$id}" class="button">
+							{_"reply"}
+						</a>
+						{/if}
+					</div>
+					{/if}
+				</div>	
+				<div id="{$id}_text" class="chat-text">
+				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}
+					{if !$res->getOwner()->isActive()}
+					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
+					{/if}
+					{!$r_data['message_text']|htmlpurify}
+				{else}
+					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
+				{/if}
+				</div>
+			</div>
+    {/foreach}
+
+ {/snippet}
+</div>
+
+<div class="lister-footer">
+	{snippet list_pager}
+	{ifset $currentpage}
+		<input type="hidden" id="currentpage" value="{$currentpage}" />
+	{/if}
+
+	<div class="pager">
+	   {if $max_page > 1}
+			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+	   {/if}
+   
+	   {if $max_page > 5}
+	   {if $currentpage > 4}
+			<a href="javascript:changePage({$currentpage - 1})" class="pager-minus"><</a>
+	   {/if}
+	   {/if}
+   
+	   {if $max_page > 2}
+	   {if $max_page < 6}
+	   {for $i = 2; $i <= $max_page-1; $i++}
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	   {/for}   
+	   {else}
+	   {if $currentpage <= 4}
+	   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+	   {for $i = 2; $i <= $end; $i++}
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	   {/for}
+	   {else}
+	   {? if ($currentpage+3 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+	   {for $i = $currentpage-2; $i <= $end; $i++}
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	   {/for}
+	   {/if}
+	   {/if}
+	   {/if}
+
+	   {if $max_page > 5}
+	   {if ($currentpage + 3) < $max_page}
+			<a href="javascript:changePage({$currentpage + 1})" class="pager-plus">></a>
+	   {/if}
+	   {/if}
+   
+	   {if $max_page > 1}
+			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+	   {/if}
+	</div>
+   {/snippet}
+</div>
+
+	<script>
+		$(document).ready(function(){
+			$('blockquote').css({ "cursor":"pointer"});
+			
+			$('[id^=reply_]').click(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				var editor = tinymce.editors[0];
+				var content = editor.getContent();
+				var quote = $('[id$='+id+'_text]').html();
+				quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
+				var author_name = $('[id$='+id+'_author]').html();
+				var author_id = $('[id$='+id+'_author]').attr('rel');
+				var date = $('[id$='+id+'_date]').html();
+				var quote_shortened = quote.substr(0,300);
+				if (quote_shortened != quote ) { quote_shortened += '...'; }
+				var reply = '<br/><blockquote id="quoting_0000'+id+'"><span style="color:#333;">{!_"On"} <b>'+date+'</b></span> <b><span style="color:#999;">'+author_name+'</span></b> <span style="color:#333;">{!_"wrote"}:</span><br />'+quote_shortened+'</blockquote><br/>';
+				content = reply;
+				editor.setContent(content);
+				$('html, body').animate({
+					scrollTop: $("#chat_top_anchor").offset().top
+				}, 2000);
+				editor.focus();
+			});
+		
+			$('blockquote').click(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				$('html, body').animate({
+					scrollTop: $("#chat_message_"+id).offset().top
+				}, 'normal');
+			});
+		
+			$('blockquote').mouseover(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				$("#chat_message_"+id).css({ "border-left":"solid 4px #E08E1B", "padding-left":"20px"});
+				if ($("#chat_message_"+id).css("border-left")) {
+					$(this).css('cursor','pointer');
+				};
+			});
+
+			$('blockquote').mouseout(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0px"});
+			});
+		
+		});
+
+		function removeMessage(id) {
+			$('#chat_message_'+id).css({'background-color':'#E30'});
+			var group_id={$template_variables['group_id']};
+			setTimeout( function(){
+				reply=confirm({_"Do you really want to delete this message?"});
+				if (reply==true) {
+					$.post("?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
+						$('#totrash-'+id).hide();
+						$('#chat_message_'+id).hide('normal');
+				} else {
+					$('#chat_message_'+id).css({'background-color':'transparent'});
+				}	
+			}, 500 );				
+				
+		}
+
+	</script>
+

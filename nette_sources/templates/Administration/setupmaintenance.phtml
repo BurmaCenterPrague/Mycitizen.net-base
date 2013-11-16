@@ -1,0 +1,103 @@
+{block title}{_"Administration - Setup and Maintenance"}{/block}
+{block content}
+<div class="menu_admin">
+	{control adminmenu}
+</div>
+<div class="wrapper-text">
+	<h1>{_"Setup and Maintenance"}</h1>
+	<table class="admin-table" style="min-width:700px;" cellspacing="0">
+	<tr class="tr-header">
+		<td colspan="2">	
+			<h3>Setup</h3>
+		</td>
+	</tr>
+	<tr>
+		<td><a href="?do=import" class="button">{_"Import resources from a file"}</a></td><td><img src="/images/help.png" class="help-icon" title="
+	Imports resources from a file that is named <b>resources.csv</b> and located in the web/files folder.
+	<br/>The data must be provided in tab-separated values, text in enclosing quotes. Lines that start with # will be skipped (use it for column lables and comments).
+	<br/><br/><b>Columns</b> (in this order)
+	<br/>Name, Description, Type [organization, document, youtube, vimeo, soundcloud, bambuser, other], Location (recommended: 'country' or 'town, country' or 'street, town, country'; must be understood by Google Maps), URL, Media Code (for multimedia), Long Info (for documents), Language (id; default is 1), visibility (1: world, 2: registerd, 3: subscribers), Tags (comma separated names)
+	<br/>Name, Description and Type are mandatory.
+	<br/><b>Notes:</b> Events not yet fully supported. Processing the same file repeatedly will result in duplicates. Don't delete a language that anyone is using.
+	<br/>
+	<br/>After processing, you will find an error log with the name 'resources.csv.log'.
+	<br/>Consult the manual for more options.
+	"/></td>
+	</tr>
+	<tr>
+		<td><a href="?do=locales" class="button">{_"Update languages"}</a></td><td><img src="/images/help.png" class="help-icon" title="Compares the <b>locale</b> folder with languages in the database and updates the database.
+		<br /><br /><b>Requirements:</b>
+		<ul>
+		<li>a messages.mo file in the LC_MESSAGES subfolder under the folder with the language code</li>
+		<li>a language.txt file in the same subfolder, which contains the name of the language</li>
+		<li>intro.phtml and footer.phtml in a subfolder with the language code, placed under files</li>
+		</ul>
+		"/></td>
+	</tr>
+	<tr class="tr-header">
+		<td colspan="2">
+			<h3>System Information</h3>
+		</td>
+	</tr>
+	<tr>
+		<td><b>{_"PHP Version"}</b></td><td>{? echo PHP_VERSION}</td>
+	</tr>
+	<tr>
+		<td><b>{_"PHP max execution time"}</b></td><td>{? echo ini_get('max_execution_time'); } sec</td>
+	</tr>
+	<tr>
+		<td><b>{_"PHP memory limit"}</b></td><td>{? echo ini_get('memory_limit'); }</td>
+	</tr>
+	<tr>
+	{? $base = log(memory_get_usage()) / log(1024)}
+	{? $suffix = array("", "k", "M", "G", "T");}
+		<td><b>{_"PHP memory usage"}</b></td><td>{? echo round(pow(1024, $base - floor($base)),1) . $suffix[floor($base)] }</td>
+	</tr>
+	<tr>
+		<td><b>{_"GD (images) supported"}</b></td><td>{if function_exists("ImageCreateTrueColor")}yes{else}<span style="color:#f00;">no</span>{/if}</td>
+	</tr>
+	<tr>
+		<td><b>{_"Gettext supported"}</b></td><td>{if function_exists("gettext")}yes{else}<span style="color:#f00;">no</span>{/if}</td>
+	</tr>
+	<tr>
+		<td><b>{_"Your current locale '%s' is supported", $language}</b></td><td>{? echo (setlocale(LC_ALL, $language) ? 'yes' : '<span style="color:#f00;">no</span>')}</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top;"><b>{_"Test locale"}</b></td><td>{control testlocaleform}</td>
+	</tr>
+	<tr class="tr-header">
+		<td colspan="2">
+			<h3>Software Information</h3>
+		</td>
+	</tr>
+	<tr>
+		<td><b>{_"Software version:"}</b></td><td> {$PROJECT_VERSION}</td>
+	</tr>
+	<tr class="tr-header">
+		<td colspan="2">
+			<h3>Maintenance</h3>
+		</td>
+	</tr>
+	<tr>
+		<td><a href="?do=systemcheck"  class="button">{_"System check"}</a></td>
+		
+		<td><img src="/images/help.png" class="help-icon" title="Finds:<ul><li>groups and resources without owners.</li></ul>"/>
+		</td>
+	</tr>
+
+	<tr class="tr-header">
+		<td colspan="2">
+			<h3>Support</h3>
+		</td>
+	</tr>
+	<tr>
+		<td><b>{_"Documentation:"}</b></td><td><a href="http://mycitizen.net/manual:start#mycitizennetweb" target="_blank" class="button">go to website</a></td>
+	</tr>
+	<tr>
+		<td><b>{_"User Forum:"}</b></td><td><a href="http://forum.mycitizen.org/mycitizen-net-web" target="_blank" class="button">go to forum</a></td>
+	</tr>
+	</table>	
+
+
+</div>
+{/block}

@@ -1,0 +1,274 @@
+{block title}{_"Details of the user"} {$data['user_login']}{/block}
+{block content}
+
+<div class="back">
+	<a href="{link User:default}" title="{_"Back to list of users."}" class="list"><b class="icon-list"></b></a>
+</div>
+
+<div class="about">
+
+	<div class="icons">
+		<div class="friendship-status-detail">
+	{ifset $thats_me}
+			<b class="icon-my-profile" title="{_"This is my profile."}"></b>
+	{else}
+			<b {if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}class="icon-friend" title="{_"my friend"}">{else}class="icon-no-friend" title="{_"not my friend"}">{/if}</b>
+	{/if}
+		</div>
+
+		<div class="icon-visibility">
+		{if $data['user_visibility_level'] == 1}
+			<b class="icon-world"  title="{_"visible to the world"}"></b>
+		{elseif $data['user_visibility_level'] == 2}
+			<b class="icon-registered" title="{_"only visible to registered users"}"></b>
+		{else}
+			<b class="icon-person" title="{_"only visible to friends"}"></b>
+		{/if}
+		</div>
+	</div>
+
+	{!$img}
+	
+	<h4>{_"Last activity: "}{$last_activity|date:'j.n.Y'}</h4>
+	
+	<h2 class="user_login">
+	{ifset $default_data}
+		{if Auth::ADMINISTRATOR == Auth::isAuthorized(1,$default_data['object_data']["user_id"])}
+			<a href="{plink User:edit, $default_data['object_data']["user_id"]}"><b class="icon-user-edit" title="{_"edit"}"></b></a>
+		{else}
+			{ifset $logged_user}
+				{if $access_level==1}
+			<a  href="#report_form" id="report_box"><b class="icon-warning" title="{_"Report user"}"></b></a>
+				{elseif $access_level==2}
+					<b class="icon-moderator" title="moderator"></b>
+				{else}
+					<b class="icon-administrator" title="administrator"></b>
+				{/if}
+			{/if}
+		{/if}
+	{/if}
+	{$data['user_login']}
+	</h2>
+	
+	{ifset $logged_user}
+		{if $access_level<2}
+	<div id="report_form" style="display:none;">
+		<h4>{_"Here you can report the user if you think her or she has violated the rules. Reports will be processed by our moderators."}</h4>
+		{control reportform}
+	</div>
+
+	<script type="text/javascript">
+	$(function() {
+		$("#report_box").fancybox({
+			closeBtn : true,
+			helpers : {
+				overlay : null,
+				 title : null
+			},
+		});
+	});
+	</script>
+		{/if}
+	{/if}
+	
+	<h3 class="user_name">{$data['user_name']} {$data['user_surname']}</h3>
+	
+	<div class="user_detail_description">
+	
+		{$data['user_description']}
+
+		<div class="user-detail-language">	
+			<h3>{_"Language"}:</h3>
+			{$object_language}
+		</div>
+		
+		<div class="user-detail-tags">
+			<h3>Interests</h3>
+			{ifset $user_tags}
+			<table>
+				{?$i=0}
+				 {foreach $user_tags as $key=>$tag_name}
+					<tr>
+						<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
+							{foreach $tag_name->getIdWithPath() as $tag}
+								{if $iterator->isLast()}
+									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a>
+								{else}
+									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+								{/if}
+							{/foreach}
+							</div>
+						</td>
+					</tr>
+				{?$i++}
+				{/foreach}
+			</table>
+			{else}
+			{_"No tags."}
+			{/if}
+		</div>
+
+	</div>
+	
+	
+	<div class="user_action">
+	{if !isset($thats_me)}
+        {if isset($default_data) && isset($default_data['object_data']['user_friend_relationship'])  && isset($default_data['object_data']['friend_user_relationship'])}
+		 	{if $default_data['object_data']['user_friend_relationship'] == 0 && $default_data['object_data']['friend_user_relationship'] == 0}
+		<div>
+			 <a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Request friendship"}</a>
+		</div>
+			{/if}
+			{if $default_data['object_data']['user_friend_relationship'] == 1 && $default_data['object_data']['friend_user_relationship'] == 0}
+		<div>
+			 {_"Friendship request sent."} <a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Revoke request"}</a>
+		</div>
+			{/if}
+			{if $default_data['object_data']['user_friend_relationship'] == 1 && $default_data['object_data']['friend_user_relationship'] == 3}
+		<div>
+			{_"Friendship request rejected."} <a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Revoke request"}</a>
+		</div>
+		  	{/if}
+		  	{if $default_data['object_data']['user_friend_relationship'] == 3}
+		<div>
+			{_"You currently block this user."}
+		</div>
+				{if $default_data['object_data']['friend_user_relationship'] == 0}
+		<div>
+			<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Unblock this user"}</a>
+		</div>
+				{/if}
+				{if $default_data['object_data']['friend_user_relationship'] == 1}
+				{* will this ever happen??? *}
+		<div>
+			<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Accept friendship"}</a>
+		</div>
+				{/if}
+			{/if}
+			{if $default_data['object_data']['user_friend_relationship'] < 2 && $default_data['object_data']['friend_user_relationship'] == 1}
+		<div>
+			<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Accept friendship request"}</a>
+			<a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Reject friendship request"}</a>
+		</div>
+			{/if}
+		  
+			{if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}
+		<div>
+			<a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default, $default_data['object_data']["user_id"]});' class="button">{_"Cancel friendship"}</a>
+		</div>
+			{/if}
+    	{/if}
+	{/if}
+	</div>
+
+   
+	{ifset $showmap}
+	<div class="user_detail_map">
+		<h3>{_"User's location on a map"}</h3>
+		{control map}
+	</div>
+	{/if}
+
+	{ifset $default_data}
+	<div class="administration">
+	{if Auth::MODERATOR <= Auth::isAuthorized(1,$default_data['object_data']['user_id'])}
+		{if !isset($thats_me)}
+		<h3>{_"Administration"}</h3>
+		{control useradministrator begin}
+		{ifset $control['useradministrator']['access_level']}
+			<div><label>{_"User role"}</label>
+			{$control['useradministrator']['access_level']->control}</div>
+		{/if}
+		{ifset $control['useradministrator']['status']}
+			<div><label>{_"Enabled"}</label>
+			{$control['useradministrator']['status']->control}</div>
+		{/if}
+
+		{ifset $control['useradministrator']['creation_rights']}
+			<div><label>{_"Permission to create items"}</label>
+			{$control['useradministrator']['creation_rights']->control}</div>
+		{/if}
+		{ifset $control['useradministrator']['send']}
+			<div>{$control['useradministrator']['send']->control}</div>
+		{/if}
+		{control useradministrator end}
+		{/if}
+		<div style="text-align: center"><a href="/?do=image&id={$default_data['object_data']["user_id"]}&type=1" class="button">{_"regenerate image"}</a></div>
+	{/if}
+	</div>
+	{/if}
+		
+</div>
+
+<div class="detail-right">
+	<div class="user-detail-connections">
+		<div class="user_detail_groups">
+		{ifset $default_data}
+			<h2>{_"Member of groups"}</h2>
+			{if Auth::isAuthorized(1,$default_data['object_data']['user_id'])>0 }
+				{control detailusergrouplister:body}
+			{else}
+				<p>{_"You are not allowed to see the memberships."}</p>
+			{/if}
+		{/if}
+		 </div>
+ 
+		<div class="user_detail_resources">
+		 {ifset $default_data}
+			<h2>{_"Subscribed to resources"}</h2>
+			{if Auth::isAuthorized(1,$default_data['object_data']['user_id'])>0 }
+				{control detailuserresourcelister:body}
+			{else}
+				<p>{_"You are not allowed to see the subscriptions."}</p>
+			{/if}
+		 {/if}
+		 </div>
+		 <div class="cleaner"></div>
+	</div>
+
+{if Auth::ADMINISTRATOR == Auth::isAuthorized(1,$default_data['object_data']["user_id"])}
+	<div class="friends-list" style="padding-top:20px;">
+		{ifset $thats_me}
+			<h2>{_"My friends"}</h2>
+		{else}
+			<h2>{_"%s's friends", $data['user_login']}</h2>
+		{/if}
+		{control friendlister:body}
+	</div>
+{/if}
+
+{if !isset($thats_me)}
+	<div class="user-detail-pm">
+		<div class="user-detail-pm-send">
+			<div id="message_top_anchor"></div>
+			{* Writing messages is possible for friend only. *}
+			<h2>{_"Send a private message to %s", $data['user_login']}</h2>
+			{if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}
+					{control chatform}
+			{elseif !isset($thats_me)}
+				{ifset $logged_user}
+					{_"You can only send messages to friends."}
+				{else}
+					{_"You need to log in to send messages."}
+				{/if}
+			{/if}
+		</div>
+
+		{* Reading messages is possible for all users (including ex-friends) *}
+		{ifset $logged_user}
+		<div class="user-detail-pm-read">
+			<h3>{_"My messages exchanged with %s", $data['user_login']}</h3>
+			<div class="user-messages">
+			{control chatlisteruser}
+			</div>
+	<script>
+		$(document).ready(function() {
+			if ($('#frmfilter-trash-0').is(':checked')) $('#empty-trash').hide();
+		});
+	</script>
+		</div>
+		{/if}
+	</div>
+{/if}
+</div>
+{/block}

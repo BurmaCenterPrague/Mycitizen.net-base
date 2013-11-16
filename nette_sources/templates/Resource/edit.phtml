@@ -1,0 +1,127 @@
+{block title}Resource - Update{/block}
+@{block #content}
+<script>
+	$(document).ready(function(){
+		$("#frmupdateform-event_timestamp").datetimepicker({
+		timeFormat: 'hh:mm tt z',
+		showTimezone: false,
+		timeOnlyTitle: {_"Select a time"},
+		timeText: {_"Time"},
+		hourText: {_"Hours"},
+		minuteText: {_"Minutes"},
+		secondText: {_"Seconds"},
+		currentText: {_"Now"},
+		closeText: {_"Close"},
+		monthNames: [ {_"January"}, {_"February"}, {_"March"}, {_"April"}, {_"May"}, {_"June"}, {_"July"}, {_"August"}, {_"September"}, {_"October"}, {_"November"}, {_"December"} ],
+		timezoneText: {_"Time Zone"}
+		});
+	});
+</script>
+
+<div class="resource_edit_updateform">
+
+	<div class="back"><a href="{plink Resource:default, $resource_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
+
+
+
+		<div class="edit-wrapper">
+
+		{ifset $resource_id}
+		{control updateform error}
+		<div class="resource-edit-map">
+			<h4>{_"Edit the location"}</h4>
+			{control mapedit}
+		</div>
+		{/if}
+
+	{control updateform}
+<script>
+{* set style directly in ResourcePresenter.php ! *}
+	$(document).ready(function(){
+		$('#frm-updateform').css({'display':'inline'});
+	});
+</script>
+		</div>
+	
+		<div class="cleaner"></div>
+	
+		<h3>{_"Below you can add details: Describe the topics of this resource by one or more tags. If you have created resource accessible only to selected peaople, you can insert recipients of this resource. These information will help other users to find your resource."}</h3>
+		<div class="resource-edit-tagform">
+		<h3>{_"Add or remove tags"} </h3><img src="/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="margin-bottom:-8px;"/>
+
+	   {control tagform begin}
+	
+		{snippet tagHandle}
+		{ifset $resource_id}
+			<table id="rule_tail_container" class="newSelect">
+			{ifset $resource_tags}
+			{foreach $resource_tags as $key=>$tag_name}
+				<tr>
+					<td>
+					{foreach $tag_name->getPath() as $tag}
+						<span>{$tag}</span>
+						{if !$iterator->isLast()}
+						<div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div>
+						{/if}
+				   {/foreach}
+					</td>
+					<td><input type="submit" value="X" onClick="removeTag_Resource({$resource_id},{$key});return false;" /></td>
+				</tr>	
+			{/foreach}
+			{/if}
+			</table>
+		{!$control['tagform']['add_tag']->control}
+		{/if}
+	   {/snippet}
+		{control tagform end}
+
+<script>
+	$(document).ready(function(){
+		$('a#tag_select_button').addClass('button');
+	});
+</script>
+
+		</div>
+		
+{ifset $resource_id}
+	<div class="group-edit-membersform">
+		<h3>{_"Manage subscribers of this resource"}</h3>
+		{control resourcesubscriberlister}
+	</div>
+
+{/if}
+{ifset $screenshot_url}
+	<div class="group-edit-screenshot" style="width:33%;float:left;">
+	<h3>{_('Screenshot')}</h3>
+	{ifset $screenshot}{!$screenshot}{/if}
+	</div>
+{ifset $screenshot}	
+<script>
+	$(document).ready(function(){
+		var src = $("#screenshot").attr("newsrc");
+		var d = new Date();
+		if ((typeof src != 'undefined') && (src != '')) {
+			setTimeout(function(){
+				var img = new Image();
+				img.onload = function() {
+					$("#screenshot").hide();
+					$("#screenshot").attr("src", src+"?"+d.getTime());
+					$("#screenshot").show();
+				};
+				img.onerror = function() {
+					setTimeout(function(){
+						$("#screenshot").hide();
+						$("#screenshot").attr("src", src+"?"+d.getTime());
+						$("#screenshot").show();					
+					},15000);
+ 				};
+ 				img.src = src;
+			},2000);
+		}
+	});
+</script>
+{/if}
+{/if}
+	<div class="cleaner"></div>
+</div>	
+{/block}

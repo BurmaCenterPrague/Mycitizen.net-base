@@ -1,0 +1,164 @@
+{control filter begin}
+{if !isset($hide_filter)}
+<div class="filter-body" style="height:auto !important; padding: 10px 0;">
+<div class="filter-block" style="display:inline;">
+
+{if isset($hide_by_default) && (isset($include_map) || isset($include_tags))}
+<script>
+	$(document).ready(function() {
+		{ifset $include_map}
+			$("#mapdiv").hide();
+		{/if}
+		{ifset $include_tags}
+			$("#tagdiv").hide();
+		{/if}
+		}
+	);
+</script>
+{/if}
+	{if !isset($hide_reset)}
+		<div class="reset-filter" style="float:right;">
+			{$control['filter']['reset']->control}
+		</div>
+	{/if}
+
+   	<div class="filter-top-left" style="float:left;width:50%;">
+   	
+		{ifset $include_name}
+		<div class="filter-name">
+			{$control['filter']['name']->label}
+			{$control['filter']['name']->control}
+		</div>
+		{/if}
+
+		{ifset $include_status}
+		<div class="filter-status">
+			{$control['filter']['status']->label}
+			{$control['filter']['status']->control}
+		</div>
+		{/if}
+		{ifset $include_trash}
+		<div class="filter-trash">
+			{$control['filter']['trash']->control}
+<script>
+	$(document).ready(function() {
+		if ($('#frmfilter-trash-0').is(':checked')) {
+			$('label[for=frmfilter-trash-0]').addClass('active');
+		}
+		if ($('#frmfilter-trash-1').is(':checked')) {
+			$('label[for=frmfilter-trash-1]').addClass('active');
+		}
+		if ($('#frmfilter-trash-2').is(':checked')) {
+			$('label[for=frmfilter-trash-2]').addClass('active');
+		}
+	});
+</script>
+		</div>
+		{/if}	
+
+		{ifset $include_type}
+		<div class="filter-type">
+			{$control['filter']['type']->label}
+			{$control['filter']['type']->control}
+		</div>
+		{/if}
+		{ifset $include_language}
+		<div class="filter-language">
+			{$control['filter']['language']->label}
+			{$control['filter']['language']->control}
+		</div>
+		{/if}
+	</div>
+
+	{ifset $include_tags}
+	<div class="cleaner"></div>
+   	<div class="filter-tags" style="float:left; width:60%; height:400px; overflow-y:auto; overflow-y:hidden;">
+<!--		<a href="javascript:void(0);" onClick="$('#tagdiv').toggle();">{_"Tags"}</a> -->
+		<div id="tagdiv" style="text-align:left;width:350px;">
+			{foreach $control['filter']['tags']->getControls() as $key2=>$ctrl2}
+				{if $key2 == 'all'}
+			<div class="all-tags">
+				<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _($ctrl2->label)}</div>{$ctrl2->control}
+			</div>		
+      		<div class="tag-columns" style="column-count:2;-moz-column-count:2;-webkit-column-count:2;">
+				{else}
+				<div class="wrapper_tag">
+					<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _($ctrl2->label)}</div>{$ctrl2->control}
+				</div>
+				{/if}
+			{/foreach}
+			</div>
+		</div>
+<script>
+	$(document).ready(function() {
+		$('.tag_child').parent().addClass('wrapper_child');
+
+		$(':checkbox[id=frmfilter-tags-all]').click (function () {
+			$(':checkbox[id!=frmfilter-tags-all]').prop('checked', this.checked);
+		});
+
+		$(':checkbox[id!=frmfilter-tags-all]').click (function () {
+			$(':checkbox[id=frmfilter-tags-all]').prop('checked', false);
+		});
+
+		$(':checkbox[class^=tag_parent_]').click (function () {
+			var parent = $(this);
+			var parent_id = parent.attr('class').substr(-3,3);
+			$(':checkbox[class*=tag_child_parent_'+parent_id+']').prop('checked', this.checked);
+		});
+
+		$(':checkbox[class*=tag_child_parent_]').click (function () {
+			var child = $(this);
+			var parent_id = child.attr('class').substr(-3,3);
+			$(':checkbox[class=tag_parent_'+parent_id+']').prop('checked', false);
+		});
+	});
+</script>
+	</div>
+	{/if}
+	{ifset $include_map}
+	<div class="filter-map" style="float:left;width:40%;">
+		<h3>{_"Restrict your search to a location"}	<img src="/images/help.png" class="help-icon" title="{_"Click inside the map to set the center. Click a second time to set the search radius."}"/></h3>
+<!--		<a href="javascript:void(0);" onClick="$('#mapdiv').toggle();loadData();">{_"Map"}</a> -->
+		<div id="mapdiv" class="map-filter" style="display:none;">
+			{$control['filter']['mapfilter']->control}
+		</div>
+
+<script>
+	$(document).ready(function() {
+		$('#filter_box_a').click(function(){
+			setTimeout(function() {
+				$('#mapdiv').show();
+				loadData();
+				findme();
+			},1000);
+		});
+	});
+</script>
+	</div>
+	{/if}
+	<div class="cleaner"></div>
+	{ifset $include_pairing}
+	<div class="filter-pairing" style="float:left;width:40%;">
+		<div title="{_"AND: Find only items where <i>all</i> conditions are met.<br />OR: Find items where <i>any</i> of the selected conditions are met."}">{$control['filter']['filter_pairing']->label}</div>
+		{$control['filter']['filter_pairing']->control}
+	</div>
+	{/if}
+	{if !isset($hide_apply) || isset($include_suggest)}
+	<div class="filter-buttons" style="float:right;width:40%;">
+	{/if}
+		<div class="filter-submit" style="float:left;{if isset($hide_apply)} display:none;{/if}" title="{_"Apply the filter."}">
+			{$control['filter']['filter']->control}
+		</div>
+		{ifset $include_suggest}
+		<div class="filter-suggest" style="float:left;" title="{_"Search for similar topics like your interests and around your location."}">
+			{$control['filter']['suggest']->control}
+		</div>
+		{/if}
+	{if !isset($hide_apply) || isset($include_suggest)}
+	</div>
+	{/if}
+</div>
+</div>
+{/if}
+{control filter end}

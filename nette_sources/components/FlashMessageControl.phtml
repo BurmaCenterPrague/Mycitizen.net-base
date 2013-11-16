@@ -1,0 +1,54 @@
+
+<a href="#flash_messages" class="messages-fancybox"></a>
+
+<div style="display:none">
+<div id="flash_messages">
+<div style="width:90%;height:80%;margin:auto;">
+<table cellspacing="0" cellpadding="0" border="0" style="width:100%;height:100%;">
+{foreach $presenter->template->flashes as $flash}
+  <tr>
+  	<td class="feedback-list-icon feedback-list-error" style="text-align:left;padding-right:20px;">
+  	{if $flash->type=='error'}<b class="icon-warning"></b>{/if}
+  	</td>
+    <td class="feedback-list feedback-list-{if $flash->type=='error'}error{else}message{/if}" style="text-align:left">
+      <ul style="margin-top: 6px; margin-bottom: 2px;">
+        <li class="feedback-list-item">{$flash->message}</li>
+      </ul>
+    </td>
+  </tr>
+{/foreach}
+</table>
+</div>
+</div>
+</div>
+<script>
+$(document).ready(function() {
+	$(".messages-fancybox").fancybox({
+		minWidth	: 400,
+		minHeight	: 30,
+		maxWidth	: 700,
+		topRatio	: 0,
+		closeClick	: true,
+		openEffect	: 'fade',
+		openSpeed	: 500,
+		closeEffect	: 'fade',
+		closeSpeed	: 500,
+		closeBtn	: true,
+		margin		: 15,
+		helpers : {
+ 			overlay : null,
+			title : null
+		},
+		afterLoad: function(){
+			$(".fancybox-skin").css({ "background-color":"#FFF", "opacity":"0.95", "border-radius":"15px"}); //#FFFFD2
+			$(".feedback-list-error").css({ "color":"#D00"});
+   			setTimeout( function() { $.fancybox.close(); },{? echo (3*count($presenter->template->flashes)+2)*1000});
+  		}
+	});
+	
+	
+	{if isset($presenter->template->flashes) && count($presenter->template->flashes)>0 }
+		$(".messages-fancybox").eq(0).trigger('click');
+	{/if}	
+});
+</script>

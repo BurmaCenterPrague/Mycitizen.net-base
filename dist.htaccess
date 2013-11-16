@@ -1,0 +1,7 @@
+# disable directory listing
+Options -Indexes
+
+# rewrite to "web"
+RewriteEngine On
+RewriteCond  %{REQUEST_URI}% !^/?web
+RewriteRule ^(.*)$ web/$1 [L]

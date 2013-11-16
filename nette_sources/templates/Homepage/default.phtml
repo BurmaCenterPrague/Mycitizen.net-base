@@ -1,0 +1,97 @@
+{block title}Homepage{/block}
+{block content}
+
+{if 'I want' == 'filter on home page'}
+<div class="homepage_default_A">
+	<div class="homepage_default_filter">
+		<a href="#filter_container" id="filter_box_a" class="filter-button-{control userHomepage:filterstatus}" title='{control userHomepage:filtercheck}'>{control userHomepage:filtercheck}</a>
+		<div id="filter_container" style="display:none;">
+			{control filter}
+		</div>
+		
+		<script>
+		$(document).ready(function(){
+			if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+				$('#frmfilter-reset').hide();
+			}
+		});
+		
+		$(document).ready(function(){
+			loadData();
+		});
+		</script>
+			
+		<script type="text/javascript">
+		$(function() {
+			$("#filter_box_a").fancybox({
+				minWidth:700,
+				minHeight:500,
+				closeBtn : true,
+				helpers : {
+					overlay : null,
+					 title : null
+				},
+			});
+		});
+		</script>
+	</div>
+</div>
+{/if}
+
+<div class="wrapper-intro">
+{ifset $logged}
+	<h2>{_"Welcome"} {$username}!</h2>
+	{ifset $incomplete_profile}
+	<h4>{_"Now is the best time to update your profile. You can enter your name and place and tags for your interests."}</h4><p><a href="{link User:edit, $my_id}" class="button">{_"Click here to continue."}</a></p>
+	{/if}
+{else}
+	<div class="intro">
+	{include $intro}
+	</div>
+{/if}
+</div>
+
+{ifset $logged}{* Users who are logged in see "own" items. *}
+<div class="wrapper-home">
+	<div class="home-connections">
+		<h3>{_"My Connections"}</h3>
+	</div>
+	<div class="top-users">
+		<h2>{_"My Friends"}</h2>
+			{control homepagefriendlister:body}
+		<div class="discover_new_users">
+			<a href="{link User:default}">{_"Discover new users"}</a>
+		</div>
+	</div>
+	<div class="top-groups">
+		<h2>{_"My Groups"}</h2>
+			{control homepagegrouplister:body}
+		<div class="discover_new_groups">
+			<a href="{link Group:default}">{_"Discover new groups"}</a>
+		</div>
+	</div>
+	<div class="top-resources">
+		<h2>{_"My Resources"}</h2>
+			{control homepageresourcelister:body}
+		<div class="discover_new_resources">
+			<a href="{link Resource:default}">{_"Discover new resources"}</a>
+		</div>
+	</div>
+</div>
+{else}{* Users who are not logged in see "top" items. *}
+<div class="wrapper-home-B">
+	<div class="homepage_default_users">
+		<h3>{_"Top Users"}</h3>		
+		{control userHomepage:body}
+	</div>
+	<div class="homepage_default_groups">
+		<h3>{_"Top Groups"}</h3>
+		 {control groupHomepage:body}
+	</div>
+	<div class="homepage_default_resources">
+		<h3>{_"Top Resources"}</h3>
+		 {control resourceHomepage:body}
+	</div>
+</div>
+{/if}
+{/block}

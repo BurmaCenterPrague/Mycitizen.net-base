@@ -1,0 +1,37 @@
+{block title}{_"User signin"}{/block}
+{block content}
+<div class="wrapper-text">
+	{ifset $logged}
+		<a href="{link Homepage:logout}">{_"Sign out"}</a>
+	{else}
+		{control loginform begin}
+			<table>
+				<tr><td colspan="2">
+					<h4>{_"Already have an account? Sign in below."}</h4>
+				</td></tr>
+				<tr>
+            		<td>{$control['loginform']['user_login']->label}</td>
+        			<td>{$control['loginform']['user_login']->control}</td>
+        		</tr>
+				<tr>
+					<td>{$control['loginform']['user_password']->label}</td>
+                    <td>{$control['loginform']['user_password']->control}</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<a href="{link User:lostpassword}">{_"Click here if you forgot your password."}</a>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>{$control['loginform']['signin']->control}</td>
+				</tr>
+				<tr><td colspan="2">
+					{_"If you are new here, please "} <a href="{link User:register}">{_"sign up"}</a>.
+				</td></tr>
+			</table>
+		{control loginform end}
+	{/if}
+</div>
+{/block}

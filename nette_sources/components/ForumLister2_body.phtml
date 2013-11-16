@@ -1,0 +1,47 @@
+{* unused??? *}
+<div class="lister-header">
+</div>
+<div class="lister-body">
+   {snippet list_body}
+
+<table>
+    <tr>
+        <th>
+        </th>
+        <th>
+        </th>
+    </tr>
+	{foreach $data as $row}
+		{if (Auth::ADMINISTRATOR == Auth::isAuthorized($row['type'],$row['id'])) || (Auth::isAuthorized($row['type'],$row['id']) != Auth::UNAUTHORIZED && $row['status'] == 1)}
+        <tr>
+				<td class="message_text">
+            	{!$row['message']|htmlpurify}
+				</td>
+				{if Auth::ADMINISTRATOR == Auth::isAuthorized($row['type'],$row['id'])}
+        </tr>
+		{/if}
+    {/foreach}
+</table> 
+ {/snippet}
+</div>
+<div class="lister-footer">
+   {snippet list_pager}
+	{if $max_page > 1}
+	   <a href="{link changePage, page => 1}">|<<</a>
+	   {if $currentpage <= 1}
+		  <a href="{link changePage, page => 1}"><<</a>
+	   {else}
+		  <a href="{link changePage, page => $currentpage - 1}"><<</a>
+	   {/if}
+	   {for $i = $start; $i <= $end; $i++}
+		  <a href="{link changePage, page => $i}">{$i}</a>
+	   {/for}
+	   {if ($currentpage + 1) > $max_page}
+		  <a href="{link changePage, page => $max_page}">>></a>
+	   {else}
+		  <a href="{link changePage, page => $currentpage + 1}">>></a>
+	   {/if}
+	   <a href="{link changePage, page => $max_page}">>>|</a>
+   {/if}
+   {/snippet}
+</div>

@@ -1,0 +1,108 @@
+{block title}{_"Group edit"}{/block}
+@{block #content}
+<div class="group_edit_updateform">
+
+	{control updateform error}
+
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+	<div class="back"><a href="{plink Group:default, $group_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
+{/if}
+
+{if isset($img_src) && $img_src!=null}
+	<div class="group-edit-image">
+		<h3>{_"Edit the group image"}</h3>
+		<div class="images">
+			<div class="image-full"><img src="data:{$mime_type};base64,{$img_src}" id="crop"/></div>
+			<div class="icon-large"><p>Large icon:</p>{ifset $large_icon}{!$large_icon}{else}{_"Needs to be created."}{/if}</div>
+			<div class="icon-small"><p>Small icon:</p>{ifset $icon}{!$icon}{else}{_"Needs to be created."}{/if}</div>
+		</div>
+		<div class="image-buttons">
+		{if isset($image_too_large) ||  isset($image_props_wrong)}
+			<div>{_"Click inside the image and select your avatar."}</div>
+		{/if}
+
+			<input type="submit" value="remove" onClick="removeGroupAvatar({$group_id});return false;" />
+			<input type="hidden" id="x" name="x" />
+			<input type="hidden" id="y" name="y" />
+			<input type="hidden" id="w" name="w" />
+			<input type="hidden" id="h" name="h" />
+			<a href="javascript:void(0);" id="crop_button" onClick="doCrop(); return false;" class="button" />crop and resize</a>
+		</div>
+	</div>
+{/if}
+
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+{ifset $group_id}
+	<div class="group-edit-map">
+		<h3>{_"Edit the location"}</h3>
+		{control mapedit}
+	</div>
+{/if}
+{/if}
+
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+	<div class="edit-wrapper" style="float:left">
+		{control updateform}			
+	</div>
+{/if}
+
+<div class="cleaner"></div>
+
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+	<h4>{_"Below you can add details: Describe the topics of this group by one or more tags. If your group is located in a particular town, you can mark it on a map. These information will help other users to find your group."}</h4>
+	
+	<div class="group-edit-tagform">
+		<h3>{_"Add or remove tags"} <img src="/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="margin-bottom:-8px;"/></h3>
+	{/if}
+	   {control tagform begin}
+	
+		{snippet tagHandle}
+		{ifset $group_id}
+		{if !isset($image_too_large) && !isset($image_props_wrong)}
+			<table id="rule_tail_container" class="newSelect">
+			{ifset $group_tags}
+			{foreach $group_tags as $key=>$tag_name}
+				<tr>
+					<td>
+					{foreach $tag_name->getPath() as $tag}
+						<span>{$tag}</span>
+					{if !$iterator->isLast()}
+						<div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div>
+					{/if}
+					{/foreach}
+					</td>
+					<td><input type="submit" value="X" onClick="removeTag_Group({$group_id},{$key});return false;" /></td>
+				</tr>	
+			{/foreach}
+			{/if}
+			</table>
+		{!$control['tagform']['add_tag']->control}
+		{/if}
+		{/if}
+		{/snippet}
+		{control tagform end}
+
+<script>
+	$(document).ready(function(){
+		$('a#tag_select_button').addClass('button');
+	});
+</script>
+
+	</div>
+	
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+{ifset $group_id}
+	<div class="group-edit-membersform">
+		<h3>{_"Manage members of this group"}</h3>
+		{control groupmemberlister}
+	</div>
+
+	<div class="group-edit-resources">
+		<h3>{_"Manage subscribed resources"}</h3>
+		{control unsubscriberesourceform}		
+	</div>
+{/if}
+{/if}
+	<div class="cleaner"></div>
+</div>
+{/block}

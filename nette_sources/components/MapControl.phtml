@@ -1,0 +1,398 @@
+<?php
+/*
+*	Displays the map to show the location of items
+*/
+?>
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
+<script>
+var map = null;
+var mapcenter = new google.maps.LatLng({$default_latitude},{$default_longitude});
+var mycenter = null;
+var item_lat = null;
+var item_lng = null;
+var own_lat = null;
+var own_lng = null;
+
+function findme() {
+	if(navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(onPositionUpdate,positionError);
+	};
+
+	function onPositionUpdate(position) {
+		var lat = position.coords.latitude;
+		var lng = position.coords.longitude;
+		
+			$('#own_location').show('normal');
+			
+			mycenter = new google.maps.LatLng(lat,lng);
+			map.setCenter(new google.maps.LatLng(lat,lng));
+			var url = '/images/blue-pin.png';
+			var icon = new google.maps.MarkerImage(url,
+			// This marker is 20 pixels wide by 32 pixels tall.
+			new google.maps.Size(25, 35),
+			// The origin for this image is 0,0.
+			new google.maps.Point(0,0),
+			// The anchor for this image.
+			new google.maps.Point(13, 30));
+
+
+			var marker = new google.maps.Marker({
+									  map:map,
+									  icon:icon,
+									  title:{_"My real position"},
+									  position:new google.maps.LatLng(lat,lng)
+			});
+			own_lat = lat;
+			own_lng = lng;
+		}
+
+        function positionError() {
+/*			alert("Error: No position"); */
+        }
+        
+}
+var points = [];
+
+var circle = new google.maps.Circle();
+var circle_center = null;
+var circle_radius = null;
+
+var firstclick = false;
+
+function findLocation(address) {
+   if(address != "") {
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode( { 'address': address }, function(results, status) {
+        	if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
+        		alert('Too many requests.');
+        	}
+        	
+            if (status == google.maps.GeocoderStatus.OK) {
+                mapcenter = results[0].geometry.location;
+                map.setCenter(mapcenter);
+            } else {
+               alert({_"Address cannot be found."});
+               $("[name='search']").val("");
+         }
+        });
+
+    }
+}
+
+var active_center = null;
+
+function clearMap() {
+	firstclick = false;
+	$('#item_location').hide('normal');
+	
+	if(circle_center != null) {
+		circle_center.setMap(null);	
+		circle_center = null;
+	}
+	if(circle_radius != null) {
+		circle_radius = null;
+	}
+	for(var i = 0;i < points.length;i++) {
+		points[i].setMap(null);
+	}
+	points = [];
+	$.getJSON({link mapEdit!},{ "{!$name}-latitude":null,"{!$name}-longitude":null },function(payload){
+   });
+
+}
+
+function updateZoneFormCircle(center,radius) {
+   var json = '{"type":"circle",';
+
+   if(center) {
+      json += '"center":{"lat":"'+center.position.lat()+'","lng":"'+center.position.lng()+'"},';
+
+   }
+   if(radius) {
+      json += '"radius":{"lat":"'+radius.position.lat()+'","lng":"'+radius.position.lng()+'","length":"'+google.maps.geometry.spherical.computeDistanceBetween(center.position,radius.position)+'"}';
+   }
+   json += '}';
+   $("#"+{$container_id}).val(json);
+}
+
+
+function loadCircle() {
+	circle_radius = new google.maps.Marker({
+                                position: new google.maps.LatLng(data.radius.lat,data.radius.lng),
+                                draggable:true,
+                                map: map
+                              });
+   google.maps.event.addListener(radius,'drag',function(event){
+                circle.setRadius(google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,event.latLng));
+                updateZoneFormCircle(circle_center,circle_radius);
+   });
+
+   circle_center = new google.maps.Marker({
+                                position: new google.maps.LatLng(parseFloat(data.center.lat),parseFloat(data.center.lng)),
+                                draggable:true,
+                                map: map
+                              });
+   map.setCenter(new google.maps.LatLng(parseFloat(data.center.lat),parseFloat(data.center.lng)));
+
+
+   google.maps.event.addListener(center,'drag',function(event){
+                     var proj = this.map.getProjection();
+                     var point1 = proj.fromLatLngToPoint(circle.center);
+                      circle.setCenter(event.latLng);
+                     var point2 = proj.fromLatLngToPoint(event.latLng);
+                     var newp = new google.maps.Point(point2.x - point1.x,point2.y - point1.y);
+                     var oldradius = proj.fromLatLngToPoint(radius.getPosition());
+                     var newradius = new google.maps.Point(oldradius.x + newp.x,oldradius.y + newp.y);
+                     radius.setPosition(proj.fromPointToLatLng(newradius));
+                     updateZoneFormCircle(center,radius);
+            });
+	circle.setOptions({
+						strokeColor: "#3399FF",
+                       strokeOpacity: 0.8,
+                       strokeWeight: 2,
+                       fillColor: "#99CCFF",
+                       fillOpacity: 0.35,
+                       map: map,
+                       center: circle_center.position,
+                       radius: google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,circle_radius.position)
+
+                      });
+}
+
+
+function loadData() {
+	
+   var mapOptions = {
+      zoom: 8,
+      center: mapcenter,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      streetViewControl: false,
+      zoomControl:true,
+      scrollwheel: false
+   };
+
+	map = new google.maps.Map(document.getElementById("map_canvas_control"),mapOptions);
+	
+	{if $type == "radius"}
+	google.maps.event.addListener(map,'mousemove',function(event){
+      if(firstclick) {
+         circle_center.setOptions({ rad:1 });
+         circle.setOptions({
+					   strokeColor: "#3399FF",
+                       strokeOpacity: 0.8,
+                       strokeWeight: 2,
+                       fillColor: "#99CCFF",
+                       fillOpacity: 0.35,
+                       map: map,
+                       clickable:false,
+                       center: circle_center.position,
+                       radius: google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,event.latLng)
+
+                      });
+
+      }
+   });
+	{/if}
+	
+	{if $type == "edit"}
+		google.maps.event.addListener(map,'click',function(event) {
+		
+			$('#item_location').show('normal');
+			
+			if(!circle_center) {
+				circle_center =  new google.maps.Marker({
+                     position:event.latLng,
+                     draggable:true,
+                     map:map,
+                     rad:0
+                  });
+				$.getJSON({link mapEdit!},{ "{!$name}-latitude":event.latLng.lat(),"{!$name}-longitude":event.latLng.lng() },function(payload){
+            });
+				google.maps.event.addListener(circle_center,'drag',function(event){
+					circle.setCenter(event.latLng);
+				});
+				google.maps.event.addListener(circle_center,'dragend',function(event){
+               $.getJSON({link mapEdit!},{ "{!$name}-latitude":event.latLng.lat(),"{!$name}-longitude":event.latLng.lng() },function(payload){
+               });
+            });
+
+			} 
+		});
+	{/if}
+	
+	{if $type == "radius"}
+	google.maps.event.addListener(map,'click',function(event) {
+
+		
+      if(!firstclick && !circle_center) {
+        firstclick = true;
+                  
+         circle_center =  new google.maps.Marker({
+                     position:event.latLng,
+                     draggable:true,
+                     map:map,
+                     rad:0
+                  });
+         google.maps.event.addListener(circle_center,'drag',function(event){
+                if(circle_center.rad == 1) {
+                var proj = this.map.getProjection();
+                var point1 = proj.fromLatLngToPoint(circle.center);
+                circle.setCenter(event.latLng);
+                var point2 = proj.fromLatLngToPoint(event.latLng);
+                var newp = new google.maps.Point(point2.x - point1.x,point2.y - point1.y);
+                var oldradius = proj.fromLatLngToPoint(circle_radius.getPosition());
+                var newradius = new google.maps.Point(oldradius.x + newp.x,oldradius.y + newp.y);
+                circle_radius.setPosition(proj.fromPointToLatLng(newradius));
+                } else {
+                   circle.setCenter(event.latLng);
+                }
+					 updateZoneFormCircle(circle_center,circle_radius);
+         });
+
+      } else if(firstclick) {
+         firstclick = false;
+         
+         circle_radius = new google.maps.Marker({
+            position:event.latLng,
+            draggable:true,
+            map:map
+         }
+         );
+         circle_center.setOptions({ rad:1 });
+         google.maps.event.addListener(circle_radius,'drag',function(event){
+            circle.setRadius(google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,event.latLng));
+				updateZoneFormCircle(circle_center,circle_radius);
+				});
+      }
+
+      if(circle_center && circle_radius) {
+         circle.setOptions({
+				strokeColor: "#3399FF",
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
+                  fillColor: "#99CCFF",
+                  fillOpacity: 0.35,
+                  map: map,
+                  center: circle_center.position,
+                  radius: google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,circle_radius.position)
+                 });
+      }
+		updateZoneFormCircle(circle_center,circle_radius);
+   });
+	{/if}
+
+	$.getJSON({plink this, do =>$name.'-mapData'},{ },function(payload){
+    	for (var i = 0; i < payload.length;i++) {
+			if(payload[i].location != undefined && payload[i].location.longitude != null && payload[i].location.latitude != null) {
+				$('#item_location').show('normal');
+				{if $type == "edit"}
+					circle_center = new google.maps.Marker({
+                                            map:map,
+											draggable:true,
+                                            title:payload[i].type,
+                                            position:new google.maps.LatLng(parseFloat(payload[i].location.latitude,10),parseFloat(payload[i].location.longitude,10))
+                                                });
+						google.maps.event.addListener(circle_center,'drag',function(event){
+            				circle.setCenter(event.latLng);
+            			});
+            			google.maps.event.addListener(circle_center,'dragend',function(event){
+               				$.getJSON({link mapEdit!},{ "{!$name}-latitude":event.latLng.lat(),"{!$name}-longitude":event.latLng.lng() },function(payload){
+						});
+            		});
+
+				{else}
+					itemPosition = new google.maps.LatLng(parseFloat(payload[i].location.latitude,10),parseFloat(payload[i].location.longitude,10));
+					points.push(new google.maps.Marker({
+                                              map:map,
+                                              title:payload[i].type,
+                                              position:itemPosition
+                    }));
+					item_lat=payload[i].location.latitude;
+					item_lng=payload[i].location.longitude;
+				{/if}
+			map.setCenter(itemPosition);
+         }
+		}
+   });
+   
+	findme();
+}
+
+function zoomIn() {
+	var zoom = map.getZoom();
+	if ( zoom<20 ) {
+		zoom++;
+		map.setZoom(zoom);
+	}
+}
+
+function zoomOut() {
+	var zoom = map.getZoom();
+	if ( zoom>0 ) {
+		zoom--;
+		map.setZoom(zoom);
+	}
+}
+
+function zoomToFit(a,b,c,d) {
+	var LatLngList = new Array (new google.maps.LatLng(a,b), new google.maps.LatLng(c,d));
+	var bounds = new google.maps.LatLngBounds();
+	for (var i = 0, LtLgLen = LatLngList.length; i < LtLgLen; i++) {
+		bounds.extend(LatLngList[i]);
+	}
+	map.fitBounds(bounds);
+}
+
+$(document).ready(function(){
+	loadData();
+	
+	setTimeout(function() {
+		if ((item_lat != own_lat) && (item_lng != own_lng) && (item_lat != null) && (own_lat != null)) {
+			zoomToFit( parseFloat(item_lat), parseFloat(item_lng), parseFloat(own_lat), parseFloat(own_lng));
+		}
+	},3000);
+});
+
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if( event.keyCode == 13) {
+    	if ($('#search').val() != '') {
+			findLocation($('#search').val());
+    	  	event.preventDefault();
+	      	return false;
+	    } else {
+	    	return true;
+	    }
+    }
+  });
+});
+
+</script>
+
+
+
+<div class="map-div map-u-g-r" style="width:200px;height:200px;">
+	<div id="map_canvas_control" style="width:200px;height:200px;"></div>
+</div>
+<input id="search" type="text" value="" placeholder="{_"Search for a place"}" />
+
+{if $type == "edit"}
+<a href="javascript:void(0);" onClick="clearMap();"><b class="icon-clear" title="{_"clear map"}"></b></a>
+<img src="/images/help.png" class="help-icon" title="{_"Click inside the map to set the location. If the location is already set, you first need to clear the map: <b class='icon-clear'></b>."}" style="margin-bottom:-8px;"/>
+{/if}
+
+
+
+<table class="map-legend" onmouseover="$('.zoom').show()" onmouseout="$('.zoom').hide()" style="width:100%;">
+<tr id="own_location" style="display:none;cursor:pointer;">
+	<td onclick="map.setCenter(mycenter); active_center = 0;" style="width:20px;" title="{_"Show the location where you are right now."}"><img src="/images/blue-pin.png"/></td>
+	<td onclick="map.setCenter(mycenter); active_center = 0"><span class="button" title="{_"Show the location where you are right now."}">{_"My Location"}</span></td>
+	<td class="zoom" style="display:none;"><span class="button" onclick="map.setCenter(mycenter); zoomIn(); active_center = 0" title="{_"zoom in"}">+</span><span class="button" onclick="map.setCenter(mycenter); zoomOut(); active_center = 0" title="{_"zoom out"}">-</span></td>
+</tr>
+<tr id="item_location" style="display:none;cursor:pointer;">
+	<td onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);}" title="{_"Show the location of this %s.", $item_location_label}"><img src="/images/red-pin.png"/></td>
+	<td onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);}"><span class="button" title="{_"Show the location of this %s.", $item_location_label}">{$item_location_label}</span></td>
+	<td class="zoom" style="display:none;"><span class="button" onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);} zoomIn();" title="{_"zoom in"}">+</span><span class="button" onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);} zoomOut();" title="{_"zoom out"}">-</span></td>
+</tr>
+</table>
+

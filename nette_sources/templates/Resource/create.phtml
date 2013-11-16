@@ -1,0 +1,15 @@
+{block title}Resource - Register{/block}
+{block content}
+		<script>
+
+      $(document).ready(function(){
+         $("#frmupdateform-event_timestamp").datetimepicker({
+	timeFormat: 'hh:mm tt z',
+	showTimezone: true
+});
+      });
+   </script>
+
+		{control updateform error}
+		{control updateform}
+{/block}

@@ -1,0 +1,11 @@
+.DS_Store
+.old_*
+.synkron.syncdb
+.htaccess
+config.ini
+robots.txt
+web/images/cache/group/*.jpg
+web/images/cache/user/*.jpg
+web/images/cache/resource/*.jpg
+nette_sources/log
+nette_sources/temp

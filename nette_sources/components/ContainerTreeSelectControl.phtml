@@ -1,0 +1,69 @@
+<div>                                                                 
+  <span id="tag_select_input_{!$name}">{$selected_value}</span>
+  <a id="tag_select_button_{!$name}" href="#tag_select_div_{!$name}" class="button">...</a>
+  <input id="tag_select_hidden_{!$name}" type="hidden" name="{$control_name}" value="{$control->getValue()}" />
+</div>
+
+<script type="text/javascript">
+  $(document).ready( function(){
+    $("#tag_tree_select_{!$name}").treeview();
+    $("a#tag_select_button_{!$name}").fancybox({});
+    $("div.tree_{!$name} a").on('click', function(){ 
+      $(".active").removeClass("active");
+      $(this).addClass("active");
+    });
+  });
+</script>
+
+
+<div style="display: none;">
+  <div id="tag_select_div_{!$name}" style="width: 400px; height: 400px;">       
+    
+    <div class="first_level">
+      <h2 class="h2-line">{_"Select Parent Level"}</h2>
+    </div>
+    <div class="tree_{!$name}">
+		<span class="folder-main ">&nbsp;</span>
+        <span class="tree-main{if 0==$control->getValue()} active{/if}"><a href="#" onclick="
+        document.getElementById('tag_select_input_{!$name}').innerHTML='{_"top level"}';
+        document.getElementById('tag_select_hidden_{!$name}').value='0';"
+        >{_"top level"}</a></span>
+
+      {var $current_level => 0}  
+      <ul id="tag_tree_select_{!$name}" class="filetree">
+		
+      {foreach $tree_array as $node}
+      	{if $current_level < $node['level']}
+  	  			<ul>
+  	  			{var current_level => $node['level']}
+      	{/if}
+      	{while $current_level > $node['level']}
+  	  			</ul></li>
+  	 			{var current_level => $current_level-1}
+      	{/while}
+  	 
+      	<li{if !in_array($node['tag_id'], $active_node_path)} class="closed"{/if}>
+      		<span class="folder {=NString::webalize($object_type_name_array[$node['tag_id']])}">&nbsp;</span>
+  	 			<span {if $node['tag_id']==$control->getValue()}class="active"{/if}>
+  	 			{if $current_level == 0}
+	  	 			<a href="#" onclick="
+  	   			document.getElementById('tag_select_input_{!$name}').innerHTML='{!$control->getPathString($node['tag_id'])}';
+  	   			document.getElementById('tag_select_hidden_{!$name}').value='{!$node['tag_id']}';
+  	   			return false;">
+  	   			{/if}
+  					{$node['tag_name']}
+  	 			{if $current_level == 0}  				
+  	 				</a>
+  	 			{/if}
+  	 			</span>
+  
+      {/foreach}
+      </ul>
+      
+    </div>  
+
+	 <div class="confirm">
+	   <a href="#" class="button-blue button" style="float: right;"onclick="$.fancybox.close();return false;"><?=_('Add')?></a>
+	 </div>
+  </div>
+</div>

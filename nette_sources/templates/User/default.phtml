@@ -1,0 +1,212 @@
+{block title}{_"Users"}{/block}
+@{block #content}
+<div class="user_default_main">
+
+	<div class="user_default_filter">
+		<div class="filter-body filter-body-{control userlister:filterstatus}">
+			<a href="#filter_container" id="filter_box_a" class="filter-button-{control userlister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control userlister:filtercheck}</a>
+			<div id="filter_container" style="display:none;">
+				{control userlister:filter}
+			</div>
+			<script>
+			$(document).ready(function(){
+				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+					$('#frmfilter-reset').hide();
+				}
+			});
+			</script>
+				
+			<script type="text/javascript">
+			$(function() {
+				$("#filter_box_a").fancybox({
+					minWidth:700,
+					minHeight:500,
+					closeBtn : true,
+					helpers : {
+						overlay : null,
+						 title : null
+					},
+				});
+			});
+			</script>
+		</div>
+	</div>
+
+    <div class="user_default_B">
+        <div class="user_default_users">
+			<h2>{_"Users"}</h2>
+            {control userlister:body}
+         </div>
+         
+		<div class="wrapper">
+        	<div class="user_default_info">
+				{ifset $default_data}
+				<div class="item-user" onclick=window.location='{link User:default, $default_data['object_data']['user_id']}'>
+					<div class="user-image">
+						{!$large_icon}
+					</div>
+
+					{if Auth::ADMINISTRATOR == Auth::isAuthorized(1,$default_data['object_data']["user_id"])}
+						<div class="user-edit">
+						<a href="{plink User:edit, $default_data['object_data']["user_id"]}"><b class="icon-user-edit" title="{_"edit"}"></b></a>
+						</div>
+					{/if}
+
+					{ifset $default_data['object_data']['user_friend_relationship']}
+					{ifset $default_data['object_data']['friend_user_relationship']}
+						{if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}
+							<b class="icon-friend" title="{_"my friend"}"></b>
+						{else}
+							<b class="icon-no-friend" title="{_"no friend"}"></b>
+						{/if}
+					{/if}
+					{/if}
+
+					{if $default_data['object_data']['user_visibility_level'] == 1}
+						<b class="icon-world"  title="{_"visible to the world"}"></b>
+					{elseif $default_data['object_data']['user_visibility_level'] == 2}
+						<b class="icon-registered" title="{_"only visible to registered users"}"></b>
+					{else}
+						<b class="icon-person" title="{_"only visible to friends"}"></b>
+					{/if}
+					
+<!--
+					<div onclick=window.location='{link User:default, $default_data['object_data']['user_id']}' class="user-details"  title="{_"View details"}">
+						<b class="icon-view"></b>
+					</div>
+-->					
+			
+					<div class="user-username">
+						{$default_data['object_data']['user_login']}
+					</div>
+				</div>
+
+				<div class="user-real-name">
+					{$default_data['object_data']['user_name']} {$default_data['object_data']['user_surname']}
+				</div>
+
+				<div class="user-description">
+					{$default_data['object_data']['user_description']}
+				</div>
+
+{* handling friendship *}
+		{if !isset($thats_me)}
+        {if isset($default_data) && isset($default_data['object_data']['user_friend_relationship'])  && isset($default_data['object_data']['friend_user_relationship'])}
+			{if Auth::isAuthorized(1,$default_data['object_data']["user_id"]) > 0}
+				{if $default_data['object_data']['user_friend_relationship'] == 0 && $default_data['object_data']['friend_user_relationship'] == 0}
+					<div class="user-connection">
+						<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Request friendship"}</a>
+					</div>
+				{/if}
+			{/if}
+			{if $default_data['object_data']['user_friend_relationship'] == 1 && $default_data['object_data']['friend_user_relationship'] == 0}
+				<div class="user-connection">
+					{_"Friendship request sent"} <a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']['user_id']},{link User:default});' class="button">{_"Revoke request"}</a>
+				</div>
+			{/if}
+			{if $default_data['object_data']['user_friend_relationship'] == 1 && $default_data['object_data']['friend_user_relationship'] == 3}
+				<div class="user-connection">
+					{_"Friendship request rejected"} <a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']['user_id']},{link User:default});' class="button">{_"Revoke request"}</a>
+				</div>
+			{/if}
+			{if $default_data['object_data']['user_friend_relationship'] == 3}
+				<div class="user-connection">
+					{_"You currently block this user"}
+				</div>
+				{if Auth::isAuthorized(1,$default_data['object_data']["user_id"]) > 0}
+					{if $default_data['object_data']['friend_user_relationship'] == 0}
+						<div class="user-connection">
+							<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Unblock this user"}</a>
+						</div>
+					{/if}
+				{/if}
+				{if $default_data['object_data']['friend_user_relationship'] == 1}
+					<div class="user-connection">
+						<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Accept friendship request"}</a> 
+					</div>
+				{/if}
+<!--
+{* remove because not good to allow requesting after having been blocked *}
+				{if Auth::isAuthorized(1,$default_data['object_data']["user_id"]) > 0}
+					{if $default_data['object_data']['friend_user_relationship'] == 2}
+						<div class="user-connection">
+							<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Request friendship again"}</a>
+						</div>
+					{/if}
+				{/if}
+-->
+			{/if}
+
+			{if $default_data['object_data']['user_friend_relationship'] < 2 && $default_data['object_data']['friend_user_relationship'] == 1}
+				<div class="user-connection">
+					<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Accept friendship request"}</a>
+					<a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Reject friendship request"}</a>
+				</div>
+			{/if}
+		  
+			{if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}
+				<div class="user-connection">
+					<a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Cancel friendship"}</a>
+				</div>
+			{/if}
+		{/if}
+		{/if}
+					
+			{if !isset($thats_me)}
+				{if Auth::isAuthorized(1,$default_data['object_data']['user_id']) >= 2}
+				<div class="administration">
+					<h3>{_"Administration"}</h3>
+					{control useradministrator begin}
+					{ifset $control['useradministrator']['access_level']}
+						<label>{_"User role"}</label>
+						{$control['useradministrator']['access_level']->control}
+					{/if}
+					{ifset $control['useradministrator']['status']}
+						<label>{_"Enabled"}</label>
+						{$control['useradministrator']['status']->control}
+					{/if}
+			
+					{ifset $control['useradministrator']['creation_rights']}
+						<label>{_"Permission to create items"}</label>
+						{$control['useradministrator']['creation_rights']->control}
+					{/if}
+					{ifset $control['useradministrator']['send']}
+						{$control['useradministrator']['send']->control}
+					{/if}
+					{control useradministrator end}
+				</div>
+				{/if}
+			{/if}
+			</div>
+				{else}
+					<h3>{_"Select a user for more details."}</h3>
+				{/if}
+
+         
+         	<div class="user_default_groups">
+			{ifset $default_data}
+				<h2>{_"Member of groups"}</h2>
+				{if Auth::isAuthorized(1,$default_data['object_data']['user_id'])>0 }
+					{control defaultusergrouplister:body}
+				{else}
+					<p>{_"You are not allowed to see the memberships."}</p>
+				{/if}
+			{/if}
+			 </div>
+         
+         	<div class="user_default_resources">
+			 {ifset $default_data}
+				<h2>{_"Subscribed to resources"}</h2>
+				{if Auth::isAuthorized(1,$default_data['object_data']['user_id'])>0 }
+					{control defaultuserresourcelister:body}
+				{else}
+					<p>{_"You are not allowed to see the subscriptions."}</p>
+				{/if}
+			 {/if}
+			 </div>
+         
+      	</div> <!-- .wrapper -->
+      
+	</div>
+</div>
+{/block}

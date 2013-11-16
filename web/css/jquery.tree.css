@@ -1,0 +1,46 @@
+.treeview .hitarea {background: url(..//images/tree/jquery.Tree.gif) -64px -25px no-repeat; height: 16px; width: 16px; margin-left: -16px; float: left;cursor: pointer;}
+.treeview li {  margin: 0; padding: 3px 0pt 3px 16px; }
+.tree ul li {list-style-type: none; list-style-image:none}
+
+#treecontrol { margin: 1em 0; display: none; }
+.treeview .hover { cursor: pointer; }
+.tree .active,.tree a:hover {font-weight: bold;}
+ {font-weight: bold;}
+.treeview .inactive {color: #C0C0C0; font-size: italic}
+.treeview li { background: url(..//images/tree/jquery.Tree.Line.gif) 0 0 no-repeat; }
+.treeview li.collapsable, .treeview li.expandable { background-position: 0 -176px; }
+.treeview .expandable-hitarea { background-position: -80px -3px; }
+
+.treeview li.last { background-position: 0 -1766px }
+.treeview li.lastCollapsable, .treeview li.lastExpandable { background-image: url(..//images/tree/jquery.Tree.gif); }  
+
+.filetree span.folder, .tree span.folder, .filetree span.nas,.filetree span.camera,.filetree span.user  { width: 16px; height: 16px; padding: 1px 0 1px 16px;  background: url(..//images/tree/jquery.Folder.Open.gif) 0 0 no-repeat; }
+.filetree li.expandable span.folder { background: url(..//images/tree/jquery.Folder.Closed.gif) 0 0 no-repeat; }
+a.addFolderTree{float: right; margin-top:-35px;}
+.tree span.folder-main  { width: 20px; height: 16px; padding: 1px 0 1px 16px;  background: url(..//images/tree/home-icon.png) 0 0 no-repeat; }
+
+.filetree span.phone {background: url(..//images/icons/phone_small.png) no-repeat;}
+.filetree span.zone {background: url(..//images/icons/zone.png) no-repeat;}
+.filetree span.user {background: url(..//images/icons/obr3.png) no-repeat;}
+
+.template-form form input{   background-color: #FFFFFF; border: 1px solid #CCCCCC; font: 13px/16px Arial,sans-serif !important;  padding: 4px 6px; }
+.template-form form table th, .template-form form table td {padding: 8px 10px;}
+.template-form form input[type=submit] {padding: 1px 6px;}
+
+#add_object_menu .icon-container {float: left; width: 20%; text-align: center;}
+#add_object_menu .icon-container img {border: 0px none;}
+#add_object_menu .icon-container a {background-color: white; text-decoration: none;}
+#add_object_menu .button-cancel{float: right; margin-top: 30px; cursor: Pointer;}
+#add_object_menu .button-cancel a{height: 22px;}
+
+#container_select_input {font-style: italic; font-weight: bold; border: 1px solid #CCCCCC; color: #6d6d6d; font: 13px/16px Arial,sans-serif !important; padding: 4px 6px; width: 153px; display: block; float: left; height: 18px}
+
+.access_rules {width: 70%;}
+.access_rules tr th {text-align: left;}
+.access_rules a:hover {background-color: #3976C7; color: white;}
+.access_rules td, .access_rules th {padding: 5px}
+.access_rules .lichy {background-color: #E8E8E8 }
+.access_rules .sudy {background-color: #A8A8A8 }
+.lichy {background-color: #E8E8E8 }
+table.right_edit_inputs td, table.right_edit_inputs th{text-align: center;width: 170px}
+table.right_edit_inputs td.tal, table.right_edit_inputs th.tal {text-aligN: left;}

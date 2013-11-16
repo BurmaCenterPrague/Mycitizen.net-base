@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+    	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    	<meta name="description" content="{$PROJECT_DESCRIPTION}">
+    	<meta name="robots" content="{$robots}" n:ifset="$robots">
+		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
+
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.css" />
+{ifset $load_js_css_tree}
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
+{/if}
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.ui.css" />
+{ifset $load_js_css_datetimepicker}
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.ui.datepicker.css" />
+{/if}
+		<link type="text/css" rel="stylesheet" href="{$baseUri}css/jquery.qtip.min.css" />
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+{ifset $load_js_css_jcrop}
+		<link rel="stylesheet" href="{$baseUri}css/jquery.Jcrop.min.css" type="text/css" />
+{/if}
+		<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/jquery.nette.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/base-functions.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/jquery.json-2.2.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/jquery.ui.core.min.js"></script>
+{ifset $load_js_css_zxcvbn}
+		<script type="text/javascript" src="{$baseUri}js/zxcvbn-async.js"></script>
+{/if}
+
+{ifset $load_js_css_tinymce}
+		<script src="{$baseUri}js/tinymce/tinymce.min.js"></script>
+		<script>
+		tinymce.init({
+			selector: "textarea.tinymce",
+			theme: "modern",
+			width: 800,
+			height: 300,
+			resize: "both",
+			valid_elements : "a[href|!target=_blank|!rel=nofollow],strong/b,div[style|align],br,img[src|alt|height|width|style],lang,dir,span[style],p[style],ul,ol,li[type],hr,h2,h3,h4,i,em,u,code,strike,sub,sup,table,tr,td[colspan],th",
+			valid_styles : { '*' : 'color,font-size,font-weight,font-style,text-decoration,align,float' },
+			plugins: [
+				 "advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
+				 "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
+				 "save table contextmenu directionality emoticons template paste textcolor"
+		   ],
+		   content_css: "/css/content.min.css",
+		   toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons",
+		   relative_urls: false
+		 });
+		 
+		tinymce.init({
+			selector: "textarea.tinymce-small",
+			theme: "modern",
+			width: 740,
+			height: 200,
+		    statusbar: false,
+		    menubar: false,
+			resize: "both",
+			valid_elements : "a[href|!target=_blank|!rel=nofollow],strong/b,div[align],br,img,p,img[src|alt],lang,dir,span[style],blockquote[id]",
+			valid_styles : { '*' : 'color,font-size,font-weight,font-style,text-decoration,align,float' },
+			plugins: [
+				 "advlist autolink link charmap preview hr pagebreak",
+				 "code fullscreen nonbreaking",
+				 "contextmenu directionality emoticons textcolor"
+		   ],
+		   content_css: "/css/content.min.css,/css/tinymce-own.min.css",
+		   toolbar: "undo redo | bold italic forecolor | alignleft aligncenter alignright alignjustify | link image charmap emoticons",
+		   relative_urls: false
+		 });
+		</script>
+{/if}
+
+{ifset $load_js_css_jcrop}
+<script src="{$baseUri}js/jquery.Jcrop.min.js"></script>
+<script>
+    jQuery(function($) {
+        $('#crop').Jcrop({
+        	minSize: [120,150],
+        	aspectRatio: 4/5,
+        	onChange: enableCrop,
+			onSelect: enableCrop
+        });
+    });
+    
+    function enableCrop(c) {
+    	$('#x').val(c.x);
+		$('#y').val(c.y);
+    	$('#w').val(c.w);
+		$('#h').val(c.h);
+    }
+    
+    function doCrop() {
+    	var x = $('#x').val();
+    	var y = $('#y').val();
+    	var w = $('#w').val();
+    	var h = $('#h').val();
+    	
+    	if (w==0 || h==0) { alert({_"Please select first a part of the image."}); return false };
+	
+		window.location=this.location+'&do=crop&x='+x+'&y='+y+'&w='+w+'&h='+h;
+		
+    }
+</script>
+{/if}
+
+<script>
+	$(document).ready(function() {
+		$('.trash-radio').change(function(){
+			$('#frmfilter-filter').click();
+		});
+	});
+	
+	$(document).ready(function() {
+		setInterval("reloadMessages()",60*1000);
+	});
+	
+	function reloadMessages() {
+		$.ajax({
+				url:"/?do=reloadStatusBar",
+				dataType:"html"
+			}).done(function(payload){
+				$("#messages").html(payload);
+		});
+	}
+
+	$(document).ready(function(){
+		$("a.active").prop("href", "javascript:void(0);");
+		$("a.active").css("cursor", "default");
+		
+		$('[title!=""]').qtip({
+			style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
+			show: { delay: 800 },
+			position: {
+        		my: 'top left',  // Position my top left...
+		        at: {$tooltip_position}, // at the bottom right of...
+			}
+		});
+
+	});
+</script>
+<title>{$PROJECT_NAME} | {include #title}</title>
+
+</head>
+<body>
+{ifset $mobile}
+	<div id="mobile_alert">
+		<!-- mobile phone detected. -->
+		<a href="http://mycitizen.net/mobile:download" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').hide('normal');" style="float:right;">X</a>
+	</div>
+{/if}
+
+	<div id="layout">
+		<div id="topheader">
+			<div class="header">
+				<div class="login">
+					{ifset $logged}
+						<a href="{link User:default, $my_id}">{!$image} {$username}</a>
+						<div>
+							<a href="{link User:messages}"><span id="messages">{!$messages}</span></a>
+							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>			
+						</div> 
+					{else}
+						<div>
+							<a href="{link User:login}" class="button" >{_"Sign in"}</a>
+							<a href="{link User:register}" class="button" >{_"Sign up"}</a>
+						</div>
+					{/if}
+				
+				</div>
+
+				{ifset $admin}
+				<div class="admin-menu">
+					<a href="{link Administration:default}">{_"Administration"}</a>
+				</div>	
+				{/if}
+			</div> <!-- header -->
+		
+			<div class="logo">
+				<h1><a href="{link Homepage:default}"><img src="/images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
+			</div>
+<!--		<a href="javascript:void(0)" onclick="$('.messages-fancybox').eq(0).trigger('click');">.</a> -->
+			<div class="language">
+				<form>
+					<select name="language" id="language_select" onChange="selectLanguage(this.value);">
+					{foreach Language::getArray() as $lang_id=>$lang_name}
+						{var $flag=> Language::getFlag($lang_id)}
+						<option value="{$lang_id}" {if $flag == $language}selected="selected"{/if}>{$lang_name}</option>
+					{/foreach}
+					</select>
+				</form>
+			</div>
+		
+			<div class="main_menu">
+				{control menu}
+			</div> <!-- main menu -->
+
+			<div class="messages">
+				{control messages}
+			</div> <!-- messages -->
+			
+		</div> <!-- topheader -->
+
+		<div class="content">
+			@{include #content}
+			<div class="cleaner"></div>
+		</div>
+
+		<div class="footer">
+			{include $footer}
+			<div class="rules-and-conditions">
+				{_"By using this platform you accept our"} <a href="{$TOC_URL}" target="_blank">Terms of Use</a> and our <a href="{$PP_URL}" target="_blank">{_"Privacy policy"}</a>.
+			</div>			
+			<div class="software-info">
+				<a href="http://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
+			</div>
+			<div class="sponsor-credits">
+				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
+			</div>
+			<div class="cleaner"></div>
+		</div> <!-- footer -->
+		
+	</div> <!-- layout -->
+
+	<script type="text/javascript" src="{$baseUri}js/jquery.qtip.min.js"></script>
+{ifset $load_js_css_datetimepicker}
+	<script type="text/javascript" src="{$baseUri}js/jquery.ui.datepicker.min.js"></script>
+	<script type="text/javascript" src="{$baseUri}js/jquery.ui.timepicker.js"></script>
+{/if}
+	<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
+{ifset $load_js_css_tree}
+	<script type="text/javascript" src="{$baseUri}js/jquery.tree.js"></script>
+{/if}
+
+{ifset $piwik_url_bare}
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  // you can set up to 5 custom variables for each visitor
+  _paq.push(["setCustomVariable", 1, "language", {$language}, "visit"]);
+  _paq.push(["trackPageView"]);
+  _paq.push(["enableLinkTracking"]);
+
+  (function() {
+    var u=(("https:" == document.location.protocol) ? "https" : "http") + "{!$piwik_url_bare}";
+    _paq.push(["setTrackerUrl", u+"piwik.php"]);
+    _paq.push(["setSiteId", {$PIWIK_ID}]);
+    var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0]; g.type="text/javascript";
+    g.defer=true; g.async=true; g.src=u+"piwik.js"; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Piwik Code -->
+{/if}
+	</body>
+</html>     

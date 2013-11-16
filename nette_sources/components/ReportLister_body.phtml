@@ -1,0 +1,150 @@
+<div class="lister-header">
+
+</div>
+<div class="lister-body">
+   {snippet list_body}
+<div id="message">
+
+</div>
+<table>
+    <tr>
+        <th>Sender
+        </th>
+        <th>Reason
+        </th>
+        <th>Reported item
+        </th>
+    </tr>
+	{foreach $data as $row}
+		<tr>
+            {var r_data => Resource::create($row['id'])->getResourceData()}
+            {var r_author => User::create($r_data['resource_author'])->getUserData()}
+
+			<td>
+            	<b>{$r_author['user_login']}</b>:
+            </td>
+            <td>
+               <b><a href="javascript:void(0);" onClick="$('#show-{$row["id"]}').toggle('normal');">{$r_data['resource_name']}</a></b>
+            </td>
+            <td>
+            <b>
+			{if $r_data['reported_object'] == "user"}
+				<a href="{plink User:default,$r_data['reported_id']}" target="_blank">{? echo User::getFullName($r_data['reported_id'])}</a>
+			{elseif $r_data['reported_object'] == "group"}
+				<a href="{plink Group:default,$r_data['reported_id']}" target="_blank">{? echo Group::getName($r_data['reported_id'])}</a>
+			{else}
+				<a href="{plink Resource:default,$r_data['reported_id']}" target="_blank">{? echo Resource::getName($r_data['reported_id'])}</a>
+			{/if}
+			</b>
+			
+			
+            </td>
+        </tr>
+        <tr id="show-{$row['id']}" style="display:none;">
+        	<td><p><a href="javascript:void(0);" onClick="deletereport({$row['id']})" title="delete report" class="button">X</a></p></td>
+         	<td style="padding-left:10px;">
+               {$r_data['resource_description']}
+            </td>
+			<td>
+<!--
+			{if $r_data['reported_object'] == "user"}
+				<a href="{plink User:default,$r_data['reported_id']}" target="_blank">view user</a>
+			{elseif $r_data['reported_object'] == "group"}
+				<a href="{plink Group:default,$r_data['reported_id']}" target="_blank">view group</a>
+			{else}
+				<a href="{plink Resource:default,$r_data['reported_id']}" target="_blank">view resource</a>
+			{/if}
+-->			
+			<p>
+			{if $r_data['reported_object'] == "user"}
+				<a href="javascript:void(0);" onClick="warning(1,{$r_data['reported_id']},{$r_data['report_type']})" class="button">send warning</a>
+			{elseif $r_data['reported_object'] == "group"}
+				<a href="javascript:void(0);" onClick="warning(2,{$r_data['reported_id']},{$r_data['report_type']})" class="button">send warning to owner and moderators</a>
+			{else}
+				<a href="javascript:void(0);" onClick="warning(3,{$r_data['reported_id']},{$r_data['report_type']})" class="button">send warning to owner and moderators</a>
+			{/if}
+			</p>
+		
+		{if User::create($r_data['resource_author'])->hasRightsToCreate()}
+			<p>
+			{if $r_data['reported_object'] == "user"}
+				<a href="javascript:void(0);" onClick="revokepermission(1,{$r_data['reported_id']})"  class="button">revoke creation rights</a>
+		   {elseif $r_data['reported_object'] == "group"}
+				<a href="javascript:void(0);" onClick="revokepermission(2,{$r_data['reported_id']})"  class="button">revoke owner's creation rights</a>
+		   {else}
+				<a href="javascript:void(0);" onClick="revokepermission(3,{$r_data['reported_id']})"  class="button">revoke owner's creation rights</a>
+		   {/if}
+		   </p>
+	   {/if}
+	   
+		
+		{if $r_data['reported_object'] == "user"}
+			<p>
+			{if User::create($r_data['resource_author'])->isActive()}
+				<a href="javascript:void(0);" onClick="deactivate(1,{$r_data['reported_id']})" class="button">deactivate user</a>
+			{/if}
+		{elseif $r_data['reported_object'] == "group"}
+			{if Group::create($r_data['reported_id'])->isActive()}
+				<a href="javascript:void(0);" onClick="deactivate(2,{$r_data['reported_id']})" class="button">deactivate group</a>
+			{/if}
+		{else}
+			{if Resource::create($r_data['reported_id'])->isActive()}
+				<a href="javascript:void(0);" onClick="deactivate(3,{$r_data['reported_id']})" class="button">deactivate resource</a>
+			{/if}
+			</p>
+		{/if}
+            	
+			</td>
+			
+		</tr>
+    {/foreach}
+</table> 
+ {/snippet}
+</div>
+<div class="lister-footer">
+   {snippet list_pager}
+   
+	<div class="pager">
+	{if $max_page > 1}
+		<a href="{link changePage, page => 1}" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+	{/if}
+
+	{if $max_page > 5}
+	{if $currentpage > 4}
+		<a href="{link changePage, page => $currentpage - 1}" class="pager-minus"><</a>
+	{/if}
+	{/if}
+
+	{if $max_page > 2}
+	{if $max_page < 6}
+	{for $i = 2; $i <= $max_page-1; $i++}
+		<a href="{link changePage, page => $i}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	{/for}   
+	{else}
+	{if $currentpage <= 4}
+	{? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+	{for $i = 2; $i <= $end; $i++}
+		<a href="{link changePage, page => $i}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	{/for}
+	{else}
+	{? if ($currentpage+3 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+	{for $i = $currentpage-2; $i <= $end; $i++}
+		<a href="{link changePage, page => $i}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	{/for}
+	{/if}
+	{/if}
+	{/if}
+
+	{if $max_page > 5}
+	{if ($currentpage + 3) < $max_page}
+		<a href="{link changePage, page => $currentpage + 1}" class="pager-plus">></a>
+	{/if}
+	{/if}
+
+	{if $max_page > 1}
+		<a href="{link changePage, page => $max_page}" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+	{/if}
+	</div>
+
+   {/snippet}
+</div>

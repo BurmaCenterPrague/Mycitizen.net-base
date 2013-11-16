@@ -1,0 +1,84 @@
+<div class="lister-header">
+
+</div>
+<div class="lister-body">
+	<table>
+    <tr>
+        <th>
+            Name
+        </th>
+        <th>
+            Parent
+        </th>
+        <th>
+        </th>
+        <th>
+        </th>
+    </tr>
+   {foreach $data as $tag}
+        <tr>
+        {var formName => 'tagform' . $tag['tag_id']}
+        {control $formName begin}
+            <td>
+                {$control[$formName]['tag_name']->control}
+            </td>
+            <td>
+               {!$control[$formName]['tag_parent_id']->control}
+            </td>
+
+            <td>
+                {$control[$formName]['send']->control}
+            </td>
+			<td>
+				{$control[$formName]['remove']->control}
+			</td>
+        {control $formName end}
+        </tr>
+    {/foreach}
+   </table>
+</div>
+
+
+<div class="lister-footer">
+   {if $max_page > 1}
+   		<a href="javascript:void(0);" onClick="pager({ifset $object_type}{!$object_type}{else}0{/if},{ifset $object_id}{!$object_id}{else}0{/if},'{!$name}',1);">1</a>
+   {/if}
+   
+   {if $max_page > 5}
+   {if $currentpage > 4}
+    	<a href="{link changePage, page => $currentpage - 1}" class="pager-minus"><</a>
+   {/if}
+   {/if}
+   
+   {if $max_page > 2}
+   {if $max_page < 6}
+   {for $i = 2; $i <= $max_page-1; $i++}
+    	<a href="{link changePage, page => $i}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+   {/for}   
+   {else}
+   {if $currentpage <= 4}
+   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {for $i = 2; $i <= $end; $i++}
+    	<a href="{link changePage, page => $i}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+   {/for}
+   {else}
+   {? if ($currentpage+3 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {for $i = $currentpage-2; $i <= $end; $i++}
+    	<a href="{link changePage, page => $i}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+   {/for}
+   {/if}
+   {/if}
+   {/if}
+
+   {if $max_page > 5}
+   {if ($currentpage + 3) < $max_page}
+		<a href="{link changePage, page => $currentpage + 1}" class="pager-plus">></a>
+   {/if}
+   {/if}
+   
+   {if $max_page > 1}
+   		<a href="{link changePage, page => $max_page}" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+   {/if}
+
+</div>
+

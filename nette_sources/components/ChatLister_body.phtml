@@ -1,0 +1,171 @@
+<div class="lister-header">
+	<div class="filter-body-chat">
+		<div class="filter-block">
+			<input type="text" class="text" name="name" id="search_name" value="" onkeyup="textChanged();" placeholder="{_"Filter by name"}"/>
+			<a href="javascript:void(0);" id="clear_button" class="button" name="clear" >{_"Clear"}</a>
+		</div>
+	</div>
+
+	<div class="reload-chat">
+		<b id="reload_button" class="icon-reload" style="cursor:pointer;"  title="{_"Reload the chat."}"></b>
+		<label for="auto_reload" title="{_"Automatically reload in regular intervals if something new has been posted."}">{_"auto reload"}</label><input id="auto_reload" type="checkbox" checked value="1"  title="{_"Automatically reload in regular intervals if something new has been posted."}" />
+	</div>
+
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#reload_button').click(function(){
+			   reloadChat();
+			});
+			
+			$('#clear_button').click(function(){
+				$('#search_name').val('');
+				showAll();
+			});
+		});
+
+		var text='';
+		var search='';
+		
+		function textChanged() {
+			search = $('#search_name').val();
+			
+			if (search == text) {
+				return false;
+			}
+			search = search.trim();
+			filter();
+			text = search;
+		};
+		
+		$.extend($.expr[":"], {
+			"containsNC": function(elem, i, match, array) {
+				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+			}
+		});
+
+		function showAll() {
+			$('.chat-author').parent().parent().show('slow');
+		}
+		
+		function filter() {
+			if (search.length<text.length) {
+				$('.chat-author').parent().parent().show();
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().hide('normal');
+			}
+			else if (search!='') {
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().hide('fast');
+			}
+		}
+
+		$(document).ready(function() {
+			setInterval("chatTimer()",30*1000);
+		});
+		
+		function chatTimer() {
+			if ($("#auto_reload").prop("checked")) {
+				reloadChatIfModified();
+			} else {
+				return false;
+			}
+		}
+
+		function changePage(page) {
+			var groupId = $("#group_id").val();
+			$("#reload_button").attr("class", "icon-reload-disabled");
+			var url="&chatlistergroup-page="+page+"&do=chatlistergroup-changePage";
+			window.location=this.location+url;
+		}
+		
+		function reloadChat() {
+			var groupId = $("#group_id").val();
+			var currentpage = $("#currentpage").val();
+			$("#reload_button").attr("class", "icon-reload-disabled");
+			$.ajax({
+				url:"/widget/chat/?group_id="+groupId+"&page="+currentpage,
+				dataType:"html",
+				ifModified:false,
+				statusCode: {
+					301: function(){
+						$("#chat_container").html("Error loading chat.");
+					}
+				},
+				success:function(payload,status,hdr){
+					if (payload.indexOf('{"redirect":')>-1){
+						$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+						return false;
+					}
+					
+					$("#chat_container").animate({ opacity:0},function(){
+						$("#chat_container").html(payload);
+						filter();
+						$("#chat_container").css("height",function(){
+					        return $(this).height();
+						});
+						$("#chat_container").animate({ opacity:1},function(){
+							$("#reload_button").attr("class", "icon-reload");
+						});
+					});
+				},
+			});
+		}
+		
+		function reloadChatIfModified() {
+			var groupId=$("#group_id").val();
+			var currentpage=$("#currentpage").val();
+			$.ajax({
+				url:"/widget/chat/?group_id="+groupId+"&page="+currentpage,
+				dataType:"html",
+				ifModified:true,
+				statusCode: {
+					301: function(){
+						$("#chat_container").html("Error loading chat.");
+					}
+				},
+				success:function(payload,status,hdr){
+					if(status=="notmodified"){
+						return false;
+					}
+					if (payload.indexOf('{"redirect":')>-1){
+						$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+						return false;
+					}
+					$("#reload_button").attr("class", "icon-reload-disabled");
+
+					if (payload.indexOf('{"redirect":')>-1){
+						$("#chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
+						return false;
+					}
+					$("#chat_container").animate({ opacity:1},function(){
+						$("#reload_button").attr("class", "icon-reload");
+						$("#chat_container").html(payload).promise().done(function(){});
+						filter();
+						$("#chat_container").css("height",function(){
+					        return $(this).height();
+						});
+						$("#chat_container").animate({ opacity:1});
+					});
+				},
+			});
+		}
+	</script>
+
+</div>
+
+<div id="chat_container">
+<div class="lister-body">
+	{snippet list_body}
+	{/snippet}
+	{_"Loading chat.."}
+	{ifset $currentpage}
+		<input type="hidden" id="currentpage" value="{$currentpage}" />
+	{else}
+		<input type="hidden" id="currentpage" value="1" />
+	{/if}
+</div>
+
+<div class="lister-footer">
+	<script>
+		reloadChatIfModified();
+	</script>
+</div>
+</div>

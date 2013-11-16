@@ -1,0 +1,81 @@
+@{extends ListerControl.phtml}
+@{block #listerhead}
+
+{/block}
+@{block #listcontent}
+<table>
+    <tr>
+        <th>
+            {_"Login"}
+        </th>
+        <th>
+            {_"Name"}
+        </th>
+<!--
+        <th>
+            Surname
+        </th>
+-->
+        <th>
+            {_"User permissions"}
+        </th>
+        <th>
+            {_"Status"}
+        </th>
+    </tr>
+	{foreach $data as $user}
+		{if (Auth::ADMINISTRATOR == Auth::isAuthorized(Auth::TYPE_USER,$user['user_id'])) || (Auth::isAuthorized(Auth::TYPE_USER,$user['user_id']) != Auth::UNAUTHORIZED && $user['user_status'] == 1)}
+        <tr>
+            <td>
+                [{$user['user_login']}]
+            </td>
+            <td>
+                {$user['user_name']}
+            </td>
+<!--
+            <td>
+                {$user['user_surname']}
+            </td>
+-->
+				{if Auth::ADMINISTRATOR == Auth::isAuthorized(Auth::TYPE_USER,$user['user_id'])}
+        			{var formName => 'userform' . $user['user_id']}
+        			{control $formName begin}
+            	<td>
+                	{$control[$formName]['user_access_level']->control}
+            	</td>
+
+            	<td>
+                	{$control[$formName]['user_status']->control}
+            	</td>
+
+            	<td>
+                	{$control[$formName]['update']->control}
+            	</td>
+        			{control $formName end}
+				{else}
+					<td>{$user['user_access_level']}</td>
+					<td>{$user['user_status']}</td>
+					<td></td>
+				{/if}
+				<td>
+					<a href="{plink User:default, $user['user_id']}">{_"detail"}</a>
+				</td>
+				{ifset $resource_widget}
+					{if !in_array($resource_id,$user['registered_resources'])}
+						<td>
+							<a href="javascript:void(0);" onClick='userInsert_Resource({$user["user_id"]},{$resource_id},{plink $refresh_path, $resource_id});'>{_"insert to resource"}</a>
+						</td>
+					{else}
+						<td>
+               		<a href="javascript:void(0);" onClick='userRemove_Resource({$user["user_id"]},{$resource_id},{plink $refresh_path, $resource_id});'>{_"remove user from resource"}</a>
+            		</td>
+					{/if}
+				{/if}
+        </tr>
+		{/if}
+    {/foreach}
+</table> 
+{/block}
+@{block #listertail}
+
+{/block}

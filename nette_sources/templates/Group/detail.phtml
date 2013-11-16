@@ -1,0 +1,245 @@
+{block title}{_"Details of the group"} {$data['group_name']}{/block}
+{block content}
+
+<div class="back">
+	<a href="{link Group:default}" title="{_"Back to list of groups."}" class="list"><b class="icon-list"></b></a>
+</div>
+
+<div class="about">
+
+	<div class="icons">
+		<div class="membership-status-detail">
+			<b {if $default_data['object_data']['logged_user_member'] == 1}class="icon-member"  title="{_"I am a member."}">{else}class="icon-no-member"  title="{_"I am not a member."}">{/if}</b>
+		</div>
+	
+		<div class="icon-visibility">
+		{if $data['group_visibility_level'] == 1}
+			<b class="icon-world"  title="{_"visible to the world"}"></b>
+		{elseif $data['group_visibility_level'] == 2}
+			<b class="icon-registered" title="{_"only visible to registered users"}"></b>
+		{else}
+			<b class="icon-person" title="{_"only visible to members"}"></b>
+		{/if}
+		</div>
+	</div>
+
+	{!$img}
+	
+	<h4>{_"Last activity: "}{$last_activity|date:'j.n.Y'}</h4>	
+	
+	<h2>	
+	{ifset $default_data}
+		{if Auth::ADMINISTRATOR == Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+		   <a href="{plink Group:edit, $default_data['object_data']["group_id"]}"><b class="icon-group-edit" title="{_"edit"}"></b></a>
+		{else}
+			{ifset $logged_user}	
+			<a  href="#report_form" id="report_box"><b class="icon-warning" title="{_"Report group"}"></b></a>
+			{/if}
+		{/if}
+	{/if}
+	{$data['group_name']}
+	</h2>
+	
+	{ifset $logged_user}
+	<div id="report_form" style="display:none;">
+		<h4>{_"Here you can report the group if you think it has violated the rules. Reports will be processed by our moderators."}</h4>
+		{control reportform}
+	</div>
+
+	<script type="text/javascript">
+	$(function() {
+		$("#report_box").fancybox({
+			closeBtn : true,
+			helpers : {
+				overlay : null,
+				 title : null
+			},
+		});
+	});
+	</script>
+	{/if}
+	
+	<div class="group_detail_description">
+	
+		{$data['group_description']}
+
+		<div class="group-detail-language">	
+			<h3>{_"Language"}:</h3>
+			{$object_language}
+		</div>
+
+		<div class="group_detail_tags">
+			<h3>Topics</h3>
+			{ifset $group_tags}
+			<table>
+				{?$i=0}
+				 {foreach $group_tags as $key=>$tag_name}
+				<tr>
+					<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
+						{foreach $tag_name->getIdWithPath() as $tag}
+							{if $iterator->isLast()}
+						<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a>
+							{else}
+						<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+							{/if}
+						{/foreach}
+						</div>
+					</td>
+				</tr>
+				{?$i++}
+				{/foreach}
+			</table>
+			{else}
+			{_"No tags."}
+			{/if}
+		</div>
+		
+	</div>
+	
+	{ifset $iamowner}
+	<div class="group-owner">
+		{_"This is my group."}
+	</div>
+	{else}
+		{ifset $owner}
+			{if 0 < Auth::isAuthorized(1,$owner["owner_id"])}
+	<div class="group-owner">
+		<a href="{link User:default, $owner['owner_id']}" title="{_"View group owner:"} {$owner['owner_name']}">{_"Group owner: "} {? echo User::getImage($owner['owner_id'], 'icon', $owner['owner_name'])}</a>
+	</div>
+			{/if}
+		{/if}
+	{/if}
+
+		
+	{if $data['group_visibility_level'] == 3}
+		{ifset $default_data}	
+			{if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+		<div class="group-invite-link">
+		<h3>{_"Link to invite new members"}</h3>
+		<p>{_"This group can only be viewed by members. Users need to have the key below to become members."}</p>
+				{if $hash}
+		<form><input type="text" name="invite_link" id="invite_link" readonly="readonly" value="{$URI}{plink Group:default, $group_id}&do=invitation&key={$hash}" size=30 onlick="this.style.borderColor = 'lightred'; this.select();" title="{_"Copy this link and send it to people who you would like to join. This link is like a key to this group."}"/></form>
+				{else}
+					{_"Please go to the edit screen and generate a link."}
+				{/if}
+		</div>
+			{/if}
+		{/if}
+	{/if}
+	
+	<div class="group_actions">
+         {ifset $default_data}
+            {ifset $default_data['object_data']['logged_user_member']}
+               {if $default_data['object_data']['logged_user_member'] == 0}
+                     <a href="javascript:void(0);" onClick='groupInsert_User({$default_data['object_data']["group_id"]},{$logged_user},{link Group:default, $default_data['object_data']["group_id"]});' class="button">{_"Join group"}</a>
+               {/if}
+               {if $default_data['object_data']['logged_user_member'] == 1}
+					{if !isset($iamowner)}
+                        <a href="javascript:void(0);" onClick='groupRemove_User({$default_data['object_data']["group_id"]},{$logged_user},{link Group:default,$default_data['object_data']["group_id"]});' class="button">{_"Leave group"}</a>
+					{/if}
+               {/if}
+            {/if}
+            
+            <div class="group-subscriptions">
+            {if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+	            <span id="unsubscribe_as_group_header" style="cursor:pointer;" class="button">{_"Subscriptions as group"}</span>
+				<div id="unsubscribe_as_group_body" style="display:none;">
+					<p>{_"Select one or more resources to unsubscribe. Only resources are displayed that this group is subscribed to. You can subscribe to resources on the detail page of a resource."}</p>
+					{control unsubscriberesourceform}
+				</div>
+				<script>
+				$(document).ready(function(){
+					$('#unsubscribe_as_group_header').click(function(){
+						$('#unsubscribe_as_group_body').toggle(500);
+					});
+				});
+				</script>
+			{/if}
+			</div>
+         {/if}
+    </div>
+
+	
+	{ifset $showmap}
+	<div class="group_detail_map">
+		<h3>{_"Group location on a map"}</h3>
+		{control map}
+	</div>
+	{/if}
+	
+	{ifset $default_data}
+	<div class="administration">
+	{if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+	   <h3>{_"Administration"}</h3>
+	   {control groupadministrator begin}
+		<label>{_"Enabled"}</label>{$control['groupadministrator']['status']->control}
+		{$control['groupadministrator']['send']->control}
+	   {control groupadministrator end}
+		<div style="text-align:center"><a href="/?do=image&id={$default_data['object_data']["group_id"]}&type=2" class="button">{_"regenerate image"}</a></div>
+	{/if}
+	</div>
+	{/if}
+</div> 
+
+<div class="detail-right">
+	<div class="group-details-connections">
+		<div class="group_detail_users">
+		{ifset $default_data}
+			<h2>{_"Group members"}</h2>
+			{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
+			{control detailgroupuserlister:body}
+			{else}
+				<p>{_"You are not allowed to see the members."}</p>
+			{/if}
+		{/if}
+		</div>
+
+		<div class="group_detail_resources">
+		{ifset $default_data}
+			<h2>{_"Group resources"}</h2>
+			{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
+			{control detailgroupresourcelister:body}
+			{else}
+				<p>{_"You are not allowed to see the subscriptions."}</p>
+			{/if}
+		{/if}
+		</div>
+		<div class="cleaner"></div>
+	</div>
+
+	<div id="chat_top_anchor"></div>
+	<div class="group-detail-chatlist">
+		<h2>{_"Group chat"}</h2>
+		<div class="group-detail-chatform">
+		{ifset $default_data}
+		{ifset $default_data['object_data']['logged_user_member']}
+		{if $default_data['object_data']['logged_user_member'] == 1}
+			{control chatform}
+<script>
+	$(document).ready(function() {
+		$('#frmchatform-send').click(function(){
+			var editorContent = tinymce.get('frmchatform-message_text').getContent();
+			editorContent = $.trim(editorContent);
+			if (editorContent == '' || editorContent == null) {
+				alert({_'Please enter some text.'});
+				return false;
+			}
+		});
+	});
+</script>
+
+		{ifset $default_data['object_data']['group_id']}
+		<input type="hidden" id="group_id" value="{$default_data['object_data']['group_id']}" />
+		{/if}
+			
+			{control chatlistergroup}
+		{else}
+			<p>{_"The chat is only visible to group members."}</p>
+		{/if}
+		{/if}
+		{/if}
+		</div>	
+	</div>
+	
+</div>
+{/block}

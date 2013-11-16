@@ -1,0 +1,35 @@
+<div class="menu-classic {$orientation} {$name}">
+
+	<ul id="menu">
+	{? $new_level=1}
+	{? $level=1}
+
+	{foreach $data as $key=>$menuitem}
+		<li {ifset $menuitem['active']}class="menu_item_active"{/if}>
+			<a {ifset $menuitem['active']}class="menu_button"{/if} href="{$menuitem['url']}">{$menuitem['title']}</a>
+		{ifset $data[$key+1]}
+			{if $data[$key+1]['parent'] == $menuitem['key']}
+				{? $new_level=$level+1}
+			{elseif $data[$key+1]['parent'] != $menuitem['parent']}
+				{? $new_level=$level-1}
+			{/if}
+		{else}
+			{? $new_level=1}
+		{/if}
+	
+		{if $new_level > $level}
+		<ul>
+			{? $level++}
+		{elseif $new_level < $level}
+			{for $level;$level>$new_level;$level--}
+		</li>
+		</ul>
+		</li>			
+			{/for}
+		{else}
+		</li>		
+		{/if}
+	{/foreach}
+	</ul>
+
+</div> <!-- menu-classic -->

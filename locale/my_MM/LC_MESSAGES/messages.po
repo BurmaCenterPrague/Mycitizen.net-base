@@ -1,0 +1,1040 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mycitizen.net Alpha\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-09-30 11:36+0100\n"
+"PO-Revision-Date: 2013-10-03 22:40+0100\n"
+"Last-Translator: Burma Center Prague <info@burma-center.org>\n"
+"Language-Team: Myanmar <support@mycitizen.net>\n"
+"Language: Myanmar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.7\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ../../../nette_sources/components\n"
+"X-Poedit-SearchPath-1: ../../../nette_sources/models\n"
+"X-Poedit-SearchPath-2: ../../../nette_sources/presenters\n"
+"X-Poedit-SearchPath-3: ../../../nette_sources/templates\n"
+
+#: ../../../nette_sources/components/ExternalFilter.php:139
+msgid "all resources"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:150
+msgid "Connect filters with"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:154
+msgid "Name"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:156
+#: ../../../nette_sources/components/ExternalFilter.php:170
+msgid "all"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:157
+msgid "active"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:158
+msgid "inactive"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:162
+msgid "inbox"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:163
+msgid "trash"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:165
+msgid "Status"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:172
+msgid "Language"
+msgstr ""
+
+#. TRANSLATORS: Type of resource (e.g. video, event, organization)
+#: ../../../nette_sources/components/ExternalFilter.php:174
+msgid "Type"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:176
+msgid "all tags"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:184
+msgid "Clear Filter"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:185
+msgid "Apply Filter"
+msgstr ""
+
+#: ../../../nette_sources/components/ExternalFilter.php:186
+msgid "Similar to you"
+msgstr ""
+
+#: ../../../nette_sources/components/GroupListerControl.php:82
+#: ../../../nette_sources/components/GroupListerControl.php:113
+#: ../../../nette_sources/components/GroupUserListerControl.php:58
+#: ../../../nette_sources/components/GroupUserListerControl.php:98
+#: ../../../nette_sources/components/ListerControlMain.php:360
+#: ../../../nette_sources/components/ListerControlMain.php:410
+#: ../../../nette_sources/components/ListerControlMain.php:451
+#: ../../../nette_sources/components/MapControl.php:62
+#: ../../../nette_sources/components/ResourceGroupListerControl.php:45
+#: ../../../nette_sources/components/ResourceGroupListerControl.php:81
+#: ../../../nette_sources/components/ResourceListerControl.php:42
+#: ../../../nette_sources/components/ResourceListerControl.php:77
+#: ../../../nette_sources/components/ResourceMemberListerControl.php:45
+#: ../../../nette_sources/components/ResourceMemberListerControl.php:81
+#: ../../../nette_sources/components/TagListerControl.php:161
+#: ../../../nette_sources/components/UserListerControl.php:67
+#: ../../../nette_sources/components/UserListerControl.php:108
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:80
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:209
+#: ../../../nette_sources/presenters/GroupPresenter.php:226
+#: ../../../nette_sources/presenters/GroupPresenter.php:460
+#: ../../../nette_sources/presenters/GroupPresenter.php:727
+#: ../../../nette_sources/presenters/GroupPresenter.php:769
+#: ../../../nette_sources/presenters/GroupPresenter.php:853
+#: ../../../nette_sources/presenters/ResourcePresenter.php:193
+#: ../../../nette_sources/presenters/ResourcePresenter.php:242
+#: ../../../nette_sources/presenters/ResourcePresenter.php:482
+#: ../../../nette_sources/presenters/ResourcePresenter.php:858
+#: ../../../nette_sources/presenters/ResourcePresenter.php:898
+#: ../../../nette_sources/presenters/UserPresenter.php:271
+#: ../../../nette_sources/presenters/UserPresenter.php:286
+#: ../../../nette_sources/presenters/UserPresenter.php:319
+#: ../../../nette_sources/presenters/UserPresenter.php:391
+#: ../../../nette_sources/presenters/UserPresenter.php:448
+#: ../../../nette_sources/presenters/UserPresenter.php:540
+#: ../../../nette_sources/presenters/UserPresenter.php:615
+#: ../../../nette_sources/presenters/UserPresenter.php:1063
+#: ../../../nette_sources/presenters/UserPresenter.php:1170
+msgid "Error submitting form."
+msgstr ""
+
+#: ../../../nette_sources/components/ListerControlMain.php:95
+msgid "Filter is on."
+msgstr ""
+
+#: ../../../nette_sources/components/ListerControlMain.php:95
+msgid "Filter is off."
+msgstr ""
+
+#: ../../../nette_sources/components/ListerControlMain.php:353
+#: ../../../nette_sources/presenters/UserPresenter.php:1149
+msgid "Normal user"
+msgstr ""
+
+#: ../../../nette_sources/components/ListerControlMain.php:354
+msgid "Group Moderator"
+msgstr ""
+
+#: ../../../nette_sources/components/ListerControlMain.php:355
+msgid "Group Administrator"
+msgstr ""
+
+#: ../../../nette_sources/components/ListerControlMain.php:359
+#: ../../../nette_sources/components/ListerControlMain.php:409
+#: ../../../nette_sources/components/ListerControlMain.php:450
+#: ../../../nette_sources/presenters/GroupPresenter.php:456
+#: ../../../nette_sources/presenters/GroupPresenter.php:726
+#: ../../../nette_sources/presenters/ResourcePresenter.php:480
+#: ../../../nette_sources/presenters/ResourcePresenter.php:857
+#: ../../../nette_sources/presenters/UserPresenter.php:629
+#: ../../../nette_sources/presenters/UserPresenter.php:1168
+msgid "Update"
+msgstr ""
+
+#: ../../../nette_sources/components/MapControl.php:41
+msgid "User"
+msgstr ""
+
+#: ../../../nette_sources/components/MapControl.php:42
+msgid "Group"
+msgstr ""
+
+#: ../../../nette_sources/components/MapControl.php:43
+msgid "Resource"
+msgstr ""
+
+#: ../../../nette_sources/components/TagContainer.php:19
+msgid "Add tag:"
+msgstr ""
+
+#. TRANSLATORS: 'Parent level' means 'higher level'
+#: ../../../nette_sources/components/TagListerControl.php:123
+msgid "Parent level:"
+msgstr ""
+
+#: ../../../nette_sources/components/TagListerControl.php:125
+msgid "Remove"
+msgstr ""
+
+#: ../../../nette_sources/models/RestServer.php:433
+msgid "Error"
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:37
+#, php-format
+msgid "User %s requested your friendship."
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:38
+msgid "Friendship request"
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:41
+#, php-format
+msgid "User %s  accepted your friendship."
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:42
+msgid "Friendship accepted"
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:45
+#, php-format
+msgid "User %s rejected your friendship."
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:46
+msgid "Friendship request rejected"
+msgstr ""
+
+#: ../../../nette_sources/models/StaticModel.php:49
+#: ../../../nette_sources/models/StaticModel.php:53
+#: ../../../nette_sources/models/StaticModel.php:57
+msgid "System message: Warning !!!"
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:22
+msgid "More than one user with the same id found."
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:26
+msgid "Specified user not found."
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:255
+msgid ""
+"Hello,\n"
+"thank you for signing up at Mycitizen.net!\n"
+"To finish your registration click on the following link.\n"
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:258
+msgid "Finish your registration at Mycitizen.net"
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:295
+msgid ""
+"Hello,\n"
+"You have requested password change on Mycitizen.net.\n"
+"To finish your request click on following link.\n"
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:298
+msgid "Password change on Mycitizen.net"
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:322
+msgid ""
+"Hello,\n"
+"You have requested email change on Mycitizen.net.\n"
+"To finish your request click on following link.\n"
+msgstr ""
+
+#: ../../../nette_sources/models/User.php:325
+msgid "Email change on Mycitizen.net"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:44
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:67
+msgid "Only administrators can visit this section!"
+msgstr ""
+
+# please translate
+#. TRANSLATORS: Email from where messages are sent.
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:52
+msgid "from_email"
+msgstr "Email from where messages are sent."
+
+#. TRANSLATORS: Default GPS latitude.
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:54
+msgid "gps_default_latitude"
+msgstr ""
+
+#. TRANSLATORS: Default GPS longitude.
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:56
+msgid "gps_default_longitude"
+msgstr ""
+
+#. TRANSLATORS: Minimum registration time in seconds to receive creation rights.
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:58
+msgid "object_creation_min_time"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:77
+msgid "Tag name:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:78
+msgid "Parent tag:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:79
+msgid "Add"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:154
+msgid "Tags"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:161
+msgid "Add tag"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:168
+msgid "Settings"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:175
+msgid "setup and maintenance"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:185
+msgid "Reports"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:208
+#: ../../../nette_sources/presenters/GroupPresenter.php:228
+#: ../../../nette_sources/presenters/GroupPresenter.php:768
+#: ../../../nette_sources/presenters/ResourcePresenter.php:897
+#: ../../../nette_sources/presenters/UserPresenter.php:318
+#: ../../../nette_sources/presenters/UserPresenter.php:539
+#: ../../../nette_sources/presenters/UserPresenter.php:1062
+msgid "Send"
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:273
+msgid ""
+"We have received complaints about you spaming other users. Please stop or "
+"your account will be deactivated."
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:279
+msgid ""
+"We have received complaints that you use inappropriate language. Please stop "
+"or your account will be deactivated."
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:285
+msgid ""
+"We have received complaints that your group contains spam. Please delete "
+"inappropriate content or your group will be deactivated."
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:291
+msgid ""
+"We have received complaints about inapproprite language in your group. "
+"Please make neccessary adjustments or your group will be deactivated."
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:305
+msgid ""
+"We have received complaints that your resource contains spam. Please delete "
+"inappropriate content or your resource will be deactivated."
+msgstr ""
+
+#: ../../../nette_sources/presenters/AdministrationPresenter.php:311
+msgid ""
+"We have received complaints about inapproprite language in your resource. "
+"Please make necessary adjustments or your resource will be deactivated."
+msgstr ""
+
+#: ../../../nette_sources/presenters/BasePresenter.php:29
+#, php-format
+msgid ""
+"Your account has been deactivated. If you think that this is a mistake, "
+"please <a href=\"%s\">contact the support</a>."
+msgstr ""
+
+#: ../../../nette_sources/presenters/BasePresenter.php:46
+#: ../../../nette_sources/presenters/BasePresenter.php:150
+msgid "New messages"
+msgstr ""
+
+#: ../../../nette_sources/presenters/BasePresenter.php:81
+msgid "Users"
+msgstr ""
+
+#: ../../../nette_sources/presenters/BasePresenter.php:88
+msgid "Groups"
+msgstr ""
+
+#: ../../../nette_sources/presenters/BasePresenter.php:99
+#: ../../../nette_sources/presenters/BasePresenter.php:117
+msgid "create"
+msgstr ""
+
+#: ../../../nette_sources/presenters/BasePresenter.php:107
+msgid "Resources"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:25
+msgid "Given group does not exist."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:29
+msgid "You are not allowed to view this group."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:124
+msgid "You have no permission to create groups."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:193
+#: ../../../nette_sources/presenters/UserPresenter.php:208
+msgid "The image is too small. Minimum size is 80px x 100px."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:203
+#: ../../../nette_sources/presenters/UserPresenter.php:218
+msgid "Your image still needs to be resized before you can continue!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:210
+#: ../../../nette_sources/presenters/UserPresenter.php:225
+msgid ""
+"Your image still needs to be cropped to the right dimensions before you can "
+"continue!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:224
+msgid "Please enter some text."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:272
+#: ../../../nette_sources/presenters/ResourcePresenter.php:355
+#: ../../../nette_sources/presenters/UserPresenter.php:524
+#: ../../../nette_sources/presenters/UserPresenter.php:528
+msgid "add new tag"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:428
+#: ../../../nette_sources/presenters/ResourcePresenter.php:405
+#: ../../../nette_sources/presenters/UserPresenter.php:602
+msgid "Name:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:428
+msgid "Enter a name for the group."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:429
+#: ../../../nette_sources/presenters/ResourcePresenter.php:407
+#: ../../../nette_sources/presenters/UserPresenter.php:607
+msgid "Visibility level:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:429
+msgid ""
+"Make the group visible to everyone (world), only users of this website "
+"(registered) or to members of this group (members)."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:430
+#: ../../../nette_sources/presenters/ResourcePresenter.php:408
+#: ../../../nette_sources/presenters/UserPresenter.php:608
+msgid "Language:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:430
+msgid "Select a language that will be used in this group for comunication."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:431
+#: ../../../nette_sources/presenters/ResourcePresenter.php:410
+#: ../../../nette_sources/presenters/UserPresenter.php:609
+msgid "Description:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:431
+msgid "Describe in few sentences what this group is about."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:432
+#: ../../../nette_sources/presenters/UserPresenter.php:610
+msgid "Avatar:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:432
+msgid ""
+"Avatars are small images that will be visible with your name. Here you can "
+"upload an avatar for your group (upload min. 80x100px, max. 1024x1024px). In "
+"the next step you can crop it."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:432
+#: ../../../nette_sources/presenters/UserPresenter.php:610
+msgid "Image must be in JPEG or PNG format."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:432
+#: ../../../nette_sources/presenters/UserPresenter.php:610
+msgid "Maximum image size is 512kB"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:435
+msgid "Group key:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:435
+msgid ""
+"Enter a key that will be used for inviting members into this group. Use "
+"letters, numbers and \"-\", with a minimum lenght of 5)."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:435
+msgid "Only letters, numbers and '-', with a minimum lenght of 5."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:439
+msgid "Create new group"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:485
+msgid "The image is too big! Max. size is for upload is 1024x1024"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:493
+msgid "Group updated"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:761
+msgid "This is not a real group but spam."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:762
+msgid "This group was created by mistake."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:763
+msgid "This group violates the rules of conduct."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:766
+#: ../../../nette_sources/presenters/ResourcePresenter.php:895
+#: ../../../nette_sources/presenters/UserPresenter.php:316
+msgid "Reason:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:767
+msgid "Tell us why you report this group, including examples:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:767
+#: ../../../nette_sources/presenters/ResourcePresenter.php:896
+#: ../../../nette_sources/presenters/UserPresenter.php:317
+msgid "Please give us some details."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:791
+#: ../../../nette_sources/presenters/ResourcePresenter.php:920
+#: ../../../nette_sources/presenters/UserPresenter.php:363
+msgid "(spam)"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:792
+#: ../../../nette_sources/presenters/ResourcePresenter.php:921
+#: ../../../nette_sources/presenters/UserPresenter.php:364
+msgid "(error)"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:793
+#: ../../../nette_sources/presenters/ResourcePresenter.php:922
+#: ../../../nette_sources/presenters/UserPresenter.php:365
+msgid "(inappropriate language)"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:797
+#, php-format
+msgid "Report about group %s, reason: %s"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:808
+#: ../../../nette_sources/presenters/ResourcePresenter.php:937
+#: ../../../nette_sources/presenters/UserPresenter.php:382
+msgid "Your report has been received."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:852
+msgid "Unsubscribe"
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:922
+#, php-format
+msgid "Group %s unsubscribed from resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:924
+#, php-format
+msgid "Group %s has not been subscribed to resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:1100
+#: ../../../nette_sources/presenters/UserPresenter.php:1474
+msgid "Finished cropping and resizing."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:1128
+msgid "You are already a member."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:1139
+msgid "This group doesn't have a key."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:1145
+msgid "You have entered a wrong key."
+msgstr ""
+
+#: ../../../nette_sources/presenters/GroupPresenter.php:1155
+msgid "You have joined the group."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:18
+msgid "This resource doesn't exist."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:22
+msgid "You are not allowed to view this resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:146
+msgid "You have no permission to create a resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:192
+msgid "Post"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:241
+msgid "Subscribe"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:260
+#, php-format
+msgid "Insufficient permissions to subscribe group %s to this resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:314
+#, php-format
+msgid "Group %s subscribed to this resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:316
+#, php-format
+msgid "Group %s is already subscribed."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:405
+msgid "Enter a name for the resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:406
+msgid "Resource type:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:407
+msgid ""
+"Make the resource visible to everyone (world), only users of this website "
+"(registered) or to subscribers of this resource (subscribers)."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:408
+msgid "Select a language of this resource."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:410
+msgid "Describe in few sentences what this resource is about."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:419
+msgid "Message:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:428
+msgid "Event description:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:430
+#: ../../../nette_sources/presenters/ResourcePresenter.php:441
+#: ../../../nette_sources/presenters/ResourcePresenter.php:451
+#: ../../../nette_sources/presenters/ResourcePresenter.php:459
+msgid "URL to external source:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:430
+#: ../../../nette_sources/presenters/ResourcePresenter.php:441
+#: ../../../nette_sources/presenters/ResourcePresenter.php:451
+#: ../../../nette_sources/presenters/ResourcePresenter.php:459
+msgid "URL must start with http:// or https://!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:431
+msgid "Event time:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:439
+msgid "Information:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:449
+#: ../../../nette_sources/presenters/UserPresenter.php:1060
+msgid "Text:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:473
+msgid "Media type:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:474
+msgid "Media ID:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:477
+msgid "Create new resource"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:525
+msgid "Resource updated"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:890
+msgid "This is not a real resource but spam."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:891
+msgid "This resource was created by mistake."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:892
+msgid "This resource violates the rules of conduct."
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:896
+msgid "Tell us why you report this resource, including examples:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/ResourcePresenter.php:926
+#, php-format
+msgid "Report about resource %s, reason: %s"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:27
+msgid "This user doesn't exist."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:31
+msgid "You are not allowed to view this user."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:99
+msgid "Registration has been succesfull. You can now sign in."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:103
+msgid "Registration couldn't be finished! Link is not active anymore"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:112
+#: ../../../nette_sources/presenters/UserPresenter.php:125
+msgid "Email has been succesfully changed."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:116
+msgid "Email couldn't be changed! Link is not active anymore"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:129
+msgid "Email couldn't be changed!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:268
+#: ../../../nette_sources/presenters/UserPresenter.php:442
+#: ../../../nette_sources/presenters/UserPresenter.php:597
+msgid "Username:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:269
+#: ../../../nette_sources/presenters/UserPresenter.php:283
+#: ../../../nette_sources/presenters/UserPresenter.php:445
+msgid "Password:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:270
+msgid "Sign in"
+msgstr "Sign in (MY)"
+
+#: ../../../nette_sources/presenters/UserPresenter.php:283
+#: ../../../nette_sources/presenters/UserPresenter.php:445
+#, php-format
+msgid "Your password must contain at least %s characters."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:283
+#: ../../../nette_sources/presenters/UserPresenter.php:445
+msgid "Your password must contain at least one small letter."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:283
+#: ../../../nette_sources/presenters/UserPresenter.php:445
+msgid "Your password must contain at least one big letter."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:283
+#: ../../../nette_sources/presenters/UserPresenter.php:445
+msgid "Your password must contain at least one number."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:284
+msgid "Password again:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:284
+msgid "Entered passwords are not the same."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:285
+msgid "Change password"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:298
+msgid "Your password has been successfully changed, you can now log in."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:302
+msgid "Password couldn't be changed! Try again later."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:311
+msgid "This is not a real person but spam."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:312
+msgid "This person was created by mistake."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:313
+msgid "This person violates the rules of conduct."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:317
+msgid "Tell us why you report this user, including examples:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:370
+#, php-format
+msgid "Report about user %s, reason: %s"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:389
+msgid "Your email:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:390
+msgid "Request new password"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:406
+msgid "An email has been sent to you with further instructions."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:409
+msgid "This email is not registered in our system!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:442
+msgid "Username cannot be empty!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:442
+#, php-format
+msgid "The minimal length of your username is %s characters."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:442
+msgid "Your username can only contain letters and numbers without spaces!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:442
+msgid "Please use only english alphabet."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:443
+#: ../../../nette_sources/presenters/UserPresenter.php:606
+msgid "Email:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:443
+msgid "To this address we will send a request to confirm your registration."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:443
+msgid "Wrong email format!"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:445
+msgid ""
+"Your password must be at least 8 characters long and contain at least one "
+"small letter, one big letter and one number."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:446
+msgid "Repeat password:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:446
+msgid "Your passwords are different."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:447
+msgid "Sign up"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:464
+msgid "User with the same name already exists."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:469
+msgid "Email is already registered to another account."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:474
+msgid ""
+"Your email is known at www.stopforumspam.com as spam source and was blocked. "
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:479
+msgid ""
+"Your IP is known at www.stopforumspam.com as spam source and was blocked. "
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:484
+msgid "Email is not valid. Check it and try again."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:502
+msgid ""
+"Registration has been successful. A message has been sent to your email with "
+"further instructions how to activate your account."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:600
+msgid "The username cannot be changed."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:603
+msgid "Surname:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:604
+msgid "Phone:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:607
+msgid ""
+"Do you want be visible to everyone (world), one to registered users "
+"(registered) or only to your friends (friends)?"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:608
+msgid ""
+"The main language you want to use. You will still be able to see other "
+"languages."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:609
+msgid "Write some lines about your life, your work and your interests."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:610
+msgid ""
+"Avatars are small images that will be visible with your name. Here you can "
+"upload your avatar (upload min. 80x100px, max. 1024x1024px). In the next "
+"step you can crop it."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:655
+msgid "This email is already used for another account."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:659
+msgid "This email is not valid. Please check it and try again."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:671
+msgid ""
+"You requested a change of your email address. A message with a link was sent "
+"to your old address. The new address will be activated once you confirmed "
+"the change."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:688
+msgid "Image is too big! Max. size is for upload is 1024x1024"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:695
+msgid "User updated"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1059
+msgid "To:"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1097
+msgid "Your message has been sent."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1150
+msgid "Moderator"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1151
+#: ../../../nette_sources/presenters/UserPresenter.php:1156
+msgid "Administrator"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1191
+msgid "Administrator with id 1 cannot be changed"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1204
+msgid "User permissions changed."
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1277
+msgid "Empty Trash"
+msgstr ""
+
+#: ../../../nette_sources/presenters/UserPresenter.php:1292
+msgid "Trash emptied."
+msgstr ""
+
+#~ msgid "clear map"
+#~ msgstr "clear map"

@@ -1,0 +1,314 @@
+<div class="lister-header">
+</div>
+<div class="lister-body">
+   {snippet list_body}
+
+    <div class="list-header-wrapper">
+        <div class="list-header-name">
+		{if isset($data) && isset($template_variables['show_extended_columns']) }
+			{_"Name"}
+		{/if}
+        </div>
+			{ifset $template_variables['administration']}
+				{if $lister_type[0] == 1}
+					<div class="list-header-role">
+						{_"Role"}
+					</div>
+				{/if}
+					<div class="list-header-active">
+						{_"Is active"}
+					</div>
+			{else}
+				{ifset $template_variables['show_extended_columns']}
+				<div class="list-header-connections">
+					{if count($lister_type) == 1}
+							{_"Subscribers"}
+						{/if}
+				</div>
+				{/if}
+			{/if}
+
+    </div>
+
+
+{if isset($data) && count($data)>0 }
+
+    {var $number_displayed}
+	{? $number_displayed=0}
+	
+	{foreach $data as $row}
+	{? $number_displayed++}
+
+    {if $number_displayed==1 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    	<div class="list-body-top-wrapper">
+    {/if}    
+			{? $id=$row['id']}
+        	{? $color='transparent'}    
+        	<div class="item{ifset $template_variables['selected_row']}{if $template_variables['selected_row'] == $row['id']} selected_row{/if}{/if}"
+			{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}{* Top on front page*} onClick="window.location = '/resource/?resource_id={$row['id']}'"{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *} onClick="showObjectDetail({$row['type']},{$row['id']})"{/if}>
+						{? $resource_type=''}
+						{var $resource_name}
+						{? $resource_name = array(
+							1=>'1',
+							2=>'event',
+							3=>'org',
+							4=>'doc',
+							6=>'other',
+							7=>'7',
+							8=>'8',
+							9=>'friendship',
+							'media_soundcloud'=>'audio',
+							'media_youtube'=>'video',
+							'media_vimeo'=>'video',
+							'media_bambuser'=>'live-video'
+							)}
+						{? $resource_type_labels = array(
+							1=>_('message'),
+							2=>_('event'),
+							3=>_('organization'),
+							4=>_('document'),
+							6=>_('link to external resource'),
+							7=>'7',
+							8=>'8',
+							9=>'friendship',
+							'media_soundcloud'=>_('sound on Soundcloud'),
+							'media_youtube'=>_('video on YouTube'),
+							'media_vimeo'=>_('video on Vimeo'),
+							'media_bambuser'=>_('live-video on Bambuser')
+							)}
+						{var $res => Resource::Create($row['id'])}
+						{var $resdata => $res->getResourceData()}
+						{? $resource_type = $resdata['resource_type']==5 ? $resource_name[$resdata['media_type']] : $resource_name[$resdata['resource_type']]}
+						{? $resource_type_label = $resdata['resource_type']==5 ? $resource_type_labels[$resdata['media_type']] : $resource_type_labels[$resdata['resource_type']]}
+						{if ($resdata['resource_type'] != 1 && $resdata['resource_type'] != 7 && $resdata['resource_type'] != 8 && $resdata['resource_type'] != 9)}
+							<b class="icon-{$resource_type}" title="{$resource_type_label}"></b>
+						{/if}
+				<div class="list-body-name">
+					{ifset $template_variables['detail']}
+					{if $template_variables['detail'] == "ajax"}
+            			<span{ifset $screenshot} style="width:120px;" title='{!$screenshot}'{/if}>{$row['name']}</span>
+					{/if}
+					{else}
+						{var $res => Resource::Create($row['id'])}
+						{var $screenshot => $res->getScreenshot()}
+						<span{ifset $screenshot} style="width:120px;" title='{!$screenshot}'{/if}>{$row['name']}</span>
+					{/if}
+				</div>
+
+		{ifset $template_variables['your_connections']} {* For home page (my connections) *}		
+		{var $user_id => NEnvironment::getUser()->getIdentity()->getUserId()}
+			{var $res => Resource::create($row['id'])}
+			{if $res->getOwner()->getUserId() == $user_id}
+				<div class="list-body-permissions">
+					<b class="icon-owner" title="{_"I am the owner."}"></b>
+				</div>
+			{elseif Auth::MODERATOR <= Auth::isAuthorized(3,$row['id'])}
+				<div class="list-body-permissions">
+					<b class="icon-moderator" title="{_"I am a resource moderator."}"></b>
+				</div>
+			{/if}
+		{/if}
+				 	{ifset $template_variables['administration']}
+						{ifset $template_variables['persistent_filter']['group_id']}
+				 		{if Auth::ADMINISTRATOR == Auth::isAuthorized(2,$template_variables['persistent_filter']['group_id'])}
+        					{var formName => $row['type_name'] . 'form' . $row['id']}
+							{var $grp => Group::create($template_variables['persistent_filter']['group_id'])}
+                     {if $row['type_name'] == "user" && $grp->getOwner()->getUserId() == $row['id']}
+                        <div class="list-body-owner">
+                           {_"Owner"}
+                        </div>
+                     {else}
+        					{control $formName begin}
+            			{ifset $control[$formName]['access_level']}
+            			<div class="list-body-access">
+               			{$control[$formName]['access_level']->control}
+            			</div>
+            			{/if}
+            			<div class="list-body-status">
+                			{$control[$formName]['status']->control}
+            			</div>
+
+            			<div class="list-body-send">
+                			{$control[$formName]['send']->control}
+            			</div>
+        					{control $formName end}
+							{/if}				
+            		{else}
+							{ifset $template_variables['show_extended_columns']}
+							{if $row['type_name'] == "resource"}
+								<div class="list-body-viewed">{$row['viewed']}</div>
+							{else}
+								<div class="list-body-links">{$row['links']}</div>
+							{/if}
+							{/if}
+            		{/if}
+					{elseifset $template_variables['persistent_filter']['resource_id']}
+							{if Auth::ADMINISTRATOR == Auth::isAuthorized(3,$template_variables['persistent_filter']['resource_id'])}
+                     {var formName => $row['type_name'] . 'form' . $row['id']}
+							{var $res => Resource::create($template_variables['persistent_filter']['resource_id'])}
+							{if $row['type_name'] == "user" && $res->getOwner()->getUserId() == $row['id']}
+               			<div class="list-body-owner">
+                  			{_"Owner"}
+               			</div>
+            			{else}
+
+                    {control $formName begin}
+                    {ifset $control[$formName]['access_level']}
+                     <div class="list-body-access">
+                        {$control[$formName]['access_level']->control}
+                     </div>
+                    {/if}
+                     <div class="list-body-status">
+                        {$control[$formName]['status']->control}
+                     </div>
+
+                     <div class="list-body-send">
+                        {$control[$formName]['send']->control}
+                     </div>
+                     {control $formName end}
+							{/if}
+                  	{else}
+								{ifset $template_variables['show_extended_columns']}
+									<div class="list-body-viewed">{$row['viewed']}</div>
+								{/if}
+                  	{/if}
+					
+					{elseifset $template_variables['persistent_filter']['user_id']}
+							{if Auth::ADMINISTRATOR == Auth::isAuthorized(1,$template_variables['persistent_filter']['user_id'])}
+                     {var formName => $row['type_name'] . 'form' . $row['id']}
+                     {control $formName begin}
+                     {ifset $control[$formName]['access_level']}
+                     <div class="list-body-access">
+                        {$control[$formName]['access_level']->control}
+                     </div>
+                     {/if}
+                     <div class="list-body-status">
+                        {$control[$formName]['status']->control}
+                     </div>
+
+                     <div class="list-body-send">
+                        {$control[$formName]['send']->control}
+                     </div>
+                     {control $formName end}
+
+                     {else}
+								{ifset $template_variables['show_extended_columns']}
+									<div class="list-body-viewed">{$row['viewed']}</div>
+								{/if}
+                     {/if}
+
+						{else}
+							{if Auth::ADMINISTRATOR == Auth::isAuthorized($row['type'],$row['id'])}
+                     {var formName => $row['type_name'] . 'form' . $row['id']}
+                     {control $formName begin}
+                     {ifset $control[$formName]['access_level']}
+                     <div class="list-body-access">
+                        {$control[$formName]['access_level']->control}
+                     </div>
+                     {/if}
+                     <div class="list-body-status">
+                        {$control[$formName]['status']->control}
+                     </div>
+
+                     <div class="list-body-send">
+                        {$control[$formName]['send']->control}
+                     </div>
+                     {control $formName end}
+
+                     {else}
+								{ifset $template_variables['show_extended_columns']}
+									<div class="list-body-viewed">{$row['viewed']}</div>
+					{/if}
+                     {/if}
+
+						{/if}
+				{else}
+					{ifset $template_variables['show_extended_columns']}
+                     	<div class="list-body-links">{$row['links']}</div>
+					{/if}
+				{/if}
+
+			</div>	
+    {if $number_displayed==3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    	</div>
+    {/if}
+    {/foreach}
+	
+{else}
+	<div class="not-found">
+	{if $active_filter}
+		{_"Nothing found."} <a id="filter_box_a" title="{_"Change the filter"}" href="#filter_container"><b class="icon-filter"></b></a>
+	{else}
+		{_"Nothing to display"}
+	{/if}
+	</div>
+{/if}
+
+{/snippet}
+</div>
+<div class="lister-footer">
+{snippet list_pager}
+{ifset $template_variables['detail']}
+	{if $currentpage == $max_page}
+		{if $active_filter}
+	   		<a id="filter_box_a" title="{_"Change the filter"}" href="#filter_container"><b class="filter"></b></a>
+   		{/if}
+	{/if}
+{/if}
+
+
+{if isset($template_variables['detail']) || isset($template_variables['your_connections']) || isset($template_variables['membership_detail']) || isset($template_variables['connection_columns'])}
+<div class="pager">
+   {if $max_page > 1}
+   		<a href="{if $currentpage==1}#{else}{link changePage, page => 1}{/if}" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+   {/if}
+   
+   {if $max_page > 5}
+   {if $currentpage > 4}
+    	<a href="{link changePage, page => $currentpage - 1}" class="pager-minus"><</a>
+   {/if}
+   {/if}
+   
+   {if $max_page > 2}
+   {if $max_page < 6}
+   {for $i = 2; $i <= $max_page-1; $i++}
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+   {/for}   
+   {else}
+   {if $currentpage <= 4}
+   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {for $i = 2; $i <= $end; $i++}
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+   {/for}
+   {else}
+   {? if ($currentpage+3 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {for $i = $currentpage-2; $i <= $end; $i++}
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+   {/for}
+   {/if}
+   {/if}
+   {/if}
+
+   {if $max_page > 5}
+   {if ($currentpage + 3) < $max_page}
+		<a href="{link changePage, page => $currentpage + 1}" class="pager-plus">></a>
+   {/if}
+   {/if}
+   
+   {if $max_page > 1}
+   		<a href="{link changePage, page => $max_page}" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+   {/if}
+</div>
+
+	{ifset $template_variables['detail']}
+		{ifset $template_variables["persistent_filter"]}
+	   		<a id="filter_box_a" title="{_"Cannot find what you are searching?"}" href="#filter_container"><b class="filter"></b>{_"Try a different filter."}</a>
+		{/if}
+	{/if}
+{else}
+{if !isset($template_variables["persistent_filter"])}
+	<a href="{plink Resource:default}" class="show-more">+ {_"more resources"}</a>
+{/if}
+{/if}
+{/snippet}
+</div>

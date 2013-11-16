@@ -1,0 +1,72 @@
+# disable directory listing
+Options -Indexes
+
+## CACHING ##
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresDefault A86400
+	ExpiresByType image/x-icon A2592000
+	ExpiresByType application/x-javascript A2592000
+	ExpiresByType text/css A2592000
+	ExpiresByType image/gif A604800
+	ExpiresByType image/png A604800
+	ExpiresByType image/jpeg A604800
+	ExpiresByType text/plain A604800
+	ExpiresByType application/x-shockwave-flash A604800
+	ExpiresByType video/x-flv A604800
+	ExpiresByType application/pdf A604800
+	ExpiresByType text/html A900
+</IfModule>
+
+<ifModule mod_headers.c>
+	# YEAR
+	<FilesMatch "\.(ico|gif|jpg|jpeg|png|flv|pdf)$">
+	  Header set Cache-Control "max-age=29030400"
+	</FilesMatch>
+	# WEEK
+	<FilesMatch "\.(js|css|swf)$">
+	  Header set Cache-Control "max-age=604800"
+	</FilesMatch>
+	# 45 MIN
+	<FilesMatch "\.(html|htm|txt)$">
+	  Header set Cache-Control "max-age=2700"
+	</FilesMatch>
+</ifModule>
+## CACHING ##
+
+## COMPRESSION ##
+<IfModule mod_deflate.c>
+	# Insert filter
+	SetOutputFilter DEFLATE
+
+	# Netscape 4.x has some problems...
+	BrowserMatch ^Mozilla/4 gzip-only-text/html
+
+	# Netscape 4.06-4.08 have some more problems
+	BrowserMatch ^Mozilla/4\.0[678] no-gzip
+
+	# MSIE masquerades as Netscape, but it is fine
+	# BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+
+	# NOTE: Due to a bug in mod_setenvif up to Apache 2.0.48
+	# the above regex won't work. You can use the following
+	# workaround to get the desired effect:
+	BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html
+
+	# Don't compress images
+	SetEnvIfNoCase Request_URI \
+	\.(?:gif|jpe?g|png)$ no-gzip dont-vary
+
+	# Make sure proxies don't deliver the wrong content
+	Header append Vary User-Agent env=!dont-vary
+</IfModule>
+## COMPRESSION ##
+
+# rewrite to index.php
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule !\.(pdf|js|ico|gif|jpg|png|css|rar|zip|tar\.gz)$ index.php [L]
+</IfModule>
