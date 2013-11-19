@@ -1,10 +1,68 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 {block title}Resource - Update{/block}
 @{block #content}
 <script>
 	$(document).ready(function(){
 		$("#frmupdateform-event_timestamp").datetimepicker({
 		timeFormat: 'hh:mm tt z',
-		showTimezone: false,
+		showTimezone: true,
+		timezoneList: [
+			{"value": "-12:00", "label": "Eniwelok, Kwajalein"},
+			{"value": "-11:00", "label": "Midway Island, Samoa"},
+			{"value": "-10:30", "label": "Cook Islands"},
+			{"value": "-10:00", "label": "Hawaii; Western Aleutian Islands=was Alaska/Hawaii timezone"},
+			{"value": "-09:30", "label": "Marquesas Islands"},
+			{"value": "-09:00", "label": "Alaska; Eastern Aleutian Islands=was Yukon timezone"},
+			{"value": "-08:30", "label": "Pitcairn Island"},
+			{"value": "-08:00", "label": "Pacific Time (US & Canada); Yukon; Tijuana"},
+			{"value": "-07:00", "label": "Mountain Time (US & Canada)"},
+			{"value": "-06:00", "label": "Central Time (US & Canada); Mexico City, Tegucigalpa"},
+			{"value": "-05:00", "label": "Eastern Time (US & Canada); Bogota; Lima; Quito"},
+			{"value": "-04:30", "label": "Caracas"},
+			{"value": "-04:00", "label": "Atlantic Time (Canada); Caracas, La Paz; Santiago"},
+			{"value": "-03:45", "label": "Guyana, South America"},
+			{"value": "-03:30", "label": "Newfoundland; Suriname, South America"},
+			{"value": "-03:00", "label": "Greenland; Brasilia; Buernos Aires; Puerto Rico"},
+			{"value": "-02:00", "label": "Mid-Atlantic"},
+			{"value": "-01:00", "label": "Azores, Cape Verde Is."},
+			{"value": "+00:00", "label": "Greenwich Mean Time"},
+			{"value": "+01:00", "label": "Amsterdam; Berlin; Bern; Rome; Stockholm; Vienna"},
+			{"value": "+02:00", "label": "Athens; Istanbul; Minsk; Jerusalem"},
+			{"value": "+03:00", "label": "Baghdad; Kuwait; Moscow"},
+			{"value": "+03:30", "label": "Tehran, Iran"},
+			{"value": "+04:00", "label": "Abu Dhabi; Muscat"},
+			{"value": "+04:30", "label": "Kabul, Afghanistan"},
+			{"value": "+05:00", "label": "Ekaterinburg"},
+			{"value": "+05:30", "label": "India; Bombay; Calcutta; New Delhi; Sri Lanka"},
+			{"value": "+05:45", "label": "Kathmandu, Nepal"},
+			{"value": "+06:00", "label": "Astana; Dhaka"},
+			{"value": "+06:30", "label": "Cocos Islands; Yangon; Myanmar"},
+			{"value": "+07:00", "label": "Bangkok; Hanoi"},
+			{"value": "+08:00", "label": "Perth; Singapore; China"},
+			{"value": "+08:45", "label": "South Australia"},
+			{"value": "+09:00", "label": "Osaka; Tokyo; Seoul"},
+			{"value": "+09:30", "label": "Northern Australia"},
+			{"value": "+10:00", "label": "Brisbane; Canberra; Sydney; Guam"},
+			{"value": "+11:00", "label": "Magadan; Solomon Is.; New Caledonia"},
+			{"value": "+11:30", "label": "New Zealand?; Norfold Island, Australia"},
+			{"value": "+12:00", "label": "Auckland; Wellington; Fiji; Marshall Is.; Tuvalu"},
+			{"value": "+12:45", "label": "Chatham Island, New Zealand"},
+			{"value": "+13:00", "label": "Nukulalofa; Phoenix Islands=1 hour EAST of the dateline"},
+			{"value": "+14:00", "label": "Line Islands; Christmas Islands=2 hours EAST of the dateline"}
+		],
 		timeOnlyTitle: {_"Select a time"},
 		timeText: {_"Time"},
 		hourText: {_"Hours"},

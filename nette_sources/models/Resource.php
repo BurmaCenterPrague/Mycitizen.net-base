@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 class Resource extends BaseModel {
 	
 	private $resource_data;
@@ -225,8 +239,8 @@ class Resource extends BaseModel {
 			} else {
 				$result_2 = dibi::fetchAll("SELECT `group_name` FROM `group` WHERE `group_id` = %i",$data['member_id']);
             if(!empty($result_2[0])) {
-               $group = $result_2[0]->toArray();
-               $data['member_name'] = $group['group_name'];
+            	$group = $result_2[0]->toArray();
+            	$data['member_name'] = $group['group_name'];
             }
 
 			}

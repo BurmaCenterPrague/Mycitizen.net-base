@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 class EmailModel extends BaseModel {
 	public static function sendEmail($emails,$mail_subject,$mail_body,$options) {
 		$headers = "";
@@ -14,11 +28,12 @@ class EmailModel extends BaseModel {
 			}
 			$to .= $email;
 			if($mail_count == 100) {
-				mail($to,$mail_subject,$mail_body,$headers);
+				if (!mail($to,$mail_subject,$mail_body,$headers)) return false;
 				$mail_count = 0;
 				$to = "";
 			}
 			$mail_count++;
 		}
+		return true;
 	}
 }

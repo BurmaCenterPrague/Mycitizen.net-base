@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 final class UserPresenter extends BasePresenter
 {
 	protected $user;
@@ -506,16 +520,11 @@ final class UserPresenter extends BasePresenter
 			$this->redirect('User:register');
 		}
 		
-		if (StaticModel::isSpamEmail($values['user_email'])) {
-			$this->flashMessage(_("Your email is known at www.stopforumspam.com as spam source and was blocked."), 'error');
+		if (StaticModel::isSpamSFS($values['user_email'], $_SERVER['REMOTE_ADDR'])) {
+			$this->flashMessage(_("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
 			$this->redirect('User:register');
 		}
 
-		if (StaticModel::isSpamIP($_SERVER['REMOTE_ADDR'])) {
-			$this->flashMessage(_("Your IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
-			$this->redirect('User:register');
-		}
-		
 		if (!StaticModel::validEmail($values['user_email'])) {
 			$this->flashMessage(_("Email is not valid. Check it and try again."), 'error');
 			$this->redirect('User:register');
@@ -1524,7 +1533,6 @@ final class UserPresenter extends BasePresenter
 	}
 
 
-
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='userlister';
@@ -1542,8 +1550,6 @@ final class UserPresenter extends BasePresenter
 		$filter->clearFilterArray($filterdata);
 		
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $filter->syncFilterArray($filterdata); else $session->filterdata=$filterdata;
-
-
 
 		$this->redirect("User:default");
 	}

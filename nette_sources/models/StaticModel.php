@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 class StaticModel extends BaseModel {
 	const SYSTEM_MESSAGE_WARNING_USER = 1;
 	const SYSTEM_MESSAGE_FRIENDSHIPOFFER = 2;
@@ -80,27 +94,23 @@ class StaticModel extends BaseModel {
 		$resource->setResourceData($data);
 		$resource->save();
 
-      //$resource->updateUser($from,array('resource_user_group_access_level'=>1));
-      $resource->updateUser($recipient->getUserId(),array('resource_user_group_access_level'=>1));
-
-	}
-
-	public static function isSpamEmail($email) {
-		$contents = file_get_contents("http://www.stopforumspam.com/api?email=".$email."&f=json");
-		$json = json_decode($contents,true);
-		if(isset($json['success']) && $json['success']) {
-			if($json['email']['appears']) {
-				return true;
-			}
+		if (isset($sender_data['user_login'])) {
+			$object_type = 1; $object_id = $sender_data['user_id'];
+		} else {
+			$object_type = 0; $object_id = 0;
 		}
-		return false;
+				
+		StaticModel::addCron(time(), $recipient->getUserId(), $message_subject, $object_type, $object_id);
+
+    	$resource->updateUser($recipient->getUserId(),array('resource_user_group_access_level'=>1));
+
 	}
 
-	public static function isSpamIP($ip) {
-		$contents = file_get_contents("http://www.stopforumspam.com/api?ip=".$ip."&f=json");
+	public static function isSpamSFS($email,$ip) {
+		$contents = file_get_contents("http://www.stopforumspam.com/api?email=".$email."&ip=".$ip."&f=json");
 		$json = json_decode($contents,true);
 		if(isset($json['success']) && $json['success']) {
-			if($json['ip']['appears']) {
+			if($json['email']['appears'] || $json['ip']['appears']) {
 				return true;
 			}
 		}
@@ -150,5 +160,36 @@ class StaticModel extends BaseModel {
       return $isValid;
    }
 
-}
+	/**
+	*	schedules task for cron
+	*/
+	public static function addCron($time, $recipient_id, $text, $object_type, $object_id) {
+	
+		// max. 1 upcoming task per object and user
+		StaticModel::removeCron($recipient_id, $object_type, $object_id);
+				
+		$result = dibi::query('INSERT INTO `cron` (`time`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time`) VALUES (%i,%i,%s,%i,%i,0)', $time, $recipient_id, $text, $object_type, $object_id);
 
+		return $result;
+	}
+
+	
+	/**
+	*	deactivates all upcoming tasks in cron for given user and object
+	*/
+	public static function removeCron($recipient_id, $object_type, $object_id) {
+	
+		dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `recipient_id` = %i AND `object_type` = %i AND `object_id` = %i AND `time` > %i", $recipient_id, $object_type, $object_id, time());
+				
+	}
+
+	/**
+	*	setting from admin backend
+	*/   
+	public static function getSetting($variable_name) {
+	
+		return dibi::fetchSingle("SELECT `variable_value` FROM `settings` WHERE `variable_name` = %s", $variable_name);
+
+	}
+
+}

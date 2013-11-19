@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 <!DOCTYPE HTML>
 <html>
 	<head>
@@ -239,6 +253,7 @@
   var _paq = _paq || [];
   // you can set up to 5 custom variables for each visitor
   _paq.push(["setCustomVariable", 1, "language", {$language}, "visit"]);
+  _paq.push(["setCustomVariable", 2, "access_level", "{!$access_level}", "visit"]);
   _paq.push(["trackPageView"]);
   _paq.push(["enableLinkTracking"]);
 

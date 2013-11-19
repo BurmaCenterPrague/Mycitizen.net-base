@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 class User extends BaseModel implements IIdentity
 {
 	const ADMINISTRATOR = 3;
@@ -588,7 +602,7 @@ class User extends BaseModel implements IIdentity
 	
 	public function revokeCreationRights()
 	{
-		if (Auth::ADMINISTRATOR == Auth::isAuthorized(1, $this->numeric_id)) {
+		if (Auth::MODERATOR == Auth::isAuthorized(1, $this->numeric_id)) {
 			dibi::query("UPDATE `user` SET `user_creation_rights` = '0' WHERE `user_id` = %i", $this->numeric_id);
 		}
 	}

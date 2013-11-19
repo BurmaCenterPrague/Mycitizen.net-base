@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 final class ResourcePresenter extends BasePresenter
 {
 	protected $resource;
@@ -17,13 +31,13 @@ final class ResourcePresenter extends BasePresenter
 			$this->grabzIt = new GrabzItClient($app_key, $app_secret);
 		}
 		
+		
 	}
 	
 	public function actionDefault($resource_id = null)
 	{
 	$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
-//	var_dump($session);die();
-// unset($session['data']);
+
 		if (!is_null($resource_id)) {
 			$this->setView('detail');
 			$this->template->load_js_css_tinymce = true;
@@ -476,6 +490,19 @@ final class ResourcePresenter extends BasePresenter
 		$form['event_description']->getControlPrototype()->class('tinymce');
 		$form->addText('event_url', _('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		$form->addText('event_timestamp', _('Event time:'));
+		
+		$event_alert_times = array(
+			0 => 'no alert',
+			60 => '1 min',
+			300 => '5 min',
+			600 => '10 min',
+			900 => '15 min',
+			1800 => '30 min',
+			3600 => '1 h',
+			3600*12 => '12 h',
+			3600*24 => '24 h'
+		);
+		$form->addSelect('event_alert', _('Notify members:'), $event_alert_times);
 
 		//organization
 		if (!empty($resource_id) && $resource_data['resource_type'] == 3) {
@@ -557,6 +584,7 @@ final class ResourcePresenter extends BasePresenter
 			'media_link' => $values['media_link'],
 			'event_url' => $values['event_url'],
 			'event_timestamp' => $values['event_timestamp'],
+			'event_alert' => $values['event_alert'],
 			'organization_url' => $values['organization_url'],
 			'text_information_url' => $values['text_information_url'],
 			'other_url' => $values['other_url']
@@ -611,7 +639,7 @@ final class ResourcePresenter extends BasePresenter
 			break;
 
 		}
-//		echo '-> ';var_dump($values); die();
+
 		if (isset($direct_url) && !empty($direct_url)) {
 			$this->saveDirectScreenshot($resource_id,$direct_url);
 			$this->flashMessage(_("Screenshot processing"));
@@ -649,6 +677,20 @@ final class ResourcePresenter extends BasePresenter
 				}
 			}
 					
+		}
+
+		// set reminder for all users
+		if ($resource_type == 2) {
+			$event_time = strtotime($values['event_timestamp']);
+			if ($event_time + 3600 > time()) { // back-schedule max 60 mins.
+				// get all subscribers
+				$data = $this->resource->getAllMembers(array('enabled'=>1));
+				foreach ($data as $member) {
+					if ($member['member_type'] == 1) {
+						StaticModel::addCron($event_time - $values['event_alert'], $member['member_id'], $values['resource_name']."\r\n\n".$values['resource_description'], 3, $resource_id);
+					}
+				}
+			}
 		}
 
 		$this->redirect("Resource:edit", array(
@@ -875,9 +917,16 @@ final class ResourcePresenter extends BasePresenter
 			if (!empty($resource)) {
 				$resource_id = $resource->getResourceId();
 				if (!empty($resource_id)) {
-					//insert here
 					if (!$resource->userIsRegistered($user_id)) {
 						$resource->updateUser($user_id, array());
+						$data = $resource->getResourceData();
+						if ($data['resource_type'] == 2) {
+							$data = $resource->getResourceData();
+							$event_time = strtotime($data['event_timestamp']);
+							if ($event_time + 600 > time()) { // remind of max 10 mins. back
+								StaticModel::addCron($event_time - $data['event_alert'], $user_id, $data['resource_name']."\r\n\n".$data['resource_description'], 3, $resource_id);
+							}
+						}
 					}
 					print "true";
 				}
@@ -899,8 +948,8 @@ final class ResourcePresenter extends BasePresenter
 			if (!empty($resource)) {
 				$resource_id = $resource->getResourceId();
 				if (!empty($resource_id)) {
-					//insert here
 					$resource->removeUser($user_id);
+					StaticModel::removeCron($user_id, 3, $resource_id);
 					print "true";
 				}
 			}

@@ -1,8 +1,22 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 
 abstract class BasePresenter extends NPresenter
 {
-### what for?
+	// for Nette FW
 	public $oldLayoutMode = FALSE;
 	
 	public function startup()
@@ -77,7 +91,13 @@ abstract class BasePresenter extends NPresenter
 		
 
 			$userObject               = NEnvironment::getUser()->getIdentity();
-			if ($userObject->getAccessLevel() == 3 || $userObject->getAccessLevel() == 2) {
+			$access_level = $userObject->getAccessLevel();
+			switch ($access_level) {
+				case 1: break;
+				case 2: $this->template->access_level_welcome =_('You are a moderator on this platform.');break;
+				case 3: $this->template->access_level_welcome =_('You are an administrator on this platform.');break;
+			}
+			if ($access_level == 3 || $access_level == 2) {
 				$this->template->admin = true;
 			}
 			
@@ -350,7 +370,7 @@ abstract class BasePresenter extends NPresenter
 	}
 
 	/**
-	*	callback called by GrabzIt server to retrieve the thumbnail
+	*	callback called by GrabzIt server to retrieve the thumbnail;
 	*	cannot be in ResourcePresenter.php because of permissions for visibility-restricted resources
 	*/
 	public function handleSaveScreenshot($id, $resource_id = null, $md5 = null) {
@@ -376,5 +396,65 @@ abstract class BasePresenter extends NPresenter
 		}
 	}
 	
+	
+	/**
+	*	processes scheduled tasks; sends email notifications;
+	*	needs to be called with /?do=cron&token=xyz
+	*	token is set in config.ini
+	* 	adding &verbose=1 will output some more info
+	*/
+	public function handleCron($token, $verbose = null) {
+	
+		// check permission to execute cron
+		$token_config = NEnvironment::getVariable("CRON_TOKEN");
+		if ($token != $token_config) {
+			echo 'Access denied.';
+			$this->terminate();
+		}
+		
+		$sender_name = NEnvironment::getVariable("PROJECT_NAME");
+		$uri = NEnvironment::getVariable("URI");
+		
+		$options = 'From: '.$sender_name.' <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+			
+		$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_('Notification from %s'), $sender_name)) . '?=';
+		
+		$result = dibi::fetchAll("SELECT `cron_id`, `time`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time` FROM `cron` WHERE `time` < %i AND `executed_time` = 0", time());
+		
+		foreach ($result as $task) {
+			
+			$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
+
+			switch ($task['object_type']) {
+				case 0: $link = $uri.'/user/messages/'; break;
+				case 1: $link = $uri.'/user/?user_id='.$task['object_id']; break;
+				case 2: $link = $uri.'/group/?group_id='.$task['object_id']; break;
+				case 3: $link = $uri.'/resource/?resource_id='.$task['object_id']; break;
+				default: $link = $uri; break;
+			}
+			
+			$mail_body = $task['text'];
+			$mail_body .= "\r\n\n"._('Find more information at:')."\r\n";
+			$mail_body .= $link;
+			$mail_body .= "\r\nYours,\r\n".$sender_name."\r\n\r\n";
+			
+			if (mail($email, $mail_subject, $mail_body, $options)) {
+			
+				if (isset($verbose)) {
+					echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
+				}
+
+				dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
+				
+			} elseif (isset($verbose)) {
+				echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
+			}
+			
+		}
+		if (isset($verbose)) {
+					echo 'Done.<br/>';
+				}
+		$this->terminate();
+	}
 
 }

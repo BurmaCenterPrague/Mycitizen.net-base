@@ -1,4 +1,18 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
+
 final class GroupPresenter extends BasePresenter
 {
 	protected $group;
@@ -426,7 +440,7 @@ final class GroupPresenter extends BasePresenter
 	
 	/**
 	*	List of group members on group edit page
-	**/
+	*/
 	protected function createComponentGroupmemberlister($name)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -546,8 +560,6 @@ final class GroupPresenter extends BasePresenter
 		}
 		$group_id = $this->group->getGroupId();
 
-		
-		
 		$this->redirect("Group:edit", array(
 			'group_id' => $group_id
 		));

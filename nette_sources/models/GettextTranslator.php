@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Gettext translator.
  * This solution is partitionaly based on Zend_Translate_Adapter_Gettext (c) Zend Technologies USA Inc. (http://www.zend.com), new BSD license

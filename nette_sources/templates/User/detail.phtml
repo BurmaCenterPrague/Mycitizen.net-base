@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 {block title}{_"Details of the user"} {$data['user_login']}{/block}
 {block content}
 
@@ -264,6 +278,7 @@
 	<script>
 		$(document).ready(function() {
 			if ($('#frmfilter-trash-0').is(':checked')) $('#empty-trash').hide();
+			if ($('#frmfilter-trash-1').is(':checked')) $('#empty-trash').hide();
 		});
 	</script>
 		</div>

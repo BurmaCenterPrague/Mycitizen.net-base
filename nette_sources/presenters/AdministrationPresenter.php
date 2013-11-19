@@ -1,4 +1,17 @@
 <?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+ 
 final class AdministrationPresenter extends BasePresenter
 {
 	public function startup()
@@ -286,9 +299,16 @@ final class AdministrationPresenter extends BasePresenter
 			$revoke_id = $object_id;
 		}
 		
-		if ($object_type == 2 || $object_type == 3) {
-		
+		if ($object_type == 2) {
 			$object = Group::create($object_id);
+			if (!empty($object)) {
+				$owner = $object->getOwner();
+				$revoke_id = $owner->getUserId();
+			}
+		}
+
+		if ($object_type == 3) {
+			$object = Resource::create($object_id);
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				$revoke_id = $owner->getUserId();
@@ -297,7 +317,7 @@ final class AdministrationPresenter extends BasePresenter
 
 		if (!empty($revoke_id)) {
 			$user = User::create($revoke_id);
-			if (!empty($user) && $user->getAccessLevel()<3) {
+			if (!empty($user) && $user->getAccessLevel()<2) {
 				$user->revokeCreationRights();
 			}
 		}
@@ -330,7 +350,7 @@ final class AdministrationPresenter extends BasePresenter
 				$message = "";
 			}
 			if ($warning_type == "2") {
-				$message = _("We have received complaints about inapproprite language in your group. Please make neccessary adjustments or your group will be deactivated.");
+				$message = _("We have received complaints about inappropriate language in your group. Please make neccessary adjustments or your group will be deactivated.");
 			}
 			
 			
@@ -371,7 +391,7 @@ final class AdministrationPresenter extends BasePresenter
 		
 		if ($object_type == 1) {
 			$object = User::create($object_id);
-			if (!empty($object) && $object->getAccessLevel()<3) {
+			if (!empty($object) && $object->getAccessLevel()<2) {
 				$object->bann();
 			}
 		}
@@ -732,8 +752,5 @@ $messages[] = 'Inserting tag '.$tag_id;
  
 	}
 
-	public function scheduler() {
-		
-	}
 	
 }

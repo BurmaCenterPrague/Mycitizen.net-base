@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2 beta
+ *
+ * @author http://mycitizen.org
+ *
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 {block title}{_"Details of the resource"} {$data['resource_name']}{/block}
 {block content}
 
@@ -225,7 +239,7 @@
 			{!$data['event_description']|htmlpurify}
 		</div>
 			{* date_default_timezone_set($ ... ) *}
-			{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($data['event_timestamp']))}
+			{? $date_formatted = strftime('%c',strtotime($data['event_timestamp']))}
 		<div class="time-event">
 			{_"Time:"} {$date_formatted}
 		</div>

@@ -21,7 +21,11 @@ resource_type:
 	{foreach $data as $row}    
 		{? $id=$row['id']}
 		{var $res => Resource::Create($row['id'])}
-		{var $resdata => $res->getResourceData()}				
+		{var $resdata => $res->getResourceData()}
+		{? $all_recipient_data = $res->getAllMembers(array('resource_id'=>$id))}
+		{? $recipient_data = $all_recipient_data[0]}
+		{? $recipient_id = $recipient_data['member_id']}
+		{? $recipient_full_name = User::getFullName($recipient_id)}
 		{if $res->getOwner()->getUserId() == $user_id}
 			{? $own_message=true}
 		{else}
@@ -35,7 +39,7 @@ resource_type:
 		{? date_default_timezone_set($date['timezone'])}
 		{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
 
-		<div class="chat-item" id="chat_message_{$id}" {if $resdata['resource_type']==9}class="system-message" style="background-color:#E08E1B;"{/if}>      	
+		<div class="chat-item" id="chat_message_{$id}" {if $resdata['resource_type']==9}class="system-message" style="background-color:#F7D6A8;"{/if}>
 			<div class="chat-header 
 				{ifset $user_id}
 					{if ($resdata['resource_type'] == 1 || $resdata['resource_type'] == 8)}
@@ -54,6 +58,16 @@ resource_type:
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}{/if}
 				</div>
 				
+				<div style="width=0;height:0;border-left: 7px solid #BCB6AA;border-top: 7px solid transparent; border-bottom: 7px solid transparent;display:inline-block;float:left;margin:1px 15px;"></div>
+				
+				<div class="chat-avatar">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}" title="{$recipient_full_name}">{? echo User::getImage($recipient_id, 'icon')}</a>
+					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
+				</div>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}" title="{$recipient_full_name}">{$recipient_data['member_name']}</a>{else}{$recipient_data['member_name']}{/if}
+				</div>
+								
 				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
 
 					{ifset $template_variables['moderation_enabled']}
@@ -111,7 +125,7 @@ resource_type:
 				{/if}
 			</div> <!-- .chat-header -->
 
-				<div id="{$id}_text" class="chat-text" style="padding:0.7em 0.3em;">
+				<div id="{$id}_text" class="chat-text" style="{if $own_message}background-color:#F7F7F7;{/if}padding:0.7em 0.3em;">
 				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
 					{if !$res->getOwner()->isActive()}
 					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
@@ -155,6 +169,9 @@ resource_type:
 				scrollTop: $("#message_top_anchor").offset().top
 			}, 2000);
 			editor.focus();
+			markRead(id);
+			$('#markread-'+id).hide();
+			$('#markunread-'+id).show();
 		});
 	
 		$('blockquote').click(function(){
