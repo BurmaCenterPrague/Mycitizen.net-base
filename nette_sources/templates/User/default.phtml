@@ -33,12 +33,14 @@
 			<script type="text/javascript">
 			$(function() {
 				$("#filter_box_a").fancybox({
-					minWidth:700,
-					minHeight:500,
+					minWidth : 1000,
+					minHeight : 500,
 					closeBtn : true,
 					helpers : {
-						overlay : null,
-						 title : null
+						overlay : {
+							css: {'background' : 'rgba(200, 200, 200, .5)'}
+						},
+						title : null
 					},
 				});
 			});

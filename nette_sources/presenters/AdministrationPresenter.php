@@ -18,7 +18,7 @@ final class AdministrationPresenter extends BasePresenter
 	{
 		parent::startup();
 		
-		if (class_exists('NDebug') && (NDebug::isEnabled())) { NDebug::enableProfiler(); }
+//		if (class_exists('NDebug') && (NDebug::isEnabled())) { NDebug::enableProfiler(); }
 		
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
@@ -106,6 +106,7 @@ final class AdministrationPresenter extends BasePresenter
 		$form = new NAppForm($this, 'registertag');
 		$form->addText('tag_name', _('Tag name:'));
 		$form->addComponent(new ContainerTreeSelectControl(_('Parent tag:')), 'tag_parent_id');
+		$form['tag_parent_id']->addRule(~NForm::EQUAL, _("The tag cannot be its own parent."), $form['tag_name']);
 		$form->addSubmit('register', _('Add'));
 		$form->addProtection(_('Error submitting form.'));
 		
@@ -126,7 +127,8 @@ final class AdministrationPresenter extends BasePresenter
 		
 		$new_tag->setTagData($values);
 		$new_tag->save();
-		$this->redirect("Administration:tags");
+		$this->flashMessage(sprintf(_('Tag "%s" saved.'),$values['tag_name']));
+		$this->redirect("Administration:tag");
 	}
 	
 	public function handleUserAdministration($user_id, $values)
@@ -151,7 +153,7 @@ final class AdministrationPresenter extends BasePresenter
 	
 	protected function createComponentTaglister($name)
 	{
-		$control = new TagListerControl($this, $name, 50);
+		$control = new TagListerControl($this, $name, 20);
 		return $control;
 	}
 	
@@ -285,9 +287,9 @@ final class AdministrationPresenter extends BasePresenter
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()>1 && !empty($report_id)) {
 		
 			Resource::delete($report_id);
-		
+			echo "true";
 		}
-
+		
 		$this->terminate();
 	}
 		
@@ -358,7 +360,7 @@ final class AdministrationPresenter extends BasePresenter
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				if (!empty($owner)) {
-					StaticModel::sendSystemMessage(5, $user->getUserId(), $owner->getUserId(), $message);
+					StaticModel::sendSystemMessage(5, $user->getUserId(), $owner->getUserId(), $message, $object_type, $object_id);
 				}
 			}
 		}
@@ -376,7 +378,7 @@ final class AdministrationPresenter extends BasePresenter
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				if (!empty($owner)) {
-					StaticModel::sendSystemMessage(6, $user->getUserId(), $owner->getUserId(), $message);
+					StaticModel::sendSystemMessage(6, $user->getUserId(), $owner->getUserId(), $message, $object_type, $object_id);
 				}
 			}
 			
@@ -543,7 +545,7 @@ final class AdministrationPresenter extends BasePresenter
 	*
 	*	You will find an error log with the name of the file and appended '.log'.
 	*/
-	public function handleImport() {
+	public function handleImport($test_run = null) {
 	
 		$user = NEnvironment::getUser()->getIdentity();
 		
@@ -552,6 +554,9 @@ final class AdministrationPresenter extends BasePresenter
 		$messages = array();
 		$messages[] ='Importing resources from a file';
 		$messages[] ="===============================".PHP_EOL;
+		if (isset($test_run)) {
+			$messages[] ='!!! test run !!!';
+		}
 		$messages[] = '### '.date("Y-m-d H:i:s").' ###';
 
 		
@@ -671,7 +676,7 @@ final class AdministrationPresenter extends BasePresenter
 							$messages[] = $count.': No tag matches "'.$tag.'". Please create manually.';
 						} else {
 							$data_array = $result[0]->toArray();
-							$tag_ids[] = $data_array['tag_name'];
+							$tag_ids[] = $data_array['tag_id'];
 						}
 					}
 				}
@@ -689,19 +694,24 @@ final class AdministrationPresenter extends BasePresenter
 				$data['resource_position_y'] = $location['longitude'];
 				$data['resource_position_x'] = $location['latitude'];
 			
-/* ### DEBUG
-				$resource = Resource::create();
-				$resource->setResourceData($data);
-				$resource->save();
-				$resource->setLastActivity();
-*/
+				if (!isset($test_run)) {
+					$resource = Resource::create();
+					$resource->setResourceData($data);
+					$resource->save();
+					$resource->setLastActivity();
+				}
+
 				if (isset($tag_ids)) {
 					foreach($tag_ids as $tag_id) {
-### DEBUG							$resource->insertTag($tag_id);
-$messages[] = 'Inserting tag '.$tag_id;
+							if (!isset($test_run)) {
+								$resource->insertTag($tag_id);
+							}
+							$messages[] = 'Inserting tag '.$tag_id;
 					}
 				}
-### DEBUG					unset($resource);
+				if (!isset($test_run)) {
+					unset($resource);
+				}
 				unset($tag_ids);
 
 			}
@@ -722,7 +732,10 @@ $messages[] = 'Inserting tag '.$tag_id;
 			$this->flashMessage(_("Done importing resources. Error writing log file."), 'error');
 		} else {
 			$this->flashMessage(_("Done importing resources. Please check the log file."));
-		}	
+		}
+		if (isset($test_run)) {
+			$this->flashMessage(_("This was just a dry run - nothing was saved."));
+		}
 	}
 	
 	public function lookup_address($string) {

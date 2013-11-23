@@ -1059,11 +1059,10 @@ final class GroupPresenter extends BasePresenter
 		$this->redirect("Group:edit",array('group_id'=>$group_id,'do'=>'makeicon'));
 	}	
 
-	public function handleMakeicon() {
+	public function handleMakeicon($group_id) {
 	
-		$query = NEnvironment::getHttpRequest();
-		
-		$group_id = $query->getQuery("group_id");
+//		$query = NEnvironment::getHttpRequest();	
+//		$group_id = $query->getQuery("group_id");
 		
 		if ($group_id == 0 || Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
 			
@@ -1112,11 +1111,10 @@ final class GroupPresenter extends BasePresenter
 
 	}
 	
-	public function handleMakebigicon() {
+	public function handleMakebigicon($group_id) {
 	
-		$query = NEnvironment::getHttpRequest();
-		
-		$group_id = $query->getQuery("group_id");
+//		$query = NEnvironment::getHttpRequest();
+//		$group_id = $query->getQuery("group_id");
 		
 		if ($group_id == 0 || Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
 			

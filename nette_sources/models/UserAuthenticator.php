@@ -25,7 +25,10 @@ class UserAuthenticator extends BaseModel implements IAuthenticator {
            	throw new NAuthenticationException("User '".$username."' not found.", self::IDENTITY_NOT_FOUND);
        	}
 
-        if ($result[0]->user_password !== User::encodePassword($password)) {
+		require(LIBS_DIR.'/Phpass/PasswordHash.php');
+		$hasher = new PasswordHash(8, false);
+		
+		if( !$hasher->CheckPassword($password, $result[0]->user_password)) {
            	throw new NAuthenticationException("Your password does not match.", self::INVALID_CREDENTIAL);
         }
         return User::create($result[0]->user_id);

@@ -87,6 +87,7 @@ class TagListerControl extends NControl
 		$template->data        = $this->data;
 		$template->currentpage = $this->currentpage;
 		$template->max_page    = $this->getMaxPage();
+/*
 		if ($this->currentpage - $this->itemsonbar < 1) {
 			$template->start = 1;
 			$correction      = 1 - ($this->currentpage - $this->itemsonbar);
@@ -119,7 +120,7 @@ class TagListerControl extends NControl
 				$template->end = $this->currentpage + $this->itemsonbar;
 			}
 		}
-		
+*/
 		
 		$template->render();
 		
@@ -171,6 +172,7 @@ class TagListerControl extends NControl
 		$form = new NAppForm($this, "filter");
 		$form->addText('name', 'Name');
 		$form->addSubmit('filter', 'Filter');
+		$form->addSubmit('reset', 'Reset');
 		$form->addProtection(_('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
@@ -184,8 +186,13 @@ class TagListerControl extends NControl
 	{
 		$values     = $form->getValues();
 		$filter     = $this->getFilterArray();
-		$new_filter = array_merge($filter, $values);
-		$this->setFilterArray($new_filter);
+		unset($filter['page']);
+		if ($form['reset']->isSubmittedBy()) {
+			$this->setFilterArray(array());
+		} else {
+			$new_filter = array_merge($filter, $values);
+			$this->setFilterArray($new_filter);
+		}
 		$this->getPresenter()->redirect("Administration:tags");
 	}
 	
@@ -278,6 +285,7 @@ class TagListerControl extends NControl
 		$this->setFilterArray($filter);
 		$this->invalidateControl('list_body');
 		$this->invalidateControl('list_pager');
+		$this->getPresenter()->redirect("Administration:tags");
 	}
 	
 	public function pageToLimit($page)

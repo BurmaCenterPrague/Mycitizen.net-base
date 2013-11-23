@@ -322,7 +322,14 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql_resource = "SELECT COUNT(`resource`.`resource_id`) as count FROM `resource`";
 				} else {
+				$trash = "";
+				if(!empty($user)) {
+					$trash = ",opened.`resource_trash` as trashed,`resource`.`resource_author` as author,`resource`.`resource_type` as message_type";
+				}
+				$sql_resource = "SELECT '".Resource::getType()."' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1') as links,`resource_data`".$trash." FROM `resource`";
+/*
 					$sql_resource = "SELECT '" . Resource::getType() . "' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1') as links FROM `resource`";
+*/
 				}
 				if (!empty($user)) {
 					$sql_resource .= " LEFT JOIN `resource_user_group` opened ON (opened.`resource_id` = `resource`.`resource_id` AND opened.`member_type` = 1 AND opened.`member_id` = '" . $user->getUserId() . "')";
@@ -406,24 +413,27 @@ class Administration extends BaseModel
 			foreach ($tag_extended as $tid => $tst) {
 				$filter['tags'][$tid] = 1;
 			}
-			if ($all) {
-				$filter_tag[$object] = array();
-			} else if (count($filter['tags']) > 0) {
+
+			foreach($types as $object) {
+				if ($all) {
+					$filter_tag[$object] = array();
+				} else if (count($filter['tags']) > 0) {
 				
-				$tgs = array();
-				foreach ($filter['tags'] as $id => $value) {
-					if ($id == 'all') {
-						break;
+					$tgs = array();
+					foreach ($filter['tags'] as $id => $value) {
+						if ($id == 'all') {
+							break;
+						}
+						$tgs[] = array(
+							"`" . $object . "_tag`." . '`tag_id` = %i',
+							$id
+						);
 					}
-					$tgs[] = array(
-						"`" . $object . "_tag`." . '`tag_id` = %i',
-						$id
+					$filter_tag[$object][] = array(
+						'%or',
+						$tgs
 					);
 				}
-				$filter_tag[$object][] = array(
-					'%or',
-					$tgs
-				);
 			}
 		}
 		
@@ -469,7 +479,17 @@ class Administration extends BaseModel
 				}
 			}
 		}
-		
+
+    	if(isset($filter['opened']) && $filter['opened'] != 'null') {
+        	foreach($types as $object) {
+				if($object == "resource") {
+					if(!empty($user)) {
+            			$filter_o[$object]['opened.resource_opened_by_user'] = $filter['trash'];
+					}
+				}
+         	}
+		}
+
 		if (isset($filter['name']) && $filter['name'] != "") {
 			foreach ($types as $object) {
 				if ($object == "user") {
@@ -718,6 +738,13 @@ class Administration extends BaseModel
 				}
 				$data['registered_resources'] = $resources;
 			}
+			
+			if($data['type_name'] == "resource") {
+				if(isset($data['resource_data'])) {
+					$data['resource_data'] = json_decode($data['resource_data'],true);
+				}
+			}
+
 			if ($data['type_name'] == "group") {
 				$resources    = array();
 				$group_object = Group::create($data['id']);

@@ -61,6 +61,20 @@ class Resource extends BaseModel {
 
 			unset($data['resource_data']);
 			$data = array_merge($data,$resource_sub_data);
+			if($data['resource_type'] == null) {
+				$data['resource_type'] = 0;
+			}
+			if($data['resource_owner'] == null) {
+				$data['resource_owner'] = 0;
+			}
+			$tags = $this->getTags();
+			$data['tags'] = array();	
+			foreach($tags as $tagO) {
+				$tag_data = $tagO->getTagData();
+				$tag_data['id'] = $tagO->getTagId();
+				$data['tags'][] = $tag_data;
+			}
+
 		}
 		return $data;
 	}
@@ -537,9 +551,9 @@ class Resource extends BaseModel {
 			$filepath = WWW_DIR.$link;
 			
 			if (file_exists($filepath)) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:200px;"><a href="'.$url.'" target="_blank"><img id="screenshot" src="'.$link.'" style="width:192px;border:solid 1px #ccc;" '.$title_tag.'/></a></div>';
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.$link.'" style="width:250px;border:solid 1px #ccc;" '.$title_tag.'/></a></div>';
 			} elseif ($placeholder) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:200px;"><a href="'.$url.'" target="_blank"><img id="screenshot" src="/images/ajax-loader.gif" newsrc="'.$link.'" '.$title_tag.'/></a></div>';
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;" '.$title_tag.'/></a></div>';
 			}
 		}
 

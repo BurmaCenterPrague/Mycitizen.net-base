@@ -1,11 +1,4 @@
 <div class="lister-header">
-{*
-resource_type:
-1: 
-7:
-8: chat under resources
-9:
-*}
 </div>
 <div class="lister-body">
    {snippet list_body}
@@ -39,7 +32,7 @@ resource_type:
 		{? date_default_timezone_set($date['timezone'])}
 		{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
 
-		<div class="chat-item" id="chat_message_{$id}" {if $resdata['resource_type']==9}class="system-message" style="background-color:#F7D6A8;"{/if}>
+		<div class="chat-item{if $resdata['resource_type']==9} system-message{/if}" id="chat_message_{$id}"  style="{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}">
 			<div class="chat-header 
 				{ifset $user_id}
 					{if ($resdata['resource_type'] == 1 || $resdata['resource_type'] == 8)}
@@ -49,16 +42,23 @@ resource_type:
 					{/if}
 				{/if}">
 
-
+				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar">
+				{ifset $template_variables['logged_user_id']}
+				<div style="width=0;height:0;border-right: 7px solid #BCB6AA;border-top: 7px solid transparent; border-bottom: 7px solid transparent;display:inline-block;float:left;margin:1px 15px;" title="{_"from %s", $user_data['user_login']}"></div>
+				{/if}
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{? echo User::getImage($sender_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}{/if}
 				</div>
-				
-				<div style="width=0;height:0;border-left: 7px solid #BCB6AA;border-top: 7px solid transparent; border-bottom: 7px solid transparent;display:inline-block;float:left;margin:1px 15px;"></div>
+
+				{/if}
+
+				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
+					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
+				<div style="width=0;height:0;border-left: 7px solid #BCB6AA;border-top: 7px solid transparent; border-bottom: 7px solid transparent;display:inline-block;float:left;margin:1px 15px;" title="{_"to %s", $recipient_data['member_name']}"></div>
 				
 				<div class="chat-avatar">
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}" title="{$recipient_full_name}">{? echo User::getImage($recipient_id, 'icon')}</a>
@@ -67,6 +67,8 @@ resource_type:
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}" title="{$recipient_full_name}">{$recipient_data['member_name']}</a>{else}{$recipient_data['member_name']}{/if}
 				</div>
+					{/if}
+				{/if}
 								
 				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
 

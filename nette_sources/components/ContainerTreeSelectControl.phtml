@@ -1,6 +1,6 @@
 <div>                                                                 
   <span id="tag_select_input_{!$name}">{$selected_value}</span>
-  <a id="tag_select_button_{!$name}" href="#tag_select_div_{!$name}" class="button">...</a>
+  <a id="tag_select_button_{!$name}" href="#tag_select_div_{!$name}" class="button">{_"change"}</a>
   <input id="tag_select_hidden_{!$name}" type="hidden" name="{$control_name}" value="{$control->getValue()}" />
 </div>
 
@@ -63,7 +63,7 @@
     </div>  
 
 	 <div class="confirm">
-	   <a href="#" class="button-blue button" style="float: right;"onclick="$.fancybox.close();return false;"><?=_('Add')?></a>
+	   <a href="#" class="button-blue button" style="float: right;"onclick="$.fancybox.close();return false;"><?=_('Done')?></a>
 	 </div>
   </div>
 </div>

@@ -1,6 +1,6 @@
 <?php
 
-define('PROJECT_VERSION', '0.2 beta');
+define('PROJECT_VERSION', '0.2.1 beta');
 session_set_cookie_params(1209600);
 
 require_once dirname(__FILE__) . '/../lib/Nette/loader.php';
@@ -8,12 +8,12 @@ require_once dirname(__FILE__) . '/../lib/Nette/loader.php';
 NEnvironment::loadConfig();
 
 // enable NDebug
-NDebug::enable(NEnvironment::getConfig('debug')->IPs, NEnvironment::getConfig('debug')->logDir, NEnvironment::getConfig('debug')->logEmail);
+// NDebug::enable(NEnvironment::getConfig('debug')->IPs, LOG_DIRECTORY, NEnvironment::getConfig('debug')->logEmail);
 NEnvironment::getApplication()->catchExceptions = false;
 
 if (NEnvironment::getConfig('debug')->showErrors) {
 	NDebug::enable(NDebug::DEVELOPMENT);
-	NDebug::enableProfiler();
+//	NDebug::enableProfiler();
  }
 
 ini_set('session.name', NEnvironment::getVariable('SESSION_NAME'));
@@ -28,12 +28,16 @@ dibi::connect(array(
 
 $application = NEnvironment::getApplication();
 
-$router = $application->getRouter();         
+$router = $application->getRouter();
+
+/**
+*	See class SessionDatabaseHandler in SessionDatabaseHandler.php
+*/
 session_set_save_handler(array('SessionDatabaseHandler', 'open'), array('SessionDatabaseHandler', 'close'),
             array('SessionDatabaseHandler', 'read'), array('SessionDatabaseHandler', 'write'),
             array('SessionDatabaseHandler', 'destroy'), array('SessionDatabaseHandler', 'clean'));
 $session = NEnvironment::getSession();
-$session->setExpiration('+ 365 days');
+$session->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration);
 $flag = NULL;
 
 $router[] = new NRoute('index.php', array(

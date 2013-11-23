@@ -199,6 +199,9 @@
     	</div>
     {/if}
     {/foreach}
+    {if $number_displayed<3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    	</div>
+    {/if}
 	
 {else}
 	<div class="not-found">

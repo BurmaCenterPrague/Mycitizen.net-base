@@ -183,7 +183,7 @@ class ExternalFilter extends NControl
 		$form->addRadioList('filter_pairing', _('Connect filters with'), array(
 			'and' => 'AND',
 			'or' => 'OR'
-		));
+		))->separatorPrototype->setName(NULL);
 		$form->addText('name', _('Name'));
 		$enabled = array(
 			'null' => _('all'),

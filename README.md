@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.2 Beta : 16 Nov 2013
+0.2.1 Beta : 23 Nov 2013
 
 
 authors
@@ -33,6 +33,7 @@ included packages
 - [jQuery UI Timepicker](http://trentrichardson.com/examples/timepicker) 1.4 (MIT License)
 - [Mobile-Detect](http://mobiledetect.net) 2.7.1 (MIT License)
 - [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GNU GPL version 2 or 3)
+- [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
 - [TinyMCE](http://www.tinymce.com/) 4.0 (GNU Lesser General Public
     License version 2.1)

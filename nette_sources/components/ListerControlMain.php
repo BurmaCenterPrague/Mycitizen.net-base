@@ -576,6 +576,7 @@ class ListerControlMain extends NControl
 			if (isset($this->template_variables['hide_reset'])) {
 				$options['hide_reset'] = true;
 			}
+
 		}
 		
 		$control = new ExternalFilter($this, $name, $options);

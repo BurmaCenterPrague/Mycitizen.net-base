@@ -31,7 +31,7 @@ class Tag extends BaseModel
 				throw new Exception("More than one tag with the same id found.");
 			}
 			if (sizeof($result) < 1) {
-				throw new Exception("Specified tag not found.");
+				return false; //throw new Exception("Specified tag not found.");
 			}
 			$data_array       = $result[0]->toArray();
 			$this->numeric_id = $data_array['tag_id'];
@@ -139,11 +139,13 @@ class Tag extends BaseModel
 		$tag_array = array();
 		$sort_1    = array();
 		$sort_2    = array();
+
 		foreach ($tags as $key => $tag) {
 			$level  = 0;
 			$parent = $tag['tag_parent_id'];
 			$tag_id = $tag['tag_id'];
-			while ($parent != null) {
+
+			while ($parent != null && $parent != $tag_id) {
 				$level++;
 				$parent = $tags[$parent]['tag_parent_id'];
 				if (!empty($parent)) $tag_id = $tags[$parent]['tag_id'];
@@ -200,7 +202,6 @@ class Tag extends BaseModel
 		return $tags;
 	}
 	
-### needed???
 	public static function delete($tag_id)
 	{
 		dibi::query("DELETE FROM `tag` WHERE `tag_id` = %i", $tag_id);

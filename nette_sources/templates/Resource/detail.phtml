@@ -1,17 +1,3 @@
-<?php
-/**
- * mycitizen.net - Open source social networking for civil society
- *
- * @version 0.2 beta
- *
- * @author http://mycitizen.org
- *
- * @link http://mycitizen.net
- * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
- *
- * @package mycitizen.net
- */
-?>
 {block title}{_"Details of the resource"} {$data['resource_name']}{/block}
 {block content}
 
@@ -127,7 +113,7 @@
 		{ifset $owner}
 		{if 0 < Auth::isAuthorized(1,$owner["owner_id"])}
 	<div class="resource-owner">
-		<a href="{link User:default, $owner['owner_id']}" title="{_"View resource owner:"} {$owner['owner_name']}">{_"Resource owner: "} {? echo User::getImage($owner['owner_id'], 'icon', $owner['owner_name'])}</a>
+		<a href="{link User:default, $owner['owner_id']}" title="{_"View resource owner:"} {$owner['owner_name']}">{_"Resource owner: "} {? echo User::getImage($owner['owner_id'], 'icon')}</a>
 	</div>
 		{/if}
 		{/if}

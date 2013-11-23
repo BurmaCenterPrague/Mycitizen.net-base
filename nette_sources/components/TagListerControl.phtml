@@ -2,17 +2,17 @@
 
 </div>
 <div class="lister-body">
-	<table>
+	<table class="admin-table" cellspacing="0" cellpaddin="5" style="width:700px;">
     <tr>
         <th>
-            Name
-        </th>
-        <th>
-            Parent
+            <h3>Name</h3>
         </th>
         <th>
         </th>
         <th>
+        </th>
+        <th>
+            <h3>Parent</h3>
         </th>
     </tr>
    {foreach $data as $tag}
@@ -23,25 +23,23 @@
                 {$control[$formName]['tag_name']->control}
             </td>
             <td>
-               {!$control[$formName]['tag_parent_id']->control}
-            </td>
-
-            <td>
                 {$control[$formName]['send']->control}
             </td>
 			<td>
 				{$control[$formName]['remove']->control}
 			</td>
+            <td>
+               {!$control[$formName]['tag_parent_id']->control}
+            </td>
         {control $formName end}
         </tr>
     {/foreach}
    </table>
 </div>
 
-
-<div class="lister-footer">
+<div class="pager">
    {if $max_page > 1}
-   		<a href="javascript:void(0);" onClick="pager({ifset $object_type}{!$object_type}{else}0{/if},{ifset $object_id}{!$object_id}{else}0{/if},'{!$name}',1);">1</a>
+   		<a href="{link changePage, page => 1}" class="pager-start{if $currentpage == 1} active{/if}">1</a>
    {/if}
    
    {if $max_page > 5}
@@ -79,6 +77,5 @@
    {if $max_page > 1}
    		<a href="{link changePage, page => $max_page}" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
    {/if}
-
 </div>
 

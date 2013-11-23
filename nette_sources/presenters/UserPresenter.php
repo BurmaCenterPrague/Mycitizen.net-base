@@ -73,14 +73,14 @@ final class UserPresenter extends BasePresenter
 			$data['object_data']['user_id'] = $session->data['object_id'];
 			
 			$friend_object = User::create($session->data['object_id']);
-			$user          = NEnvironment::getUser()->getIdentity();
+			$user = NEnvironment::getUser()->getIdentity();
 			if (!empty($user) && !empty($friend_object) && $user->getUserId() != $friend_object->getUserId()) {
 				$friend_user_relationship = $friend_object->friendsStatus($user->getUserId());
 				$user_friend_relationship = $user->friendsStatus($friend_object->getUserId());
 				
 				$data['object_data']['user_friend_relationship'] = $user_friend_relationship;
 				$data['object_data']['friend_user_relationship'] = $friend_user_relationship;
-				$this->template->logged_user             = $user->getUserId();
+				$this->template->logged_user = $user->getUserId();
 			} else {
 				$data['object_data']['user_friend_relationship'] = -1;
 			}
@@ -288,6 +288,7 @@ final class UserPresenter extends BasePresenter
 		$form = new NAppForm($this, 'loginform');
 		$form->addText('user_login', _('Username:'));
 		$form->addPassword('user_password', _('Password:'));
+		$form->addCheckbox('remember_me', _('remember me'));
 		$form->addSubmit('signin', _('Sign in'));
 		$form->addProtection(_('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -328,9 +329,12 @@ final class UserPresenter extends BasePresenter
 	
 	protected function createComponentChangepasswordform()
 	{
+		$query = NEnvironment::getHttpRequest();
+		$user_id = $query->getQuery("user_id");
 		$form = new NAppForm($this, 'changepasswordform');
 		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one small letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one big letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('user_password_again', _('Password again:'))->addRule(NForm::EQUAL, _("Entered passwords are not the same."), $form['user_password']);
+		$form->addHidden('user_id',$user_id);
 		$form->addSubmit('send', _('Change password'));
 		$form->addProtection(_('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -344,12 +348,12 @@ final class UserPresenter extends BasePresenter
 	public function changepasswordformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
-		if (User::changePassword($this->user_id, $values['user_password'])) {
+		if (User::changePassword($values['user_id'], $values['user_password'])) {
 			$this->flashMessage(_("Your password has been successfully changed."));
-			$this->redirect('User:edit', $this->user_id);
+			$this->redirect('User:edit', $values['user_id']);
 		} else {
 			$this->flashMessage(_("Password couldn't be changed! Try again later."), 'error');
-			$this->redirect('User:edit', $this->user_id);
+			$this->redirect('User:edit', $values['user_id']);
 		}
 	}
 	
@@ -466,7 +470,6 @@ final class UserPresenter extends BasePresenter
 		try {
 			if (isset($values['remember_me']) && $values['remember_me'] == 1) {
 				$_SESSION['remember'] = true;
-				;
 				$user->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration, FALSE);
 			}
 			$user->login($values['user_login'], $values['user_password']);
@@ -493,7 +496,6 @@ final class UserPresenter extends BasePresenter
 		$form->addPassword('user_password', _('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your password must be at least 8 characters long and contain at least one small letter, one big letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _('Your password must contain at least one big letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('password_again', _('Repeat password:'))->addRule(NForm::EQUAL, _('Your passwords are different.'), $form['user_password']);
 		
-//		$form->addPassword('password_again', _('Repeat password:'))->setOption('description', NHtml::el('div')->class('passwordStrength')->style('width:120px;height:15px;padding:3px;')->id('passwordStrength'))->addRule(NForm::EQUAL, _('Your passwords are different.'), $form['user_password']);
 		$form->addSubmit('register', _('Sign up'));
 		$form->addProtection(_('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -1123,10 +1125,14 @@ final class UserPresenter extends BasePresenter
 		$data['resource_author']           = $user->getUserId();
 		$data['resource_type']             = 1;
 		$data['resource_visibility_level'] = 3;
-		$data['resource_name']             = '<chat>';//$values['resource_name'];
+		$data['resource_name']             = '<private message>';
 		$data['resource_data']             = json_encode(array(
 			'message_text' => $values['message_text']
 		));
+		if (strip_tags($values['message_text']) == '') {
+			$this->flashMessage(_("Your message was empty."), 'error');
+			$this->redirect("User:messages");
+		}
 		$resource->setResourceData($data);
 		$resource->save();
 		$resource->updateUser($values['friend_id'], array(
@@ -1146,6 +1152,8 @@ final class UserPresenter extends BasePresenter
 	*/
 	protected function createComponentMessagelisteruser($name)
 	{
+		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
+		
 		$options = array(
 			'itemsPerPage' => 30,
 			'lister_type' => array(
@@ -1171,7 +1179,8 @@ final class UserPresenter extends BasePresenter
 				'messages' => true,
 				'message_lister' => true,
 				'hide_apply' => true,
-				'hide_reset' => true
+				'hide_reset' => true,
+				'logged_user_id' => $logged_user_id
 			),
 			'refresh_path' => 'User:messages'
 		);
@@ -1424,11 +1433,10 @@ final class UserPresenter extends BasePresenter
 		$this->redirect("User:edit",array('user_id'=>$user_id,'do'=>'makeicon'));
 	}	
 
-	public function handleMakeicon() {
+	public function handleMakeicon($user_id) {
 
-		$query = NEnvironment::getHttpRequest();
-		
-		$user_id = $query->getQuery("user_id");
+//		$query = NEnvironment::getHttpRequest();	
+//		$user_id = $query->getQuery("user_id");
 
 		
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
@@ -1478,11 +1486,10 @@ final class UserPresenter extends BasePresenter
 
 	}
 	
-	public function handleMakebigicon() {
+	public function handleMakebigicon($user_id) {
 	
-		$query = NEnvironment::getHttpRequest();
-		
-		$user_id = $query->getQuery("user_id");
+//		$query = NEnvironment::getHttpRequest();		
+//		$user_id = $query->getQuery("user_id");
 		
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
 			

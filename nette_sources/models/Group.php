@@ -50,7 +50,19 @@ class Group extends BaseModel {
 
 	public function getGroupData() {
 		$data = $this->group_data;
+		
+		if(!empty($data)) {
+			$tags = $this->getTags();
+			$data['tags'] = array();
+			foreach($tags as $tagO) {
+				$tag_data = $tagO->getTagData();
+				$tag_data['id'] = $tagO->getTagId();
+				$data['tags'][] = $tag_data;
+			}
+		}
+
 		return $data;
+
 	}
 
 	public function save() {

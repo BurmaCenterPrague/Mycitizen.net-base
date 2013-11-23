@@ -451,9 +451,14 @@ abstract class BasePresenter extends NPresenter
 			}
 			
 		}
+	
 		if (isset($verbose)) {
-					echo 'Done.<br/>';
-				}
+			echo 'Cleaning expired PHP sessions...<br/>';
+		}
+		
+		if (isset($verbose)) {
+			echo 'Done.<br/>';
+		}
 		$this->terminate();
 	}
 

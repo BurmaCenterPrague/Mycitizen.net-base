@@ -34,7 +34,7 @@ class StaticModel extends BaseModel {
       return $languages;
    }
 	
-	public static function sendSystemMessage($message_type,$from,$to,$message = null) {
+	public static function sendSystemMessage($message_type, $from, $to, $message = null, $object_type = null, $object_id = null) {
 		$sender = User::create($from);
 		if(!empty($sender)) {
 			$sender_data = $sender->getUserData();
@@ -52,30 +52,37 @@ class StaticModel extends BaseModel {
 			case self::SYSTEM_MESSAGE_FRIENDSHIPOFFER:
 				$message_subject = sprintf(_("User %s requested your friendship."), $sender_data['user_login']);
 				$message_text = _("Friendship request");
+				$email_text = $message_subject;
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPACCEPTED:
 				$message_subject = sprintf(_("User %s accepted your friendship."), $sender_data['user_login']);
             	$message_text = _("Friendship accepted");
+            	$email_text = $message_subject;
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPREJECTED:
 				$message_subject = sprintf(_("User %s rejected your friendship."), $sender_data['user_login']);
 	            $message_text = _("Friendship request rejected");
+	            $email_text = $message_subject;
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPTRERMINATED:
 				$message_subject = sprintf(_("User %s canceled your friendship."), $sender_data['user_login']);
-	            $message_text = _("Friendship canceled");			
+	            $message_text = _("Friendship canceled");
+	            $email_text = $message_subject;		
 				break;
 			case self::SYSTEM_MESSAGE_WARNING_USER:
-				$message_subject = _("System message: Warning!!!");
+				$message_subject = _("System message: You've received a warning.");
 	            $message_text = $message;
+	            $email_text = $message_subject."\n\r".$message_text;
 				break;
 			case self::SYSTEM_MESSAGE_WARNING_GROUP:
-				$message_subject = _("System message: Warning!!!");
+				$message_subject = _("System message: You've received a warning about your group.");
 				$message_text = $message;
+				$email_text = $message_subject."\n\r".$message_text;
          	  	break;
 			case self::SYSTEM_MESSAGE_WARNING_RESOURCE:
-				$message_subject = _("System message: Warning!!!");
+				$message_subject = _("System message:  You've received a warning about your resource.");
          		$message_text = $message;
+         		$email_text = $message_subject."\n\r".$message_text;
 	            break;
 			default:
 				return false;
@@ -94,13 +101,15 @@ class StaticModel extends BaseModel {
 		$resource->setResourceData($data);
 		$resource->save();
 
-		if (isset($sender_data['user_login'])) {
-			$object_type = 1; $object_id = $sender_data['user_id'];
-		} else {
-			$object_type = 0; $object_id = 0;
+		if (!isset($object_id) || !isset($object_type)) {
+			if (isset($sender_data['user_login'])) {
+				$object_type = 1; $object_id = $from;
+			} else {
+				$object_type = 0; $object_id = 0;
+			}
 		}
-				
-		StaticModel::addCron(time(), $recipient->getUserId(), $message_subject, $object_type, $object_id);
+		
+		self::addCron(time()+60, $to, $email_text, $object_type, $object_id);
 
     	$resource->updateUser($recipient->getUserId(),array('resource_user_group_access_level'=>1));
 
@@ -166,7 +175,7 @@ class StaticModel extends BaseModel {
 	public static function addCron($time, $recipient_id, $text, $object_type, $object_id) {
 	
 		// max. 1 upcoming task per object and user
-		StaticModel::removeCron($recipient_id, $object_type, $object_id);
+		self::removeCron($recipient_id, $object_type, $object_id);
 				
 		$result = dibi::query('INSERT INTO `cron` (`time`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time`) VALUES (%i,%i,%s,%i,%i,0)', $time, $recipient_id, $text, $object_type, $object_id);
 
@@ -183,13 +192,11 @@ class StaticModel extends BaseModel {
 				
 	}
 
-	/**
-	*	setting from admin backend
-	*/   
+/** see class Settings
 	public static function getSetting($variable_name) {
 	
 		return dibi::fetchSingle("SELECT `variable_value` FROM `settings` WHERE `variable_name` = %s", $variable_name);
 
 	}
-
+*/
 }

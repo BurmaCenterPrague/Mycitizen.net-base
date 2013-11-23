@@ -60,6 +60,14 @@ class User extends BaseModel implements IIdentity
 		unset($data['user_password']);
 		if (!empty($data)) {
 			$data['user_email'] = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
+			$tags = $this->getTags();
+			$data['tags'] = array();
+			foreach($tags as $tagO) {
+				$tag_data = $tagO->getTagData();
+				$tag_data['id'] = $tagO->getTagId();
+				$data['tags'][] = $tag_data;
+			}
+
 		}
 		return $data;
 	}
@@ -141,8 +149,15 @@ class User extends BaseModel implements IIdentity
 	
 	public static function encodePassword($password)
 	{
-######### add Salt!
-		return sha1($password);
+		if (strlen($password)>128) return false;
+
+		require(LIBS_DIR.'/Phpass/PasswordHash.php');
+		$hasher = new PasswordHash(8, false);
+		$hash = $hasher->HashPassword($password);
+
+		return $hasher->HashPassword($password);
+
+//		return sha1($password);
 	}
 	
 	public function getUserId()
@@ -150,7 +165,9 @@ class User extends BaseModel implements IIdentity
 		return $this->numeric_id;
 	}
 	
-#### remove?
+	/**
+	*	required by Nette
+	*/
 	public function getRoles()
 	{
 		return array(
@@ -268,7 +285,7 @@ class User extends BaseModel implements IIdentity
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
 		$body  = _("Hello,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link.\n") . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
@@ -308,7 +325,7 @@ class User extends BaseModel implements IIdentity
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash;
 		$body  = _("Hello,\nYou have requested password change on Mycitizen.net.\nTo finish your request click on following link.\n") . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Password change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
@@ -325,8 +342,8 @@ class User extends BaseModel implements IIdentity
 
 	public static function changePassword($user_id, $password)
 	{
-		dibi::query("UPDATE `user` SET `user_password` = %s WHERE `user_id` = %i", self::encodePassword($password), $user_id);
-		return true;
+		return dibi::query("UPDATE `user` SET `user_password` = %s WHERE `user_id` = %i", self::encodePassword($password), $user_id);
+
 	}
 	
 	public function sendEmailchangeEmail()
@@ -341,7 +358,7 @@ class User extends BaseModel implements IIdentity
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash;
 		$body  = _("Hello,\nYou have requested email change on Mycitizen.net.\nTo finish your request click on following link.\n") . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Email change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}

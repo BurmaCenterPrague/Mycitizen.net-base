@@ -118,7 +118,7 @@
 		{ifset $owner}
 			{if 0 < Auth::isAuthorized(1,$owner["owner_id"])}
 	<div class="group-owner">
-		<a href="{link User:default, $owner['owner_id']}" title="{_"View group owner:"} {$owner['owner_name']}">{_"Group owner: "} {? echo User::getImage($owner['owner_id'], 'icon', $owner['owner_name'])}</a>
+		<a href="{link User:default, $owner['owner_id']}" title="{_"View group owner:"} {$owner['owner_name']}">{_"Group owner: "} {? echo User::getImage($owner['owner_id'], 'icon')}</a>
 	</div>
 			{/if}
 		{/if}

@@ -1,6 +1,6 @@
 {control filter begin}
 {if !isset($hide_filter)}
-<div class="filter-body" style="height:auto !important; padding: 10px 0;">
+<div class="filter-body" style="height:auto !important; padding: 10px;">
 <div class="filter-block" style="display:inline;">
 
 {if isset($hide_by_default) && (isset($include_map) || isset($include_tags))}
@@ -16,13 +16,8 @@
 	);
 </script>
 {/if}
-	{if !isset($hide_reset)}
-		<div class="reset-filter" style="float:right;">
-			{$control['filter']['reset']->control}
-		</div>
-	{/if}
 
-   	<div class="filter-top-left" style="float:left;width:50%;">
+   	<div class="filter-top-left" style="float:left;width:500px;margin:10px;">
    	
 		{ifset $include_name}
 		<div class="filter-name">
@@ -70,20 +65,42 @@
 		{/if}
 	</div>
 
+	{if !isset($hide_apply) || isset($include_suggest) || !isset($hide_reset)}
+	<div class="filter-buttons" style="float:right;max-width:600px;padding:0 20px;margin-right:20px;">
+	{/if}
+		<div class="filter-submit" style="text-align:center;{if isset($hide_apply)} display:none;{else}display:inline;{/if}" title="{_"Apply the filter and show the results."}">
+			{$control['filter']['filter']->control}
+		</div>
+		{ifset $include_suggest}
+		<div class="filter-suggest" style="text-align:center;display:inline;" title="{_"Search for similar topics like your interests and around your location."}">
+			{$control['filter']['suggest']->control}
+		</div>
+		{/if}
+
+	{if !isset($hide_reset)}
+		<div class="reset-filter" style="text-align:center;display:inline;" title="{_"Reset the filter and show the entire list."}">
+			{$control['filter']['reset']->control}
+		</div>
+	{/if}
+
+	{if !isset($hide_apply) || isset($include_suggest) || !isset($hide_reset)}
+	</div>
+	{/if}
+	
+
 	{ifset $include_tags}
 	<div class="cleaner"></div>
-   	<div class="filter-tags" style="float:left; width:60%; height:400px; overflow-y:auto; overflow-y:hidden;">
-<!--		<a href="javascript:void(0);" onClick="$('#tagdiv').toggle();">{_"Tags"}</a> -->
-		<div id="tagdiv" style="text-align:left;width:350px;">
+   	<div class="filter-tags" style="float:left; width:650px; max-height:450px; margin:10px; overflow-y:auto; overflow-x:hidden;">
+		<div id="tagdiv" style="text-align:left;width:600px; height:400px; margin:0;">
 			{foreach $control['filter']['tags']->getControls() as $key2=>$ctrl2}
 				{if $key2 == 'all'}
 			<div class="all-tags">
 				<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _($ctrl2->label)}</div>{$ctrl2->control}
 			</div>		
-      		<div class="tag-columns" style="column-count:2;-moz-column-count:2;-webkit-column-count:2;">
+      		<div class="tag-columns" style="column-count:3;-moz-column-count:3;-webkit-column-count:3;">
 				{else}
-				<div class="wrapper_tag">
-					<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _($ctrl2->label)}</div>{$ctrl2->control}
+				<div class="wrapper_tag" style="max-width:210px;">
+					<div style="white-space:nowrap;display:inline;"><b class="icon-tag"></b>{$ctrl2->label}</div>{$ctrl2->control}
 				</div>
 				{/if}
 			{/foreach}
@@ -117,13 +134,11 @@
 	</div>
 	{/if}
 	{ifset $include_map}
-	<div class="filter-map" style="float:left;width:40%;">
+	<div class="filter-map" style="float:right;width:350px;">
 		<h3>{_"Restrict your search to a location"}	<img src="/images/help.png" class="help-icon" title="{_"Click inside the map to set the center. Click a second time to set the search radius."}"/></h3>
-<!--		<a href="javascript:void(0);" onClick="$('#mapdiv').toggle();loadData();">{_"Map"}</a> -->
 		<div id="mapdiv" class="map-filter" style="display:none;">
 			{$control['filter']['mapfilter']->control}
 		</div>
-
 <script>
 	$(document).ready(function() {
 		$('#filter_box_a').click(function(){
@@ -137,27 +152,15 @@
 </script>
 	</div>
 	{/if}
+	
 	<div class="cleaner"></div>
 	{ifset $include_pairing}
-	<div class="filter-pairing" style="float:left;width:40%;">
+	<div class="filter-pairing" style="float:left;width:650px;padding:5px 0; margin-left:10px; border:none;">
 		<div title="{_"AND: Find only items where <i>all</i> conditions are met.<br />OR: Find items where <i>any</i> of the selected conditions are met."}">{$control['filter']['filter_pairing']->label}</div>
-		{$control['filter']['filter_pairing']->control}
+		<div class="filter-pairing-control" style="margin:5px 20px;border:none;">{$control['filter']['filter_pairing']->control}</div>
 	</div>
 	{/if}
-	{if !isset($hide_apply) || isset($include_suggest)}
-	<div class="filter-buttons" style="float:right;width:40%;">
-	{/if}
-		<div class="filter-submit" style="float:left;{if isset($hide_apply)} display:none;{/if}" title="{_"Apply the filter."}">
-			{$control['filter']['filter']->control}
-		</div>
-		{ifset $include_suggest}
-		<div class="filter-suggest" style="float:left;" title="{_"Search for similar topics like your interests and around your location."}">
-			{$control['filter']['suggest']->control}
-		</div>
-		{/if}
-	{if !isset($hide_apply) || isset($include_suggest)}
-	</div>
-	{/if}
+
 </div>
 </div>
 {/if}

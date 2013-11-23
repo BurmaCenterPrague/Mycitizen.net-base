@@ -19,7 +19,7 @@
 					<div class="chat-avatar">
 						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{!$icon}</a>{else}{!$icon}{/if}
 					</div>
-					<div class="chat-author">
+					<div id="{$id}_author" class="chat-author">
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{$r_author['user_login']}</a>{else}{$r_author['user_login']}{/if}
 						{if $r_author['user_access_level']>1}
 							<b class="icon-moderator" title="{_"moderator"}"></b>

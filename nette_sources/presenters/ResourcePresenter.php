@@ -233,7 +233,7 @@ final class ResourcePresenter extends BasePresenter
 			
 			$screenshot_url = $resource->getThumbnailUrl();
 			If (!empty($screenshot_url)) $this->template->screenshot_url = $screenshot_url;
-			$image = $resource->getScreenshot(_('Go to resource'),true);
+			$image = $resource->getScreenshot(_('View big screenshot'),true);
 			if (!empty($image)) $this->template->screenshot = $image;
 
 			

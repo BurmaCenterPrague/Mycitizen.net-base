@@ -8,3 +8,11 @@ width:60px;
 .admin-table tr:nth-child(even) {background-color: #eee}
 .admin-table tr:nth-child(odd) {background-color: transparent}
 .admin-table tr.tr-header {background-color: #ddd}
+#frmmessageform-send{font-size:1.3em}
+
+.wrapper_tag {padding:2px;}
+.wrapper_tag:hover {background-color:#eae9e3;}
+.wrapper_tag label {
+	width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
