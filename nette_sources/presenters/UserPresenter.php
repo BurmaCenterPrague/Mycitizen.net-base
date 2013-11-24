@@ -470,7 +470,8 @@ final class UserPresenter extends BasePresenter
 		try {
 			if (isset($values['remember_me']) && $values['remember_me'] == 1) {
 				$_SESSION['remember'] = true;
-				$user->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration, FALSE);
+				$user->setExpiration(0);
+				// $user->setExpiration((NEnvironment::getConfig('variable')->sessionExpiration, FALSE);
 			}
 			$user->login($values['user_login'], $values['user_password']);
 			
@@ -642,7 +643,7 @@ final class UserPresenter extends BasePresenter
 		$form->addSelect('user_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Do you want be visible to everyone (world), one to registered users (registered) or only to your friends (friends)?'))->id("help-name"));
 		$form->addSelect('user_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('The main language you want to use. You will still be able to see other languages.'))->id("help-name"));
 		$form->addTextArea('user_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Write some lines about your life, your work and your interests.'))->id("help-name"));
-		$form->addFile('user_avatar', _('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 80x100px, max. 2048x2048px). In the next step you can crop it.'))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, _('Maximum image size is 512kB'), 512 * 1024);
+		$form->addFile('user_avatar', _('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it.'))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, _('Maximum image size is 512kB'), 512 * 1024);
 		
 		$form->addProtection(_('Error submitting form.'));
 		 
@@ -716,8 +717,10 @@ final class UserPresenter extends BasePresenter
 			
 				$size= getimagesize($values['user_avatar']->getTemporaryFile());
 				
-				if ($size[0]>2048 || $size[1]>2048) {
-					$this->flashMessage(_("Image is too big! Max. size is for upload is 2048x2048"),'error');
+				if ($size[0]>1500 || $size[1]>1500) {
+					$this->flashMessage(_("Image is too big! Max. size is for upload is 1500x1500"),'error');
+				} elseif ($size[0]<120 || $size[1]<150) {
+					$this->flashMessage(_("The image is too small! Min. size for upload is 120x150"),'error');
 				} else {
 					$values['user_portrait'] = base64_encode(file_get_contents($values['user_avatar']->getTemporaryFile()));
 				}
