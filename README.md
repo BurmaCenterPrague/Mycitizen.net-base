@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.2.1 Beta : 23 Nov 2013
+0.2.1 Beta : 16 Dec 2013
 
 
 authors
@@ -23,6 +23,7 @@ logo:	[Kateřina Kropáčová](http://kanadruhou.cz)
 
 included packages
 -----------------
+- [CalendarPicker](http://roberto.open-lab.com/2010/04/06/ultra-light-jquery-calendar/) (modified) (MIT License)
 - [GrabzIt API](http://grabz.it/api/php/) 2.0.9 (MIT License)
 - [HTML Purifier](http://htmlpurifier.org/) 4.5.0 (GNU Lesser General Public
     License)
@@ -30,7 +31,6 @@ included packages
 - [jQuery](http://jquery.com/) 1.10.1 (MIT License)
 - [jQuery UI, jQuery UI Datepicker](http://jqueryui.com ) 1.10.3 (MIT License)
 - [jQuery UI Fancybox](http://fancyapps.com/fancybox/) 2.1.5, [license](http://www.fancyapps.com/fancybox/#license)
-- [jQuery UI Timepicker](http://trentrichardson.com/examples/timepicker) 1.4 (MIT License)
 - [Mobile-Detect](http://mobiledetect.net) 2.7.1 (MIT License)
 - [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GNU GPL version 2 or 3)
 - [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
