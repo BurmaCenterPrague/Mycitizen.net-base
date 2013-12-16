@@ -2,110 +2,81 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
  * @package mycitizen.net
  */
 ?>
-{block title}Resource - Update{/block}
+{block title}{_'Update Resource'}{/block}
 @{block #content}
 <script>
 	$(document).ready(function(){
-		$("#frmupdateform-event_timestamp").datetimepicker({
-		timeFormat: 'hh:mm tt z',
-		showTimezone: true,
-		timezoneList: [
-			{"value": "-12:00", "label": "Eniwelok, Kwajalein"},
-			{"value": "-11:00", "label": "Midway Island, Samoa"},
-			{"value": "-10:30", "label": "Cook Islands"},
-			{"value": "-10:00", "label": "Hawaii; Western Aleutian Islands=was Alaska/Hawaii timezone"},
-			{"value": "-09:30", "label": "Marquesas Islands"},
-			{"value": "-09:00", "label": "Alaska; Eastern Aleutian Islands=was Yukon timezone"},
-			{"value": "-08:30", "label": "Pitcairn Island"},
-			{"value": "-08:00", "label": "Pacific Time (US & Canada); Yukon; Tijuana"},
-			{"value": "-07:00", "label": "Mountain Time (US & Canada)"},
-			{"value": "-06:00", "label": "Central Time (US & Canada); Mexico City, Tegucigalpa"},
-			{"value": "-05:00", "label": "Eastern Time (US & Canada); Bogota; Lima; Quito"},
-			{"value": "-04:30", "label": "Caracas"},
-			{"value": "-04:00", "label": "Atlantic Time (Canada); Caracas, La Paz; Santiago"},
-			{"value": "-03:45", "label": "Guyana, South America"},
-			{"value": "-03:30", "label": "Newfoundland; Suriname, South America"},
-			{"value": "-03:00", "label": "Greenland; Brasilia; Buernos Aires; Puerto Rico"},
-			{"value": "-02:00", "label": "Mid-Atlantic"},
-			{"value": "-01:00", "label": "Azores, Cape Verde Is."},
-			{"value": "+00:00", "label": "Greenwich Mean Time"},
-			{"value": "+01:00", "label": "Amsterdam; Berlin; Bern; Rome; Stockholm; Vienna"},
-			{"value": "+02:00", "label": "Athens; Istanbul; Minsk; Jerusalem"},
-			{"value": "+03:00", "label": "Baghdad; Kuwait; Moscow"},
-			{"value": "+03:30", "label": "Tehran, Iran"},
-			{"value": "+04:00", "label": "Abu Dhabi; Muscat"},
-			{"value": "+04:30", "label": "Kabul, Afghanistan"},
-			{"value": "+05:00", "label": "Ekaterinburg"},
-			{"value": "+05:30", "label": "India; Bombay; Calcutta; New Delhi; Sri Lanka"},
-			{"value": "+05:45", "label": "Kathmandu, Nepal"},
-			{"value": "+06:00", "label": "Astana; Dhaka"},
-			{"value": "+06:30", "label": "Cocos Islands; Yangon; Myanmar"},
-			{"value": "+07:00", "label": "Bangkok; Hanoi"},
-			{"value": "+08:00", "label": "Perth; Singapore; China"},
-			{"value": "+08:45", "label": "South Australia"},
-			{"value": "+09:00", "label": "Osaka; Tokyo; Seoul"},
-			{"value": "+09:30", "label": "Northern Australia"},
-			{"value": "+10:00", "label": "Brisbane; Canberra; Sydney; Guam"},
-			{"value": "+11:00", "label": "Magadan; Solomon Is.; New Caledonia"},
-			{"value": "+11:30", "label": "New Zealand?; Norfold Island, Australia"},
-			{"value": "+12:00", "label": "Auckland; Wellington; Fiji; Marshall Is.; Tuvalu"},
-			{"value": "+12:45", "label": "Chatham Island, New Zealand"},
-			{"value": "+13:00", "label": "Nukulalofa; Phoenix Islands=1 hour EAST of the dateline"},
-			{"value": "+14:00", "label": "Line Islands; Christmas Islands=2 hours EAST of the dateline"}
-		],
-		timeOnlyTitle: {_"Select a time"},
-		timeText: {_"Time"},
-		hourText: {_"Hours"},
-		minuteText: {_"Minutes"},
-		secondText: {_"Seconds"},
-		currentText: {_"Now"},
-		closeText: {_"Close"},
-		monthNames: [ {_"January"}, {_"February"}, {_"March"}, {_"April"}, {_"May"}, {_"June"}, {_"July"}, {_"August"}, {_"September"}, {_"October"}, {_"November"}, {_"December"} ],
-		timezoneText: {_"Time Zone"}
+		$("#frmupdateform-event_timestamp").hide();
+		var divToday = $("<span>").attr('id', 'today').html({_'now'}).addClass("button").css('margin', '2px');
+	    var divDate = $("<div>").attr('id', 'date').css('width', '500px');
+	    var dateSet = new Date($("#frmupdateform-event_timestamp").val());
+	    if (dateSet == "Invalid Date") dateSet = 0;
+	    
+	    $("#frmupdateform-event_timestamp").parent().append(divToday).append(divDate);
+	    	
+		 var calendarPicker = $("#date").calendarPicker({
+			monthNames:[{_'Jan'}, {_'Feb'}, {_'Mar'}, {_'Apr'}, {_'May'}, {_'Jun'}, {_'Jul'}, {_'Aug'}, {_'Sep'}, {_'Oct'}, {_'Nov'}, {_'Dec'}],
+			dayNames: [{_'Sun'}, {_'Mon'}, {_'Tue'}, {_'Wed'}, {_'Thu'}, {_'Fri'}, {_'Sat'}],
+			years:2,
+			months:4,
+			days:5,
+			hours:4,
+			minutes:2,
+			showDayArrows:false,
+			date:dateSet,
+			callback:function(cal) {
+			  $("#frmupdateform-event_timestamp").val(cal.currentDate);
+			}});
+			
+		$("#today").click(function(){
+			calendarPicker.changeDate(new Date())
 		});
 	});
 </script>
 
+
 <div class="resource_edit_updateform">
 
-	<div class="back"><a href="{plink Resource:default, $resource_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
+	<div class="back"><a href="{plink Resource:default, $resource_id}" title="{_'cancel and return'}"><b class="icon-cancel"></b></a></div>
 
-
-
-		<div class="edit-wrapper">
-
-		{ifset $resource_id}
+	
+		<div class="edit-wrapper" style="display:inline;width:60%;">
 		{control updateform error}
-		<div class="resource-edit-map">
-			<h4>{_"Edit the location"}</h4>
-			{control mapedit}
-		</div>
-		{/if}
-
 	{control updateform}
+
 <script>
 {* set style directly in ResourcePresenter.php ! *}
 	$(document).ready(function(){
 		$('#frm-updateform').css({'display':'inline'});
 	});
 </script>
+
+
+
+
+		{ifset $resource_id}
+		<div class="resource-edit-map" style="display:inline;">
+			<h4>{_'Edit the location'}</h4>
+			{control mapedit}
 		</div>
+		{/if}
 	
 		<div class="cleaner"></div>
 	
-		<h3>{_"Below you can add details: Describe the topics of this resource by one or more tags. If you have created resource accessible only to selected peaople, you can insert recipients of this resource. These information will help other users to find your resource."}</h3>
+		<h3>{_'Below you can add details: Describe the topics of this resource by one or more tags. If you have created resource accessible only to selected peaople, you can insert recipients of this resource. These information will help other users to find your resource.'}</h3>
 		<div class="resource-edit-tagform">
-		<h3>{_"Add or remove tags"} </h3><img src="/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="margin-bottom:-8px;"/>
+		<h3>{_'Add or remove tags'} </h3>
+		<p><img src="/images/help.png" class="help-icon" title="{_'Add the tags one by one.'}" style="margin-bottom:-8px;"/></p>
 
 	   {control tagform begin}
 	
@@ -117,7 +88,7 @@
 				<tr>
 					<td>
 					{foreach $tag_name->getPath() as $tag}
-						<span>{$tag}</span>
+						<span>{? echo StaticModel::pgettext('tags',$tag)}</span>
 						{if !$iterator->isLast()}
 						<div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div>
 						{/if}
@@ -143,7 +114,7 @@
 		
 {ifset $resource_id}
 	<div class="group-edit-membersform">
-		<h3>{_"Manage subscribers of this resource"}</h3>
+		<h3>{_'Manage subscribers of this resource'}</h3>
 		{control resourcesubscriberlister}
 	</div>
 
@@ -180,6 +151,9 @@
 </script>
 {/if}
 {/if}
+
+		</div>
+
 	<div class="cleaner"></div>
 </div>	
 {/block}

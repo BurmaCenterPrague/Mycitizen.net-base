@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -98,6 +98,16 @@ final class AdministrationPresenter extends BasePresenter
 		}	
 
 		$this->template->stats = Administration::getStatistics();
+		$this->template->MySQL_version = dibi::fetchSingle("SELECT VERSION() as mysql_version");
+		
+		$rows = dibi::fetchall("SHOW TABLE STATUS");  
+		$size = 0;  
+		foreach($rows as $row) {  
+		    $size += $row["Data_length"] + $row["Index_length"];  
+		}
+		$decimals = 2;  
+		$mbytes = number_format($size/(1024*1024),$decimals);
+		$this->template->database_size = $mbytes;
 
 	}
 	
@@ -719,7 +729,7 @@ final class AdministrationPresenter extends BasePresenter
 			fclose($fp);	
 
 			$messages[] = 'Finishing processing.';
-			$messages[] = $count.' resources processed. Please don\'t process again lines that were successfully imported.';
+			$messages[] = $count.' resources processed. Please don\'t process again lines that were successfully imported. It is recommended to remove the source file.';
 			
 		} else {
 			$messages[] = 'Error opening file for writing.';

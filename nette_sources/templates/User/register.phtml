@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -37,6 +37,7 @@
 				case 3: color = "#80FF00"; break;
 				case 4: color = "#01DF01"; break;
 			}
+			if (!conditions(password)) { color = "#FF0000"};
 			if (color != '') {
 				$('#frmregisterform-user_password').css({ "background-color":color});
 			}
@@ -64,6 +65,20 @@
 			$('#frmregisterform-password_again').css({ "background-color":color});			
 			oldRepeat = again;
 		}
+		
+	function conditions(password) {
+		if (password.length < 8) return false;
+		
+		var testUpper = new RegExp("[A-Z]+");
+		var testLower = new RegExp("[a-z]+");
+		var testNumber = new RegExp("[0-9]+");
+
+		if (testUpper.test(password) && testLower.test(password) && testNumber.test(password)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 </script>
 </div>
 {/block}

@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -299,7 +299,7 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql_group = "SELECT COUNT(`group`.`group_id`) as count FROM `group`";
 				} else {
-					$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`group`.`group_status` as status,`group_viewed` as viewed, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
+					$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`group`.`group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`group`.`group_status` as status,`group_viewed` as viewed, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
 				}
 				if (isset($filter['user_id'])) {
 					$sql_group .= " INNER JOIN `group_user` ON (`group_user`.`group_id` = `group`.`group_id` AND `group_user`.`user_id` = '" . $filter['user_id'] . "')";
@@ -310,7 +310,7 @@ class Administration extends BaseModel
 					if ($counter_mode) {
 						$sql_group = "SELECT COUNT(`group`.`group_id`) as count FROM `group`";
 					} else {
-						$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`resource_user_group`.`resource_user_group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`group_viewed` as viewed, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
+						$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`resource_user_group`.`resource_user_group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`group_viewed` as viewed, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
 					}
 					$sql_group .= " INNER JOIN `resource_user_group` ON (`resource_user_group`.`member_id` = `group`.`group_id` AND `resource_user_group`.`member_type` = '2' AND `resource_user_group`.`resource_id` = '" . $filter['resource_id'] . "')";
 				}	
@@ -326,7 +326,7 @@ class Administration extends BaseModel
 				if(!empty($user)) {
 					$trash = ",opened.`resource_trash` as trashed,`resource`.`resource_author` as author,`resource`.`resource_type` as message_type";
 				}
-				$sql_resource = "SELECT '".Resource::getType()."' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1') as links,`resource_data`".$trash." FROM `resource`";
+				$sql_resource = "SELECT '".Resource::getType()."' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,`resource`.`resource_description` as description,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1') as links,`resource_data`".$trash." FROM `resource`";
 /*
 					$sql_resource = "SELECT '" . Resource::getType() . "' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1') as links FROM `resource`";
 */

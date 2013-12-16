@@ -53,6 +53,7 @@ input[type="button"], input[type="submit"],.button {
 	letter-spacing: 1px;
 	margin: 1.2em 0;
 	white-space:nowrap;
+	cursor:pointer;
 }
 input[type="button"]:hover, input[type="submit"]:hover,.button:hover,
 .about input[type="button"]:hover, .about input[type="submit"]:hover, .about .button:hover {
@@ -350,6 +351,7 @@ padding-bottom: 10px;
 	width: 155px;
     overflow: hidden;
     white-space: nowrap;
+    float: left;
     text-overflow: ellipsis;
     -o-text-overflow: ellipsis;
     -ms-text-overflow: ellipsis;
@@ -1004,7 +1006,7 @@ text-align: left;
 .group-edit-map,
 .user-edit-map,
 .resource-edit-map {
-float: right;
+float: left;
 }
 .group-edit-image,
 .user-edit-image {
@@ -1382,6 +1384,12 @@ width:60px;
 
 .wrapper_tag {padding:2px;}
 .wrapper_tag:hover {background-color:#eae9e3;}
-.wrapper_tag label {
-	width:135px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+#tagdiv label {
+	width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.edit-wrapper {
+max-width:500px;
+}
+.edit-wrapper fieldset {
+max-width:500px;
 }

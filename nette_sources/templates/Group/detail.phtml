@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -83,7 +83,7 @@
 		</div>
 
 		<div class="group_detail_tags">
-			<h3>Topics</h3>
+			<h3>{_"Topics"}</h3>
 			{ifset $group_tags}
 			<table>
 				{?$i=0}
@@ -92,9 +92,9 @@
 					<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
 						{foreach $tag_name->getIdWithPath() as $tag}
 							{if $iterator->isLast()}
-						<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a>
+						<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo StaticModel::pgettext('tags',$tag['name'])}</a>
 							{else}
-						<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+						<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo StaticModel::pgettext('tags',$tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
 							{/if}
 						{/foreach}
 						</div>
@@ -164,7 +164,7 @@
 				<script>
 				$(document).ready(function(){
 					$('#unsubscribe_as_group_header').click(function(){
-						$('#unsubscribe_as_group_body').toggle(500);
+						$('#unsubscribe_as_group_body').slideToggle(500);
 					});
 				});
 				</script>

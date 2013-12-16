@@ -164,8 +164,8 @@
 				reply=confirm({_"Do you really want to delete this message?"});
 				if (reply==true) {
 					$.post("?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
-						$('#totrash-'+id).hide();
-						$('#chat_message_'+id).hide('normal');
+						$('#totrash-'+id).slideUp();
+						$('#chat_message_'+id).slideUp('normal');
 				} else {
 					$('#chat_message_'+id).css({'background-color':'transparent'});
 				}	

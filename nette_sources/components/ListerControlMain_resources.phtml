@@ -86,12 +86,12 @@
 				<div class="list-body-name">
 					{ifset $template_variables['detail']}
 					{if $template_variables['detail'] == "ajax"}
-            			<span{ifset $screenshot} style="width:120px;" title='{!$screenshot}'{/if}>{$row['name']}</span>
+            			<span style="width:120px;" {if isset($screenshot) && ($screenshot!='')}title='{!$screenshot}'{else}title="{$resdata['resource_description']}"{/if}>{$row['name']}</span>
 					{/if}
 					{else}
 						{var $res => Resource::Create($row['id'])}
 						{var $screenshot => $res->getScreenshot()}
-						<span{ifset $screenshot} style="width:120px;" title='{!$screenshot}'{/if}>{$row['name']}</span>
+						<span style="width:120px;" {if isset($screenshot) && ($screenshot!='')}title='{!$screenshot}'{else}title="{$resdata['resource_description']}"{/if}>{$row['name']}</span>
 					{/if}
 				</div>
 

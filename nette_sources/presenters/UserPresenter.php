@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -288,7 +288,7 @@ final class UserPresenter extends BasePresenter
 		$form = new NAppForm($this, 'loginform');
 		$form->addText('user_login', _('Username:'));
 		$form->addPassword('user_password', _('Password:'));
-		$form->addCheckbox('remember_me', _('remember me'));
+		$form->addCheckbox('remember_me', _('Remember me'));
 		$form->addSubmit('signin', _('Sign in'));
 		$form->addProtection(_('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -302,7 +302,7 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentChangelostpasswordform()
 	{
 		$form = new NAppForm($this, 'changelostpasswordform');
-		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one small letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one big letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('user_password_again', _('Password again:'))->addRule(NForm::EQUAL, _("Entered passwords are not the same."), $form['user_password']);
 		$form->addSubmit('send', _('Change password'));
 		$form->addProtection(_('Error submitting form.'));
@@ -332,7 +332,7 @@ final class UserPresenter extends BasePresenter
 		$query = NEnvironment::getHttpRequest();
 		$user_id = $query->getQuery("user_id");
 		$form = new NAppForm($this, 'changepasswordform');
-		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one small letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one big letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('user_password_again', _('Password again:'))->addRule(NForm::EQUAL, _("Entered passwords are not the same."), $form['user_password']);
 		$form->addHidden('user_id',$user_id);
 		$form->addSubmit('send', _('Change password'));
@@ -473,14 +473,20 @@ final class UserPresenter extends BasePresenter
 				$user->setExpiration(0);
 				// $user->setExpiration((NEnvironment::getConfig('variable')->sessionExpiration, FALSE);
 			}
+
 			$user->login($values['user_login'], $values['user_password']);
-			
+			$user_id = $user->getIdentity()->getUserId();
 			if ($user->getIdentity()->firstLogin()) {
 				$user->getIdentity()->registerFirstLogin();
 				$user->getIdentity()->setLastActivity();
-				$this->redirect("User:edit");
+				$this->redirect("User:edit", $user_id);
 			} else {
 				$user->getIdentity()->setLastActivity();
+				$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+				$language_code = Language::getFlag($user->getIdentity()->getLanguage());
+				if (!empty($language_code)) {
+					$session->language = $language_code;
+				}
 				$this->redirect("Homepage:default");
 			}
 		}
@@ -492,9 +498,9 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentRegisterform()
 	{
 		$form = new NAppForm($this, 'registerform');
-		$form->addText('user_login', _('Username:'))->addRule(NForm::FILLED, _('Username cannot be empty!'))->addRule(NForm::MIN_LENGTH, _('The minimal length of your username is %s characters.'), 3)->addRule($form::REGEXP, _('Your username can only contain letters and numbers without spaces!'), '/^[a-zA-Z0-9]+$/')->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Please use only the English alphabet.'))->id("help-name"));
+		$form->addText('user_login', _('Username:'))->addRule(NForm::FILLED, _('Username cannot be empty!'))->addRule(NForm::MIN_LENGTH, _('The minimal length of your username is %s characters.'), 3)->addRule($form::REGEXP, _('Your username can only contain letters, numbers, space, dash and underscore!'), '/^[a-zA-Z0-9 \-_]+$/')->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Please use only the English alphabet.').' '._('Your username can only contain letters, numbers, space, dash and underscore!'))->id("help-name"));
 		$form->addText('user_email', _('Email:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('To this address we will send a request to confirm your registration.'))->id("help-name"))->addRule($form::REGEXP, _('Wrong email format!'), '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/');
-		$form->addPassword('user_password', _('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your password must be at least 8 characters long and contain at least one small letter, one big letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _('Your password must contain at least one big letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password', _('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your password must be at least 8 characters long and contain at least one lower-case letter, one upper-case letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _('Your password must contain at least one upper-case letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('password_again', _('Repeat password:'))->addRule(NForm::EQUAL, _('Your passwords are different.'), $form['user_password']);
 		
 		$form->addSubmit('register', _('Sign up'));
@@ -895,7 +901,8 @@ final class UserPresenter extends BasePresenter
 			),
 			'refresh_path' => 'User:default',
 			'template_variables' => array(
-				'connection_columns' => true
+				'connection_columns' => true,
+				'show_extended_columns' => true,
 				)
 		);
 
@@ -1191,10 +1198,7 @@ final class UserPresenter extends BasePresenter
 		$session = NEnvironment::getSession()->getNamespace($name);
 		
 		
-		
 		if (!isset($session['filterdata']['trash'])) $session->filterdata = array_merge(array('trash' => 2, $session->filterdata));
-		
-//		var_dump($session['filterdata']);
 		
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -1310,7 +1314,6 @@ final class UserPresenter extends BasePresenter
 	
 	/**
 	*		Marks message as read
-	*		Receives message id via query ?do=
 	*/
 	public function handleMarkRead($resource_id)
 	{
@@ -1328,7 +1331,6 @@ final class UserPresenter extends BasePresenter
 	
 	/**
 	*		Marks message as unread
-	*		Receives message id via query ?do=
 	*/
 	public function handleMarkUnread($resource_id)
 	{
@@ -1345,16 +1347,6 @@ final class UserPresenter extends BasePresenter
 		$this->terminate();
 	}
 	
-/*
-	public function emptytrashformSubmitted(NAppForm $form)
-	{
-		$user = NEnvironment::getUser()->getIdentity();
-		
-		Resource::emptyTrash();
-		$this->flashMessage(_("Trash emptied."));
-		$this->redirect("User:messages");
-	}
-*/
 	
 	public function isAccessible()
 	{

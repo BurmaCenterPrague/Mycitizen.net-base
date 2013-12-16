@@ -9,11 +9,14 @@ NEnvironment::loadConfig();
 
 // enable NDebug
 // NDebug::enable(NEnvironment::getConfig('debug')->IPs, LOG_DIRECTORY, NEnvironment::getConfig('debug')->logEmail);
-NEnvironment::getApplication()->catchExceptions = false;
+
 
 if (NEnvironment::getConfig('debug')->showErrors) {
 	NDebug::enable(NDebug::DEVELOPMENT);
 //	NDebug::enableProfiler();
+	NEnvironment::getApplication()->catchExceptions = false;
+ } else {
+ 	error_reporting(0);
  }
 
 ini_set('session.name', NEnvironment::getVariable('SESSION_NAME'));
@@ -38,7 +41,17 @@ session_set_save_handler(array('SessionDatabaseHandler', 'open'), array('Session
             array('SessionDatabaseHandler', 'destroy'), array('SessionDatabaseHandler', 'clean'));
 $session = NEnvironment::getSession();
 $session->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration);
-$flag = NULL;
+
+if (NEnvironment::getConfig('variable')->secured == 1) {
+	$flag = NRoute::SECURED;
+	$flag_all = NULL;
+} elseif (NEnvironment::getConfig('variable')->secured == 2) {
+	$flag = NRoute::SECURED;
+	$flag_all = NRoute::SECURED;
+} else {
+	$flag = NULL;
+	$flag_all = NULL;
+}
 
 $router[] = new NRoute('index.php', array(
 	'presenter' => 'Homepage',
@@ -58,7 +71,7 @@ $router[] = new NRoute('signup/', array(
 $router[] = new NRoute('<presenter>/<action>/', array(
     'presenter' => 'Homepage',
     'action' => 'default',
-    ),$flag);
+    ),$flag_all);
 
 $router[] = new NSimpleRouter(array(
 	'presenter' => 'Homepage',

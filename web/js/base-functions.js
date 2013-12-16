@@ -194,7 +194,7 @@ function revokepermission(object_type,object_id) {
 
 function deletereport(report_id) {
 	if(report_id != null) {
-   		if (confirm('Sure to delete?')) {
+   		if (confirm('Are you sure to delete this report?')) {
       		$.post("?report_id="+report_id+"&do=deleteReport",function(){
       			location.href=self.location.href;
       		});

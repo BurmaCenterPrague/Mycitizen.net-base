@@ -3,16 +3,16 @@
 </div>
 <div class="lister-body">
    {snippet list_body}
-<div id="message">
+<div id="message" style="padding:10px 0; font-size:1.2em;color:#E13C20;">
 
 </div>
-<table>
+<table class="admin-table" style="width:900px;" cellspacing="0">
     <tr>
-        <th>Sender
+        <th style="width:150px">Sender
         </th>
         <th>Reason
         </th>
-        <th>Reported item
+        <th style="width:250px">Reported item
         </th>
     </tr>
 	{foreach $data as $row}
@@ -21,23 +21,25 @@
             {var r_author => User::create($r_data['resource_author'])->getUserData()}
 
 			<td>
-            	<b>{$r_author['user_login']}</b>:
+            	<b>{$r_author['user_login']}</b>
+            	<a href="{plink User:default,User::create($r_data['resource_author'])->getUserId()}" class="button" target="_blank">show</a>
             </td>
             <td>
-               <b><a href="javascript:void(0);" onClick="$('#show-{$row["id"]}').toggle('normal');">{$r_data['resource_name']}</a></b>
+               <b>{$r_data['resource_name']}</b> <a href="javascript:void(0);" onClick="$('#show-{$row["id"]}').toggle('normal');" class="button">info</a>
             </td>
             <td>
             <b>
 			{if $r_data['reported_object'] == "user"}
-				<a href="{plink User:default,$r_data['reported_id']}" target="_blank">{? echo User::getFullName($r_data['reported_id'])}</a>
+				{? echo User::getFullName($r_data['reported_id'])}
+				<a href="{plink User:default,$r_data['reported_id']}" class="button" target="_blank">show</a>
 			{elseif $r_data['reported_object'] == "group"}
-				<a href="{plink Group:default,$r_data['reported_id']}" target="_blank">{? echo Group::getName($r_data['reported_id'])}</a>
+				{? echo Group::getName($r_data['reported_id'])}
+				<a href="{plink Group:default,$r_data['reported_id']}" class="button" target="_blank">show</a>
 			{else}
-				<a href="{plink Resource:default,$r_data['reported_id']}" target="_blank">{? echo Resource::getName($r_data['reported_id'])}</a>
+				{? echo Resource::getName($r_data['reported_id'])}
+				<a href="{plink Resource:default,$r_data['reported_id']}" class="button" target="_blank">show</a>
 			{/if}
 			</b>
-			
-			
             </td>
         </tr>
         <tr id="show-{$row['id']}" style="display:none;">

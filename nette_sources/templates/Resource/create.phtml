@@ -2,28 +2,46 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
  * @package mycitizen.net
  */
 ?>
-{block title}Resource - Register{/block}
+{block title}Create Resource{/block}
 {block content}
-		<script>
-
-      $(document).ready(function(){
-         $("#frmupdateform-event_timestamp").datetimepicker({
-	timeFormat: 'hh:mm tt z',
-	showTimezone: true
-});
-      });
-   </script>
-
+<script>
+	$(document).ready(function(){
+		$("#frmupdateform-event_timestamp").hide();
+		var divToday = $("<span>").attr('id', 'today').html({_"now"}).addClass("button").css('margin', '2px');
+	    var divDate = $("<div>").attr('id', 'date').css('width', '500px');
+	    
+	    $("#frmupdateform-event_timestamp").parent().append(divToday).append(divDate);
+	    	
+		 var calendarPicker = $("#date").calendarPicker({
+			monthNames:["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+			dayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+			//useWheel:true,
+			//callbackDelay:500,
+			years:2,
+			months:4,
+			days:5,
+			hours:4,
+			minutes:2,
+			showDayArrows:false,
+			callback:function(cal) {
+			  $("#frmupdateform-event_timestamp").val(cal.currentDate);
+			}});
+			
+		$("#today").click(function(){
+			calendarPicker.changeDate(new Date())
+		});
+	});
+</script>
 		{control updateform error}
 		{control updateform}
 {/block}

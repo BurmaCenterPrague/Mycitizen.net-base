@@ -51,20 +51,20 @@
     	    	onClick="showObjectDetail({$row['type']},{$row['id']})"
         	{/if}>        	
 
-						{if $number_displayed<4 || isset($template_variables['detail']) || isset($template_variables['persistent_filter']) || isset($template_variables['detail_connections']) }
-						<div class="icon_group">
-							{? echo Group::getImage($row['id'], 'icon')}
-						</div>
-						{/if}
+				{if $number_displayed<4 || isset($template_variables['detail']) || isset($template_variables['persistent_filter']) || isset($template_variables['detail_connections']) }
+				<div class="icon_group">
+					{? echo Group::getImage($row['id'], 'icon')}
+				</div>
+				{/if}
 
 				<div class="list-body-name">
 					{ifset $template_variables['detail']}
 					{if $template_variables['detail'] == "ajax"}
-            			{$row['name']}
+				<span style="width:120px;" title="{$row['description']}">{$row['name']}</span>
 					{/if}
 					{else}
         		       	{if Auth::isAuthorized(2,$row['id'])>0}
-        		       		{$row['name']}
+        		       		<span style="width:120px;" title="{$row['description']}">{$row['name']}</span>
         				{else}
         	       			<em>{_"Hidden group"}</em>
         	       		{/if}

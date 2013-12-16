@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -201,7 +201,11 @@ final class ResourcePresenter extends BasePresenter
 			$this->redirect("Resource:default");
 		}
 		$resource = Resource::create();
-		
+
+		$this->template->load_js_css_tinymce = true;
+		$this->template->load_js_css_datetimepicker = true;
+		$this->template->load_js_css_tree = true;
+
 		$this->resource = $resource;
 		
 	}
@@ -471,7 +475,7 @@ final class ResourcePresenter extends BasePresenter
 		}
 		
 		
-		//diferent resource fields according to type
+		//different resource fields according to type
 		if (!empty($resource_id) && $resource_data['resource_type'] == 1) {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_message"));
 		} else {
@@ -500,7 +504,8 @@ final class ResourcePresenter extends BasePresenter
 			1800 => '30 min',
 			3600 => '1 h',
 			3600*12 => '12 h',
-			3600*24 => '24 h'
+			3600*24 => '24 h',
+			3600*24*7 => '1 week'
 		);
 		$form->addSelect('event_alert', _('Notify members:'), $event_alert_times);
 
@@ -553,6 +558,7 @@ final class ResourcePresenter extends BasePresenter
 		<li><b>Bambuser:</b> http://bambuser.com/v/<u>xxx</u></li>
 	</ul>'))->id("help-name"));
 		$form->setCurrentGroup(NULL);
+		
 		if (empty($resource_id)) {
 			$form->addSubmit('register', _('Create new resource'));
 			
@@ -849,9 +855,11 @@ final class ResourcePresenter extends BasePresenter
 				'detail' => 'ajax',
 				'selected_row' => $selected_row,
 				'show_extended_columns' => true,
-				'user_group_resource_page' => true
+				'user_group_resource_page' => true,
+				'tooltip_position' => 'bottom left'
 			)
 		);
+		
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}

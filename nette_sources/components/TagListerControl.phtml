@@ -5,14 +5,13 @@
 	<table class="admin-table" cellspacing="0" cellpaddin="5" style="width:700px;">
     <tr>
         <th>
-            <h3>Name</h3>
+        	<h3>Name</h3>
         </th>
         <th>
+        	<h3>Parent</h3>
         </th>
         <th>
-        </th>
-        <th>
-            <h3>Parent</h3>
+        	<h3>Actions</h3>
         </th>
     </tr>
    {foreach $data as $tag}
@@ -23,14 +22,12 @@
                 {$control[$formName]['tag_name']->control}
             </td>
             <td>
-                {$control[$formName]['send']->control}
-            </td>
-			<td>
-				{$control[$formName]['remove']->control}
-			</td>
-            <td>
                {!$control[$formName]['tag_parent_id']->control}
             </td>
+            <td>
+                {$control[$formName]['send']->control}
+				{$control[$formName]['remove']->control}
+			</td>
         {control $formName end}
         </tr>
     {/foreach}

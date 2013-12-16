@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -20,25 +20,31 @@
     	<meta name="robots" content="{$robots}" n:ifset="$robots">
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.css" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.css" />
 {ifset $load_js_css_tree}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
 {/if}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.ui.css" />
 {ifset $load_js_css_datetimepicker}
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.ui.datepicker.css" />
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.calendarPicker.css" />
 {/if}
 		<link type="text/css" rel="stylesheet" href="{$baseUri}css/jquery.qtip.min.css" />
-		<link href='http://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
 {ifset $load_js_css_jcrop}
 		<link rel="stylesheet" href="{$baseUri}css/jquery.Jcrop.min.css" type="text/css" />
 {/if}
-		<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+{ifset $load_external_js_css}
+		<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+{else}
+		<script type="text/javascript" src="{$baseUri}js/jquery-1.10.2.min.js"></script>
+		<link href='{$baseUri}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
+{/if}
 		<script type="text/javascript" src="{$baseUri}js/jquery.nette.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/base-functions.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.json-2.2.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.ui.core.min.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
 {ifset $load_js_css_zxcvbn}
 		<script type="text/javascript" src="{$baseUri}js/zxcvbn-async.js"></script>
 {/if}
@@ -72,7 +78,7 @@
 		    statusbar: false,
 		    menubar: false,
 			resize: "both",
-			valid_elements : "a[href|!target=_blank|!rel=nofollow],strong/b,div[align],br,img,p,img[src|alt],lang,dir,span[style],blockquote[id]",
+			valid_elements : "a[href|!target=_blank|!rel=nofollow],strong/b,div[style|align],br,img,p[style],img[src|alt],lang,dir,span[style],blockquote[id]",
 			valid_styles : { '*' : 'color,font-size,font-weight,font-style,text-decoration,align,float' },
 			plugins: [
 				 "advlist autolink link charmap preview hr pagebreak",
@@ -120,6 +126,7 @@
 {/if}
 
 <script>
+{ifset $logged}
 	$(document).ready(function() {
 		$('.trash-radio').change(function(){
 			$('#frmfilter-filter').click();
@@ -136,8 +143,17 @@
 				dataType:"html"
 			}).done(function(payload){
 				$("#messages").html(payload);
+				
+		});
+		$.ajax({
+				url:"/?do=reloadTitle",
+				dataType:"html"
+			}).done(function(payload){
+				$(document).attr("title", payload+{$PROJECT_NAME}+" | {include #title}");
+				
 		});
 	}
+{/if}
 
 	$(document).ready(function(){
 		$("a.active").prop("href", "javascript:void(0);");
@@ -166,7 +182,7 @@
 {ifset $mobile}
 	<div id="mobile_alert">
 		<!-- mobile phone detected. -->
-		<a href="http://mycitizen.net/mobile:download" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').hide('normal');" style="float:right;">X</a>
+		<a href="https://mycitizen.net/mobile:download" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').hide('normal');" style="float:right;">X</a>
 	</div>
 {/if}
 
@@ -232,7 +248,7 @@
 				{_"By using this platform you accept our"} <a href="{$TOC_URL}" target="_blank">Terms of Use</a> and our <a href="{$PP_URL}" target="_blank">{_"Privacy policy"}</a>.
 			</div>			
 			<div class="software-info">
-				<a href="http://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
+				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
 			</div>
 			<div class="sponsor-credits">
 				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
@@ -244,10 +260,8 @@
 
 	<script type="text/javascript" src="{$baseUri}js/jquery.qtip.min.js"></script>
 {ifset $load_js_css_datetimepicker}
-	<script type="text/javascript" src="{$baseUri}js/jquery.ui.datepicker.min.js"></script>
-	<script type="text/javascript" src="{$baseUri}js/jquery.ui.timepicker.js"></script>
+	<script type="text/javascript" src="{$baseUri}js/jquery.calendarPicker.js"></script>
 {/if}
-	<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
 {ifset $load_js_css_tree}
 	<script type="text/javascript" src="{$baseUri}js/jquery.tree.js"></script>
 {/if}
@@ -258,7 +272,7 @@
   var _paq = _paq || [];
   // you can set up to 5 custom variables for each visitor
   _paq.push(["setCustomVariable", 1, "language", {$language}, "visit"]);
-  _paq.push(["setCustomVariable", 2, "access_level", "{!$access_level}", "visit"]);
+  _paq.push(["setCustomVariable", 2, "access_level", "{ifset $access_level}{!$access_level}{else}0{/if}", "visit"]);
   _paq.push(["trackPageView"]);
   _paq.push(["enableLinkTracking"]);
 
@@ -273,4 +287,4 @@
 <!-- End Piwik Code -->
 {/if}
 	</body>
-</html>     
+</html>

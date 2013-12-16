@@ -32,7 +32,7 @@
 
 	</div>
 
-	<b class="main-icon icon-{$resource_type}"></b>
+	<b class="main-icon icon-{$resource_type}" title="{$resource_type_label}"></b>
 		
 	<h4>{_"Last activity: "}{$last_activity|date:'j.n.Y'}</h4>
 
@@ -78,7 +78,7 @@
 		</div>
 
 		<div class="ressource-detail-tags">
-			<h3>Topics</h3>
+			<h3>{_"Topics"}</h3>
 			{ifset $resource_tags}
 			<table>
 				{?$i=0}
@@ -87,9 +87,9 @@
 						<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
 							{foreach $tag_name->getIdWithPath() as $tag}
 								{if $iterator->isLast()}
-									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a>
+									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo StaticModel::pgettext('tags',$tag['name'])}</a>
 								{else}
-									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{_($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo StaticModel::pgettext('tags',$tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
 								{/if}
 							{/foreach}
 							</div>
@@ -142,7 +142,7 @@
 			<script>
 			$(document).ready(function(){
 				$('#subscribe_as_group_header').click(function(){
-					$('#subscribe_as_group_body').toggle(500);
+					$('#subscribe_as_group_body').slideToggle(500);
 				});
 			});
 			</script>
@@ -225,9 +225,14 @@
 			{!$data['event_description']|htmlpurify}
 		</div>
 			{* date_default_timezone_set($ ... ) *}
-			{? $date_formatted = strftime('%c',strtotime($data['event_timestamp']))}
+			{? $date_formatted = date(_('l, j F Y, g:ia T'), strtotime($data['event_timestamp']))}
+
 		<div class="time-event">
-			{_"Time:"} {$date_formatted}
+			{if strtotime($data['event_timestamp'])-$data['event_alert'] < time()}
+			<h3>{_"Time:"} <span style="background-color:#f05a28; padding:3px; border-radius:3px; box-shadow:1px 1px 2px #999;">{$date_formatted}</span></h3>
+			{else}
+			<h3>{_"Time:"} <span style="background-color:#eae9e3; padding:3px; border-radius:3px; box-shadow:1px 1px 2px #999;">{$date_formatted}</span></h3>
+			{/if}
 		</div>
 		{/if}
 		{if $data['resource_type'] == 7}
@@ -397,10 +402,10 @@
 		function filter() {
 			if (search.length<text.length) {
 				$('.chat-author').parent().parent().show();
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().hide('normal');
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().slideUp('normal');
 			}
 			else if (search!='') {
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().hide('fast');
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().slideUp('fast');
 			}
 		}
 

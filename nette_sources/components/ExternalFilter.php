@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -211,7 +211,7 @@ class ExternalFilter extends NControl
 		$tags->addCheckbox("all", _("all tags"));
 		foreach (Tag::getTreeArray() as $key => $row) {
 			$level_class = $row['level'] ? 'tag_child tag_child_parent_'.substr('00'.$row['tag_parent_id'],-3,3) : 'tag_parent_'.substr('00'.$row['tag_id'],-3,3);
-			$tags->addCheckbox($row['tag_id'], _($row['tag_name']));
+			$tags->addCheckbox($row['tag_id'], StaticModel::pgettext('tags',$row['tag_name']));
 			$tags[$row['tag_id']]->getControlPrototype()->class($level_class);
 			$tags['all']->getControlPrototype()->class('tag-checkbox');
 		}

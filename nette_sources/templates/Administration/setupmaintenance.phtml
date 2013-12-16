@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -62,6 +62,12 @@
 		<td><b>{_"PHP Version"}</b></td><td>{? echo PHP_VERSION}</td>
 	</tr>
 	<tr>
+		<td><b>{_"MySQL Version"}</b></td><td>{$MySQL_version}</td>
+	</tr>
+	<tr>
+		<td><b>{_"Database size"}</b></td><td>{$database_size} MB</td>
+	</tr>
+	<tr>
 		<td><b>{_"PHP max execution time"}</b></td><td>{? echo ini_get('max_execution_time'); } sec</td>
 	</tr>
 	<tr>
@@ -84,6 +90,7 @@
 	<tr>
 		<td style="vertical-align:top;"><b>{_"Test locale"}</b></td><td>{control testlocaleform}</td>
 	</tr>
+
 	<tr class="tr-header">
 		<td colspan="2">
 			<h3>Software Information</h3>

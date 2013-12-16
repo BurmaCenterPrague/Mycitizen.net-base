@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -55,6 +55,8 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PIWIK_URL = NEnvironment::getVariable("PIWIK_URL");
 		$this->template->PIWIK_ID = NEnvironment::getVariable("PIWIK_ID");
 		$this->template->PIWIK_TOKEN = NEnvironment::getVariable("PIWIK_TOKEN");
+		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $this->template->load_external_js_css = 1;
+		
 		
 		$this->template->tooltip_position = 'bottom right';
 		
@@ -69,10 +71,15 @@ abstract class BasePresenter extends NPresenter
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
 			if (!$user->getIdentity()->isActive()) {
-				$this->flashMessage(sprintf(_("Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
-				$user->logout();
-				
-				$this->redirect("User:login");
+				if ($user->getIdentity()->isConfirmed()) {
+					$this->flashMessage(sprintf(_("Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
+					$user->logout();
+					$this->redirect("User:login");
+				} else {
+					$this->flashMessage(sprintf(_("You first need to confirm your registration. Please check your mail account and click on the link of the confirmation email. If you cannot find the email, you can contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
+					$user->logout();
+					$this->redirect("User:login");					
+				}
 			}
 			$user->getIdentity()->setLastActivity();
 			$this->template->logged   = true;
@@ -208,6 +215,16 @@ abstract class BasePresenter extends NPresenter
 	{
 		$messages = Resource::getUnreadMessages();
 		print $messages ? '<b class="icon-message"></b>'._("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._("New messages").': '._("0");
+		$this->terminate();
+	}
+	
+		
+	public function handleReloadTitle()
+	{
+		$messages = Resource::getUnreadMessages();
+		if ($messages > 1) print sprintf(_("%s new messages"),$this->translate_number($messages)).' | ';
+		if ($messages == 1) print _("1 new message").' | ';
+
 		$this->terminate();
 	}
 	
@@ -451,10 +468,12 @@ abstract class BasePresenter extends NPresenter
 			}
 			
 		}
-	
+
+/*
 		if (isset($verbose)) {
 			echo 'Cleaning expired PHP sessions...<br/>';
 		}
+*/
 		
 		if (isset($verbose)) {
 			echo 'Done.<br/>';

@@ -45,7 +45,7 @@
   	 			<a href="#" onclick="
   	   			document.getElementById('tag_select_hidden').value='{!$node['tag_id']}';
   	   			return false;">
-  					{$node['tag_name']}
+  					{? echo StaticModel::pgettext('tags',$node['tag_name'])}
   	 			</a>
   	 			</span>
   

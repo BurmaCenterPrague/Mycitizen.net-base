@@ -2,10 +2,10 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2 beta
+ * @version 0.2.1 beta
  *
  * @author http://mycitizen.org
- *
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -113,6 +113,17 @@ class User extends BaseModel implements IIdentity
 	public function isActive()
 	{
 		$result = dibi::fetchSingle("SELECT `user_status` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
+		if (!empty($result)) {
+			if ($result == 1) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public function isConfirmed()
+	{
+		$result = dibi::fetchSingle("SELECT `user_registration_confirmed` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		if (!empty($result)) {
 			if ($result == 1) {
 				return true;
@@ -283,6 +294,7 @@ class User extends BaseModel implements IIdentity
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
+//		$link  = "http://" . URI . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
 		$body  = _("Hello,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link.\n") . $link;
 		
 		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
@@ -612,14 +624,14 @@ class User extends BaseModel implements IIdentity
 	
 	public function bann()
 	{
-		if (Auth::ADMINISTRATOR == Auth::isAuthorized(1, $this->numeric_id)) {
+		if (Auth::MODERATOR <= Auth::isAuthorized(1, $this->numeric_id)) {
 			dibi::query("UPDATE `user` SET `user_status` = '0' WHERE `user_id` = %i", $this->numeric_id);
 		}
 	}
 	
 	public function revokeCreationRights()
 	{
-		if (Auth::MODERATOR == Auth::isAuthorized(1, $this->numeric_id)) {
+		if (Auth::MODERATOR <= Auth::isAuthorized(1, $this->numeric_id)) {
 			dibi::query("UPDATE `user` SET `user_creation_rights` = '0' WHERE `user_id` = %i", $this->numeric_id);
 		}
 	}
@@ -645,7 +657,7 @@ class User extends BaseModel implements IIdentity
 	{
 		$time         = Settings::getVariable("object_creation_min_time");
 		$registration = dibi::fetchSingle("SELECT `user_registration` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
-		if (date('U', strtotime($registration)) + $time <= date('U')) {
+		if (date('U', strtotime($registration)) + ($time * 86400) <= date('U')) {
 			$privilege = dibi::fetchSingle("SELECT `user_creation_rights` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 			if (!empty($privilege)) {
 				return true;
@@ -748,5 +760,15 @@ class User extends BaseModel implements IIdentity
 		}
 		
 	}
+
+	public function getLanguage()
+	{
+		$result = dibi::fetchSingle("SELECT `user_language` FROM `user` WHERE `user_id` = %i ", $this->numeric_id);
+		if (!empty($result)) {
+			return $result;
+		}
+		return 0;
+	}
+
 	
 }
