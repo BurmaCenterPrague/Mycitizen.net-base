@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -53,13 +53,13 @@ class API_Base extends API implements iAPI
 	}
 
 	protected function checkTime($time) {
-		$lowest_time = strtotime("- 2 years");//date('U',mktime(0,0,0,1,1,2000));
+		$lovest_time = strtotime("- 2 years");//date('U',mktime(0,0,0,1,1,2000));
 		$highest_time = strtotime("+ 1 day");
 		
 		if(!is_numeric($time)) {
 			$time = strtotime($time);
 		}
-		if(!$time || $time < $lowest_time  || $time > $highest_time) {
+		if(!$time || $time < $lovest_time  || $time > $highest_time) {
 			return false;
 		}
 		return $time;
@@ -103,7 +103,7 @@ class API_Base extends API implements iAPI
 		if(!$this->isLoggedIn()) {
 			$error = "unkonwn_user";
 			$user_id = NEnvironment::getUser()->getIdentity();
-			if (!empty($user_id)) {
+    			if (!empty($user_id)) {
 				if(!NEnvironment::getUser()->getIdentity()->isActive()) {
 					$error = "not_active";
 				}
@@ -362,6 +362,35 @@ class API_Base extends API implements iAPI
 	/**
 	* Comment
 	*
+	* @url POST	/Userexists
+	*/
+	public function postUserexists() {
+		if(!empty($_POST['username'])) {
+			if(User::loginExists($_POST['username'])) {
+				return array('result'=>false,'error'=>'login_exists');
+			} else {
+				return array('result'=>true);
+			}
+		}
+	}
+
+	/**
+	* Comment
+	*
+	* @url POST	/Hasmessage
+	*/
+	public function postHasmessage() {
+		if(!$this->isLoggedIn()) {
+         		throw new RestException('401',null);
+      		}
+			
+		return array('result' => true, 'message_count' => Resource::getUnreadMessages());
+	}
+
+
+	/**
+	* Comment
+	*
 	* @url POST	/SendMessage
 	*/
 	public function postSendMessage() {
@@ -427,7 +456,7 @@ class API_Base extends API implements iAPI
 	* @url POST	/ChangeProfile
 	*/
 	public function postChangeProfile() {
-		
+	
 		$values['user_name'] = $_POST['firstName'];
 		$values['user_surname'] = $_POST['lastName'];
 		$email = $_POST['email'];
@@ -435,6 +464,9 @@ class API_Base extends API implements iAPI
 		$values['user_description'] = $_POST['description'];
 		$values['user_position_x'] = $_POST['position_gpsx'];
 		$values['user_position_y'] = $_POST['position_gpsy'];
+		if($_POST['image'] != "") {
+	//		$values['user_portrait'] = $_POST['image'];
+		}
       		$logged_user = NEnvironment::getUser()->getIdentity();
 		$user = User::Create($logged_user->getUserId());
 		$data = $user->getUserData();
@@ -574,5 +606,48 @@ class API_Base extends API implements iAPI
                 return array('result'=>true);
 
         }
+
+	/**
+	*Comment
+	* @url POST     /CreateGroup
+        */
+        public function postCreateGroup() {
+		$user = NEnvironment::getUser()->getIdentity();	
+		
+		$group_name = $_POST['name'];
+		$group_description = $_POST['description'];
+		$group_visibility = $_POST['visibility'];
+		$group_gpsx = $_POST['position_gpsx'];
+		$group_gpsy = $_POST['position_gpsy'];
+		$group_tags = $_POST['tags'];
+		$tags = explode(',',$group_tags);
+		if(Auth::VIP > $user->getAccessLevel()) {
+      			if(!$user->hasRightsToCreate()) {
+				return array('result'=>false,'message'=>'no_rights');
+      			}
+		}
+
+		$group = Group::create();
+
+		$values['group_name'] = $group_name;
+		$values['group_description'] = $group_description;
+		$values['group_visibility_level'] = $group_visibility;
+		$values['group_position_x'] = $group_gpsx;
+		$values['group_position_y'] = $group_gpsy;
+
+		$values['group_author'] = $user->getUserId();
+        	$group->setGroupData($values);
+        	$group->save();
+		$group->setLastActivity();
+		$group->updateUser($user->getUserId(),array('group_user_access_level'=>3));
+		$group_id = $group->getGroupId();
+		
+		foreach($tags as $tag_id) {
+			$group->insertTag($tag_id);
+		}	
+                return array('result'=>true,'group_id'=>$group_id);
+
+        }
+
 
 }

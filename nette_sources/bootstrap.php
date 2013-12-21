@@ -1,6 +1,7 @@
 <?php
 
-define('PROJECT_VERSION', '0.2.1 beta');
+define('PROJECT_VERSION', '0.2.2 beta');
+define('PROJECT_DATE', '20131221');
 session_set_cookie_params(1209600);
 
 require_once dirname(__FILE__) . '/../lib/Nette/loader.php';

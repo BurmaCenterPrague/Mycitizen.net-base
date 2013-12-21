@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -478,7 +478,7 @@ final class GroupPresenter extends BasePresenter
 			$group_id   = $this->group->getGroupId();
 		}
 		$form = new NAppForm($this, 'updateform');
-		$form->addText('group_name', _('Name:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the group.'))->id("help-name"));
+		$form->addText('group_name', _('Name:'))->addRule(NForm::FILLED, _('Group name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the group.'))->id("help-name"));
 		$form->addSelect('group_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
 		$form->addSelect('group_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Select a language that will be used in this group for comunication.'))->id("help-name"));
 		$form->addTextArea('group_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Describe in few sentences what this group is about.'))->id("help-name"));
@@ -981,6 +981,10 @@ final class GroupPresenter extends BasePresenter
 		
 		if ($resource->groupIsRegistered($group_id)) {
 			$resource->removeGroup($group_id);
+			
+			// remove cron
+			StaticModel::removeCron(2, $group_id, 3, $resource_id);
+			
 			$this->flashMessage(sprintf(_("Group %s unsubscribed from resource."),$group_name));
 		} else {
 			$this->flashMessage(sprintf(_("Group %s has not been subscribed to resource."),$group_name), 'error');

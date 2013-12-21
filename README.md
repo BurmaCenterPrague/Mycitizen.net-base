@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.2.1 Beta : 16 Dec 2013
+0.2.2 Beta : 21 Dec 2013
 
 
 authors
@@ -48,6 +48,7 @@ system requirements
 
 PHP libraries:
 - GD extension
+- gettext
 
 installation
 ------------

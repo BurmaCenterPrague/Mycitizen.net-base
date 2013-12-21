@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -162,7 +162,7 @@ final class ResourcePresenter extends BasePresenter
 				2=>'event',
 				3=>'org',
 				4=>'doc',
-				6=>'other',
+				6=>'website',
 				7=>'7',
 				8=>'8',
 				9=>'friendship',
@@ -339,7 +339,7 @@ final class ResourcePresenter extends BasePresenter
 			foreach ($values['group_id'] as $group_id) {
 			
 				$this->subscribeGroup($group_id);
-			
+
 			}
 		
 		} else {
@@ -368,8 +368,7 @@ final class ResourcePresenter extends BasePresenter
 		}
 		
 		$group = new Group($group_id);
-		$data = $group->getGroupData();
-		$group_name = $data['group_name'];
+		$group_name = Group::getName($group_id);
 		
 		if (!$this->resource->groupIsRegistered($group_id)) {
 			$this->resource->updateGroup($group_id, array(
@@ -378,6 +377,16 @@ final class ResourcePresenter extends BasePresenter
 			));
 			
 			$group->setLastActivity();
+			
+			// adding cron for notifications
+			$data = $this->resource->getResourceData();
+			if ($data['resource_type'] == 2) {
+				$event_time = strtotime($data['event_timestamp']);
+				$resource_id = $this->resource->getResourceId();
+				if ($event_time + 600 > time()) { // remind of max 10 mins. back
+					StaticModel::addCron($event_time - $data['event_alert'], 2, $group_id, $data['resource_name']."\r\n\r\n".$data['resource_description'], 3, $resource_id);
+				}
+			}
 
 			$this->flashMessage(sprintf(_("Group %s subscribed to this resource."),$group_name));
 		} else {
@@ -460,7 +469,7 @@ final class ResourcePresenter extends BasePresenter
 		}
 		$form = new NAppForm($this, 'updateform');
 		$form->addGroup();
-		$form->addText('resource_name', _('Name:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the resource.'))->id("help-name"));
+		$form->addText('resource_name', _('Name:'))->addRule(NForm::FILLED, _('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the resource.'))->id("help-name"));
 		$form->addSelect('resource_type', _('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
 		$form->addSelect('resource_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
 		$form->addSelect('resource_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Select a language of this resource.'))->id("help-name"));
@@ -692,9 +701,7 @@ final class ResourcePresenter extends BasePresenter
 				// get all subscribers
 				$data = $this->resource->getAllMembers(array('enabled'=>1));
 				foreach ($data as $member) {
-					if ($member['member_type'] == 1) {
-						StaticModel::addCron($event_time - $values['event_alert'], $member['member_id'], $values['resource_name']."\r\n\n".$values['resource_description'], 3, $resource_id);
-					}
+					StaticModel::addCron($event_time - $values['event_alert'], $member['member_type'], $member['member_id'], $values['resource_name']."\r\n\n".$values['resource_description'], 3, $resource_id);
 				}
 			}
 		}
@@ -929,10 +936,9 @@ final class ResourcePresenter extends BasePresenter
 						$resource->updateUser($user_id, array());
 						$data = $resource->getResourceData();
 						if ($data['resource_type'] == 2) {
-							$data = $resource->getResourceData();
 							$event_time = strtotime($data['event_timestamp']);
 							if ($event_time + 600 > time()) { // remind of max 10 mins. back
-								StaticModel::addCron($event_time - $data['event_alert'], $user_id, $data['resource_name']."\r\n\n".$data['resource_description'], 3, $resource_id);
+								StaticModel::addCron($event_time - $data['event_alert'], 1, $user_id, $data['resource_name']."\r\n\n".$data['resource_description'], 3, $resource_id);
 							}
 						}
 					}
@@ -957,7 +963,7 @@ final class ResourcePresenter extends BasePresenter
 				$resource_id = $resource->getResourceId();
 				if (!empty($resource_id)) {
 					$resource->removeUser($user_id);
-					StaticModel::removeCron($user_id, 3, $resource_id);
+					StaticModel::removeCron(1, $user_id, 3, $resource_id);
 					print "true";
 				}
 			}

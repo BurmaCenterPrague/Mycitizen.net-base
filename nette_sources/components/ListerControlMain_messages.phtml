@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2.2 beta
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 <div class="lister-header">
 </div>
 <div class="lister-body">
@@ -32,7 +46,16 @@
 		{? date_default_timezone_set($date['timezone'])}
 		{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
 
-		<div class="chat-item{if $resdata['resource_type']==9} system-message{/if}" id="chat_message_{$id}"  style="{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}">
+		<div class="chat-item{if $resdata['resource_type']==9} system-message{/if}" id="chat_message_{$id}" >
+		
+
+		{if (!(isset($template_variables['logged_user_id']) && $sender_id == $template_variables['logged_user_id'])) || $resdata['resource_type'] == 9}
+
+		<table>
+			<tr>
+				<td>
+				</td>
+				<td>
 			<div class="chat-header 
 				{ifset $user_id}
 					{if ($resdata['resource_type'] == 1 || $resdata['resource_type'] == 8)}
@@ -41,37 +64,8 @@
 						{/if}
 					{/if}
 				{/if}">
-
-				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
-				<div class="chat-avatar">
-				{ifset $template_variables['logged_user_id']}
-				<div style="width=0;height:0;border-right: 7px solid #BCB6AA;border-top: 7px solid transparent; border-bottom: 7px solid transparent;display:inline-block;float:left;margin:1px 15px;" title="{_"from %s", $user_data['user_login']}"></div>
-				{/if}
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{? echo User::getImage($sender_id, 'icon')}</a>
-					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
-				</div>
-				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}{/if}
-				</div>
-
-				{/if}
-
-				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
-					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
-				<div style="width=0;height:0;border-left: 7px solid #BCB6AA;border-top: 7px solid transparent; border-bottom: 7px solid transparent;display:inline-block;float:left;margin:1px 15px;" title="{_"to %s", $recipient_data['member_name']}"></div>
-				
-				<div class="chat-avatar">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}" title="{$recipient_full_name}">{? echo User::getImage($recipient_id, 'icon')}</a>
-					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
-				</div>
-				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}" title="{$recipient_full_name}">{$recipient_data['member_name']}</a>{else}{$recipient_data['member_name']}{/if}
-				</div>
-					{/if}
-				{/if}
-								
+			
 				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
-
 					{ifset $template_variables['moderation_enabled']}
 					{if Auth::MODERATOR<=Auth::isAuthorized(3,$template_variables['resource_id'])}
 						<div class="move-to-trash">
@@ -102,7 +96,7 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="markread-{$row['id']}" href="javascript:void(0);" onClick="markRead({$row['id']});$('#markread-{$row['id']}').hide();$('#markunread-{$row['id']}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$row['id']}').hide('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markread-{$row['id']}" href="javascript:void(0);" onClick="markRead({$row['id']});$('#markread-{$row['id']}').hide();$('#markunread-{$row['id']}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$row['id']}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
 							<a id="markunread-{$row['id']}" href="javascript:void(0);" onClick="markUnread({$row['id']});$('#markunread-{$row['id']}').hide();$('#markread-{$row['id']}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			
@@ -126,19 +120,182 @@
 				</div>
 				{/if}
 			</div> <!-- .chat-header -->
+				</td>
+			</tr>
+			<tr>
+				<td style="vertical-align:top; padding-top:7px;">
+				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
+				<div class="chat-avatar" title="{$user_data['user_login']}" style="display:block;">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
+					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
+				</div><br/>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
+{ifset $wanttoshowname}
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
+					{/if}
+{else}
+					{$user_data['user_login']}
+{/if}
+				</div>
 
-				<div id="{$id}_text" class="chat-text" style="{if $own_message}background-color:#F7F7F7;{/if}padding:0.7em 0.3em;">
+				{elseif $resdata['resource_type'] == 9}
+				<div style="padding:5px;">
+					<b class="icon-warning" title="system message"></b>
+				</div>
+				<div class="chat-author" style="display:none;">
+					system
+				</div>
+				{/if}
+				</td>
+				<td style="width:650px;">
+			<div id="{$id}_text" class="chat-text balloon-right" style="{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
+			{if $resdata['resource_type']!=9}
+			<div class="arrow"></div>
+			{/if}
 				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
 					{if !$res->getOwner()->isActive()}
 					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
 					{/if}
+					{if $resdata['resource_type'] == 9}
+					<p>{!$resdata['message_text']|htmlpurify}</p>
+					{else}
 					{!$resdata['message_text']|htmlpurify}
+					{/if}
 				{else}
 					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
 				{/if}
-				</div>
+			</div>
+				</td>
+				<td style="vertical-align:top; padding-top:7px;">
+				{if ($resdata['resource_type'] == 1 || $resdata['resource_type'] == 8) && isset($template_variables['logged_user_id']) && $template_variables['logged_user_id']}
+					<div class="chat-avatar" style="padding:5px;">
+						{? echo User::getImage($template_variables['logged_user_id'], 'icon')}
+					</div>
+				{/if}
+				</td>
+			</tr>
+		</table>
+		{else}
+			
+		<table>
+			<tr>
+				<td>
+				</td>
+				<td>
+			<div class="chat-header 
+				{ifset $user_id}
+					{if ($resdata['resource_type'] == 1 || $resdata['resource_type'] == 8)}
+						{if $own_message}
+							sent-by-me
+						{/if}
+					{/if}
+				{/if}">
+			
+				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
+					{ifset $template_variables['moderation_enabled']}
+					{if Auth::MODERATOR<=Auth::isAuthorized(3,$template_variables['resource_id'])}
+						<div class="move-to-trash">
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessage({$id});" title="{_"Remove this message."}"><b class="icon-message-to-trash"></b></a>	
+						</div>
+					{/if}
+					{/if}
+					
+					{ifset $template_variables['trash_enabled']}
+						<div class="move-to-trash">
+							<a id="totrash-{$row['id']}" href="javascript:void(0);" onClick="moveToTrash({$row['id']});$('#totrash-{$row['id']}').hide();$('#fromtrash-{$row['id']}').show();$('#chat_message_{$row['id']}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+						</div>
 
-		</div>
+						<div class="restore-from-trash">
+							<a id="fromtrash-{$row['id']}" href="javascript:void(0);" onClick="moveFromTrash({$row['id']});$('#fromtrash-{$row['id']}').hide();$('#totrash-{$row['id']}').show();$('#chat_message_{$row['id']}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+						</div>
+
+						<script>
+							$(document).ready(function(){
+							{if $res->inTrash()}
+								$("#totrash-{$row['id']}").hide();
+							{else}
+								$("#fromtrash-{$row['id']}").hide();
+							{/if}
+							});
+						</script>
+					{/if}
+
+					{ifset $template_variables['mark_read_enabled']}
+						<div class="read-status">
+							<a id="markread-{$row['id']}" href="javascript:void(0);" onClick="markRead({$row['id']});$('#markread-{$row['id']}').hide();$('#markunread-{$row['id']}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$row['id']}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markunread-{$row['id']}" href="javascript:void(0);" onClick="markUnread({$row['id']});$('#markunread-{$row['id']}').hide();$('#markread-{$row['id']}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+						</div>
+			
+						<script>
+							$(document).ready(function(){
+							{if $res->isOpened()}
+								$("#markread-{$row['id']}").hide();
+							{else}
+								$("#markunread-{$row['id']}").hide();
+							{/if}
+							{if $own_message}
+								$("#markunread-{$row['id']}").hide();
+							{/if}
+							});
+						</script>
+					{/if}
+
+				{if isset($own_message) && !$own_message && isset($template_variables['reply_enabled']) && $res->getOwner()->isActive()}
+				<div class="chat-reply">
+					<a href="javascript:void(0);" id="reply_0000{$id}" class="button">{_"reply"}</a>
+				</div>
+				{/if}
+			</div> <!-- .chat-header -->
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<td style="vertical-align:top; padding-top:7px;">
+				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
+					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
+				<div class="chat-avatar" title="{$recipient_data['member_name']}" style="display:block;">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
+					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
+				</div><br/>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
+					{$recipient_data['member_name']}
+				</div>
+					{/if}
+				{/if}
+				</td>
+				<td style="width:650px;">
+			<div id="{$id}_text" class="chat-text balloon-left" style="{if $own_message}background-color:#F7F7F7;{/if}{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
+				{if $resdata['resource_type'] == 1 || $resdata['resource_type'] == 8}
+					<div class="arrow"></div>
+				{/if}
+				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
+					{if !$res->getOwner()->isActive()}
+					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
+					{/if}
+					{if $resdata['resource_type'] == 9}
+					<p>{!$resdata['message_text']|htmlpurify}</p>
+					{else}
+					{!$resdata['message_text']|htmlpurify}
+					{/if}
+				{else}
+					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
+				{/if}
+			</div>
+				</td>
+				<td style="vertical-align:top; padding-top:7px;">
+				{if $resdata['resource_type'] == 1 || $resdata['resource_type'] == 8}
+					<div class="chat-avatar">
+						{? echo User::getImage($sender_id, 'icon')}
+					</div>
+				{/if}
+				</td>	
+			</tr>
+		</table>
+			{/if}
+
+
+		</div> <!-- .chat-item -->
     {/foreach}
 {else}
 <h4>{_"No messages"}</h4>

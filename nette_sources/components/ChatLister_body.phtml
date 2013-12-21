@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2.2 beta
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 <div class="lister-header">
 	<div class="filter-body-chat">
 		<div class="filter-block">
@@ -44,16 +58,16 @@
 		});
 
 		function showAll() {
-			$('.chat-author').parent().parent().show('slow');
+			$('.chat-author').parent().parent().parent().slideDown('slow');
 		}
 		
 		function filter() {
 			if (search.length<text.length) {
-				$('.chat-author').parent().parent().show();
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().slideUp('normal');
+				$('.chat-author').parent().parent().parent().slideDown();
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('normal');
 			}
 			else if (search!='') {
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().slideUp('fast');
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('fast');
 			}
 		}
 

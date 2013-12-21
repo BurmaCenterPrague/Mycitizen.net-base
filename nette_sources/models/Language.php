@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -16,16 +16,28 @@
 class Language extends BaseModel {
 	public static function getArray() {
       $result = dibi::fetchAll("SELECT * FROM `language`");
-      $languagess = array();
+      $languages = array();
       foreach($result as $row) {
 			$data = $row->toArray();
          $languages[$data['language_id']] = $data['language_name'];
       }
       return $languages;
-   }
+	}
 
 	public static function getFlag($language_id) {
 		return dibi::fetchSingle("SELECT `language_flag` FROM `language` WHERE `language_id` = %i",$language_id);
+	}
+
+	public static function getId($language_flag) {
+		return dibi::fetchSingle("SELECT `language_id` FROM `language` WHERE `language_flag` = %s",$language_flag);
+	}
+
+	public static function getLanguageCode($language_id) {
+		return dibi::fetchSingle("SELECT `language_code` FROM `language` WHERE `language_id` = %i",$language_id);
+	}
+
+	public static function getLanguageName($language_id) {
+		return dibi::fetchSingle("SELECT `language_name` FROM `language` WHERE `language_id` = %i",$language_id);
 	}
 
 	public static function getAllCodes() {
@@ -38,11 +50,12 @@ class Language extends BaseModel {
     	return $languages;
    }
 
-	public static function addCode($code, $name) {
-		$data = array('language_flag'=>$code, 'language_name'=>$name);
+	public static function addLanguage($flag, $code, $name) {
+		$data = array('language_flag'=>$flag, 'language_code'=>$code, 'language_name'=>$name);
 		$result = dibi::query("INSERT INTO `language`", $data);
 		return $result;
 	}
+
 
 	public static function removeCode($code) {
 		$result = dibi::query("DELETE FROM `language` WHERE `language_flag` = %s", $code);

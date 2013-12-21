@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -18,6 +18,12 @@
 <div class="wrapper-text">
 		{control registerform error}
 		{control registerform}
+
+{if file_exists(WWW_DIR."/images/captcha.jpg")}
+<div style="width: 300px; margin:30px 0px 30px 30px; padding: 10px 20px; border-radius: 25px; box-shadow: 0px 0px 16px rgb(138, 138, 138);text-align:center;">
+<img src="/images/captcha.jpg" />
+</div>
+{/if}
 
 <script>
 	var oldText,oldRepeat;

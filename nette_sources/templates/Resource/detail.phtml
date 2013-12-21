@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2.2 beta
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 {block title}{_"Details of the resource"} {$data['resource_name']}{/block}
 {block content}
 
@@ -14,12 +28,14 @@
 <div class="about">
 
 	<div class="icons">
-		<div class="subscription-status-detail">
+	{ifset $logged_user}
 		{ifset $default_data['object_data']['logged_user_member']}
+		<div class="subscription-status-detail">
 			<b {if $default_data['object_data']['logged_user_member'] == 1}class="icon-subscriber" title="{_"I am subscribed."}">{else}class="icon-no-subscriber" title="{_"I am not subscribed."}">{/if}</b>
-		{/if}
 		</div>
-
+		{/if}
+	{/if}
+		
 		<div class="icon-visibility">
 		{if $data['resource_visibility_level'] == 1}
 			<b class="icon-world"  title="{_"visible to the world"}"></b>
@@ -119,6 +135,7 @@
 		{/if}
 	{/if}
 
+	{ifset $logged_user}
 	<div class="resource-actions">
 	{ifset $default_data}
 		{ifset $default_data['object_data']['logged_user_member']}
@@ -132,7 +149,6 @@
 			<a href="javascript:void(0);" onClick='userRemove_Resource({$logged_user},{$default_data['object_data']["resource_id"]},{link Resource:default, $default_data['object_data']["resource_id"]});' class="button">{_"Cancel subscription"}</a>
 		</div>
 		{/if}
-		{ifset $logged_user}
 		<div class="group-subscriptions">
 			<span id="subscribe_as_group_header" style="cursor:pointer;" class="button">{_"Subscribe as group"}</span>
 			<div id="subscribe_as_group_body" style="display:none;">
@@ -147,10 +163,11 @@
 			});
 			</script>
 		</div>
-		{/if}
+	{/if}
+	</div>
 	{/if}
  {/if}
-	</div>
+	
 
 	{ifset $showmap}
 	<div class="resource-detail-map">
@@ -396,16 +413,16 @@
 		});
 
 		function showAll() {
-			$('.chat-author').parent().parent().show('slow');
+			$('.chat-author').parent().parent().parent().slideDown('slow');
 		}
 		
 		function filter() {
 			if (search.length<text.length) {
-				$('.chat-author').parent().parent().show();
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().slideUp('normal');
+				$('.chat-author').parent().parent().parent().slideDown();
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('normal');
 			}
 			else if (search!='') {
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().slideUp('fast');
+				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('fast');
 			}
 		}
 

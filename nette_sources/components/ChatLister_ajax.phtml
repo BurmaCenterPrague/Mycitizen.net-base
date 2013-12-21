@@ -1,3 +1,17 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.2.2 beta
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
 <div class="lister-body">
    {snippet list_body}
 
@@ -15,16 +29,12 @@
 	{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
 
         	<div class="chat-item" id="chat_message_{$id}">
+        	<table>
+        	<tr>
+	        	<td>
+    	    	</td>
+        		<td>
         		<div class="chat-header">
-					<div class="chat-avatar">
-						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{!$icon}</a>{else}{!$icon}{/if}
-					</div>
-					<div id="{$id}_author" class="chat-author">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{$r_author['user_login']}</a>{else}{$r_author['user_login']}{/if}
-						{if $r_author['user_access_level']>1}
-							<b class="icon-moderator" title="{_"moderator"}"></b>
-						{/if}
-					</div>
 					<div id="{$id}_date" class="chat-time">
 						{$date_formatted}
 					</div>
@@ -44,8 +54,24 @@
 						{/if}
 					</div>
 					{/if}
-				</div>	
-				<div id="{$id}_text" class="chat-text">
+				</div>        	
+        		</td>
+        	</tr>
+        	<tr>
+	        	<td style="vertical-align:top; padding-top:7px;">
+					<div class="chat-avatar">
+						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_login']}">{!$icon}</a>{else}{!$icon}{/if}
+					</div><br/>
+					<div id="{$id}_author" class="chat-author" style="display:none;">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{$r_author['user_login']}</a>{else}{$r_author['user_login']}{/if}
+					</div>
+					{if $r_author['user_access_level']>1}
+					<div><b class="icon-moderator" title="{_"moderator"}"></b></div>
+					{/if}
+    	    	</td>
+        		<td>
+				<div id="{$id}_text" class="chat-text balloon-right">
+				<div class="arrow"></div>
 				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}
 					{if !$res->getOwner()->isActive()}
 					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
@@ -55,6 +81,12 @@
 					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
 				{/if}
 				</div>
+        	
+        		</td>
+        	</tr>
+        	</table>
+        	
+
 			</div>
     {/foreach}
 

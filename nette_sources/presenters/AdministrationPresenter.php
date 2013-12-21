@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -352,8 +352,10 @@ final class AdministrationPresenter extends BasePresenter
 			if ($warning_type == "2") {
 				$message = _("We have received complaints that you use inappropriate language. Please stop or your account will be deactivated.");
 			}
+			
 			StaticModel::sendSystemMessage(1, $user->getUserId(), $object_id, $message);
 		}
+		
 		if ($object_type == 2) {
 			if ($warning_type == "0") {
 				$message = _("We have received complaints that your group contains spam. Please delete inappropriate content or your group will be deactivated.");
@@ -365,8 +367,8 @@ final class AdministrationPresenter extends BasePresenter
 				$message = _("We have received complaints about inappropriate language in your group. Please make neccessary adjustments or your group will be deactivated.");
 			}
 			
-			
 			$object = Group::create($object_id);
+			$message .= "\n"._('Name').": ".$object->getName();
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				if (!empty($owner)) {
@@ -374,6 +376,7 @@ final class AdministrationPresenter extends BasePresenter
 				}
 			}
 		}
+		
 		if ($object_type == 3) {
 			if ($warning_type == "0") {
 				$message = _("We have received complaints that your resource contains spam. Please delete inappropriate content or your resource will be deactivated.");
@@ -385,6 +388,7 @@ final class AdministrationPresenter extends BasePresenter
 				$message = _("We have received complaints about inapproprite language in your resource. Please make necessary adjustments or your resource will be deactivated.");
 			}
 			$object = Resource::create($object_id);
+			$message .= "\n"._('Name').": ".$object->getName();
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				if (!empty($owner)) {
@@ -497,8 +501,8 @@ final class AdministrationPresenter extends BasePresenter
         					$error = 'error';
         				} else {
 							// try to retrieve name of language
-							if (!$name=@file_get_contents(LOCALE_DIR.'/'.$dir.'/'.'LC_MESSAGES/language.txt')) {
-								$result .= ' We need a file language.txt in the LC_MESSAGES folder containing the name!';
+							if (!$information=@file_get_contents(LOCALE_DIR.'/'.$dir.'/'.'LC_MESSAGES/language.txt')) {
+								$result .= ' We need a file language.txt in the LC_MESSAGES folder containing the name and the ISO 639-3 code!';
 		        				$error = 'error';
 							} else {
 						
@@ -506,9 +510,11 @@ final class AdministrationPresenter extends BasePresenter
 									$result .= ' We need files footer.phtml and intro.phtml in the '.WWW_DIR.'/files/'.$dir.' folder!';
 			        				$error = 'error';
 								} else {
-									$name = trim($name);
-									if (Language::addCode($dir,$name)) {
-										$result .= ' Added "'.$name.'".';
+									$information_a = explode("\n", $information);
+									$name = trim($information_a[0]);
+									$code = trim($information_a[1]);
+									if (Language::addCode($dir, $code, $name)) {
+										$result .= ' Added "'.$name.'" with code "'.$code.'".';
 									} else {
 										$result .= ' Database error.';
 										$error = 'error';

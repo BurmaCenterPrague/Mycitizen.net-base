@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -30,7 +30,10 @@ abstract class BasePresenter extends NPresenter
 		}
 
 		$this->template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
-		$this->template->language     = $language;
+		$this->template->language = $language;
+		$language_id = Language::getId($language);
+		$this->template->language_name = Language::getLanguageName($language_id);
+		$this->template->language_code = Language::getLanguageCode($language_id);
 
 		$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";		
 		$this->template->footer = WWW_DIR."/files/".$language."/footer.phtml";
@@ -40,6 +43,7 @@ abstract class BasePresenter extends NPresenter
 		// for gettext
 		define('LOCALE_DIR', WWW_DIR . '/../locale');
 		setlocale(LC_ALL, $language);
+
 		$domain = "messages";
 		bindtextdomain($domain, LOCALE_DIR );
 		textdomain($domain);
@@ -56,6 +60,7 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PIWIK_ID = NEnvironment::getVariable("PIWIK_ID");
 		$this->template->PIWIK_TOKEN = NEnvironment::getVariable("PIWIK_TOKEN");
 		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $this->template->load_external_js_css = 1;
+
 		
 		
 		$this->template->tooltip_position = 'bottom right';
@@ -76,7 +81,12 @@ abstract class BasePresenter extends NPresenter
 					$user->logout();
 					$this->redirect("User:login");
 				} else {
-					$this->flashMessage(sprintf(_("You first need to confirm your registration. Please check your mail account and click on the link of the confirmation email. If you cannot find the email, you can contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
+					$this->flashMessage(sprintf(_("You first need to confirm your registration. Please check your email account and click on the link of the confirmation email."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
+					
+					if ($user->sendConfirmationEmail()) {
+						$this->flashMessage("We have resend your confirmation email - just in case you didn't get it before.");
+					}
+
 					$user->logout();
 					$this->redirect("User:login");					
 				}
@@ -108,6 +118,7 @@ abstract class BasePresenter extends NPresenter
 				$this->template->admin = true;
 			}
 			
+			$this->template->access_level = $access_level;
 			$this->template->messages = Resource::getUnreadMessages();
 			$this->template->messages = $this->template->messages ? '<b class="icon-message"></b>'._("New messages").': '.$this->template->messages : '<b class="icon-no-message"></b>'._("New messages").': 0';
 			
@@ -436,35 +447,86 @@ abstract class BasePresenter extends NPresenter
 			
 		$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_('Notification from %s'), $sender_name)) . '?=';
 		
-		$result = dibi::fetchAll("SELECT `cron_id`, `time`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time` FROM `cron` WHERE `time` < %i AND `executed_time` = 0", time());
+		$result = dibi::fetchAll("SELECT `cron_id`, `time`, `recipient_type`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time` FROM `cron` WHERE `time` < %i AND `executed_time` = 0", time());
 		
 		foreach ($result as $task) {
-			
-			$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
 
-			switch ($task['object_type']) {
-				case 0: $link = $uri.'/user/messages/'; break;
-				case 1: $link = $uri.'/user/?user_id='.$task['object_id']; break;
-				case 2: $link = $uri.'/group/?group_id='.$task['object_id']; break;
-				case 3: $link = $uri.'/resource/?resource_id='.$task['object_id']; break;
-				default: $link = $uri; break;
-			}
+
+			switch ($task['recipient_type']) {
+		
+			case '1': // user
+				$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
+
+				switch ($task['object_type']) {
+					case 0: $link = $uri.'/user/messages/'; break;
+					case 1: $link = $uri.'/user/?user_id='.$task['object_id']; break;
+					case 2: $link = $uri.'/group/?group_id='.$task['object_id']; break;
+					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id']; break;
+					default: $link = $uri; break;
+				}
 			
-			$mail_body = $task['text'];
-			$mail_body .= "\r\n\n"._('Find more information at:')."\r\n";
-			$mail_body .= $link;
-			$mail_body .= "\r\nYours,\r\n".$sender_name."\r\n\r\n";
+				$mail_body = $task['text'];
+				$mail_body .= "\r\n\n"._('Find more information at:')."\r\n";
+				$mail_body .= $link;
+				$mail_body .= "\r\nYours,\r\n".$sender_name."\r\n\r\n";
 			
-			if (mail($email, $mail_subject, $mail_body, $options)) {
+				if (mail($email, $mail_subject, $mail_body, $options)) {
 			
-				if (isset($verbose)) {
-					echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
+					if (isset($verbose)) {
+						echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
+					}
+
+					dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
+				
+				} elseif (isset($verbose)) {
+					echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
+				}
+			break;
+			case '2': // group
+				// get all members
+				$group = Group::create($task['recipient_id']);
+				$group_name = Group::getName($task['recipient_id']);
+				$filter = array(
+						'enabled' => 1
+					);
+				$users_a = $group->getAllUsers($filter);
+
+				switch ($task['object_type']) {
+					case 0: $link = $uri.'/user/messages/'; break;
+					case 1: $link = $uri.'/user/?user_id='.$task['object_id']; break;
+					case 2: $link = $uri.'/group/?group_id='.$task['object_id']; break;
+					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id']; break;
+					default: $link = $uri; break;
 				}
 
-				dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
+				$mail_body = $task['text'];
+				$mail_body .= "\r\n\r\n".sprintf(_('You receive this message as a member of the group "%s".'),$group_name);
+				$mail_body .= "\r\n\r\n"._('Find more information at:')."\r\n";
+				$mail_body .= $link;
+				$mail_body .= "\r\n\r\nYours,\r\n\r\n".$sender_name."\r\n\r\n";
+
+				// send emails				
+				foreach ($users_a as $user_a) {
 				
-			} elseif (isset($verbose)) {
-				echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
+					$email = $user_a['user_email'];
+
+					if (mail($email, $mail_subject, $mail_body, $options)) {
+			
+						if (isset($verbose)) {
+							echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.' (member of group '.$group_name.')<br/>';
+						}
+
+						dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
+				
+					} elseif (isset($verbose)) {
+						echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.' (member of group '.$group_name.')<br/>';
+					}
+					
+				
+				}
+				
+				
+			break;
 			}
 			
 		}

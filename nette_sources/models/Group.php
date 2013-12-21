@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -179,9 +179,9 @@ class Group extends BaseModel {
 	}
 	
 	public function getAllUsers($filter) {
-      $limit = null;
-      $count = null;
-      $filter_o = array();
+    	$limit = null;
+    	$count = null;
+    	$filter_o = array();
 		$filter_o['group_id'] = $this->numeric_id; 
       if(isset($filter['limit'])) {
          $limit = $filter['limit'];
@@ -203,7 +203,7 @@ class Group extends BaseModel {
       if(!is_null($limit) && !is_null($count)) {
          $result = dibi::fetchAll("SELECT u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and LIMIT %i,%i",$filter_o,$limit,$count);
       } else {
-         $result = dibi::fetchAll("SELECT u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and",$filter_o);
+         $result = dibi::fetchAll("SELECT u.`user_email`,u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and",$filter_o);
       }
       $users = array();
       foreach($result as $row) {
@@ -406,7 +406,6 @@ class Group extends BaseModel {
 		
 	}
 
-	
 	public static function getImage($group_id,$size,$title=null) {
 	
 		$width=20;

@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -30,7 +30,7 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights` FROM `user` WHERE `user_id` = %i", $user_id);
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`, `user_largeicon` as avatar FROM `user` WHERE `user_id` = %i", $user_id);
 			if (sizeof($result) > 2) {
 				return false;
 				throw new Exception(_("More than one user with the same id found."));
@@ -297,9 +297,13 @@ class User extends BaseModel implements IIdentity
 //		$link  = "http://" . URI . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
 		$body  = _("Hello,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link.\n") . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
-		mail($email, '=?UTF-8?B?' . base64_encode(_('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
-		return $body;
+		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		
+/**		var_dump($email);
+		var_dump($body);
+		var_dump($headers);
+		die(); **/
+		return mail($email, '=?UTF-8?B?' . base64_encode(_('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
 	}
 	
 	public static function getEmailOwner($email)
@@ -560,11 +564,21 @@ class User extends BaseModel implements IIdentity
 	{
 		$result = dibi::fetchSingle("SELECT CONCAT(`user_name`,' ',`user_surname`) FROM `user` WHERE `user_id` = %i", $user_id);
 		if (empty($result)) {
+			return User::getUserLogin($user_id);
+		}
+		return trim($result);
+	}
+	
+	public static function getUserLogin($user_id)
+	{
+		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_id` = %i", $user_id);
+		if (empty($result)) {
 			return "";
 		}
 		return trim($result);
 	}
 	
+
 	public static function getTopUsers($count = 10)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -603,6 +617,11 @@ class User extends BaseModel implements IIdentity
 		}
 		return true;
 		
+	}
+	
+	public static function userloginFromEmail($email)
+	{
+		return dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_email` = %s", $email);
 	}
 	
 	public function hasPosition()

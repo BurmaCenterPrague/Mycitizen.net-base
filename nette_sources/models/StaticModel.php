@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -47,6 +47,9 @@ class StaticModel extends BaseModel {
 		} else {
 			return false;
 		}
+		
+		$name = $recipient->getUserLogin($recipient->getUserId());
+		
 		
 		switch($message_type) {
 			case self::SYSTEM_MESSAGE_FRIENDSHIPOFFER:
@@ -109,7 +112,9 @@ class StaticModel extends BaseModel {
 			}
 		}
 		
-		self::addCron(time()+60, $to, $email_text, $object_type, $object_id);
+		$email_text = sprintf(_("Dear %s"), $name).",\n\r\n\r".$email_text;
+		
+		self::addCron(time()+60, 1, $to, $email_text, $object_type, $object_id);
 
     	$resource->updateUser($recipient->getUserId(),array('resource_user_group_access_level'=>1));
 
@@ -172,12 +177,12 @@ class StaticModel extends BaseModel {
 	/**
 	*	schedules task for cron
 	*/
-	public static function addCron($time, $recipient_id, $text, $object_type, $object_id) {
+	public static function addCron($time, $recipient_type, $recipient_id, $text, $object_type, $object_id) {
 	
 		// max. 1 upcoming task per object and user
-		self::removeCron($recipient_id, $object_type, $object_id);
+		self::removeCron($recipient_type, $recipient_id, $object_type, $object_id);
 				
-		$result = dibi::query('INSERT INTO `cron` (`time`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time`) VALUES (%i,%i,%s,%i,%i,0)', $time, $recipient_id, $text, $object_type, $object_id);
+		$result = dibi::query('INSERT INTO `cron` (`time`, `recipient_type`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time`) VALUES (%i,%i,%i,%s,%i,%i,0)', $time, $recipient_type, $recipient_id, $text, $object_type, $object_id);
 
 		return $result;
 	}
@@ -186,9 +191,9 @@ class StaticModel extends BaseModel {
 	/**
 	*	deactivates all upcoming tasks in cron for given user and object
 	*/
-	public static function removeCron($recipient_id, $object_type, $object_id) {
+	public static function removeCron($recipient_type, $recipient_id, $object_type, $object_id) {
 	
-		dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `recipient_id` = %i AND `object_type` = %i AND `object_id` = %i AND `time` > %i", $recipient_id, $object_type, $object_id, time());
+		dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `recipient_type` = %i AND `recipient_id` = %i AND `object_type` = %i AND `object_id` = %i AND `time` > %i", $recipient_type, $recipient_id, $object_type, $object_id, time());
 				
 	}
 

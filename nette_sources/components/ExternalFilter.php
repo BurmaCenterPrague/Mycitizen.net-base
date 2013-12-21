@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -407,7 +407,13 @@ class ExternalFilter extends NControl
 			$old_filter = array();
 			$session    = NEnvironment::getSession()->getNamespace($component_name);
 			$old_filter = $session->filterdata;
-			if (is_array($old_filter)) {
+
+			// preventing strange memory overflows
+			if (count($filter) > 1000) $filter = array();
+			if (count($old_filter) > 1000) $old_filter = array();
+			
+
+			if (is_array($old_filter)) { //var_dump($old_filter);
 				$old_filter = array_merge($old_filter, $filter);
 			} else {
 				$old_filter = $filter;
@@ -421,6 +427,8 @@ class ExternalFilter extends NControl
 			if ($component_name == 'userlister') $name = 'User';
 			if ($component_name == 'grouplister') $name = 'Group';
 			if ($component_name == 'defaultresourceresourcelister') $name = 'Resource';
+			
+			unset($old_filter);
 		}
 		
 		if (isset($name)) {

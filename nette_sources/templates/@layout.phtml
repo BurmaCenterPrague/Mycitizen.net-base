@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -16,11 +16,12 @@
 <html>
 	<head>
     	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    	<meta name="description" content="{$PROJECT_DESCRIPTION}">
-    	<meta name="robots" content="{$robots}" n:ifset="$robots">
+    	<meta name="description" content="{$PROJECT_DESCRIPTION}" />
+    	<meta name="robots" content="{$robots}" n:ifset="$robots" />
+    	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.css" />
 {ifset $load_js_css_tree}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
@@ -271,7 +272,7 @@
 <script type="text/javascript">
   var _paq = _paq || [];
   // you can set up to 5 custom variables for each visitor
-  _paq.push(["setCustomVariable", 1, "language", {$language}, "visit"]);
+  _paq.push(["setCustomVariable", 1, "language", {$language_code}, "visit"]);
   _paq.push(["setCustomVariable", 2, "access_level", "{ifset $access_level}{!$access_level}{else}0{/if}", "visit"]);
   _paq.push(["trackPageView"]);
   _paq.push(["enableLinkTracking"]);

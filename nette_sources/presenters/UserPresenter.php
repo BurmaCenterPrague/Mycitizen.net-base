@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.1 beta
+ * @version 0.2.2 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -103,7 +103,7 @@ final class UserPresenter extends BasePresenter
 			$languages = Language::getArray();
 			$this->template->object_language = $languages[$data['object_data']['user_language']];
 		}
-		
+
 	}
 	
 	public function actionCreate()
@@ -113,6 +113,12 @@ final class UserPresenter extends BasePresenter
 	
 	public function actionConfirm($user_id, $control_key)
 	{
+		$user = NEnvironment::getUser();
+		if ($user->isLoggedIn()) {
+			$user->logout();
+			NEnvironment::getSession()->destroy();
+		}
+		
 		if (User::finishRegistration($user_id, $control_key)) {
 			$this->flashMessage(_("Registration has been succesfull. You can now sign in."));
 			
@@ -474,6 +480,11 @@ final class UserPresenter extends BasePresenter
 				// $user->setExpiration((NEnvironment::getConfig('variable')->sessionExpiration, FALSE);
 			}
 
+			// allow email address
+			if (filter_var($values['user_login'], FILTER_VALIDATE_EMAIL)) {
+				$values['user_login'] = User::userloginFromEmail($values['user_login']);
+			}
+
 			$user->login($values['user_login'], $values['user_password']);
 			$user_id = $user->getIdentity()->getUserId();
 			if ($user->getIdentity()->firstLogin()) {
@@ -503,6 +514,12 @@ final class UserPresenter extends BasePresenter
 		$form->addPassword('user_password', _('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your password must be at least 8 characters long and contain at least one lower-case letter, one upper-case letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _('Your password must contain at least one upper-case letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('password_again', _('Repeat password:'))->addRule(NForm::EQUAL, _('Your passwords are different.'), $form['user_password']);
 		
+		$question = 'Please type the Burmese numbers from the image below in English (use 0-9)';
+		
+		if ($question) {
+			// need better solution for translations
+			$form->addText('text', _($question).':')->addRule(NForm::FILLED, _('Please enter the text!'));
+		}
 		$form->addSubmit('register', _('Sign up'));
 		$form->addProtection(_('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -517,6 +534,17 @@ final class UserPresenter extends BasePresenter
 	{
 		$values = $form->getValues();
 		$user   = NEnvironment::getUser();
+		
+		$answer = '43596';
+		
+		if ($answer) {
+			if ($answer != $values['text']) {
+				sleep(5);
+				$this->flashMessage(_("You entered the wrong captcha."), 'error');
+				$this->redirect('User:register');
+			}
+		}
+		if (isset($values['text'])) unset($values['text']);
 		
 		$login = $values['user_login'];
 		if (User::loginExists($login)) {
@@ -552,8 +580,12 @@ final class UserPresenter extends BasePresenter
 		
 		$new_user->setRegistrationDate();
 		
-		$link = $new_user->sendConfirmationEmail();
-		$this->flashMessage(_("Registration has been successful. A message has been sent to your email with further instructions how to activate your account."));
+		$result = $new_user->sendConfirmationEmail();
+		if ($result ) {
+			$this->flashMessage(_("Registration has been successful. A message has been sent to your email with further instructions how to activate your account."));
+		} else {
+			$this->flashMessage(_("There has been an error sending the confirmation email. Please try again in a while."), 'error');
+		}
 		$this->redirect('Homepage:default');
 	}
 	
@@ -1198,7 +1230,7 @@ final class UserPresenter extends BasePresenter
 		$session = NEnvironment::getSession()->getNamespace($name);
 		
 		
-		if (!isset($session['filterdata']['trash'])) $session->filterdata = array_merge(array('trash' => 2, $session->filterdata));
+		if (!isset($session['filterdata']['trash']) && is_array($session->filterdata)) $session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
 		
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
