@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -21,7 +21,7 @@
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.css" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.css" />
 {ifset $load_js_css_tree}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
@@ -47,11 +47,19 @@
 		<script type="text/javascript" src="{$baseUri}js/jquery.ui.core.min.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
 {ifset $load_js_css_zxcvbn}
-		<script type="text/javascript" src="{$baseUri}js/zxcvbn-async.js"></script>
+	{ifset $load_external_js_css}
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn-async.min.js"></script>
+	{else}
+		<script type="text/javascript" src="{$baseUri}js/zxcvbn-async.js"></script>	
+	{/if}
 {/if}
 
 {ifset $load_js_css_tinymce}
+	{ifset $use_tinymce_compressor}
+		<script src="{$baseUri}js/tinymce/tinymce.gzip.js"></script>
+	{else}
 		<script src="{$baseUri}js/tinymce/tinymce.min.js"></script>
+	{/if}
 		<script>
 		tinymce.init({
 			selector: "textarea.tinymce",
@@ -68,7 +76,9 @@
 		   ],
 		   content_css: "/css/content.min.css",
 		   toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons",
-		   relative_urls: false
+		   relative_urls: false,
+		   disk_cache : true,
+		   button_tile_map: true
 		 });
 		 
 		tinymce.init({
@@ -88,7 +98,9 @@
 		   ],
 		   content_css: "/css/content.min.css,/css/tinymce-own.min.css",
 		   toolbar: "undo redo | bold italic forecolor | alignleft aligncenter alignright alignjustify | link image charmap emoticons",
-		   relative_urls: false
+		   relative_urls: false,
+		   disk_cache : true,
+		   button_tile_map: true
 		 });
 		</script>
 {/if}
@@ -183,7 +195,7 @@
 {ifset $mobile}
 	<div id="mobile_alert">
 		<!-- mobile phone detected. -->
-		<a href="https://mycitizen.net/mobile:download" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').hide('normal');" style="float:right;">X</a>
+		<a href="https://mycitizen.net/download:mobile" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').hide('normal');" style="float:right;">X</a>
 	</div>
 {/if}
 
@@ -216,7 +228,6 @@
 			<div class="logo">
 				<h1><a href="{link Homepage:default}"><img src="/images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
 			</div>
-<!--		<a href="javascript:void(0)" onclick="$('.messages-fancybox').eq(0).trigger('click');">.</a> -->
 			<div class="language">
 				<form>
 					<select name="language" id="language_select" onChange="selectLanguage(this.value);">
@@ -245,11 +256,16 @@
 
 		<div class="footer">
 			{include $footer}
+
 			<div class="rules-and-conditions">
 				{_"By using this platform you accept our"} <a href="{$TOC_URL}" target="_blank">Terms of Use</a> and our <a href="{$PP_URL}" target="_blank">{_"Privacy policy"}</a>.
 			</div>			
 			<div class="software-info">
 				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
+				<div class="cleaner"></div>
+				<h4>Stay Connected</h4>
+				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
 			</div>
 			<div class="sponsor-credits">
 				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.

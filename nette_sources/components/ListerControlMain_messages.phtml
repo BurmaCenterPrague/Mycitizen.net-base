@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -46,7 +46,7 @@
 		{? date_default_timezone_set($date['timezone'])}
 		{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
 
-		<div class="chat-item{if $resdata['resource_type']==9} system-message{/if}" id="chat_message_{$id}" >
+		<div class="chat-item{if $resdata['resource_type']==9} system-message{/if}" id="chat_message_{$id}">
 		
 
 		{if (!(isset($template_variables['logged_user_id']) && $sender_id == $template_variables['logged_user_id'])) || $resdata['resource_type'] == 9}
@@ -123,9 +123,9 @@
 				</td>
 			</tr>
 			<tr>
-				<td style="vertical-align:top; padding-top:7px;">
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
-				<div class="chat-avatar" title="{$user_data['user_login']}" style="display:block;">
+				<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
@@ -147,7 +147,7 @@
 				</div>
 				{/if}
 				</td>
-				<td style="width:650px;">
+				<td style="max-width:630px;">
 			<div id="{$id}_text" class="chat-text balloon-right" style="{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
 			{if $resdata['resource_type']!=9}
 			<div class="arrow"></div>
@@ -166,9 +166,9 @@
 				{/if}
 			</div>
 				</td>
-				<td style="vertical-align:top; padding-top:7px;">
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if ($resdata['resource_type'] == 1 || $resdata['resource_type'] == 8) && isset($template_variables['logged_user_id']) && $template_variables['logged_user_id']}
-					<div class="chat-avatar" style="padding:5px;">
+					<div class="chat-avatar avatar-right" style="padding:5px;">
 						{? echo User::getImage($template_variables['logged_user_id'], 'icon')}
 					</div>
 				{/if}
@@ -176,7 +176,6 @@
 			</tr>
 		</table>
 		{else}
-			
 		<table>
 			<tr>
 				<td>
@@ -251,10 +250,10 @@
 				</td>
 			</tr>
 			<tr>
-				<td style="vertical-align:top; padding-top:7px;">
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
 					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
-				<div class="chat-avatar" title="{$recipient_data['member_name']}" style="display:block;">
+				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
 					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
@@ -262,9 +261,16 @@
 					{$recipient_data['member_name']}
 				</div>
 					{/if}
+				{else}
+				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
+					{? echo User::getImage($recipient_id, 'icon')}
+				</div>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
+					{$recipient_data['member_name']}
+				</div>
 				{/if}
 				</td>
-				<td style="width:650px;">
+				<td style="max-width:630px;">
 			<div id="{$id}_text" class="chat-text balloon-left" style="{if $own_message}background-color:#F7F7F7;{/if}{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
 				{if $resdata['resource_type'] == 1 || $resdata['resource_type'] == 8}
 					<div class="arrow"></div>
@@ -283,9 +289,9 @@
 				{/if}
 			</div>
 				</td>
-				<td style="vertical-align:top; padding-top:7px;">
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if $resdata['resource_type'] == 1 || $resdata['resource_type'] == 8}
-					<div class="chat-avatar">
+					<div class="chat-avatar avatar-right">
 						{? echo User::getImage($sender_id, 'icon')}
 					</div>
 				{/if}

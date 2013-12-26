@@ -653,13 +653,14 @@ float: right;
 }
 .user-detail-language,
 .group-detail-language,
-.ressource-detail-language {
+.resource-detail-language {
+border-top: 1px solid #BCB6AA;
 margin: 1em 0;
 font-style: italic;
 }
 .user-detail-language h3,
 .group-detail-language h3,
-.ressource-detail-language h3 {
+.resource-detail-language h3 {
 display: inline;
 }
 .user_detail_map input[type="text"],
@@ -765,11 +766,18 @@ div[class^="user-detail-pm-send"] form input[type="submit"],
 font-size: 1.3em;
 }
 .group_detail_tags,
-.ressource-detail-tags,
+.resource-detail-tags,
 .user-detail-tags {
 border-top: 1px solid #BCB6AA;
 margin-top: 1em;
 }
+
+.user-detail-url {
+border-top: 1px solid #BCB6AA;
+margin-top: 1em;
+text-align: center;
+}
+
 /* Formatting in chat outside TinyMCE editor window */
 blockquote {
 	color:#999;
@@ -1396,64 +1404,56 @@ max-width:500px;
 
 .balloon-right {
 	background-color: #E4E4E4;
-
 	border-radius: 5px;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
-
 	padding: 20px;
-	margin-left: 4px;
 	position: relative;
 	font-size: 12px;
-	width: 600px;
+	width: 590px;
 	text-align: justify;
-	min-height:30px;
+	min-height: 30px;
 	box-shadow: 2px 2px 4px #999;
 }
 
 .balloon-right .arrow {
-	border-color: transparent #E4E4E4 transparent transparent;
-    border-style: solid;
-    border-width: 10px;
-    display: block;
-    height: 0;
+	background: transparent url(/images/arrow-left.png);
     left: -20px;
     position: absolute;
-    top: 5px;
-    width: 0;
+    top: 4px;
+	width: 20px;
+	height: 20px;
 }
 
 .balloon-left {
 	background-color: #F7F7F7;
-
 	border-radius: 5px;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
-
 	padding: 20px;
-	margin-right: 7px;
 	position: relative;
 	font-size: 12px;
-	width: 600px;
+	width: 590px;
 	text-align: justify;
-	min-height:30px;
+	min-height: 30px;
 	box-shadow: 2px 2px 4px #999;
 }
 
 .balloon-left .arrow {
-	border-color: transparent transparent transparent #F7F7F7;
-    border-style: solid;
-    border-width: 10px;
-    display: block;
-    height: 0;
+	background: transparent url(/images/arrow-right.png);
     right: -20px;
     position: absolute;
-    top: 5px;
-    width: 0;
+    top: 4px;
+	width: 20px;
+	height: 20px;
 }
 
-.chat-item .chat-avatar, .chat-item .chat-author {
+.chat-item .avatar-left {
 	float:left;
+}
+
+.chat-item .avatar-right {
+	float:right;
 }
 
 .chat-header {
@@ -1462,5 +1462,28 @@ max-width:500px;
 }
 
 .group-edit-map, .resource-edit-map, .user-edit-map {
-min-width: 300px
+	min-width: 300px
+}
+
+#report_form {
+	text-align:left;
+}
+
+.tinymce {
+	width: 800px;
+	height: 300px;
+}
+
+.tinymce-small {
+	width: 740px;
+	height: 200px;
+}
+
+.login-box {
+	width: 300px;
+	margin:30px 0px 30px 30px;
+	padding: 10px 20px;
+	border-radius: 25px;
+	box-shadow: 0px 0px 16px rgb(138, 138, 138);
+	text-align:center;
 }

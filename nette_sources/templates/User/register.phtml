@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -12,79 +12,90 @@
  * @package mycitizen.net
  */
 ?>
+{var $robots => "noindex,nofollow"}
 {var load_js_css_zxcvbn => true}
 {block title}{_"User Signup"}{/block}
 {block content}
 <div class="wrapper-text">
+{ifset $logged}
+	<a href="{link Homepage:logout}" class="button">{_"Sign out"}</a>
+{else}
+	{ifset $sign_up_disabled}
+		<div class="login-box">
+			<h3>{_"Sign up is disabled."}</h3>
+			{_"Please try again later."}
+		</div>
+	{else}
 		{control registerform error}
 		{control registerform}
 
-{if file_exists(WWW_DIR."/images/captcha.jpg")}
-<div style="width: 300px; margin:30px 0px 30px 30px; padding: 10px 20px; border-radius: 25px; box-shadow: 0px 0px 16px rgb(138, 138, 138);text-align:center;">
-<img src="/images/captcha.jpg" />
-</div>
-{/if}
-
-<script>
-	var oldText,oldRepeat;
-	$(document).ready(function(){
-		$("#frmregisterform-user_password").keyup(function(){
-			var color;
-			var password = $("#frmregisterform-user_password").val();
-			if (password == oldText) { return true;}
-			var user_inputs = new Array();
-			var user_name = $("#frmregisterform-user_login").val();
-			if (user_name != '') user_inputs.push(user_name);
-			var result = zxcvbn(password, user_inputs);
-			switch(result.score) {
-				case 0: color = "#FF0000"; break;
-				case 1: color = "#FFBF00"; break;
-				case 2: color = "#FFFF00"; break;
-				case 3: color = "#80FF00"; break;
-				case 4: color = "#01DF01"; break;
-			}
-			if (!conditions(password)) { color = "#FF0000"};
-			if (color != '') {
-				$('#frmregisterform-user_password').css({ "background-color":color});
-			}
-			oldText = password;
-			oldRepeat = "";
+		{if file_exists(WWW_DIR."/images/captcha.jpg")}
+		<div class="login-box">
+			<img src="/images/captcha.jpg" />
+		</div>
+		{/if}
+	<script>
+		var oldText,oldRepeat;
+		$(document).ready(function(){
+			$("#frmregisterform-user_password").keyup(function(){
+				var color;
+				var password = $("#frmregisterform-user_password").val();
+				if (password == oldText) { return true;}
+				var user_inputs = new Array();
+				var user_name = $("#frmregisterform-user_login").val();
+				if (user_name != '') user_inputs.push(user_name);
+				var result = zxcvbn(password, user_inputs);
+				switch(result.score) {
+					case 0: color = "#FF0000"; break;
+					case 1: color = "#FFBF00"; break;
+					case 2: color = "#FFFF00"; break;
+					case 3: color = "#80FF00"; break;
+					case 4: color = "#01DF01"; break;
+				}
+				if (!conditions(password)) { color = "#FF0000"};
+				if (color != '') {
+					$('#frmregisterform-user_password').css({ "background-color":color});
+				}
+				oldText = password;
+				oldRepeat = "";
+			});
+			$("#frmregisterform-password_again").keyup(function(){ comparePasswords()});
+			$("#frmregisterform-user_password").keyup(function(){ comparePasswords()});
 		});
-		$("#frmregisterform-password_again").keyup(function(){ comparePasswords()});
-		$("#frmregisterform-user_password").keyup(function(){ comparePasswords()});
-	});
 	
-	function comparePasswords(){
-			var color;
-			var again = $("#frmregisterform-password_again").val();
-			if (again == oldRepeat) { return true;}
-			var password = $("#frmregisterform-user_password").val();
-			if (again.length == 0) {
+		function comparePasswords(){
+				var color;
+				var again = $("#frmregisterform-password_again").val();
+				if (again == oldRepeat) { return true;}
+				var password = $("#frmregisterform-user_password").val();
+				if (again.length == 0) {
 
-			} else {
-			if (password == again) {
-				color = "transparent";
-			} else {
-				color = "#FF0000";
+				} else {
+				if (password == again) {
+					color = "transparent";
+				} else {
+					color = "#FF0000";
+				}
+				}
+				$('#frmregisterform-password_again').css({ "background-color":color});			
+				oldRepeat = again;
 			}
-			}
-			$('#frmregisterform-password_again').css({ "background-color":color});			
-			oldRepeat = again;
-		}
 		
-	function conditions(password) {
-		if (password.length < 8) return false;
+		function conditions(password) {
+			if (password.length < 8) return false;
 		
-		var testUpper = new RegExp("[A-Z]+");
-		var testLower = new RegExp("[a-z]+");
-		var testNumber = new RegExp("[0-9]+");
+			var testUpper = new RegExp("[A-Z]+");
+			var testLower = new RegExp("[a-z]+");
+			var testNumber = new RegExp("[0-9]+");
 
-		if (testUpper.test(password) && testLower.test(password) && testNumber.test(password)) {
-			return true;
-		} else {
-			return false;
+			if (testUpper.test(password) && testLower.test(password) && testNumber.test(password)) {
+				return true;
+			} else {
+				return false;
+			}
 		}
-	}
-</script>
+	</script>
+	{/if}
+{/if}
 </div>
 {/block}

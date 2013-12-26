@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -95,7 +95,13 @@
 			<h3>{_"Language"}:</h3>
 			{$object_language}
 		</div>
-		
+
+		{if isset($data['user_url']) && !empty($data['user_url'])}
+		<div class="user-detail-url">
+			<a href="{$data['user_url']}" class="button" target="_blank" title="{$data['user_url']}"><b class="icon-www"></b>{_"Visit Homepage"}</a>
+		</div>
+		{/if}
+				
 		<div class="user-detail-tags">
 			<h3>{_"Interests"}</h3>
 			{ifset $user_tags}

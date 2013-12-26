@@ -1,24 +1,24 @@
 <?php
+// about this version
+define('PROJECT_VERSION', '0.3');
+define('PROJECT_DATE', '20131226');
 
-define('PROJECT_VERSION', '0.2.2 beta');
-define('PROJECT_DATE', '20131221');
 session_set_cookie_params(1209600);
 
 require_once dirname(__FILE__) . '/../lib/Nette/loader.php';
 // load configuration from config.ini file
 NEnvironment::loadConfig();
 
-// enable NDebug
-// NDebug::enable(NEnvironment::getConfig('debug')->IPs, LOG_DIRECTORY, NEnvironment::getConfig('debug')->logEmail);
-
+$application = NEnvironment::getApplication();
 
 if (NEnvironment::getConfig('debug')->showErrors) {
 	NDebug::enable(NDebug::DEVELOPMENT);
 //	NDebug::enableProfiler();
-	NEnvironment::getApplication()->catchExceptions = false;
- } else {
- 	error_reporting(0);
- }
+	$application->catchExceptions = false;
+} else {
+	$application->catchExceptions = true;
+	$application->errorPresenter = 'Error';
+}
 
 ini_set('session.name', NEnvironment::getVariable('SESSION_NAME'));
 dibi::connect(array(
@@ -30,7 +30,6 @@ dibi::connect(array(
     'charset'  => 'utf8',
 ));
 
-$application = NEnvironment::getApplication();
 
 $router = $application->getRouter();
 
@@ -43,6 +42,7 @@ session_set_save_handler(array('SessionDatabaseHandler', 'open'), array('Session
 $session = NEnvironment::getSession();
 $session->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration);
 
+// enforce secure connections
 if (NEnvironment::getConfig('variable')->secured == 1) {
 	$flag = NRoute::SECURED;
 	$flag_all = NULL;

@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -30,7 +30,8 @@ final class UserPresenter extends BasePresenter
 	{
 		$image_type = null;
 		$data = null;
-		
+
+				
 		if (!is_null($user_id)) {
 			$this->template->load_js_css_tinymce = true;
 			$this->setView('detail');
@@ -105,12 +106,21 @@ final class UserPresenter extends BasePresenter
 		}
 
 	}
-	
+
+	public function actionRegister()
+	{
+		if (Settings::getVariable('sign_up_disabled')) $this->template->sign_up_disabled = true;
+		$user = NEnvironment::getUser();
+		if ($user->isLoggedIn()) $this->template->logged = true;
+
+	}
+
+/**		
 	public function actionCreate()
 	{
 		
 	}
-	
+*/
 	public function actionConfirm($user_id, $control_key)
 	{
 		$user = NEnvironment::getUser();
@@ -266,7 +276,7 @@ final class UserPresenter extends BasePresenter
 	
 	public function actionLogin()
 	{
-		
+		if (Settings::getVariable('sign_in_disabled')) $this->template->sign_in_disabled = true;
 	}
 	
 	public function actionLogout()
@@ -465,14 +475,21 @@ final class UserPresenter extends BasePresenter
 			$this->flashMessage(_("An email has been sent to you with further instructions."));
 			
 		} else {
-			$this->flashMessage(_("This email is not registered in our system!"));
+			$this->flashMessage(_("This email is not registered in our system!"), 'error');
 		}
 	}
 	
 	public function loginformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
+		
+		if (Settings::getVariable('sign_in_disabled') && User::getAccessLevelFromLogin($values['user_login']) < 2) {
+			$this->flashMessage(_("Sign in is disabled. Please try again later."), 'error');
+			$this->redirect("Homepage:default");
+		}
+
 		$user   = NEnvironment::getUser();
+		
 		try {
 			if (isset($values['remember_me']) && $values['remember_me'] == 1) {
 				$_SESSION['remember'] = true;
@@ -514,11 +531,9 @@ final class UserPresenter extends BasePresenter
 		$form->addPassword('user_password', _('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your password must be at least 8 characters long and contain at least one lower-case letter, one upper-case letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _('Your password must contain at least one upper-case letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
 		$form->addPassword('password_again', _('Repeat password:'))->addRule(NForm::EQUAL, _('Your passwords are different.'), $form['user_password']);
 		
-		$question = 'Please type the Burmese numbers from the image below in English (use 0-9)';
-		
+		$question = Settings::getVariable('signup_question');
 		if ($question) {
-			// need better solution for translations
-			$form->addText('text', _($question).':')->addRule(NForm::FILLED, _('Please enter the text!'));
+			$form->addText('text', _($question))->addRule(NForm::FILLED, _('Please enter the text!'));
 		}
 		$form->addSubmit('register', _('Sign up'));
 		$form->addProtection(_('Error submitting form.'));
@@ -535,7 +550,12 @@ final class UserPresenter extends BasePresenter
 		$values = $form->getValues();
 		$user   = NEnvironment::getUser();
 		
-		$answer = '43596';
+		if (Settings::getVariable('sign_up_disabled')) {
+			$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
+			$this->redirect("Homepage:default");
+		}
+
+		$answer = Settings::getVariable('signup_answer');// '43596';
 		
 		if ($answer) {
 			if ($answer != $values['text']) {
@@ -681,6 +701,7 @@ final class UserPresenter extends BasePresenter
 		$form->addSelect('user_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Do you want be visible to everyone (world), one to registered users (registered) or only to your friends (friends)?'))->id("help-name"));
 		$form->addSelect('user_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('The main language you want to use. You will still be able to see other languages.'))->id("help-name"));
 		$form->addTextArea('user_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Write some lines about your life, your work and your interests.'))->id("help-name"));
+		$form->addText('user_url', _('Homepage:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your website, blog or Facebook profile.'))->id("help-name"))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		$form->addFile('user_avatar', _('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it.'))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, _('Maximum image size is 512kB'), 512 * 1024);
 		
 		$form->addProtection(_('Error submitting form.'));
@@ -1230,7 +1251,12 @@ final class UserPresenter extends BasePresenter
 		$session = NEnvironment::getSession()->getNamespace($name);
 		
 		
-		if (!isset($session['filterdata']['trash']) && is_array($session->filterdata)) $session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
+		if (!isset($session['filterdata']['trash']))
+			if (is_array($session->filterdata)) {
+				$session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
+			} else {
+				$session->filterdata = array('trash' => 2);
+			}
 		
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;

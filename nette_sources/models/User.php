@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -30,7 +30,7 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`, `user_largeicon` as avatar FROM `user` WHERE `user_id` = %i", $user_id);
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_url`, `user_largeicon` as avatar FROM `user` WHERE `user_id` = %i", $user_id);
 			if (sizeof($result) > 2) {
 				return false;
 				throw new Exception(_("More than one user with the same id found."));
@@ -137,6 +137,7 @@ class User extends BaseModel implements IIdentity
 		try {
 			dibi::begin();
 			if (!empty($this->user_data)) {
+				unset($this->user_data['avatar']);
 				if (empty($this->numeric_id)) {
 					dibi::query('INSERT INTO `user`', $this->user_data);
 					$this->numeric_id = dibi::insertId();
@@ -194,6 +195,15 @@ class User extends BaseModel implements IIdentity
 	public function getAccessLevel()
 	{
 		$result = dibi::fetchSingle("SELECT `user_access_level` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
+		if (!empty($result)) {
+			return $result;
+		}
+		return 0;
+	}
+
+	public static function getAccessLevelFromLogin($login)
+	{
+		$result = dibi::fetchSingle("SELECT `user_access_level` FROM `user` WHERE `user_login` = %s", $login);
 		if (!empty($result)) {
 			return $result;
 		}
@@ -339,7 +349,7 @@ class User extends BaseModel implements IIdentity
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash;
-		$body  = _("Hello,\nYou have requested password change on Mycitizen.net.\nTo finish your request click on following link.\n") . $link;
+		$body  = _("Hello,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link.\n") . $link;
 		
 		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Password change on Mycitizen.net')) . '?=', $body, $headers);
@@ -372,7 +382,7 @@ class User extends BaseModel implements IIdentity
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash;
-		$body  = _("Hello,\nYou have requested email change on Mycitizen.net.\nTo finish your request click on following link.\n") . $link;
+		$body  = _("Hello,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link.\n") . $link;
 		
 		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Email change on Mycitizen.net')) . '?=', $body, $headers);

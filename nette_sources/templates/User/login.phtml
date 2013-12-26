@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -12,12 +12,18 @@
  * @package mycitizen.net
  */
 ?>
+{var $robots => "noindex,nofollow"}
 {block title}{_"User signin"}{/block}
 {block content}
 <div class="wrapper-text">
 	{ifset $logged}
 		<a href="{link Homepage:logout}" class="button">{_"Sign out"}</a>
 	{else}
+		{ifset $sign_in_disabled}
+		<div class="login-box">
+			<h3>{_"Sign in is disabled. Please try again later."}</h3>
+		</div>
+		{/if}
 		{control loginform begin}
 			<table>
 				<tr><td colspan="2">

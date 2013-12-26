@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -15,6 +15,13 @@
 
 class Administration extends BaseModel
 {
+	public static function systemCheck() {
+		$result['groups_wo_owner'] = dibi::fetchSingle("SELECT COUNT(`group_id`) FROM `group` gg WHERE gg.`group_author` = '0'");
+		$result['resources_wo_owner'] = dibi::fetchSingle("SELECT COUNT(`resource_id`) FROM `resource` rr WHERE rr.`resource_author` = '0'");
+		
+		return $result;
+	}
+
 	public static function getStatistics() {
 
 		// users
@@ -23,6 +30,7 @@ class Administration extends BaseModel
 		$result['mods'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_access_level` = '2'");
 		$result['deactivated_users'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_status` = '2'");
 		$result['banned_users'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_status` = '3'");
+		$result['unconfirmed_users'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_registration_confirmed` = '0'");
 		$result['users_v_1'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_visibility_level` = '1'");
 		$result['users_v_2'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_visibility_level` = '2'");
 		$result['users_v_3'] = dibi::fetchSingle("SELECT COUNT(`user_id`) FROM `user` uu WHERE uu.`user_visibility_level` = '3'");

@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -871,6 +871,76 @@ final class GroupPresenter extends BasePresenter
 		}
 	}
 	
+	protected function createComponentNotifyform()
+	{
+		$types = array(
+			'local' => _('Send them a local message.'),
+			'email' => _('Send them an email.')
+		);
+		$form  = new NAppForm($this, 'notifyform');
+		$form->addRadioList('notification_type', _('How to contact them').':', $types);
+		$form->addTextarea('notification_text', _('Text').':')->addRule(NForm::FILLED, _('Please enter some text.'));
+		$form->addSubmit('send', _('Send'));
+		$form->addProtection(_('Error submitting form.'));
+		$form->setDefaults(array('notification_type'=>'local'));
+		$form->onSubmit[] = array(
+			$this,
+			'notifyformSubmitted'
+		);
+		
+		return $form;
+	}
+	
+	public function notifyformSubmitted(NAppForm $form)
+	{
+		$user = NEnvironment::getUser()->getIdentity();
+		
+		if (Auth::isAuthorized(Auth::TYPE_GROUP, $this->group->getGroupId()) < Auth::MODERATOR) {
+			$this->terminate();
+		}
+		
+		$values = $form->getValues();
+		$filter = array(
+				'enabled' => 1
+			);
+		$users_a = $this->group->getAllUsers($filter);
+		$group_name = Group::getName($this->group->getGroupId());
+		$URI = NEnvironment::getVariable("URI");
+		foreach ($users_a as $user_a) {
+			if ($values['notification_type'] == 'email') {
+				StaticModel::addCron(time() + 60, 1, $user_a['user_id'], sprintf(_('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
+			} else {
+				$resource                          = Resource::create();
+				$data                              = array();
+				$data['resource_author']           = $user->getUserId();
+				$data['resource_type']             = 1;
+				$data['resource_visibility_level'] = 3;
+				$data['resource_name'] = '<group message>';
+				$data['resource_data']             = json_encode(array(
+					'message_text' => '<p><b>'.sprintf(_('A message from your group %s'),'<a href="'.$URI.'/group/?group_id='.$this->group->getGroupId().'">"'.$group_name.'"</a>').":</b></p>\n<p>".nl2br($values['notification_text']).'</p>'
+				));
+				$resource->setResourceData($data);
+				$resource->save();
+//				$user_o = User::create($user_a['user_id']);
+				if ($user->getUserId() == $user_a['user_id'] ) {
+					$resource->updateUser($user_a['user_id'], array(
+						'resource_user_group_access_level' => 1,
+						'resource_opened_by_user' => 1
+					));
+				} else {
+					$resource->updateUser($user_a['user_id'], array(
+						'resource_user_group_access_level' => 1,
+						'resource_opened_by_user' => 0
+					));				
+				}
+				unset($resource);
+//				unset($user_o);
+			}	
+			
+		}
+		$this->flashMessage(_("Your message has been sent to the members of this group."));
+		$this->redirect("this");
+	}
 	
 	public function isAccessible()
 	{
@@ -929,7 +999,7 @@ final class GroupPresenter extends BasePresenter
 	public function unsubscriberesourceformSubmitted(NAppForm $form)
 	{
 	
-		if (Auth::isAuthorized(Auth::TYPE_GROUP, $this->group->getGroupId()) < 2) {
+		if (Auth::isAuthorized(Auth::TYPE_GROUP, $this->group->getGroupId()) < Auth::MODERATOR) {
 			$this->terminate();
 		}
 		

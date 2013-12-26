@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -88,12 +88,12 @@
 	
 		{$data['resource_description']}
 
-		<div class="ressource-detail-language">	
+		<div class="resource-detail-language">	
 			<h3>{_"Language"}:</h3>
 			{$object_language}
 		</div>
 
-		<div class="ressource-detail-tags">
+		<div class="resource-detail-tags">
 			<h3>{_"Topics"}</h3>
 			{ifset $resource_tags}
 			<table>
@@ -177,7 +177,7 @@
 	{/if}
 
 	{ifset $default_data}
-	{if Auth::MODERATOR <= Auth::isAuthorized(3,$default_data['object_data']['resource_id'])}
+	{if Auth::ADMINISTRATOR == Auth::isAuthorized(3,$default_data['object_data']['resource_id'])}
 	<div class="administration">
 	<h3>{_"Administration"}</h3>
 	{control resourceadministrator begin}

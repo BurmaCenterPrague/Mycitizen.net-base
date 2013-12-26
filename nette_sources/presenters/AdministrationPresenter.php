@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -29,6 +29,35 @@ final class AdministrationPresenter extends BasePresenter
 			}
 		} else {
 			$this->redirect("Homepage:default");
+		}
+		
+		// check every 60 mins for updates
+		// update info is CSV with columns: version, yyyymmdd, info
+		if (!isset($_SESSION['update_ping']) || $_SESSION['update_ping']+3600 < time()) {
+			$url = "https://mycitizen.net/versioncheck/version.csv";
+			if ($fp = @fopen ($url, 'r')) {
+			$data = fgetcsv($fp);
+			fclose($fp);
+			$_SESSION['update_ping'] = time();
+			
+			if (PROJECT_DATE < $data[1]) {
+				$this->flashMessage('New update available: '.$data[0]);
+				$this->flashMessage('For more information see "Setup and Maintenance".');
+				$this->template->new_version = $data[0];
+				$this->template->new_version_info = $data[2];
+				$_SESSION['update_new_version'] = $data[0];
+				$_SESSION['update_new_version_info'] = $data[2];
+			} else {
+				unset($_SESSION['update_new_version']);
+				unset($_SESSION['update_new_version_info']);
+			}
+			
+			} else {
+				$this->flashMessage('Cannot retrieve update information.', 'error');
+			}
+		} else {
+			if (isset($_SESSION['update_new_version'])) $this->template->new_version = $_SESSION['update_new_version'];
+			if (isset($_SESSION['update_new_version_info'])) $this->template->new_version_info = $_SESSION['update_new_version_info'];
 		}
 	}
 	
@@ -270,9 +299,9 @@ final class AdministrationPresenter extends BasePresenter
 		$defaults = array();
 		foreach ($vars as $key => $value) {
 			$defaults[$key] = $value;
-			$form->addText($key, _($key) . ":");
+			$form->addText($key, Settings::getVariableLabel($key) . ":");
 		}
-		$form->addSubmit('send', _('Send'));
+		$form->addSubmit('send', _('Submit'));
 		$form->addProtection(_('Error submitting form.'));
 		
 		$form->setdefaults($defaults);
@@ -287,6 +316,29 @@ final class AdministrationPresenter extends BasePresenter
 	public function variablesformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
+		
+		if (isset($values['maintenance_mode'])) {
+			if (preg_match("/^in (\d+) minutes?$/i", $values['maintenance_mode'], $matches) ) {
+				$values['maintenance_mode'] = time() + $matches[1] * 60;
+			}
+			$values['maintenance_mode'] = (int) $values['maintenance_mode'];
+			
+			if ($values['maintenance_mode'] == 0 && Settings::getVariable('maintenance_mode') != 0) {
+				if (@file_exists(WWW_DIR.'/.maintenance.php')) {
+					unlink(WWW_DIR.'/.maintenance.php');
+				}
+				$this->flashMessage(_("Maintenance mode deactivated."));
+			}
+
+			if ($values['maintenance_mode'] != 0 && Settings::getVariable('maintenance_mode') == 0) {
+				if (!@file_exists(WWW_DIR.'/.maintenance.php')) {
+					file_put_contents(WWW_DIR.'/.maintenance.php',$values['maintenance_mode']);
+				}
+				$this->flashMessage(_("Maintenance mode activated."));
+			}
+
+
+		}
 		foreach ($values as $key => $value) {
 			Settings::setVariable($key, $value);
 		}
@@ -464,10 +516,21 @@ final class AdministrationPresenter extends BasePresenter
 	*/
 	public function handleSystemCheck() {	
 	
-		// groups and resources without owners
+		$result = Administration::systemCheck();
+		$this->template->problem = false;
 		
-	
-		$this->flashMessage(_('System check finished.'));
+		if ($result['groups_wo_owner']) {
+			$this->template->groups_wo_owner = $result['groups_wo_owner'];
+			$this->template->problem = true;
+		}
+
+		if ($result['resources_wo_owner']) {
+			$this->template->resources_wo_owner = $result['resources_wo_owner'];
+			$this->template->problem = true;
+		}
+		
+		
+		$this->flashMessage(_('System check finished. Find the results below.'));
 	}
 	
 	/**

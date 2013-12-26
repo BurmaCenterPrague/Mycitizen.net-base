@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.2.2 Beta : 21 Dec 2013
+0.3 Beta : 26 Dec 2013
 
 
 authors
@@ -35,7 +35,7 @@ included packages
 - [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GNU GPL version 2 or 3)
 - [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
-- [TinyMCE](http://www.tinymce.com/) 4.0 (GNU Lesser General Public
+- [TinyMCE](http://www.tinymce.com/) 4.0.12 (GNU Lesser General Public
     License version 2.1)
 - [Treeview 1.4.1](http://docs.jquery.com/Plugins/Treeview) (MIT license or GPL)
 - [zxcvbn](https://github.com/lowe/zxcvbn) 1.0 [license](https://github.com/lowe/zxcvbn/blob/master/LICENSE.txt)

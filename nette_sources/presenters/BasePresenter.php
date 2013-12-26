@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -11,8 +11,6 @@
  *
  * @package mycitizen.net
  */
- 
-
 
 abstract class BasePresenter extends NPresenter
 {
@@ -59,9 +57,33 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PIWIK_URL = NEnvironment::getVariable("PIWIK_URL");
 		$this->template->PIWIK_ID = NEnvironment::getVariable("PIWIK_ID");
 		$this->template->PIWIK_TOKEN = NEnvironment::getVariable("PIWIK_TOKEN");
-		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $this->template->load_external_js_css = 1;
+		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $this->template->load_external_js_css = true;
+		if (NEnvironment::getVariable("USE_TINYMCE_COMPRESSOR")) $this->template->use_tinymce_compressor = true;
 
 		
+		$maintenance_mode = Settings::getVariable('maintenance_mode');
+		if ($maintenance_mode) {
+			if ($maintenance_mode > time()) {
+				$this->flashMessage(sprintf(_("Stand by for scheduled maintenance in %s minutes and %s seconds. Please finish your activities."),date("i",$maintenance_mode-time()),date("s",$maintenance_mode-time())), 'error');
+				if (!@file_exists(WWW_DIR.'/.maintenance.php')) {
+					file_put_contents(WWW_DIR.'/.maintenance.php',$maintenance_mode);
+				}
+			} else {
+				if (!@file_exists(WWW_DIR.'/.maintenance.php')) {
+					Settings::setVariable('maintenance_mode',0);
+				} else {
+					$this->flashMessage(_("Maintenance mode active."), 'error');
+					$user = NEnvironment::getUser()->getIdentity();
+					if (isset($user)) {
+						$access_level = $user->getAccessLevel();
+					} else {
+						$access_level = 0;
+					}
+					if ($access_level < 3) die("Scheduled maintenance. Please return later.");
+				}
+			}
+		}
+
 		
 		$this->template->tooltip_position = 'bottom right';
 		

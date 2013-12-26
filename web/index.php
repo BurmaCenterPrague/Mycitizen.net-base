@@ -11,4 +11,3 @@ define('TEMP_DIR', WWW_DIR . '/../nette_sources/temp');
 
 // load bootstrap file
 require APP_DIR . '/bootstrap.php';
-

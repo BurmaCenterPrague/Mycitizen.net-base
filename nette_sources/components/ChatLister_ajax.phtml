@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -58,8 +58,8 @@
         		</td>
         	</tr>
         	<tr>
-	        	<td style="vertical-align:top; padding-top:7px;">
-					<div class="chat-avatar">
+	        	<td style="vertical-align:top; padding-top:7px; width:80px;">
+					<div class="chat-avatar avatar-left">
 						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_login']}">{!$icon}</a>{else}{!$icon}{/if}
 					</div><br/>
 					<div id="{$id}_author" class="chat-author" style="display:none;">
@@ -85,11 +85,8 @@
         		</td>
         	</tr>
         	</table>
-        	
-
 			</div>
     {/foreach}
-
  {/snippet}
 </div>
 

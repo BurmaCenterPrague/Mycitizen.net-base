@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -69,6 +69,7 @@ class Group extends BaseModel {
 		try {
 			dibi::begin();
 			if(!empty($this->group_data)) {
+				unset($this->group_data['avatar']);
 				if(empty($this->numeric_id)) {
 					dibi::query('INSERT INTO `group`', $this->group_data);
 					$this->numeric_id = dibi::insertId();
@@ -201,9 +202,9 @@ class Group extends BaseModel {
          $filter_o[] = array('%or',array(array('`user_login` LIKE %~like~',$filter['name']),array('`user_name` LIKE %~like~',$filter['name']),array('`user_surname` LIKE %~like~',$filter['name'])));
       }
       if(!is_null($limit) && !is_null($count)) {
-         $result = dibi::fetchAll("SELECT u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and LIMIT %i,%i",$filter_o,$limit,$count);
+         $result = dibi::fetchAll("SELECT u.`user_id`,u.`user_email`,u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and LIMIT %i,%i",$filter_o,$limit,$count);
       } else {
-         $result = dibi::fetchAll("SELECT u.`user_email`,u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and",$filter_o);
+         $result = dibi::fetchAll("SELECT u.`user_id`,u.`user_email`,u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and",$filter_o);
       }
       $users = array();
       foreach($result as $row) {

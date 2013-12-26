@@ -2,7 +2,7 @@
 /**
  * mycitizen.net - Open source social networking for civil society
  *
- * @version 0.2.2 beta
+ * @version 0.3 beta
  *
  * @author http://mycitizen.org
  * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
@@ -25,10 +25,17 @@ class Settings {
 		}
 		return $data;
 	}
+	
+	public static function getVariableLabel($variable_name) {
+      $result = dibi::fetchSingle("SELECT `variable_display_label` FROM `settings` WHERE `variable_name` = %s",$variable_name);
+      return $result;	
+	}
+	
 	public static function getVariable($variable_name) {
       $result = dibi::fetchSingle("SELECT `variable_value` FROM `settings` WHERE `variable_name` = %s",$variable_name);
       return $result;
    }
+   
 	public static function setVariable($variable_name,$variable_value) {
 		dibi::query("UPDATE `settings` SET `variable_value` = %s WHERE `variable_name` = %s",$variable_value,$variable_name);
 	}
