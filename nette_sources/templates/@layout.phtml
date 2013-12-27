@@ -21,18 +21,22 @@
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.css" />
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
 {ifset $load_js_css_tree}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
 {/if}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.ui.css" />
 {ifset $load_js_css_datetimepicker}
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.calendarPicker.css" />
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.calendarPicker.min.css" />
 {/if}
 		<link type="text/css" rel="stylesheet" href="{$baseUri}css/jquery.qtip.min.css" />
 {ifset $load_js_css_jcrop}
+{ifset $load_external_js_css}
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css" type="text/css" />
+{else}
 		<link rel="stylesheet" href="{$baseUri}css/jquery.Jcrop.min.css" type="text/css" />
+{/if}
 {/if}
 {ifset $load_external_js_css}
 		<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
@@ -42,8 +46,8 @@
 		<link href='{$baseUri}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
 {/if}
 		<script type="text/javascript" src="{$baseUri}js/jquery.nette.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/base-functions.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/jquery.json-2.2.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/base-functions.min.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/jquery.json-2.2.min.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.ui.core.min.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
 {ifset $load_js_css_zxcvbn}
@@ -106,7 +110,11 @@
 {/if}
 
 {ifset $load_js_css_jcrop}
+{ifset $load_external_js_css}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.min.js"></script>
+{else}
 <script src="{$baseUri}js/jquery.Jcrop.min.js"></script>
+{/if}
 <script>
     jQuery(function($) {
         $('#crop').Jcrop({
@@ -195,7 +203,7 @@
 {ifset $mobile}
 	<div id="mobile_alert">
 		<!-- mobile phone detected. -->
-		<a href="https://mycitizen.net/download:mobile" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').hide('normal');" style="float:right;">X</a>
+		<a href="https://mycitizen.net/download:mobile" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').slideUp('normal');" style="float:right;">X</a>
 	</div>
 {/if}
 
@@ -277,10 +285,10 @@
 
 	<script type="text/javascript" src="{$baseUri}js/jquery.qtip.min.js"></script>
 {ifset $load_js_css_datetimepicker}
-	<script type="text/javascript" src="{$baseUri}js/jquery.calendarPicker.js"></script>
+	<script type="text/javascript" src="{$baseUri}js/jquery.calendarPicker.min.js"></script>
 {/if}
 {ifset $load_js_css_tree}
-	<script type="text/javascript" src="{$baseUri}js/jquery.tree.js"></script>
+	<script type="text/javascript" src="{$baseUri}js/jquery.tree.min.js"></script>
 {/if}
 
 {ifset $piwik_url_bare}

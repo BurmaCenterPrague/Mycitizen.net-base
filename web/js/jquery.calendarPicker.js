@@ -1,6 +1,6 @@
 // based on CalendarPicker by Roberto Bicchierai http://roberto.open-lab.com/2010/04/06/ultra-light-jquery-calendar/
 // MIT license, http://creativecommons.org/licenses/MIT/
-// Modified by Christoph Amtor, http://mycitizen.net, to include the time
+// Modified by Christoph Amthor, http://mycitizen.net, to include the time
 
 jQuery.fn.calendarPicker = function(options) {
   // --------------------------  start default option values --------------------------

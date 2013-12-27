@@ -302,17 +302,16 @@ class User extends BaseModel implements IIdentity
 	{
 		$hash  = $this->user_data['user_hash'];
 		$email = $this->user_data['user_email'];
+		$name =  $this->user_data['user_login'];
 		$id    = $this->numeric_id;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language = $session->language;
+		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
 //		$link  = "http://" . URI . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
-		$body  = _("Hello,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link.\n") . $link;
+		$body  = sprintf(_("Hello %s,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		$headers = 'From: Mycitizen.net <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		
-/**		var_dump($email);
-		var_dump($body);
-		var_dump($headers);
-		die(); **/
 		return mail($email, '=?UTF-8?B?' . base64_encode(_('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
 	}
 	
@@ -345,13 +344,15 @@ class User extends BaseModel implements IIdentity
 		
 		$this->user_data['user_hash'] = $hash;
 		$this->save();
-		
+		$name =  $this->user_data['user_login'];
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash;
-		$body  = _("Hello,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link.\n") . $link;
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language = $session->language;
+		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
+		$body  = sprintf(_("Hello %s,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Password change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
@@ -378,13 +379,15 @@ class User extends BaseModel implements IIdentity
 		
 		$this->user_data['user_hash'] = $hash;
 		$this->save();
-		
+		$name =  $this->user_data['user_login'];
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash;
-		$body  = _("Hello,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link.\n") . $link;
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language = $session->language;
+		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
+		$body  = sprintf(_("Hello %s,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
 		
-		$headers = 'From: Mycitizen.net Autoconfirm <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_('Email change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
@@ -727,31 +730,6 @@ class User extends BaseModel implements IIdentity
 			$image = '<img src="/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
 		}
 		return $image;
-
-/*
-		// serving directly base64 in html
-		$user = User::create($user_id);
-		if (!empty($user)) {
-			switch ($size) {
-				case 'img': $src = $user->getUserAvatar(); $width=160; break;
-				case 'icon': $src = $user->getUserIcon(); $width=20; break;
-				case 'large_icon': $src = $user->getUserBigIcon(); $width=40; break;
-			}
-
-			if (!empty($src)) {
-				$f = finfo_open();
-				$mime_size = finfo_buffer($f, base64_decode($src), FILEINFO_MIME_size);
-
-				$image = '<img src="data:'.$mime_size.';base64,'.$src.'" width="'.$width.'"'.$title_tag.'/>';
-
-			} else {
-				$image = '<img src="/img/ico-user.gif" width="'.$width.'"'.$title_tag.'/>';
-			}
-			return $image;
-
-
-		}
-*/
 
 	}
 	

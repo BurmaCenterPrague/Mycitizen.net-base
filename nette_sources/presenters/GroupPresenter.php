@@ -485,7 +485,7 @@ final class GroupPresenter extends BasePresenter
 		$form->addFile('group_avatar', _('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Avatars are small images that will be visible with your name. Here you can upload an avatar for your group (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it.'))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, _('Maximum image size is 512kB'), 512 * 1024);
 		
 		if ($group_data['group_visibility_level'] == 3) {
-			$form->addText('group_hash', _('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5).'))->id("help-name"))->addRule($form::REGEXP, _("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
+			$form->addText('group_hash', _('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
 		}
 		
 		if (empty($group_id)) {

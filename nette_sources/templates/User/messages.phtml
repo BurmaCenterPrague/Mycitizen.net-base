@@ -116,7 +116,7 @@
 				var quote_shortened = quote.substr(0,300);
 				if (quote_shortened != quote ) { quote_shortened += '...'; }
 				$('#frmmessageform-friend_id').val(author_id);
-				var reply = '<br/><blockquote id="quoting_0000'+id+'"><span style="color:#333;">{!_"On"} <b>'+date+'</b></span> <b><span style="color:#999;">'+author_name+'</span></b> <span style="color:#333;">{!_"wrote"}:</span><br />'+quote_shortened+'</blockquote><br/>';
+				var reply = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
 				content = reply;
 				editor.setContent(content);
 				$('html, body').animate({

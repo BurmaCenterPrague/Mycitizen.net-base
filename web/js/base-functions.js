@@ -1,3 +1,4 @@
+// (c) 2013 mycitizen.net, GPLv3-----
 function updateUser(user_id) {
 	var enabled = 1;
 	if($("#enabled-"+user_id).attr('checked')) {
