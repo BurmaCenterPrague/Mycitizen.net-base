@@ -77,7 +77,7 @@ class ResourceGroupListerControl extends ListerControl {
     }
 	public function createComponentFilter() {
 		$form = new NAppForm($this,"filter");
-		$form->addText('name','Jméno');
+		$form->addText('name','Name');
 		$access_level = array(
 								'null'=>'All',
                                 '1'=>'Normal user',

@@ -18,8 +18,7 @@
 	<div id="message_top_anchor"></div>
 	{control messageform begin}
 	<div class="about">
-		<h1>{_"Send message to a friend"}</h1>
-		
+		<h1>{_"Send a message to a friend"}</h1>
 		<div class="message-to">
 			{$control['messageform']['friend_id']->control}
 		</div>
@@ -28,19 +27,17 @@
 		{ifset $nofriends}
 			{_"You have no friends yet. You can start sending messages only after someone has accepted your friendship request."}
 		{else}
-		{* control messageform *}
-		
 		<div class="message-text">
 			{$control['messageform']['message_text']->control}
 		</div>
-
 		<div class="message-send">
 		 	{$control['messageform']['send']->control}
 		</div>
 		{/if}
 	</div>
 	{control messageform end}
-	
+
+
 	<div class="detail-right-bottom">
 		<h2>{_"Your messages"}</h2>
 		<div class="filter-block">
@@ -48,8 +45,29 @@
 			<a href="javascript:void(0);" id="clear_button" class="button" name="clear" >{_"Clear"}</a>
 		</div>
 		<div class="reload-messages" style="float:right;">
-			<b onclick="javascript:location.reload();" class="icon-reload" title="{_"reload"}" style="cursor:pointer;"></b>
+			<b onclick="javascript:location.reload();" class="icon-reload" title="{_"Reload"}" style="cursor:pointer;"></b>
+			<a href="#settings_container" id="settings_box" title="{_"Notification Settings"}"><b class="icon-setting"></b></a>
 		</div>
+
+			<div id="settings_container" style="display:none;">
+				<h2>{_"Notification Settings"}</h2>
+				{control notificationsform}
+			</div>
+			<script type="text/javascript">
+			$(function() {
+				$("#settings_box").fancybox({
+					minWidth : 400,
+					minHeight : 200,
+					closeBtn : true,
+					helpers : {
+						overlay : {
+							css: {'background' : 'rgba(200, 200, 200, .5)'}
+						},
+						title : null
+					},
+				});
+			});
+			</script>
 	
 		<div class="user-messages">
 			{control messagelisteruser}

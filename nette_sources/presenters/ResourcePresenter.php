@@ -197,7 +197,7 @@ final class ResourcePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
-			$this->flashMessage(_("You have no permission to create a resource."), 'error');
+			$this->flashMessage(_("You have no permission to create resources."), 'error');
 			$this->redirect("Resource:default");
 		}
 		$resource = Resource::create();

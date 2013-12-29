@@ -85,13 +85,7 @@
 					{else}
 						<b class="icon-person" title="{_"only visible to friends"}"></b>
 					{/if}
-					
-<!--
-					<div onclick=window.location='{link User:default, $default_data['object_data']['user_id']}' class="user-details"  title="{_"View details"}">
-						<b class="icon-view"></b>
-					</div>
--->					
-			
+
 					<div class="user-username">
 						{$default_data['object_data']['user_login']}
 					</div>
@@ -127,7 +121,7 @@
 			{/if}
 			{if $default_data['object_data']['user_friend_relationship'] == 3}
 				<div class="user-connection">
-					{_"You currently block this user"}
+					{_"You currently block this user."}
 				</div>
 				{if Auth::isAuthorized(1,$default_data['object_data']["user_id"]) > 0}
 					{if $default_data['object_data']['friend_user_relationship'] == 0}

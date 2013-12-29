@@ -30,7 +30,7 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_url`, `user_largeicon` as avatar FROM `user` WHERE `user_id` = %i", $user_id);
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_largeicon` as avatar FROM `user` WHERE `user_id` = %i", $user_id);
 			if (sizeof($result) > 2) {
 				return false;
 				throw new Exception(_("More than one user with the same id found."));
@@ -776,6 +776,44 @@ class User extends BaseModel implements IIdentity
 		}
 		return 0;
 	}
-
 	
+	public static function getAllUsersForCron()
+	{
+		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
+		if (sizeof($result) < 1) {
+			return false;
+			throw new Exception(_("Specified user not found."));
+		}
+		foreach($result as $user_array)	{	
+			$result_array[] = $user_array->toArray();
+		}
+		
+		return $result_array;
+	}
+
+	public static function setUserCronSent($user_id)
+	{
+		dibi::query("UPDATE `user` SET `user_last_notification` = %i WHERE `user_id` = %i", time(), $user_id);
+	}
+	
+	public static function getUnreadMessages($user_id)
+	{
+		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`  LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND (`resource`.`resource_type` = 1 OR `resource`.`resource_type` = 9) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0",$user_id,$user_id);
+		if (isset($count)) {
+			return $count;
+		} else {
+			return 0;
+		}
+	}
+	
+	public function getNotificationSetting()
+	{
+		return dibi::fetchSingle("SELECT `user_send_notifications` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
+	}
+
+	public function setNotificationSetting($value)
+	{
+		dibi::query("UPDATE `user` SET `user_send_notifications` = %i WHERE `user_id` = %i", $value, $this->numeric_id);
+	}
+
 }

@@ -212,7 +212,7 @@ final class GroupPresenter extends BasePresenter
 			
 			} elseif ($size_x < 80 || $size_y < 100) {
 		
-				$this->flashMessage(_("The image is too small. Minimum size is 80px x 100px."), 'error');
+				$this->flashMessage(sprintf(_("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
 				
 				$group->removeAvatar();
 				$group->removeIcons();
@@ -480,9 +480,9 @@ final class GroupPresenter extends BasePresenter
 		$form = new NAppForm($this, 'updateform');
 		$form->addText('group_name', _('Name:'))->addRule(NForm::FILLED, _('Group name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the group.'))->id("help-name"));
 		$form->addSelect('group_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
-		$form->addSelect('group_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Select a language that will be used in this group for comunication.'))->id("help-name"));
+		$form->addSelect('group_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Select a language that will be used in this group for communication.'))->id("help-name"));
 		$form->addTextArea('group_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Describe in few sentences what this group is about.'))->id("help-name"));
-		$form->addFile('group_avatar', _('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Avatars are small images that will be visible with your name. Here you can upload an avatar for your group (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it.'))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, _('Maximum image size is 512kB'), 512 * 1024);
+		$form->addFile('group_avatar', _('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","1500x1500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_('Maximum image size is %s'),"512kB"), 512 * 1024);
 		
 		if ($group_data['group_visibility_level'] == 3) {
 			$form->addText('group_hash', _('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
@@ -542,9 +542,9 @@ final class GroupPresenter extends BasePresenter
 			$size= getimagesize($values['group_avatar']->getTemporaryFile());
 			
 			if ($size[0]>1500 || $size[1]>1500) {
-				$this->flashMessage(_("The image is too big! Max. size for upload is 1500x1500"),'error');
-			} elseif ($size[0]<120 || $size[1]<150) {
-				$this->flashMessage(_("The image is too small! Min. size for upload is 120x150"),'error');
+				$this->flashMessage(sprintf(_("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
+			} elseif ($size[0]<80 || $size[1]<100) {
+				$this->flashMessage(sprintf(_("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 			} else {
 				$values['group_portrait'] = base64_encode(file_get_contents($values['group_avatar']->getTemporaryFile()));
 			}

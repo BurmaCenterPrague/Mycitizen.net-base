@@ -437,7 +437,7 @@ final class AdministrationPresenter extends BasePresenter
 				$message = "";
 			}
 			if ($warning_type == "2") {
-				$message = _("We have received complaints about inapproprite language in your resource. Please make necessary adjustments or your resource will be deactivated.");
+				$message = _("We have received complaints about inappropriate language in your resource. Please make necessary adjustments or your resource will be deactivated.");
 			}
 			$object = Resource::create($object_id);
 			$message .= "\n"._('Name').": ".$object->getName();

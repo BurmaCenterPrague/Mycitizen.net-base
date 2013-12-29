@@ -430,7 +430,7 @@ if($this->format == RestFormat::PLAIN || $this->format == RestFormat::HTML) {
   			<tr>
     			<td style="color:red;" align="left">
        				<ul style="margin-top: 6px; margin-bottom: 2px;list-style-type: none;">
-         				<li class="feedback-list-item">'._("Chyba")." ".$data['error']['code'].": ".$data['error']['message'].'</li>
+         				<li class="feedback-list-item">'._("Error")." ".$data['error']['code'].": ".$data['error']['message'].'</li>
        				</ul> 
     			</td>
   			</tr>
@@ -547,8 +547,8 @@ private $codes = array(
 '415' => 'Unsupported Media Type',
 '416' => 'Requested Range Not Satisfiable',
 '417' => 'Expectation Failed',
-'420' => 'Špatný formát času.',
-'421' => 'Nebyla nalezena žádná nahrávka.',
+'420' => 'Wrong time format.',
+'421' => 'No recording found.',
 '500' => 'Internal Server Error',
 '501' => 'Not Implemented',
 '503' => 'Service Unavailable'

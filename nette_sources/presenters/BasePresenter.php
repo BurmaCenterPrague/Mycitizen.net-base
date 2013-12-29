@@ -544,20 +544,34 @@ abstract class BasePresenter extends NPresenter
 						echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.' (member of group '.$group_name.')<br/>';
 					}
 					
-				
 				}
-				
-				
+								
 			break;
 			}
 			
 		}
 
-/*
+
 		if (isset($verbose)) {
-			echo 'Cleaning expired PHP sessions...<br/>';
+			echo 'Queuing notifications to be sent ...<br/>';
 		}
-*/
+
+		$users_a = User::getAllUsersForCron();
+		if (is_array($users_a)) {
+			foreach ($users_a as $user_a) {
+				if (User::getUnreadMessages($user_a['user_id'])) {
+					$email_text = sprintf(_("Dear %s"), $user_a['user_login']). ",\n\n";
+					$email_text .= _("You have unread messages!");
+//					$email_text .= "\n\n";
+//					$email_text .= "("._("You can change your notification settings in your profile.").")";
+					StaticModel::addCron(time(), 1, $user_a['user_id'], $email_text, 0, 0);
+					User::setUserCronSent($user_a['user_id']);
+					if (isset($verbose)) {
+						echo 'User with id '.$user_a['user_id'].' will receive a notification about unread messages.<br/>';
+					}
+				}
+			}
+		}
 		
 		if (isset($verbose)) {
 			echo 'Done.<br/>';

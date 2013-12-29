@@ -25,11 +25,6 @@
         <th>
             {_"Name"}
         </th>
-<!--
-        <th>
-            Surname
-        </th>
--->
         <th>
             {_"User permissions"}
         </th>
@@ -46,11 +41,6 @@
             <td>
                 {$user['user_name']}
             </td>
-<!--
-            <td>
-                {$user['user_surname']}
-            </td>
--->
 				{if Auth::ADMINISTRATOR == Auth::isAuthorized(Auth::TYPE_USER,$user['user_id'])}
         			{var formName => 'userform' . $user['user_id']}
         			{control $formName begin}

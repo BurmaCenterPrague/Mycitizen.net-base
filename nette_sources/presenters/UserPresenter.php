@@ -243,7 +243,7 @@ final class UserPresenter extends BasePresenter
 			
 			} elseif ($size_x < 80 || $size_y < 100) {
 
-				$this->flashMessage(_("The image is too small. Minimum size is 80px x 100px."), 'error');
+				$this->flashMessage(sprintf(_("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
 				
 				$user->removeAvatar();
 				$user->removeIcons();
@@ -314,7 +314,38 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
+
+	protected function createComponentNotificationsform()
+	{
+		$user = NEnvironment::getUser()->getIdentity();
+		$notification_setting = $user->getNotificationSetting();
 	
+		$form = new NAppForm($this, 'notificationsform');
+		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('no'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
+		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _('Update'));
+
+		$form->onSubmit[] = array(
+			$this,
+			'notificationsformSubmitted'
+		);
+		$form->setDefaults(array('user_send_notifications' => $notification_setting));
+		return $form;
+	}
+	
+	public function notificationsformSubmitted(NAppForm $form)
+	{
+		$values = $form->getValues();
+		$logged_user   = NEnvironment::getUser()->getIdentity();
+		if (isset($this->user) && !is_null($this->user->getUserId()) && Auth::isAuthorized(1,$logged_user->getUserId()) >= 2) {
+			$user = $this->user;
+		} elseif (!is_null($logged_user)) {
+			$user = $logged_user;
+		}
+		$user->setNotificationSetting($values['user_send_notifications']);
+		$this->redirect("this");
+	}
+		
 	protected function createComponentChangelostpasswordform()
 	{
 		$form = new NAppForm($this, 'changelostpasswordform');
@@ -699,10 +730,11 @@ final class UserPresenter extends BasePresenter
 		//$form->addText('user_phone_imei',_('Phone IMEI:'));
 		$form->addText('user_email', _('Email:'));
 		$form->addSelect('user_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Do you want be visible to everyone (world), only to registered users (registered) or only to your friends (friends)?'))->id("help-name"));
+		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('no'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
 		$form->addSelect('user_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('The main language you want to use. You will still be able to see other languages.'))->id("help-name"));
 		$form->addTextArea('user_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Write some lines about your life, your work and your interests.'))->id("help-name"));
 		$form->addText('user_url', _('Homepage:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your website, blog or Facebook profile.'))->id("help-name"))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
-		$form->addFile('user_avatar', _('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it.'))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, _('Maximum image size is 512kB'), 512 * 1024);
+		$form->addFile('user_avatar', _('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_('Avatars are small images that will be visible with your name. Here you can upload your avatar (min. %s, max. %s). In the next step you can crop it.'),"120x150px","1500x1500px") )->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_('Maximum image size is %s'), "512kB"), 512 * 1024);
 		
 		$form->addProtection(_('Error submitting form.'));
 		 
@@ -738,7 +770,7 @@ final class UserPresenter extends BasePresenter
 
 		if (isset($this->user) && !is_null($this->user->getUserId()) && Auth::isAuthorized(1,$logged_user->getUserId()) >= 2) {
 			$user = $this->user;
-		} elseif (!is_null($logged_user)) { // !isset($user) && 
+		} elseif (!is_null($logged_user)) {
 			$user = $logged_user;
 		}
 		if (!empty($user)) {
@@ -777,9 +809,9 @@ final class UserPresenter extends BasePresenter
 				$size= getimagesize($values['user_avatar']->getTemporaryFile());
 				
 				if ($size[0]>1500 || $size[1]>1500) {
-					$this->flashMessage(_("Image is too big! Max. size is for upload is 1500x1500"),'error');
-				} elseif ($size[0]<120 || $size[1]<150) {
-					$this->flashMessage(_("The image is too small! Min. size for upload is 120x150"),'error');
+					$this->flashMessage(sprintf(_("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
+				} elseif ($size[0]<80 || $size[1]<100) {
+					$this->flashMessage(sprintf(_("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 				} else {
 					$values['user_portrait'] = base64_encode(file_get_contents($values['user_avatar']->getTemporaryFile()));
 				}
@@ -1218,7 +1250,7 @@ final class UserPresenter extends BasePresenter
 		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 		
 		$options = array(
-			'itemsPerPage' => 30,
+			'itemsPerPage' => 50,
 			'lister_type' => array(
 				ListerControlMain::LISTER_TYPE_RESOURCE
 			),
@@ -1488,10 +1520,6 @@ final class UserPresenter extends BasePresenter
 
 	public function handleMakeicon($user_id) {
 
-//		$query = NEnvironment::getHttpRequest();	
-//		$user_id = $query->getQuery("user_id");
-
-		
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
 			
 			$this->redirect("User:edit",$user_id);
@@ -1541,9 +1569,6 @@ final class UserPresenter extends BasePresenter
 	
 	public function handleMakebigicon($user_id) {
 	
-//		$query = NEnvironment::getHttpRequest();		
-//		$user_id = $query->getQuery("user_id");
-		
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
 			
 			$this->redirect("User:edit",$user_id);
