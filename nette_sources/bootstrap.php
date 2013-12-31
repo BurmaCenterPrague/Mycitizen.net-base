@@ -1,7 +1,7 @@
 <?php
 // about this version
 define('PROJECT_VERSION', '0.3');
-define('PROJECT_DATE', '20131226');
+define('PROJECT_DATE', '20131231');
 
 session_set_cookie_params(1209600);
 
