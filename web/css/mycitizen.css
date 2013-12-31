@@ -1395,9 +1395,11 @@ width:60px;
 #tagdiv label {
 	width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+/*
 .edit-wrapper {
 max-width:500px;
 }
+*/
 .edit-wrapper fieldset {
 max-width:500px;
 }
@@ -1487,3 +1489,9 @@ max-width:500px;
 	box-shadow: 0px 0px 16px rgb(138, 138, 138);
 	text-align:center;
 }
+
+
+.edit-wrapper {float: left;}
+.image-buttons, .group-edit-image .images {display:inline-block; width:100%;}
+.group-edit-image, .user-edit-image {min-width:40%;}
+.icon-large, .icon-small {padding: 0 5px;}

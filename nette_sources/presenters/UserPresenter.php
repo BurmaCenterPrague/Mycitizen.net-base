@@ -115,13 +115,7 @@ final class UserPresenter extends BasePresenter
 
 	}
 
-/**		
-	public function actionCreate()
-	{
-		
-	}
-*/
-	public function actionConfirm($user_id, $control_key)
+	public function actionConfirm($user_id, $control_key, $device)
 	{
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
@@ -130,39 +124,77 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		if (User::finishRegistration($user_id, $control_key)) {
-			$this->flashMessage(_("Registration has been succesfull. You can now sign in."));
+		
+			if (isset($device) && $device=="mobile") {
+				echo _("Registration has been succesfull. You can now sign in.");
+				
+				$this->terminate();
+			} else {
+				$this->flashMessage(_("Registration has been succesfull. You can now sign in."));
 			
-			$this->redirect('User:login');
+				$this->redirect('User:login');
+			}
 		} else {
-			$this->flashMessage(_("Registration couldn't be finished! Link is not active anymore"), 'error');
+		
+			if (isset($device) && $device=="mobile") {
+				echo _("Registration couldn't be finished! Link is not active anymore.");
+				
+				$this->terminate();
+			} else {
+				$this->flashMessage(_("Registration couldn't be finished! Link is not active anymore."), 'error');
 			
-			$this->redirect('Homepage:default');
+				$this->redirect('Homepage:default');
+			}
 		}
 	}
 	
-	public function actionEmailchange($user_id, $control_key)
+	public function actionEmailchange($user_id, $control_key, $device)
 	{
 		if (User::finishEmailChange($user_id, $control_key)) {
-			$this->flashMessage(_("Email has been succesfully changed."));
+			if (isset($device) && $device=="mobile") {
+				echo _("Email has been succesfully changed.");
+				
+				$this->terminate();
+			} else {
+				$this->flashMessage(_("Email has been succesfully changed."));
 			
-			$this->redirect('Homepage:default');
+				$this->redirect('Homepage:default');
+			}
 		} else {
-			$this->flashMessage(_("Email couldn't be changed! Link is not active anymore"), 'error');
+			if (isset($device) && $device=="mobile") {
+				echo _("Email couldn't be changed! Link is not active anymore.");
+				
+				$this->terminate();
+			} else {
+				$this->flashMessage(_("Email couldn't be changed! Link is not active anymore."), 'error');
 			
-			$this->redirect('Homepage:default');
+				$this->redirect('Homepage:default');
+			}
 		}
 	}
 	
-	public function emailchangeAdmin($user_id,$user_email)
+	public function emailchangeAdmin($user_id, $user_email, $device)
 	{
 		if (User::finishEmailChangeAdmin($user_id,$user_email)) {
-			$this->flashMessage(_("Email has been succesfully changed."));
+			if (isset($device) && $device=="mobile") {
+				echo _("Email has been succesfully changed.");
+				
+				$this->terminate();
+			} else {
+				$this->flashMessage(_("Email has been succesfully changed."));
 			
-			$this->redirect("this");
+				$this->redirect("this");
+			}
 		} else {
-			$this->flashMessage(_("Email couldn't be changed!"), 'error');
+			if (isset($device) && $device=="mobile") {
+				echo _("Email couldn't be changed!");
+				
+				$this->terminate();
+			} else {
+				$this->flashMessage(_("Email couldn't be changed!"), 'error');
 			
-			$this->redirect("this");
+				$this->redirect("this");
+			}
 		}
 	}
 	

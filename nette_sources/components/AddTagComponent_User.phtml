@@ -13,14 +13,13 @@
  */
 ?>
 <div>
-  <a id="tag_select_button" href="#tag_select_div" class="button"><?=_('add new tag')?></a>
+  <a class="fancybox button" href="#tag_select_div"><?=_('add new tag')?></a>
   <input id="tag_select_hidden" type="hidden" name="{$name}" value="{$control->getValue()}" />
 </div>
 
 <script type="text/javascript">
   $(document).ready( function(){
     $("#tag_tree_select").treeview();
-    $("a#tag_select_button").fancybox({});
     $("div.tree a").on('click', function(){ 
       $(".active").removeClass("active");
       $(this).addClass("active");
@@ -54,7 +53,7 @@
       	{/while}
   	 
       	<li{if !in_array($node['tag_id'], $active_node_path)} class="closed"{/if}>
-      		<span class="folder {=NString::webalize($object_type_name_array[$node['tag_id']])}">&nbsp;</span>
+      		<span class="folder {* =NString::webalize($object_type_name_array[$node['tag_id']]) *}">&nbsp;</span>
   	 			<span {if $node['tag_id']==$control->getValue()}class="active"{/if}>
   	 			<a href="#" onclick="
   	   			document.getElementById('tag_select_hidden').value='{!$node['tag_id']}';

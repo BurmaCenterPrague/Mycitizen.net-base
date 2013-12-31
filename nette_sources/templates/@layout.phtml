@@ -203,8 +203,13 @@
 {ifset $mobile}
 	<div id="mobile_alert">
 		<!-- mobile phone detected. -->
-		<a href="https://mycitizen.net/download:mobile" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').slideUp('normal');" style="float:right;">X</a>
+		<a href="https://mycitizen.net/download:mobile" class="button">{_"Download the mobile application"} <a href="javascript:void(0)" onclick="$('#mobile_alert').slideUp('normal'); createCookie('mycitizenNetMobileAlert', 'closed', 2);" style="float:right;">X</a>
 	</div>
+	<script>
+	if (readCookie('mycitizenNetMobileAlert')=='closed') {
+		$('#mobile_alert').hide();
+	}
+	</script>
 {/if}
 
 	<div id="layout">

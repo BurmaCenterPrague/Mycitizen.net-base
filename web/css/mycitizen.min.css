@@ -276,4 +276,8 @@ div[class^=user-detail-pm-send] form input[type=submit],.group-detail-chatlist f
 .item[id^=chat_message_] .chat-item:hover,.admin-table tr:nth-child(odd){background-color:transparent}
 .user-messages .filter-block input[type=radio],#tagdiv .all-tags b{display:none}
 #filter_container,.ui-timepicker-div dl,#report_form{text-align:left}
-.edit-wrapper,.edit-wrapper fieldset{max-width:500px}
+.edit-wrapper fieldset{max-width:500px}
+.edit-wrapper {float: left;}
+.image-buttons, .group-edit-image .images {display:inline-block; width:100%;}
+.group-edit-image, .user-edit-image {min-width:40%;}
+.icon-large, .icon-small {padding: 0 5px;}
