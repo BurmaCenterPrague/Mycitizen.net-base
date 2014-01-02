@@ -1496,6 +1496,7 @@ final class UserPresenter extends BasePresenter
 		return false;
 	}
 
+
 	public function handleCrop() {
 
 		$query = NEnvironment::getHttpRequest();
@@ -1509,144 +1510,49 @@ final class UserPresenter extends BasePresenter
 
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
 			
-			$this->redirect("User:edit",$user_id);
+			$this->flashMessage(_("You are not allowed to edit this user."), 'error');
+			$this->redirect("User:default",$user_id);
 		}
 		
+		// remove from cache
 		BasePresenter::removeImage($user_id,1);
 
-		$targ_w = 160;
-		$targ_h = 200;
-
 		$user = new User($user_id);
 
 		if (!empty($user)) {
-
-			$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
 
 			$data = base64_decode($user->getAvatar());
 		
 			if (isset($data)) {
 		
-				$img_r = imagecreatefromstring($data);
-		
-				imagecopyresampled($dst_r, $img_r, 0, 0, $x, $y, $targ_w, $targ_h, $w, $h);
+				// target sizes
+				$avatar_w = 160;
+				$avatar_h = 200;
+				$large_icon_w = 40;
+				$large_icon_h = 50;
+				$icon_w = 20;
+				$icon_h = 25;
 
-				ob_start();
-					header('Content-type: image/jpeg');
-					imagejpeg($dst_r,NULL,80);
-					$image_data = ob_get_contents(); 
-				ob_end_clean(); 
-			
-				$cropped_image = base64_encode($image_data);
-		
-				$values = array ('user_portrait' => $cropped_image);
-
-
+				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,80));
+				$large_icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
+				$icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
+				
+				$values = array (
+					'user_portrait' => $avatar,
+					'user_largeicon' => $large_icon,
+					'user_icon' => $icon,
+					);
+				
 				$user->setUserData($values);
 				$user->save();
+				
 			}
 		}
-
-		$this->redirect("User:edit",array('user_id'=>$user_id,'do'=>'makeicon'));
-	}	
-
-	public function handleMakeicon($user_id) {
-
-		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
-			
-			$this->redirect("User:edit",$user_id);
-		}
-
-		$targ_w = 20;
-		$targ_h = 25;
-		$x=0;
-		$y=0;
-		$w = 160;
-		$h = 200;
-
-
-		$user = new User($user_id);
-
-		if (!empty($user)) {
-
-			$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
-
-			$data = base64_decode($user->getAvatar());
 		
-			if (isset($data)) {
-		
-				$img_r = imagecreatefromstring($data);
-		
-				imagecopyresampled($dst_r, $img_r, 0, 0, $x, $y, $targ_w, $targ_h, $w, $h);
-
-				ob_start();
-					header('Content-type: image/jpeg');
-					imagejpeg($dst_r,NULL,90);
-					$image_data = ob_get_contents(); 
-				ob_end_clean(); 
-
-				$cropped_image = base64_encode($image_data);
-		
-				$values = array ('user_icon' => $cropped_image);
-
-
-				$user->setUserData($values);
-				$user->save();
-			}
-		}
-
-		$this->redirect("User:edit",array('user_id'=>$user_id,'do'=>'makebigicon'));
-
-	}
-	
-	public function handleMakebigicon($user_id) {
-	
-		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
-			
-			$this->redirect("User:edit",$user_id);
-		}
-
-		$targ_w = 40;
-		$targ_h = 50;
-		$x=0;
-		$y=0;
-		$w = 160;
-		$h = 200;
-
-		$user = new User($user_id);
-
-		if (!empty($user)) {
-
-			$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
-
-			$data = base64_decode($user->getAvatar());
-		
-			if (isset($data)) {
-		
-				$img_r = imagecreatefromstring($data);
-		
-				imagecopyresampled($dst_r, $img_r, 0, 0, $x, $y, $targ_w, $targ_h, $w, $h);
-
-				ob_start();
-					header('Content-type: image/jpeg');
-					imagejpeg($dst_r,NULL,90);
-					$image_data = ob_get_contents();
-				ob_end_clean(); 
-
-				$cropped_image = base64_encode($image_data);
-		
-				$values = array ('user_largeicon' => $cropped_image);
-
-
-				$user->setUserData($values);
-				$user->save();
-			}
-		}
-
-		$this->flashMessage(_("Finished cropping and resizing."));
+		// save to cache
 		$user->saveImage($user_id);
+		$this->flashMessage(_("Finished cropping and resizing."));
 		$this->redirect("User:edit",$user_id);
-
 	}
 
 
