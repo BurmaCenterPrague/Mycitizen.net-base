@@ -159,7 +159,7 @@ div[class^=wrapper-home] .list-body-top-wrapper .list-body-name{width:195px}
 #frm-updateform fieldset,#frm-loginform fieldset,#frm-registerform fieldset{border:none;border-bottom:1px silver solid;padding:0}
 #frm-updateform label,#frm-loginform label,#frm-registerform label,#frm-grouplister-filter-filter label{border-bottom:solid 3px #EAE9E3;display:block;padding-top:7px}
 #frm-updateform th,#frm-loginform th,#frm-registerform th,#frm-grouplister-filter-filter th{width:120px;text-transform:uppercase;font-size:.9em;text-align:left}
-.group-edit-image,.user-edit-image{margin-left:10px}
+.group-edit-image,.user-edit-image{margin-left:10px;min-width:40%}
 .group-edit-image p,.user-edit-image p{width:30px;margin:0 5px}
 .group-edit-tagform,.group-edit-membersform,.group-edit-resources,.resource-edit-tagform{width:33%;float:left}
 .group_edit_updateform h3,.resource_edit_updateform h3,.user_edit_updateform h3{border-bottom:solid 3px #EAE9E3;display:block;margin-right:20px;text-transform:uppercase;font-size:.9em}
@@ -242,12 +242,13 @@ b.icon-clear{background-position:-200px -200px}
 .filter-trash label{cursor:pointer}
 #mobile_alert{top:0;width:100%;color:#333;height:50px;text-align:center;padding-top:20px;-webkit-box-shadow:0 0 8px 0 #000;-moz-box-shadow:0 0 8px 0 #000;box-shadow:0 0 8px 0 #000;background-color:#fff;z-index:10000;margin:0 0 5px}
 #mobile_alert a{font-size:18px;padding-left:15px;padding-right:15px;color:#000;text-decoration:none}
-.icon-large,.icon-small{width:60px}
+.icon-large,.icon-small{width:60px;padding:0 5px}
 .admin-table td{border:solid 1px #ccc;font-size:1.2em;margin:0;padding:5px}
 .admin-table tr:nth-child(even){background-color:#eee}
 .admin-table tr.tr-header{background-color:#ddd}
-.wrapper_tag{padding:2px}
+.wrapper_tag{max-width:210px;padding:2px}
 .wrapper_tag:hover{background-color:#eae9e3}
+.edit-wrapper fieldset{max-width:500px}
 .balloon-right{background-color:#E4E4E4;border-radius:5px;-moz-border-radius:5px;-webkit-border-radius:5px;position:relative;font-size:12px;width:590px;text-align:justify;min-height:30px;box-shadow:2px 2px 4px #999;padding:20px}
 .balloon-right .arrow{background:transparent url(/images/arrow-left.png);left:-20px;position:absolute;top:4px;width:20px;height:20px}
 .balloon-left{background-color:#F7F7F7;border-radius:5px;-moz-border-radius:5px;-webkit-border-radius:5px;position:relative;font-size:12px;width:590px;text-align:justify;min-height:30px;box-shadow:2px 2px 4px #999;padding:20px}
@@ -257,6 +258,12 @@ b.icon-clear{background-position:-200px -200px}
 .tinymce{width:800px;height:300px}
 .tinymce-small{width:740px;height:200px}
 .login-box{width:300px;border-radius:25px;box-shadow:0 0 16px #8a8a8a;text-align:center;margin:30px 0 30px 30px;padding:10px 20px}
+.image-buttons,.group-edit-image .images{display:inline-block;width:100%}
+#tagdiv{text-align:left;width:600px;min-height:200px;margin:0}
+.filter-tags{float:left;width:640px;max-height:450px;overflow-y:auto;overflow-x:hidden;margin:10px}
+.filter-buttons{float:right;max-width:600px;margin-right:20px;padding:0 20px}
+.tag-columns{column-count:3;-moz-column-count:3;-webkit-column-count:3}
+.filter-top-left{float:left;width:500px;margin:10px}
 img,.language select,.user-details,.group-details,.resource-details{border:none}
 #topheader a,.footer a{color:#000;text-decoration:none}
 #topheader a:hover,#menu li a:hover,#menu li.menu_item_active li a:hover,.footer a:hover{color:#f05a28}
@@ -266,18 +273,14 @@ img,.language select,.user-details,.group-details,.resource-details{border:none}
 .user-image img,.group-image img,.resource-image img{border:1px solid #FFF}
 .user_edit_updateform .list-header-role,.group_edit_updateform .list-header-role,.resource_edit_updateform .list-header-role,.user_edit_updateform .list-body-access,.group_edit_updateform .list-body-access,.resource_edit_updateform .list-body-access{float:left;width:120px}
 .about h2 b[class^=icon-],.chat-item .chat-reply,.item[id^=chat_message_] .message-reply,.wrapper_tag input,.chat-item .avatar-right{float:right}
-.user-detail-language h3,.group-detail-language h3,.resource-detail-language h3,.chat-author div{display:inline}
+.user-detail-language h3,.group-detail-language h3,.resource-detail-language h3,.chat-author div,.filter-block{display:inline}
 .detail-right .item:hover,div[class^=wrapper-home] .list-body-top-wrapper .item:hover{background-color:#EFEDEA}
 div[class^=user-detail-pm] h2,.group-detail-chatlist h2,.resource-detail-chatlist h2,.wrapper-intro h2{color:#e13c20;font-size:1.2em}
 div[class^=user-detail-pm-send] form input[type=submit],.group-detail-chatlist form input[type=submit],.resource-detail-chatform input[type=submit],#frmmessageform-send{font-size:1.3em}
 .chat-item,.item[id^=chat_message_],.adminmenu ul{padding:0}
-.chat-item .chat-time,.chat-item .message-author-avatar,.chat-item .message-author,.chat-item .message-time,.chat-item .chat-status,#snippet-messagelisteruser-list_body b[class^=icon-],.group-edit-image,.user-edit-image,.group-edit-map,.user-edit-map,.resource-edit-map,.group-edit-image .image-full,.group-edit-image .icon-large,.group-edit-image .icon-small,.user-edit-image .image-full,.user-edit-image .icon-large,.user-edit-image .icon-small,.chat-item .avatar-left{float:left}
+.chat-item .chat-time,.chat-item .message-author-avatar,.chat-item .message-author,.chat-item .message-time,.chat-item .chat-status,#snippet-messagelisteruser-list_body b[class^=icon-],.group-edit-image,.user-edit-image,.group-edit-map,.user-edit-map,.resource-edit-map,.group-edit-image .image-full,.group-edit-image .icon-large,.group-edit-image .icon-small,.user-edit-image .image-full,.user-edit-image .icon-large,.user-edit-image .icon-small,.chat-item .avatar-left,.edit-wrapper{float:left}
 .chat-item .chat-status,.group-edit-image img,.user-edit-image img{margin-left:5px}
 .item[id^=chat_message_] .chat-item:hover,.admin-table tr:nth-child(odd){background-color:transparent}
 .user-messages .filter-block input[type=radio],#tagdiv .all-tags b{display:none}
 #filter_container,.ui-timepicker-div dl,#report_form{text-align:left}
-.edit-wrapper fieldset{max-width:500px}
-.edit-wrapper {float: left;}
-.image-buttons, .group-edit-image .images {display:inline-block; width:100%;}
-.group-edit-image, .user-edit-image {min-width:40%;}
-.icon-large, .icon-small {padding: 0 5px;}
+.filter-suggest,.reset-filter{text-align:center;display:inline}

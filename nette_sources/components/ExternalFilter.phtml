@@ -15,7 +15,7 @@
 {control filter begin}
 {if !isset($hide_filter)}
 <div class="filter-body" style="height:auto !important; padding: 10px;">
-<div class="filter-block" style="display:inline;">
+<div class="filter-block">
 
 {if isset($hide_by_default) && (isset($include_map) || isset($include_tags))}
 <script>
@@ -31,7 +31,7 @@
 </script>
 {/if}
 
-   	<div class="filter-top-left" style="float:left;width:500px;margin:10px;">
+   	<div class="filter-top-left">
    	
 		{ifset $include_name}
 		<div class="filter-name">
@@ -80,19 +80,19 @@
 	</div>
 
 	{if !isset($hide_apply) || isset($include_suggest) || !isset($hide_reset)}
-	<div class="filter-buttons" style="float:right;max-width:600px;padding:0 20px;margin-right:20px;">
+	<div class="filter-buttons">
 	{/if}
 		<div class="filter-submit" style="text-align:center;{if isset($hide_apply)} display:none;{else}display:inline;{/if}" title="{_"Apply the filter and show the results."}">
 			{$control['filter']['filter']->control}
 		</div>
 		{ifset $include_suggest}
-		<div class="filter-suggest" style="text-align:center;display:inline;" title="{_"Search for similar topics like your interests and around your location."}">
+		<div class="filter-suggest" title="{_"Search for similar topics like your interests and around your location."}">
 			{$control['filter']['suggest']->control}
 		</div>
 		{/if}
 
 	{if !isset($hide_reset)}
-		<div class="reset-filter" style="text-align:center;display:inline;" title="{_"Reset the filter and show the entire list."}">
+		<div class="reset-filter" title="{_"Reset the filter and show the entire list."}">
 			{$control['filter']['reset']->control}
 		</div>
 	{/if}
@@ -104,16 +104,16 @@
 
 	{ifset $include_tags}
 	<div class="cleaner"></div>
-   	<div class="filter-tags" style="float:left; width:640px; max-height:450px; margin:10px; overflow-y:auto; overflow-x:hidden;">
-		<div id="tagdiv" style="text-align:left;width:600px; height:400px; margin:0;">
+   	<div class="filter-tags">
+		<div id="tagdiv">
 			{foreach $control['filter']['tags']->getControls() as $key2=>$ctrl2}
 				{if $key2 == 'all'}
 			<div class="all-tags">
 				<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _($ctrl2->label)}</div>{$ctrl2->control}
 			</div>		
-      		<div class="tag-columns" style="column-count:3;-moz-column-count:3;-webkit-column-count:3;">
+      		<div class="tag-columns">
 				{else}
-				<div class="wrapper_tag" style="max-width:210px;">
+				<div class="wrapper_tag">
 					<div style="white-space:nowrap;display:inline;"><b class="icon-tag"></b>{$ctrl2->label}</div>{$ctrl2->control}
 				</div>
 				{/if}

@@ -219,6 +219,7 @@ font-size: 0.9em;
 .filter-body {
 	height: 75px;
 }
+
 .filter-body-off {
 	background: url(/images/filter-off-bg.png) no-repeat right 5px;
 }
@@ -1390,13 +1391,24 @@ width:60px;
 .admin-table tr.tr-header {background-color: #ddd}
 #frmmessageform-send{font-size:1.3em}
 
-.wrapper_tag {padding:2px;}
-.wrapper_tag:hover {background-color:#eae9e3;}
-#tagdiv label {
-	width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+.wrapper_tag {
+	max-width:210px;
+	padding:2px;
 }
+
+.wrapper_tag:hover {
+	background-color:#eae9e3;
+}
+
+#tagdiv label {
+	width:130px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+
 /*
-.edit-wrapper {
+edit-wrapper {
 max-width:500px;
 }
 */
@@ -1495,3 +1507,43 @@ max-width:500px;
 .image-buttons, .group-edit-image .images {display:inline-block; width:100%;}
 .group-edit-image, .user-edit-image {min-width:40%;}
 .icon-large, .icon-small {padding: 0 5px;}
+
+#tagdiv {
+	text-align:left;
+	width:600px;
+	min-height:200px;
+	margin:0;
+}
+
+.filter-tags {
+	float:left;
+	width:640px;
+	max-height:450px;
+	margin:10px;
+	overflow-y:auto;
+	overflow-x:hidden;
+}
+
+.filter-buttons {
+	float:right;max-width:600px;padding:0 20px;margin-right:20px;
+}
+
+.filter-suggest {
+	text-align:center;display:inline;
+}
+
+.reset-filter {
+	text-align:center;display:inline;
+}
+
+.tag-columns {
+	column-count:3;-moz-column-count:3;-webkit-column-count:3;
+}
+
+.filter-block {
+	display:inline;
+}
+
+.filter-top-left {
+	float:left;width:500px;margin:10px;
+}

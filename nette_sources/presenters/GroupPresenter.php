@@ -130,7 +130,7 @@ final class GroupPresenter extends BasePresenter
 			
 		}
 		
-		if (isset($data)) {
+		if (isset($data) && isset($data['object_data']['group_language'])) {
 			$languages = Language::getArray();
 			$this->template->object_language = $languages[$data['object_data']['group_language']];
 		}

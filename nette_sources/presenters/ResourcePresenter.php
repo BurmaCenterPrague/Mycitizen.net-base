@@ -153,7 +153,7 @@ final class ResourcePresenter extends BasePresenter
 			$this->template->logged_user = $user->getUserId();
 		}
 		
-		if (isset($data)) {
+		if (isset($data) && isset($data['object_data']['resource_language'])) {
 			$languages = Language::getArray();
 			$this->template->object_language = $languages[$data['object_data']['resource_language']];
 			
