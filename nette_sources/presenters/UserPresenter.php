@@ -109,11 +109,16 @@ final class UserPresenter extends BasePresenter
 
 	public function actionRegister()
 	{
-		if (Settings::getVariable('sign_up_disabled')) $this->template->sign_up_disabled = true;
+		if (Settings::getVariable('sign_up_disabled')) {
+			$this->template->sign_up_disabled = true;
+		} else {
+			if ($this->facebook()) $this->redirect('Homepage:default');
+		}
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) $this->template->logged = true;
 
 	}
+
 
 	public function actionConfirm($user_id, $control_key, $device)
 	{
@@ -308,7 +313,13 @@ final class UserPresenter extends BasePresenter
 	
 	public function actionLogin()
 	{
-		if (Settings::getVariable('sign_in_disabled')) $this->template->sign_in_disabled = true;
+		
+		if (Settings::getVariable('sign_in_disabled')) {
+			$this->template->sign_in_disabled = true;
+		} else {
+			if ($this->facebook()) $this->redirect('Homepage:default');
+		}
+		
 	}
 	
 	public function actionLogout()
@@ -353,7 +364,7 @@ final class UserPresenter extends BasePresenter
 		$notification_setting = $user->getNotificationSetting();
 	
 		$form = new NAppForm($this, 'notificationsform');
-		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('no'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
+		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('off'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
 		$form->addProtection(_('Error submitting form.'));
 		$form->addSubmit('send', _('Update'));
 
@@ -394,6 +405,7 @@ final class UserPresenter extends BasePresenter
 	}
 	public function changelostpasswordformSubmitted(NAppForm $form)
 	{
+
 		$values = $form->getValues();
 		if (User::finishPasswordchange($this->user_id, $this->control_key, $values['user_password'])) {
 			$this->flashMessage(_("Your password has been successfully changed, you can now log in."));
@@ -426,6 +438,7 @@ final class UserPresenter extends BasePresenter
 	
 	public function changepasswordformSubmitted(NAppForm $form)
 	{
+
 		$values = $form->getValues();
 		if (User::changePassword($values['user_id'], $values['user_password'])) {
 			$this->flashMessage(_("Your password has been successfully changed."));
@@ -531,6 +544,7 @@ final class UserPresenter extends BasePresenter
 	
 	public function lostpasswordformSubmitted(NAppForm $form)
 	{
+
 		$values = $form->getValues();
 		$user   = User::getEmailOwner($values['user_email']);
 		if (!empty($user)) {
@@ -585,6 +599,7 @@ final class UserPresenter extends BasePresenter
 			$this->flashMessage($e->getMessage(), 'error');
 		}
 	}
+
 	
 	protected function createComponentRegisterform()
 	{
@@ -607,9 +622,11 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+
 	public function registerformSubmitted(NAppForm $form)
 	{
+
 		$values = $form->getValues();
 		$user   = NEnvironment::getUser();
 		
@@ -671,7 +688,54 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->redirect('Homepage:default');
 	}
+
+
+	protected function createComponentSecurityquestionform()
+	{
+		$question = Settings::getVariable('signup_question');
+		if (!$question) {
+			$this->redirect('Homepage:default');
+		}
+		$form = new NAppForm($this, 'securityquestionform');
+		$form->addText('text', _($question))->addRule(NForm::FILLED, _('Please enter the text!'));
+
+		$form->addSubmit('register', _('Continue'));
+		$form->addProtection(_('Error submitting form.'));
+		$form->onSubmit[] = array(
+			$this,
+			'securityquestionformSubmitted'
+		);
+		
+		return $form;	
+	}
+
 	
+	public function securityquestionformSubmitted(NAppForm $form)
+	{
+		$values = $form->getValues();
+		
+		if (Settings::getVariable('sign_up_disabled')) {
+			$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
+			$this->redirect("Homepage:default");
+		}
+
+		$answer = Settings::getVariable('signup_answer');
+		
+		if ($answer) {
+			if ($answer != $values['text']) {
+				sleep(5);
+				$this->flashMessage(_("You entered the wrong captcha."), 'error');
+				$this->redirect('User:register');
+			}
+		} else {
+			// answer not set
+			$this->redirect('User:register');
+		}
+
+		$this->facebook(true);
+	}
+
+
 	protected function createComponentTagform()
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -715,7 +779,7 @@ final class UserPresenter extends BasePresenter
 		$data['resource_author']           = $user->getUserId();
 		$data['resource_type']             = 1;
 		$data['resource_visibility_level'] = 3;
-		$data['resource_name'] = '<chat>';//$values['resource_name'];
+		$data['resource_name'] = '<chat>';
 		$data['resource_data']             = json_encode(array(
 			'message_text' => $values['message_text']
 		));
@@ -736,7 +800,11 @@ final class UserPresenter extends BasePresenter
 	
 	protected function createComponentUpdateform()
 	{
-		$visibility = Visibility::getArray();
+		$visibility = array(
+						1 => 'world',
+						2 => 'registered',
+						3 => 'friends'
+					); // Visibility::getArray();
 		$language   = Language::getArray();
 		
 		$user = NEnvironment::getUser()->getIdentity();
@@ -759,7 +827,6 @@ final class UserPresenter extends BasePresenter
 		$form->addText('user_name', _('Name:'));
 		$form->addText('user_surname', _('Surname:'));
 		$form->addText('user_phone', _('Phone:'));
-		//$form->addText('user_phone_imei',_('Phone IMEI:'));
 		$form->addText('user_email', _('Email:'));
 		$form->addSelect('user_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Do you want be visible to everyone (world), only to registered users (registered) or only to your friends (friends)?'))->id("help-name"));
 		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('no'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
@@ -1093,7 +1160,20 @@ final class UserPresenter extends BasePresenter
 		$this->template->user_tags = $this->user->groupSortTags($user->getTags());
 		$this->invalidateControl('tagHandle');
 	}
-	
+
+	/**
+	*	Removing messages with friendship requests
+	*/
+	public function handleRemoveMessage($message_id,$user_id)
+	{
+		$resource = Resource::create($message_id);
+		if (!empty($resource)) {
+			$resource->remove_message(1, $user_id);
+		}
+
+		$this->terminate();	
+	}
+
 	public function handleDefaultPage($object_type, $object_id)
 	{
 		$this->user_id                = $object_id;
@@ -1289,8 +1369,9 @@ final class UserPresenter extends BasePresenter
 			'template_body' => 'ListerControlMain_messages.phtml',
 			'filter' => array(
 				'type' => array(
-					1,
-					9
+					1, // private messages
+					9, // system messages
+					10 // friendship requests
 				),
 				'all_members_only' => array(
 					array(
@@ -1493,6 +1574,9 @@ final class UserPresenter extends BasePresenter
 		if ($this->getAction() == "changelostpassword") {
 			return true;
 		}
+		if ($this->getAction() == "captcha") {
+			return true;
+		}
 		return false;
 	}
 
@@ -1533,7 +1617,7 @@ final class UserPresenter extends BasePresenter
 				$icon_w = 20;
 				$icon_h = 25;
 
-				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,80));
+				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
 				$large_icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
 				$icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
 				
@@ -1550,7 +1634,7 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		// save to cache
-		$user->saveImage($user_id);
+		User::saveImage($user_id);
 		$this->flashMessage(_("Finished cropping and resizing."));
 		$this->redirect("User:edit",$user_id);
 	}
@@ -1575,6 +1659,187 @@ final class UserPresenter extends BasePresenter
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $filter->syncFilterArray($filterdata); else $session->filterdata=$filterdata;
 
 		$this->redirect("User:default");
+	}
+
+ 
+  /**
+  *		Checks if user is authenticated via Facebook API
+  *
+  */
+  public function facebook($captcha = false) {
+  
+		$facebook_app_id = NEnvironment::getVariable("FACEBOOK_APP_ID");
+		$facebook_app_secret = NEnvironment::getVariable("FACEBOOK_APP_SECRET");
+		$facebook_app_url = NEnvironment::getVariable("URI");
+		$fb_logout_url = '';
+		$fb_login_url = '';
+
+		if (!empty($facebook_app_id) && !empty($facebook_app_secret) && !empty($facebook_app_url)) {
+			
+			include_once LIBS_DIR."/Facebook/facebook.php";
+			
+			$facebook = new Facebook( array(
+				'appId'		=> $facebook_app_id,
+				'secret'	=> $facebook_app_secret,
+				)
+			);
+
+			$fb_user = $facebook->getUser();
+			
+			// check if app is authorized
+			if ($fb_user) {
+				try{
+					// Proceed knowing you have a logged in user who's authenticated.
+					$user_profile = $facebook->api('/me');
+				} catch(FacebookApiException $e) {
+					unset($fb_user);
+				}
+			}
+			
+			if ($fb_user) {
+				$fb_logout_url = $facebook->getLogoutUrl(array(
+					'next'	=> $facebook_app_url
+				));
+				define('FB_LOGOUT_URL', $fb_logout_url);
+				
+				// check if username is known (we use same username as on Facebook)
+				if (User::loginExists($user_profile['username'])) {
+				
+					// check if email is known
+					if ($user_profile['username'] == User::userloginFromEmail($user_profile['email'])) {
+						// name and email match -> let's assume that user is registered (i.e. we trust FB that they prevent faked combinations)
+						if (Settings::getVariable('sign_in_disabled')) {
+							$this->flashMessage(_("Sign in is disabled. Please try again later."), 'error');
+							$this->redirect("Homepage:default");
+						}
+						$user = NEnvironment::getUser();
+						$user->login($user_profile['username'], '', 'facebook');	
+						$user->getIdentity()->setLastActivity();
+						return true;			
+					} else {
+						// username exists, but email doesn't match
+						$this->flashMessage(_("User with the same name already exists."), 'error');
+						$this->redirect('User:register');
+					}
+				
+				} else {
+					// user is new
+					// check email (same user cannot log in with same email with two different methods)
+					if (User::emailExists($user_profile['email'])) {
+						$this->flashMessage(_("Email is already registered with another account."), 'error');
+						$this->redirect('User:register');
+					}
+					
+					// spam check
+					if (StaticModel::isSpamSFS($user_profile['email'], $_SERVER['REMOTE_ADDR'])) {
+						$this->flashMessage(_("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
+						$this->redirect('User:register');
+					}
+//					var_dump($user_profile);die();
+					// check the security question - skipped if already answered
+					if (!$captcha) {
+						$question = Settings::getVariable('signup_question');
+					
+						if ($question) {
+							$this->flashMessage(_("The administrator asks you to answer a security question before you can enter."));
+							$this->redirect('User:captcha');
+						}
+					}
+					
+					if (Settings::getVariable('sign_up_disabled')) {
+						$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
+						$this->redirect("Homepage:default");
+					}
+					$new_user = User::create();
+					$values['user_login'] = $user_profile['username'];
+					$values['user_email'] = $user_profile['email'];
+					$values['user_name'] = $user_profile['first_name'];
+					$values['user_surname'] = $user_profile['last_name'];
+					$values['user_password'] = User::encodePassword(md5(rand())); // create dummy password with sufficient security
+					$values['user_hash'] = User::generateHash();
+					$values['user_url'] = $user_profile['link'];
+					$values['user_visibility_level'] = 2; // by default all signups from Facebook are hidden from the world
+					
+					// find location
+					if (isset($user_profile['location']['name']) && !empty($user_profile['location']['name']))
+						$fb_location = $user_profile['location']['name'];					
+					elseif (isset($user_profile['hometown']['name']) && !empty($user_profile['hometown']['name']))
+						$fb_location = $user_profile['hometown']['name'];
+					
+					if (isset($fb_location)) {
+						$location = $this->lookup_address($fb_location);
+						$values['user_position_y'] = $location['longitude'];
+						$values['user_position_x'] = $location['latitude'];
+					}
+										
+					// retrieve image
+					$fb_img = file_get_contents( "https://graph.facebook.com/".$user_profile['username']."/picture?type=large&height=200&width=160" );
+					$avatar = base64_encode($fb_img);
+
+					// make icon and large_icon
+					$large_icon_w = 40;
+					$large_icon_h = 50;
+					$icon_w = 20;
+					$icon_h = 25;
+					$large_icon = base64_encode(NImage::fromString($fb_img)->resize($large_icon_w, $large_icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
+					$icon = base64_encode(NImage::fromString($fb_img)->resize($icon_w, $icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
+					$values['user_portrait'] = $avatar;
+					$values['user_largeicon'] = $large_icon;
+					$values['user_icon'] = $icon;
+					$new_user->setUserData($values);
+					$new_user->save();
+					
+					User::saveImage($new_user->getUserId());
+			
+					$new_user->setRegistrationDate();
+					User::finishRegistration($new_user->getUserId(), $values['user_hash']);
+					$user = NEnvironment::getUser();
+					$user->login($user_profile['username'], '', 'facebook');
+					$user_id = $user->getIdentity()->getUserId();
+					$user->getIdentity()->registerFirstLogin();
+					$user->getIdentity()->setLastActivity();
+
+					$this->redirect("User:edit", $user_id);
+				}
+				
+			} else {
+				$fb_login_url = $facebook->getLoginUrl(array(
+					'scope'		=> 'email',
+					'redirect_uri'	=> 'https://4development.mycitizen.net/signin/'
+				));
+
+				define('FB_LOGIN_URL', $fb_login_url);
+				$this->template->FB_LOGIN_URL = $fb_login_url;
+			}
+			
+		}
+	}
+
+	public function lookup_address($string) {
+ 
+	   $string = str_replace (" ", "+", urlencode($string));
+	   $details_url = "http://maps.googleapis.com/maps/api/geocode/json?address=".$string."&sensor=false";
+ 
+	   $ch = curl_init();
+	   curl_setopt($ch, CURLOPT_URL, $details_url);
+	   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	   $response = json_decode(curl_exec($ch), true);
+ 
+	   // If Status Code is ZERO_RESULTS, OVER_QUERY_LIMIT, REQUEST_DENIED or INVALID_REQUEST
+	   if ($response['status'] != 'OK') {
+			return null;
+	   }
+ 
+	   $geometry = $response['results'][0]['geometry'];
+ 
+		$array = array(
+			'latitude' => $geometry['location']['lat'],
+			'longitude' => $geometry['location']['lng'],
+			'location_type' => $geometry['location_type'],
+		);
+ 
+		return $array;
+ 
 	}
 
 }

@@ -1,0 +1,29 @@
+<?php
+/**
+ * mycitizen.net - Open source social networking for civil society
+ *
+ * @version 0.3 beta
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
+{var $robots => "noindex,nofollow"}
+{block title}{_"Security Question"}{/block}
+{block content}
+<div class="login-box">
+	<h2>{_"Please answer the security question"}</h2>
+	{control securityquestionform}
+</div>
+
+{if file_exists(WWW_DIR."/images/captcha.jpg")}
+<div class="login-box">
+	<img src="/images/captcha.jpg" alt="captcha" />
+</div>
+{/if}
+	
+{/block}

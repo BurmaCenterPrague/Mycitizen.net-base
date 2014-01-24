@@ -24,7 +24,8 @@ class Group extends BaseModel {
 
 	public function __construct($group_id) {
 		if(!empty($group_id)) {
-			$result = dibi::fetchAll("SELECT * FROM `group` WHERE `group_id` = %i",$group_id);
+//			$result = dibi::fetchAll("SELECT * FROM `group` WHERE `group_id` = %i",$group_id);
+			$result = dibi::fetchAll("SELECT `group_id`, `group_author`, `group_name`, `group_description`, `group_language`, `group_visibility_level`, `group_access_level`, `group_status`, `group_viewed`, `group_position_x`, `group_position_y`, `group_last_activity`, `group_portrait`, `group_largeicon`, `group_icon`, `group_hash` FROM `group` WHERE `group_id` = %i",$group_id);  
 			if(sizeof($result) > 2) {
 				return false;
 				throw new Exception("More than one group with the same id found.");
@@ -431,7 +432,7 @@ class Group extends BaseModel {
 
 	}
 
-	public function saveImage($id) {
+	public static function saveImage($id) {
 	
 		$object = Group::create($id);
 		

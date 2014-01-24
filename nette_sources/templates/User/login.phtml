@@ -43,17 +43,23 @@
 				</tr>
 				<tr>
 					<td></td>
-					<td>
+					<td>{$control['loginform']['signin']->control}</td>
+				</tr>
+
+			{ifset $FB_LOGIN_URL}
+				<tr><td></td>
+					<td><a href="{$FB_LOGIN_URL}"><img src="/images/fb-sign-in.png" alt="{_"sign in with Facebook"}"/></a></td>
+				</tr>
+			{/if}
+
+				<tr><td colspan="2">
 						<a href="{link User:lostpassword}">{_"Click here if you forgot your password."}</a>
 					</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td>{$control['loginform']['signin']->control}</td>
 				</tr>
 				<tr><td colspan="2">
 					{_"If you are new here, please "} <a href="{link User:register}">{_"sign up"}</a>.
 				</td></tr>
+
 			</table>
 		{control loginform end}
 	{/if}

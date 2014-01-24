@@ -27,7 +27,7 @@
 {if isset($data) && count($data)>0 }
 	{foreach $data as $row}    
 		{? $id=$row['id']}
-		{var $res => Resource::Create($row['id'])}
+		{var $res => Resource::Create($id)}
 		{var $resdata => $res->getResourceData()}
 		{? $all_recipient_data = $res->getAllMembers(array('resource_id'=>$id))}
 		{? $recipient_data = $all_recipient_data[0]}
@@ -76,19 +76,19 @@
 					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$row['id']}" href="javascript:void(0);" onClick="moveToTrash({$row['id']});$('#totrash-{$row['id']}').hide();$('#fromtrash-{$row['id']}').show();$('#chat_message_{$row['id']}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
 						</div>
 
 						<div class="restore-from-trash">
-							<a id="fromtrash-{$row['id']}" href="javascript:void(0);" onClick="moveFromTrash({$row['id']});$('#fromtrash-{$row['id']}').hide();$('#totrash-{$row['id']}').show();$('#chat_message_{$row['id']}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+							<a id="fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#fromtrash-{$id}').hide();$('#totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
 						</div>
 
 						<script>
 							$(document).ready(function(){
 							{if $res->inTrash()}
-								$("#totrash-{$row['id']}").hide();
+								$("#totrash-{$id}").hide();
 							{else}
-								$("#fromtrash-{$row['id']}").hide();
+								$("#fromtrash-{$id}").hide();
 							{/if}
 							});
 						</script>
@@ -96,19 +96,19 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="markread-{$row['id']}" href="javascript:void(0);" onClick="markRead({$row['id']});$('#markread-{$row['id']}').hide();$('#markunread-{$row['id']}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$row['id']}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
-							<a id="markunread-{$row['id']}" href="javascript:void(0);" onClick="markUnread({$row['id']});$('#markunread-{$row['id']}').hide();$('#markread-{$row['id']}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			
 						<script>
 							$(document).ready(function(){
 							{if $res->isOpened()}
-								$("#markread-{$row['id']}").hide();
+								$("#markread-{$id}").hide();
 							{else}
-								$("#markunread-{$row['id']}").hide();
+								$("#markunread-{$id}").hide();
 							{/if}
 							{if $own_message}
-								$("#markunread-{$row['id']}").hide();
+								$("#markunread-{$id}").hide();
 							{/if}
 							});
 						</script>
@@ -138,7 +138,7 @@
 {/if}
 				</div>
 
-				{elseif $resdata['resource_type'] == 9}
+				{elseif $resdata['resource_type'] == 9 || $resdata['resource_type'] == 10}
 				<div style="padding:5px;">
 					<b class="icon-warning" title="system message"></b>
 				</div>
@@ -154,12 +154,18 @@
 			{/if}
 				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
 					{if !$res->getOwner()->isActive()}
-					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
+				<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
 					{/if}
 					{if $resdata['resource_type'] == 9}
-					<p>{!$resdata['message_text']|htmlpurify}</p>
+				<p>{!$resdata['message_text']|htmlpurify}</p>
+					{elseif $resdata['resource_type'] == 10}
+				<p>{!$resdata['message_text']|htmlpurify}</p>
+				<p>
+					<a href="javascript:void(0);" onClick="markRead({$id}); removeMessageNow({$id}); userInsert_Friend({$sender_id},'');" class="button">{_"Accept friendship request"}</a>
+					<a href="javascript:void(0);" onClick="markRead({$id}); removeMessageNow({$id}); userRemove_Friend({$sender_id},'');" class="button">{_"Reject friendship request"}</a>
+				</p>
 					{else}
-					{!$resdata['message_text']|htmlpurify}
+				{!$resdata['message_text']|htmlpurify}
 					{/if}
 				{else}
 					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
@@ -201,19 +207,19 @@
 					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$row['id']}" href="javascript:void(0);" onClick="moveToTrash({$row['id']});$('#totrash-{$row['id']}').hide();$('#fromtrash-{$row['id']}').show();$('#chat_message_{$row['id']}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
 						</div>
 
 						<div class="restore-from-trash">
-							<a id="fromtrash-{$row['id']}" href="javascript:void(0);" onClick="moveFromTrash({$row['id']});$('#fromtrash-{$row['id']}').hide();$('#totrash-{$row['id']}').show();$('#chat_message_{$row['id']}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+							<a id="fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#fromtrash-{$id}').hide();$('#totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
 						</div>
 
 						<script>
 							$(document).ready(function(){
 							{if $res->inTrash()}
-								$("#totrash-{$row['id']}").hide();
+								$("#totrash-{$id}").hide();
 							{else}
-								$("#fromtrash-{$row['id']}").hide();
+								$("#fromtrash-{$id}").hide();
 							{/if}
 							});
 						</script>
@@ -221,19 +227,19 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="markread-{$row['id']}" href="javascript:void(0);" onClick="markRead({$row['id']});$('#markread-{$row['id']}').hide();$('#markunread-{$row['id']}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$row['id']}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
-							<a id="markunread-{$row['id']}" href="javascript:void(0);" onClick="markUnread({$row['id']});$('#markunread-{$row['id']}').hide();$('#markread-{$row['id']}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			
 						<script>
 							$(document).ready(function(){
 							{if $res->isOpened()}
-								$("#markread-{$row['id']}").hide();
+								$("#markread-{$id}").hide();
 							{else}
-								$("#markunread-{$row['id']}").hide();
+								$("#markunread-{$id}").hide();
 							{/if}
 							{if $own_message}
-								$("#markunread-{$row['id']}").hide();
+								$("#markunread-{$id}").hide();
 							{/if}
 							});
 						</script>
@@ -365,23 +371,31 @@
 
 {ifset $template_variables['moderation_enabled']}
 <script>
-		function removeMessage(id) {
-			$('#chat_message_'+id).css({'background-color':'#E30'});
-			var resource_id={$template_variables['resource_id']};
-			setTimeout( function(){
-				reply=confirm({_"Do you really want to delete this message?"});
-				if (reply==true) {
-					$.post("?message_id="+id+"&resource_id="+resource_id+"&do=removeMessage");
-						$('#totrash-'+id).hide();
-						$('#chat_message_'+id).slideUp('normal');
-				} else {
-					$('#chat_message_'+id).css({'background-color':'transparent'});
-				}	
-			}, 500 );	
-		}	
+	function removeMessage(id) {
+		$('#chat_message_'+id).css({'background-color':'#E30'});
+		var resource_id={$template_variables['resource_id']};
+		setTimeout( function(){
+			reply=confirm({_"Do you really want to delete this message?"});
+			if (reply==true) {
+				$.post("?message_id="+id+"&resource_id="+resource_id+"&do=removeMessage");
+					$('#totrash-'+id).hide();
+					$('#chat_message_'+id).slideUp('normal');
+			} else {
+				$('#chat_message_'+id).css({'background-color':'transparent'});
+			}	
+		}, 500 );	
+	}
 </script>
 {/if}
 
+<script>
+	function removeMessageNow(id) {
+		var user_id={$recipient_id};
+		$.post("?message_id="+id+"&user_id="+user_id+"&do=removeMessage");
+		$('#totrash-'+id).hide();
+		$('#chat_message_'+id).slideUp('normal');
+	}
+</script>
 
 <div class="lister-footer">
 {snippet list_pager}

@@ -30,7 +30,7 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_largeicon` as avatar FROM `user` WHERE `user_id` = %i", $user_id);
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` as user_portrait FROM `user` WHERE `user_id` = %i", $user_id); // user_largeicon` as user_portrait
 			if (sizeof($result) > 2) {
 				return false;
 				throw new Exception(_("More than one user with the same id found."));
@@ -733,7 +733,7 @@ class User extends BaseModel implements IIdentity
 
 	}
 	
-	public function saveImage($id) {
+	public static function saveImage($id) {
 	
 		$object = User::create($id);
 		

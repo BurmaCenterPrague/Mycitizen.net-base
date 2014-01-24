@@ -460,7 +460,11 @@ final class ResourcePresenter extends BasePresenter
 	
 	protected function createComponentUpdateform()
 	{
-		$visibility    = Visibility::getArray();
+		$visibility = array(
+						1 => 'world',
+						2 => 'registered',
+						3 => 'subscribers'
+					); // Visibility::getArray();
 		$language      = Language::getArray();
 		$resource_type = Resource::getTypeArray();
 		if (!empty($this->resource)) {
@@ -984,7 +988,8 @@ final class ResourcePresenter extends BasePresenter
 			),
 			'filter' => array(
 				'type' => 8,
-				'resource_id' => $this->resource->getResourceId()
+				'resource_id' => $this->resource->getResourceId(),
+				'status' => 1
 			),
 			'template_body' => 'ListerControlMain_messages.phtml',
 			'refresh_path' => 'Resource:default',
@@ -1204,10 +1209,9 @@ final class ResourcePresenter extends BasePresenter
 
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
-			$resource->remove_message($resource_id);
+			$resource->remove_message(3, $resource_id);
 		}
 
-		
 		$this->terminate();	
 	}
 }

@@ -497,9 +497,10 @@ class Resource extends BaseModel {
       }
    }
 
-	public function remove_message($group_id) {
-      if(Auth::MODERATOR <= Auth::isAuthorized(2,$group_id) && $this->groupIsRegistered($group_id)) {
-         dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i",$this->numeric_id);
+	public function remove_message($type, $object_id) {
+      if(Auth::MODERATOR <= Auth::isAuthorized($type,$object_id)) {
+//      if ($this->groupIsRegistered($group_id)) {
+         dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
       }
    }
 

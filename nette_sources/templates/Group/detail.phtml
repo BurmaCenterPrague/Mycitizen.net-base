@@ -157,7 +157,7 @@
             <div class="group-subscriptions">
             {if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
 	            <span id="unsubscribe_as_group_header" style="cursor:pointer;" class="button">{_"Subscriptions as group"}</span>
-				<div id="unsubscribe_as_group_body" style="display:none;">
+				<div id="unsubscribe_as_group_body" style="display:none;text-align:left;">
 					<p>{_"Select one or more resources to unsubscribe. Only resources are displayed that this group is subscribed to. You can subscribe to resources on the detail page of a resource."}</p>
 					{control unsubscriberesourceform}
 				</div>
@@ -220,7 +220,30 @@
 		</div>
 		<div class="cleaner"></div>
 	</div>
+	
+	
+	{ifset $default_data}
+		{if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+	<a href="#notify_form" id="notify_box" style="float:right; padding:10px;"><b class="icon-message" title="{_"Send a message to all members"}"></b></a>
+	<div id="notify_form" style="display:none; text-align:left;">
+		<h2>{_"Send a message to all members"}</h2>
+		{control notifyform}
+	</div>
 
+	<script type="text/javascript">
+	$(function() {
+		$("#notify_box").fancybox({
+			closeBtn : true,
+			helpers : {
+				 title : null
+			},
+		});
+	});
+	</script>
+		{/if}
+	{/if}
+	
+	
 	<div id="chat_top_anchor"></div>
 	<div class="group-detail-chatlist">
 		<h2>{_"Group chat"}</h2>

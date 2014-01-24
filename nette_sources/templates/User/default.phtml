@@ -156,7 +156,7 @@
 		  
 			{if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}
 				<div class="user-connection">
-					<a href="javascript:void(0);" onClick='userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Cancel friendship"}</a>
+					<a href="javascript:void(0);" onClick='if (confirm({_"Are you sure?"})) { userRemove_Friend({$default_data['object_data']["user_id"]},{link User:default}); }' class="button">{_"Cancel friendship"}</a>
 				</div>
 			{/if}
 		{/if}

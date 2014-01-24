@@ -56,36 +56,43 @@ class StaticModel extends BaseModel {
 				$message_subject = sprintf(_("User %s requested your friendship."), $sender_data['user_login']);
 				$message_text = _("Friendship request");
 				$email_text = $message_subject;
+				$data['resource_type'] = 10;
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPACCEPTED:
 				$message_subject = sprintf(_("User %s accepted your friendship."), $sender_data['user_login']);
             	$message_text = _("Friendship accepted");
             	$email_text = $message_subject;
+            	$data['resource_type'] = 9;
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPREJECTED:
 				$message_subject = sprintf(_("User %s rejected your friendship."), $sender_data['user_login']);
 	            $message_text = _("Friendship request rejected");
 	            $email_text = $message_subject;
+	            $data['resource_type'] = 9;
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPTRERMINATED:
 				$message_subject = sprintf(_("User %s canceled your friendship."), $sender_data['user_login']);
 	            $message_text = _("Friendship canceled");
-	            $email_text = $message_subject;		
+	            $email_text = $message_subject;
+	            $data['resource_type'] = 9;
 				break;
 			case self::SYSTEM_MESSAGE_WARNING_USER:
 				$message_subject = _("System message: You've received a warning.");
 	            $message_text = $message;
 	            $email_text = $message_subject."\n\r".$message_text;
+	            $data['resource_type'] = 9;
 				break;
 			case self::SYSTEM_MESSAGE_WARNING_GROUP:
 				$message_subject = _("System message: You've received a warning about your group.");
 				$message_text = $message;
 				$email_text = $message_subject."\n\r".$message_text;
+				$data['resource_type'] = 9;
          	  	break;
 			case self::SYSTEM_MESSAGE_WARNING_RESOURCE:
 				$message_subject = _("System message:  You've received a warning about your resource.");
          		$message_text = $message;
          		$email_text = $message_subject."\n\r".$message_text;
+         		$data['resource_type'] = 9;
 	            break;
 			default:
 				return false;
@@ -96,7 +103,6 @@ class StaticModel extends BaseModel {
 		$data = array();
       
 		$data['resource_author'] = $sender->getUserId();
-    	$data['resource_type'] = 9;
 		$data['resource_visibility_level'] = 3;
     	$data['resource_name'] = $message_subject;
     	$data['resource_data'] = json_encode(array('message_text'=>$message_text,'message_type'=>$message_type));
@@ -118,6 +124,14 @@ class StaticModel extends BaseModel {
 
     	$resource->updateUser($recipient->getUserId(),array('resource_user_group_access_level'=>1));
 
+	}
+
+	/**
+	*	Compatibility with API_Base which receives from the mobile application only the email address.
+	*
+	*/
+	public static function isSpamEmail($email) {
+		return self::isSpamSFS($email,'');
 	}
 
 	public static function isSpamSFS($email,$ip) {
@@ -214,5 +228,6 @@ class StaticModel extends BaseModel {
      if ($translation == $contextString) return $msgid;
      else return $translation;
   }
+  
 
 }

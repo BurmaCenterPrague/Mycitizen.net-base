@@ -25,6 +25,8 @@ class UserAuthenticator extends BaseModel implements IAuthenticator {
            	throw new NAuthenticationException("User '".$username."' not found.", self::IDENTITY_NOT_FOUND);
        	}
 
+		if ($credentials['extra'] == 'facebook') return User::create($result[0]->user_id);
+		
 		require(LIBS_DIR.'/Phpass/PasswordHash.php');
 		$hasher = new PasswordHash(8, false);
 		
@@ -33,4 +35,5 @@ class UserAuthenticator extends BaseModel implements IAuthenticator {
         }
         return User::create($result[0]->user_id);
     }
+
 }

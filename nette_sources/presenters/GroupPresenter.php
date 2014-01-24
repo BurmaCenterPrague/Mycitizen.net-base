@@ -471,7 +471,11 @@ final class GroupPresenter extends BasePresenter
 	
 	protected function createComponentUpdateform()
 	{
-		$visibility = Visibility::getArray();
+		$visibility = array(
+						1 => 'world',
+						2 => 'registered',
+						3 => 'members'
+					); // Visibility::getArray();
 		$language   = Language::getArray();
 		if (!empty($this->group)) {
 			$group_data = $this->group->getGroupData();
@@ -719,7 +723,8 @@ final class GroupPresenter extends BasePresenter
 						'type' => 2,
 						'id' => $this->group->getGroupId()
 					)
-				)
+				),
+				'status' => 1
 			),
 			'template_body' => 'ChatLister_body.phtml',
 			'refresh_path' => 'Group:default',
@@ -1119,7 +1124,7 @@ final class GroupPresenter extends BasePresenter
 				$icon_w = 20;
 				$icon_h = 25;
 
-				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,80));
+				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
 				$large_icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
 				$icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
 				
@@ -1136,7 +1141,7 @@ final class GroupPresenter extends BasePresenter
 		}
 		
 		// save to cache
-		$group->saveImage($group_id);
+		Group::saveImage($group_id);
 		$this->flashMessage(_("Finished cropping and resizing."));
 		$this->redirect("Group:edit",$group_id);
 		
@@ -1236,7 +1241,7 @@ final class GroupPresenter extends BasePresenter
 
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
-			$resource->remove_message($group_id);
+			$resource->remove_message(2, $group_id);
 		}
 
 		

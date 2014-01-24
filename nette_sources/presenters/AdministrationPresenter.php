@@ -220,7 +220,8 @@ final class AdministrationPresenter extends BasePresenter
 
 		$user = NEnvironment::getUser()->getIdentity();
 		$access = $user->getAccessLevel();
-		
+		$menu_admin = array();
+
 		$menu_mod = array(
 			'1' => array(
 				'title' => _('Statistics'),
@@ -285,7 +286,6 @@ final class AdministrationPresenter extends BasePresenter
 
 		$menu = ($menu_mod+$menu_admin);
 
-//		var_dump($menu);die();
 		$control = new MenuControl($this, $name, $menu);
 		$control->setStyle(MenuCOntrol::MENU_STYLE_CLASSIC);
 		$control->setOrientation(MenuControl::MENU_ORIENTATION_VERTICAL);

@@ -50,7 +50,7 @@ class Language extends BaseModel {
     	return $languages;
    }
 
-	public static function addLanguage($flag, $code, $name) {
+	public static function addCode($flag, $code, $name) {
 		$data = array('language_flag'=>$flag, 'language_code'=>$code, 'language_name'=>$name);
 		$result = dibi::query("INSERT INTO `language`", $data);
 		return $result;

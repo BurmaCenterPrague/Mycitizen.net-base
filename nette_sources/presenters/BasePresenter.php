@@ -96,6 +96,7 @@ abstract class BasePresenter extends NPresenter
 		
 		
 		$user = NEnvironment::getUser();
+//		if (!method_exists($user, 'sendConfirmationEmail')) $user->logout();
 		if ($user->isLoggedIn()) {
 			if (!$user->getIdentity()->isActive()) {
 				if ($user->getIdentity()->isConfirmed()) {
@@ -106,12 +107,14 @@ abstract class BasePresenter extends NPresenter
 					$this->flashMessage(sprintf(_("You first need to confirm your registration. Please check your email account and click on the link of the confirmation email."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
 					
 					if ($user->sendConfirmationEmail()) {
-						$this->flashMessage("We have resend your confirmation email - just in case you didn't get it before.");
+						$this->flashMessage("We have resent your confirmation email - just in case you didn't get it before.");
 					}
 
 					$user->logout();
 					$this->redirect("User:login");					
 				}
+			} else {
+			
 			}
 			$user->getIdentity()->setLastActivity();
 			$this->template->logged   = true;
@@ -146,6 +149,7 @@ abstract class BasePresenter extends NPresenter
 			
 		} else {
 			if (!$this->isAccessible()) {
+			
 				$this->redirect("User:login");
 			}
 		}
@@ -461,7 +465,7 @@ abstract class BasePresenter extends NPresenter
 			echo 'Access denied.';
 			$this->terminate();
 		}
-		
+
 		$sender_name = NEnvironment::getVariable("PROJECT_NAME");
 		$uri = NEnvironment::getVariable("URI");
 		
