@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -302,10 +301,11 @@ class User extends BaseModel implements IIdentity
 	{
 		$hash  = $this->user_data['user_hash'];
 		$email = $this->user_data['user_email'];
-		$name =  $this->user_data['user_login'];
+		$name = $this->user_data['user_login'];
+		$language = $this->user_data['user_language'];
 		$id    = $this->numeric_id;
-		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		$language = $session->language;
+//		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+//		if (isset($language)) $language = $session->language; else $language = 1;
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
 //		$link  = "http://" . URI . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
 		$body  = sprintf(_("Hello %s,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
@@ -503,6 +503,7 @@ class User extends BaseModel implements IIdentity
 
 	/**
 	*	reject a friendship request
+	*
 	*	status:
 	*	1:	requested
 	*	2:	accepted
@@ -589,6 +590,20 @@ class User extends BaseModel implements IIdentity
 			return "";
 		}
 		return trim($result);
+	}
+
+	public static function getOwnerIdsFromLogin($user_login)
+	{
+		$users = dibi::fetchAll("SELECT `user_id` FROM `user` WHERE `user_login` LIKE %~like~", $user_login);
+		if (empty($users)) {
+			return array(0);
+		}
+		$result = array();
+		foreach ($users as $row) {
+			$data = $row->toArray();
+			$result[] = $data['user_id'];
+		}
+		return $result;
 	}
 	
 

@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -194,7 +193,6 @@
 	$(document).ready(function() {
 		$(".fancybox").fancybox();
 	});
-
 </script>
 <title>{$PROJECT_NAME} | {include #title}</title>
 
@@ -219,7 +217,8 @@
 					{ifset $logged}
 						<a href="{link User:default, $my_id}">{!$image} {$username}</a>
 						<div>
-							<a href="{link User:messages}"><span id="messages">{!$messages}</span></a>
+							<a href="{link User:messages}" title="{_"read or write messages"}"><span id="messages">{!$messages}</span></a>
+							<a href="{link User:edit, $my_id}"  class="button" >{_"Edit profile"}</a>
 							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>			
 						</div> 
 					{else}
@@ -271,7 +270,9 @@
 			{include $footer}
 
 			<div class="rules-and-conditions">
-				{_"By using this platform you accept our"} <a href="{$TOC_URL}" target="_blank">Terms of Use</a> and our <a href="{$PP_URL}" target="_blank">{_"Privacy policy"}</a>.
+			{? $terms_link = '<a href='.$TOC_URL.' target="_blank">'._("Terms of Use").'</a>'}
+			{? $pp_link = '<a href='.$PP_URL.' target="_blank">'._("Privacy policy").'</a>'}
+				{!_"By using this platform you accept our %s and our %s.", $terms_link, $pp_link}
 			</div>			
 			<div class="software-info">
 				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.

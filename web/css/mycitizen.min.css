@@ -103,10 +103,10 @@ div[class^=discover_new_],div[id^=snippet-]{padding-bottom:5px}
 .about input[type=button],.about input[type=submit],.about .button{background:#ACA79C}
 .about .group-owner,.about .resource-owner{margin-top:1em;border-top:1px solid #BCB6AA;border-bottom:1px solid #BCB6AA;font-weight:700;padding:7px 0 6px}
 .about .group-owner img,.about .resource-owner img{border-left:1px solid #BCB6AA;border-right:1px solid #BCB6AA;float:right;margin:-6px 0 0;padding:0}
-.user-detail-language,.group-detail-language,.resource-detail-language{border-top:1px solid #BCB6AA;font-style:italic;margin:1em 0}
+.user-detail-language,.group-detail-language,.resource-detail-language{border-top:1px solid #BCB6AA;font-style:italic;margin:1em 0;padding:1em 0}
 .user_detail_map input[type=text],.group_detail_map input[type=text],.resource-detail-map input[type=text]{width:105px;display:inline-block;margin-right:2px}
-.user_action,.group_actions,.resource-actions,.report-form{text-align:center;margin:1em 0}
-.user_action .button,.group_actions .button,.resource-actions .button{display:inline-block;margin:0 0 10px}
+.user_actions,.group_actions,.resource-actions,.report-form{text-align:center;margin:1em 0;padding:1em 0}
+.user_actions .button,.group_actions .button,.resource-actions .button{display:inline-block;margin:0 0 10px}
 .about .user_detail_map,.about .group_detail_map,.about .resource-detail-map{border-top:1px solid #BCB6AA}
 .map-legend img{width:15px;padding:3px 3px 0 0}
 .map-legend span.button{text-transform:lowercase;padding:0 7px 2px}
@@ -246,7 +246,7 @@ b.icon-clear{background-position:-200px -200px}
 .admin-table td{border:solid 1px #ccc;font-size:1.2em;margin:0;padding:5px}
 .admin-table tr:nth-child(even){background-color:#eee}
 .admin-table tr.tr-header{background-color:#ddd}
-.wrapper_tag{max-width:210px;padding:2px}
+.wrapper_tag{max-width:210px}
 .wrapper_tag:hover{background-color:#eae9e3}
 .edit-wrapper fieldset{max-width:500px}
 .balloon-right{background-color:#E4E4E4;border-radius:5px;-moz-border-radius:5px;-webkit-border-radius:5px;position:relative;font-size:12px;width:590px;text-align:justify;min-height:30px;box-shadow:2px 2px 4px #999;padding:20px}
@@ -262,6 +262,7 @@ b.icon-clear{background-position:-200px -200px}
 #tagdiv{text-align:left;width:600px;min-height:200px;margin:0}
 .filter-tags{float:left;width:640px;max-height:450px;overflow-y:auto;overflow-x:hidden;margin:10px}
 .filter-buttons{float:right;max-width:600px;margin-right:20px;padding:0 20px}
+#tagdiv .icon-tag{padding-top:5px}
 .tag-columns{column-count:3;-moz-column-count:3;-webkit-column-count:3}
 .filter-top-left{float:left;width:500px;margin:10px}
 img,.language select,.user-details,.group-details,.resource-details{border:none}

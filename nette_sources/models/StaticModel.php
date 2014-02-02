@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -50,7 +49,9 @@ class StaticModel extends BaseModel {
 		
 		$name = $recipient->getUserLogin($recipient->getUserId());
 		
-		
+      
+		$data = array();
+
 		switch($message_type) {
 			case self::SYSTEM_MESSAGE_FRIENDSHIPOFFER:
 				$message_subject = sprintf(_("User %s requested your friendship."), $sender_data['user_login']);
@@ -100,8 +101,6 @@ class StaticModel extends BaseModel {
 
     	$resource = Resource::create();
       
-		$data = array();
-      
 		$data['resource_author'] = $sender->getUserId();
 		$data['resource_visibility_level'] = 3;
     	$data['resource_name'] = $message_subject;
@@ -131,14 +130,22 @@ class StaticModel extends BaseModel {
 	*
 	*/
 	public static function isSpamEmail($email) {
-		return self::isSpamSFS($email,'');
+		return self::isSpamSFS($email);
 	}
 
-	public static function isSpamSFS($email,$ip) {
-		$contents = file_get_contents("http://www.stopforumspam.com/api?email=".$email."&ip=".$ip."&f=json");
+	public static function isSpamSFS($email,$ip = '') {
+	
+		$check_stop_forum_spam = NEnvironment::getVariable("CHECK_STOP_FORUM_SPAM");
+		if (!$check_stop_forum_spam) return true;
+		
+		if (empty($ip)) {
+			$contents = file_get_contents("http://www.stopforumspam.com/api?email=".$email."&f=json");
+		} else {
+			$contents = file_get_contents("http://www.stopforumspam.com/api?email=".$email."&ip=".$ip."&f=json");
+		}
 		$json = json_decode($contents,true);
-		if(isset($json['success']) && $json['success']) {
-			if($json['email']['appears'] || $json['ip']['appears']) {
+		if (isset($json['success']) && $json['success']) {
+			if ((isset($json['email']['appears']) && $json['email']['appears']) || (isset($json['ip']['appears']) && $json['ip']['appears'])) {
 				return true;
 			}
 		}

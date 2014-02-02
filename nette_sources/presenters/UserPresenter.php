@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -114,50 +113,61 @@ final class UserPresenter extends BasePresenter
 		} else {
 			if ($this->facebook()) $this->redirect('Homepage:default');
 		}
+
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) $this->template->logged = true;
 
 	}
 
 
-	public function actionConfirm($user_id, $control_key, $device)
+	public function actionConfirm($user_id, $control_key, $device = NULL)
 	{
-		$user = NEnvironment::getUser();
-		if ($user->isLoggedIn()) {
-			$user->logout();
-			NEnvironment::getSession()->destroy();
+		if ($device == NULL) {
+			// detecting mobile devices
+			require_once LIBS_DIR.'/Mobile-Detect/Mobile_Detect.php';
+			$detect = new Mobile_Detect;
+			if ($detect->isMobile()) $device = 'mobile';
+			unset($detect);
 		}
-		
+
 		if (User::finishRegistration($user_id, $control_key)) {
 		
 			if (isset($device) && $device=="mobile") {
-				echo _("Registration has been succesfull. You can now sign in.");
+				echo _("The registration has been successful. You can now sign in.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("Registration has been succesfull. You can now sign in."));
+				$this->flashMessage(_("The registration has been successful. You can now sign in."));
 			
 				$this->redirect('User:login');
 			}
 		} else {
 		
 			if (isset($device) && $device=="mobile") {
-				echo _("Registration couldn't be finished! Link is not active anymore.");
+				echo _("The registration couldn't be finished! Link is not active anymore.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("Registration couldn't be finished! Link is not active anymore."), 'error');
+				$this->flashMessage(_("The registration couldn't be finished! Link is not active anymore."), 'error');
 			
 				$this->redirect('Homepage:default');
 			}
 		}
 	}
 	
-	public function actionEmailchange($user_id, $control_key, $device)
+	public function actionEmailchange($user_id, $control_key, $device=NULL)
 	{
+		if ($device == NULL) {
+			// detecting mobile devices
+			require_once LIBS_DIR.'/Mobile-Detect/Mobile_Detect.php';
+			$detect = new Mobile_Detect;
+			if ($detect->isMobile()) $device = 'mobile';
+			unset($detect);
+		}
+		
 		if (User::finishEmailChange($user_id, $control_key)) {
 			if (isset($device) && $device=="mobile") {
-				echo _("Email has been succesfully changed.");
+				echo _("Email has been successfully changed.");
 				
 				$this->terminate();
 			} else {
@@ -178,8 +188,16 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 	
-	public function emailchangeAdmin($user_id, $user_email, $device)
+	public function emailchangeAdmin($user_id, $user_email, $device=NULL)
 	{
+		if ($device == NULL) {
+			// detecting mobile devices
+			require_once LIBS_DIR.'/Mobile-Detect/Mobile_Detect.php';
+			$detect = new Mobile_Detect;
+			if ($detect->isMobile()) $device = 'mobile';
+			unset($detect);
+		}
+		
 		if (User::finishEmailChangeAdmin($user_id,$user_email)) {
 			if (isset($device) && $device=="mobile") {
 				echo _("Email has been succesfully changed.");
@@ -259,7 +277,7 @@ final class UserPresenter extends BasePresenter
 		$size_x = 0;
 		$size_y = 0;
 
-		if(!empty($data)) {
+		if(!empty($data) && $data) {
 			$f = finfo_open();	
 
 			$image_type = finfo_buffer($f, base64_decode($data), FILEINFO_MIME_TYPE);
@@ -313,9 +331,16 @@ final class UserPresenter extends BasePresenter
 	
 	public function actionLogin()
 	{
+		$user = NEnvironment::getUser();
+		if ($user->isLoggedIn()) {
+			$user->logout();
+			NEnvironment::getSession()->destroy();
+		}
 		
+
 		if (Settings::getVariable('sign_in_disabled')) {
 			$this->template->sign_in_disabled = true;
+			$this->redirect('Homepage:default');
 		} else {
 			if ($this->facebook()) $this->redirect('Homepage:default');
 		}
@@ -629,7 +654,7 @@ final class UserPresenter extends BasePresenter
 
 		$values = $form->getValues();
 		$user   = NEnvironment::getUser();
-		
+
 		if (Settings::getVariable('sign_up_disabled')) {
 			$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
 			$this->redirect("Homepage:default");
@@ -641,6 +666,7 @@ final class UserPresenter extends BasePresenter
 			if ($answer != $values['text']) {
 				sleep(5);
 				$this->flashMessage(_("You entered the wrong captcha."), 'error');
+				$user->logout();
 				$this->redirect('User:register');
 			}
 		}
@@ -675,6 +701,10 @@ final class UserPresenter extends BasePresenter
 		unset($values['password_again']);
 		$hash                = User::generateHash();
 		$values['user_hash'] = $hash;
+		
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$values['user_language'] = $session->language;
+
 		$new_user->setUserData($values);
 		$new_user->save();
 		
@@ -1692,7 +1722,7 @@ final class UserPresenter extends BasePresenter
 					// Proceed knowing you have a logged in user who's authenticated.
 					$user_profile = $facebook->api('/me');
 				} catch(FacebookApiException $e) {
-					unset($fb_user);
+					$fb_user = '';
 				}
 			}
 			
@@ -1702,12 +1732,18 @@ final class UserPresenter extends BasePresenter
 				));
 				define('FB_LOGOUT_URL', $fb_logout_url);
 				
+				// FB user needs email address (no phone-only signups admitted)
+				if (empty($user_profile['email'])) {
+					$this->flashMessage(_("Your Facebook account doesn't have an email address."), 'error');
+					$this->redirect('Homepage:default');
+				}
+
 				// check if username is known (we use same username as on Facebook)
 				if (User::loginExists($user_profile['username'])) {
 				
 					// check if email is known
 					if ($user_profile['username'] == User::userloginFromEmail($user_profile['email'])) {
-						// name and email match -> let's assume that user is registered (i.e. we trust FB that they prevent faked combinations)
+						// name and email match -> let's assume that user is registered (In Facebook we trust.)
 						if (Settings::getVariable('sign_in_disabled')) {
 							$this->flashMessage(_("Sign in is disabled. Please try again later."), 'error');
 							$this->redirect("Homepage:default");
@@ -1715,11 +1751,11 @@ final class UserPresenter extends BasePresenter
 						$user = NEnvironment::getUser();
 						$user->login($user_profile['username'], '', 'facebook');	
 						$user->getIdentity()->setLastActivity();
-						return true;			
+						return true;
 					} else {
 						// username exists, but email doesn't match
 						$this->flashMessage(_("User with the same name already exists."), 'error');
-						$this->redirect('User:register');
+						$this->redirect('Homepage:default');
 					}
 				
 				} else {
@@ -1727,13 +1763,13 @@ final class UserPresenter extends BasePresenter
 					// check email (same user cannot log in with same email with two different methods)
 					if (User::emailExists($user_profile['email'])) {
 						$this->flashMessage(_("Email is already registered with another account."), 'error');
-						$this->redirect('User:register');
+						$this->redirect('Homepage:default');
 					}
 					
 					// spam check
-					if (StaticModel::isSpamSFS($user_profile['email'], $_SERVER['REMOTE_ADDR'])) {
+					if (StaticModel::isSpamSFS($user_profile['email'], '')) {
 						$this->flashMessage(_("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
-						$this->redirect('User:register');
+						$this->redirect('Homepage:default');
 					}
 //					var_dump($user_profile);die();
 					// check the security question - skipped if already answered
@@ -1774,7 +1810,10 @@ final class UserPresenter extends BasePresenter
 										
 					// retrieve image
 					$fb_img = file_get_contents( "https://graph.facebook.com/".$user_profile['username']."/picture?type=large&height=200&width=160" );
-					$avatar = base64_encode($fb_img);
+					$avatar_w = 160;
+					$avatar_h = 200;
+					$avatar = base64_encode(NImage::fromString($fb_img)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
+//					$avatar = base64_encode($fb_img);
 
 					// make icon and large_icon
 					$large_icon_w = 40;
@@ -1799,13 +1838,16 @@ final class UserPresenter extends BasePresenter
 					$user->getIdentity()->registerFirstLogin();
 					$user->getIdentity()->setLastActivity();
 
+					$this->flashMessage(_("Success!"));
+					$this->flashMessage(_("Please check now your profile and enter a description and tags."));
+					
 					$this->redirect("User:edit", $user_id);
 				}
 				
 			} else {
 				$fb_login_url = $facebook->getLoginUrl(array(
 					'scope'		=> 'email',
-					'redirect_uri'	=> 'https://4development.mycitizen.net/signin/'
+					'redirect_uri'	=> $facebook_app_url.'/signin/'
 				));
 
 				define('FB_LOGIN_URL', $fb_login_url);

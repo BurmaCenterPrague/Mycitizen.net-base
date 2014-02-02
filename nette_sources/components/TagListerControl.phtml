@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -27,6 +26,9 @@
         <th>
         	<h3>Actions</h3>
         </th>
+        <th>
+        	<h3>Position</h3>
+        </th>
     </tr>
    {foreach $data as $tag}
         <tr>
@@ -41,6 +43,12 @@
             <td>
                 {$control[$formName]['send']->control}
 				{$control[$formName]['remove']->control}
+			</td>
+            <td>
+            {if $tag['tag_parent_id']==0}
+            	<p><a class="button" href="?do=move&tag_id={$tag['tag_id']}&direction=up">{_"move up"}</a></p>
+            	<p><a class="button" href="?do=move&tag_id={$tag['tag_id']}&direction=down">{_"move down"}</a></p>
+            {/if}
 			</td>
         {control $formName end}
         </tr>

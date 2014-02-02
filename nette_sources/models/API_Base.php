@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -53,13 +52,13 @@ class API_Base extends API implements iAPI
 	}
 
 	protected function checkTime($time) {
-		$lovest_time = strtotime("- 2 years");//date('U',mktime(0,0,0,1,1,2000));
+		$lowest_time = strtotime("- 2 years");//date('U',mktime(0,0,0,1,1,2000));
 		$highest_time = strtotime("+ 1 day");
 		
 		if(!is_numeric($time)) {
 			$time = strtotime($time);
 		}
-		if(!$time || $time < $lovest_time  || $time > $highest_time) {
+		if(!$time || $time < $lowest_time  || $time > $highest_time) {
 			return false;
 		}
 		return $time;
@@ -103,7 +102,7 @@ class API_Base extends API implements iAPI
 		if(!$this->isLoggedIn()) {
 			$error = "unkonwn_user";
 			$user_id = NEnvironment::getUser()->getIdentity();
-    			if (!empty($user_id)) {
+    		if (!empty($user_id)) {
 				if(!NEnvironment::getUser()->getIdentity()->isActive()) {
 					$error = "not_active";
 				}
@@ -170,7 +169,7 @@ class API_Base extends API implements iAPI
          return $data;
 
 		} else {
-			throw new RestException('403',null);
+			return array('result'=>false,'error'=>'permission_denied');
 		}
 		
    }
@@ -205,7 +204,7 @@ class API_Base extends API implements iAPI
          return $data;
 
 		} else {
-			throw new RestException('403',null);
+			return array('result'=>false,'error'=>'permission_denied');
 		}
 
    }
@@ -238,7 +237,7 @@ class API_Base extends API implements iAPI
 
       	return $data;
 		} else {
-			throw new RestException('403',null);
+			return array('result'=>false,'error'=>'permission_denied');
 		}
    }
 
@@ -345,8 +344,11 @@ class API_Base extends API implements iAPI
       			$password = User::encodePassword($_POST['password']);
 			$hash = User::generateHash();
      
+			$language = dibi::fetchSingle("SELECT `language_id` FROM `language` WHERE `language_code` = %s", $_POST['language']);
 
-			$values = array('user_login'=>$_POST['login'],'user_email'=>$_POST['email'],'user_password'=>$password,'user_hash'=>$hash);
+			if (!$language) $language = 1;
+			
+			$values = array('user_login'=>$_POST['login'],'user_email'=>$_POST['email'],'user_password'=>$password,'user_hash'=>$hash,'user_language'=>$language);
  
 			$new_user->setUserData($values);
       			$new_user->save();
@@ -465,7 +467,7 @@ class API_Base extends API implements iAPI
 		$values['user_position_x'] = $_POST['position_gpsx'];
 		$values['user_position_y'] = $_POST['position_gpsy'];
 		if($_POST['image'] != "") {
-	//		$values['user_portrait'] = $_POST['image'];
+			$values['user_portrait'] = $_POST['image'];
 		}
       		$logged_user = NEnvironment::getUser()->getIdentity();
 		$user = User::Create($logged_user->getUserId());
@@ -620,6 +622,7 @@ class API_Base extends API implements iAPI
 		$group_gpsx = $_POST['position_gpsx'];
 		$group_gpsy = $_POST['position_gpsy'];
 		$group_tags = $_POST['tags'];
+		$group_language = $_POST['language'];
 		$tags = explode(',',$group_tags);
 		if(Auth::VIP > $user->getAccessLevel()) {
       			if(!$user->hasRightsToCreate()) {
@@ -636,6 +639,7 @@ class API_Base extends API implements iAPI
 		$values['group_position_y'] = $group_gpsy;
 
 		$values['group_author'] = $user->getUserId();
+		$values['group_language'] = $group_language; 
         	$group->setGroupData($values);
         	$group->save();
 		$group->setLastActivity();

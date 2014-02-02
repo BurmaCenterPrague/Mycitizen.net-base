@@ -16,14 +16,19 @@ variable.TOC_URL = ""
 variable.PP_URL = ""
 variable.SUPPORT_URL = ""
 variable.MAP_SUGGEST_DST = 100
-variable.GRABZIT_KEY = ""
-variable.GRABZIT_SECRET = ""
-variable.PIWIK_URL = ""
-variable.PIWIK_ID = 1
-variable.PIWIK_TOKEN = ""
+;variable.GRABZIT_KEY = ""
+;variable.GRABZIT_SECRET = ""
+;variable.PIWIK_URL = ""
+;variable.PIWIK_ID = 1
+;variable.PIWIK_TOKEN = ""
 variable.CRON_TOKEN = ""
 variable.secured = 2;
-variable.EXTERNAL_JS_CSS = 0;
+variable.CHECK_STOP_FORUM_SPAM = 1
+variable.EXTERNAL_JS_CSS = 0
+variable.USE_TINYMCE_COMPRESSOR = 1
+;variable.FACEBOOK_APP_ID = 
+;variable.FACEBOOK_APP_SECRET = 
+
 
 ;debug
 debug.logDir = %appDir%/log

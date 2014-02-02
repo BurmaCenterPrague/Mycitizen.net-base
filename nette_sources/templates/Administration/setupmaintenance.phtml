@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -149,6 +148,18 @@
 	</tr>
 {/if}
 {/if}
+	<tr>
+		<td>
+			<h4>{_"Purge unconfirmed users"}</h4>
+			<p><a href="?do=purgeusers&months=1"  class="button">{_"Over one month old"}</a></p>
+			<p><a href="?do=purgeusers&months=2"  class="button">{_"Over two months old"}</a></p>
+			<p><a href="?do=purgeusers&months=6"  class="button">{_"Over six months old"}</a></p>
+		</td>
+		
+		<td><img src="/images/help.png" class="help-icon" title="Removes users<ul><li>with unfinished registration, signed up over x months ago</li></ul>"/>
+		</td>
+	</tr>
+
 	<tr class="tr-header">
 		<td colspan="2">
 			<h3>Support</h3>

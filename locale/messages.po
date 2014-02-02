@@ -1,43 +1,43 @@
 # Gettext keys exported by GettextExtractor
-# Created: 2013-10-26T13:39:55+02:00
+# Created: 2013-11-24T01:49:54+00:00
 msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-# ExternalFilter.php:185
+# ExternalFilter.php:199
 msgid ""
 msgstr ""
 
-# GroupPresenter.php:835
-# ResourcePresenter.php:922
-# UserPresenter.php:396
+# GroupPresenter.php:854
+# ResourcePresenter.php:1102
+# UserPresenter.php:417
 msgid "(error)"
 msgstr "(error)"
 
-# GroupPresenter.php:836
-# ResourcePresenter.php:923
-# UserPresenter.php:397
+# GroupPresenter.php:855
+# ResourcePresenter.php:1103
+# UserPresenter.php:418
 msgid "(inappropriate language)"
 msgstr "(inappropriate language)"
 
-# GroupPresenter.php:834
-# ResourcePresenter.php:921
-# UserPresenter.php:395
+# GroupPresenter.php:853
+# ResourcePresenter.php:1101
+# UserPresenter.php:416
 msgid "(spam)"
 msgstr "(spam)"
 
-# ExternalFilter.phtml:139
+# ExternalFilter.phtml:158
 msgid "AND: Find only items where <i>all</i> conditions are met.<br />OR: Find items where <i>any</i> of the selected conditions are met."
 msgstr "AND: Find only items where <i>all</i> conditions are met.<br />OR: Find items where <i>any</i> of the selected conditions are met."
 
-# detail.phtml:137
+# detail.phtml:157
 msgid "Accept friendship"
 msgstr "Accept friendship"
 
-# default.phtml:124
-# default.phtml:141
-# detail.phtml:143
+# default.phtml:140
+# default.phtml:157
+# detail.phtml:163
 msgid "Accept friendship request"
 msgstr "Accept friendship request"
 
@@ -45,90 +45,115 @@ msgstr "Accept friendship request"
 msgid "Access Level"
 msgstr "Access Level"
 
-# ResourceGroupListerControl.php:73
+# ResourceGroupListerControl.php:87
 msgid "Access level"
 msgstr "Access level"
 
 # AddTagComponent_Group.phtml:59
 # AddTagComponent_Resource.phtml:59
 # AddTagComponent_User.phtml:58
-# ContainerTreeSelectControl.phtml:66
-# AdministrationPresenter.php:86
+# AdministrationPresenter.php:110
 msgid "Add"
 msgstr "Add"
 
-# edit.phtml:53
-# edit.phtml:41
-# edit.phtml:72
+# tag.phtml:21
+msgid "Add a Tag"
+msgstr "Add a Tag"
+
+# edit.phtml:68
+# edit.phtml:107
+# edit.phtml:85
 msgid "Add or remove tags"
 msgstr "Add or remove tags"
 
-# TagContainer.php:19
-# AdministrationPresenter.php:169
+# TagContainer.php:33
+# AdministrationPresenter.php:224
 msgid "Add tag"
 msgstr "Add tag"
 
-# MapContainer.phtml:63
-# MapControl.phtml:68
+# edit.phtml:68
+# edit.phtml:107
+# edit.phtml:85
+msgid "Add the tags one by one."
+msgstr "Add the tags one by one."
+
+# MapContainer.phtml:82
+# MapControl.phtml:87
 msgid "Address cannot be found."
 msgstr "Address cannot be found."
 
-# @layout.phtml:180
-# default.phtml:102
-# detail.phtml:172
-# default.phtml:114
+# @layout.phtml:193
+# default.phtml:118
+# detail.phtml:186
+# default.phtml:130
 # detail.phtml:164
-# default.phtml:157
-# detail.phtml:169
+# default.phtml:173
+# detail.phtml:189
 msgid "Administration"
 msgstr "Administration"
 
-# settings.phtml:0
+# tag.phtml:15
+msgid "Administration - Create new tag"
+msgstr "Administration - Create new tag"
+
+# reports.phtml:14
+msgid "Administration - Reports"
+msgstr "Administration - Reports"
+
+# settings.phtml:14
 msgid "Administration - Settings"
 msgstr "Administration - Settings"
 
-# setupmaintenance.phtml:0
+# setupmaintenance.phtml:14
 msgid "Administration - Setup and Maintenance"
 msgstr "Administration - Setup and Maintenance"
 
-# UserPresenter.php:1185
-# UserPresenter.php:1190
+# tags.phtml:15
+msgid "Administration - Tags"
+msgstr "Administration - Tags"
+
+# piwik.phtml:14
+msgid "Administration - Web Statistics"
+msgstr "Administration - Web Statistics"
+
+# UserPresenter.php:1218
+# UserPresenter.php:1223
 msgid "Administrator"
 msgstr "Administrator"
 
-# UserPresenter.php:1225
+# UserPresenter.php:1258
 msgid "Administrator with id 1 cannot be changed"
 msgstr "Administrator with id 1 cannot be changed"
 
-# login.phtml:9
+# login.phtml:23
 msgid "Already have an account? Sign in below."
 msgstr "Already have an account? Sign in below."
 
-# UserPresenter.php:438
+# UserPresenter.php:459
 msgid "An email has been sent to you with further instructions."
 msgstr "An email has been sent to you with further instructions."
 
-# ExternalFilter.php:206
+# ExternalFilter.php:220
 msgid "Apply Filter"
 msgstr "Apply Filter"
 
-# GroupUserListerControl.php:97
-# ResourceGroupListerControl.php:80
-# ResourceListerControl.php:76
-# ResourceMemberListerControl.php:80
-# UserListerControl.php:107
+# GroupUserListerControl.php:111
+# ResourceGroupListerControl.php:94
+# ResourceListerControl.php:90
+# ResourceMemberListerControl.php:94
+# UserListerControl.php:121
 msgid "Apply filter"
 msgstr "Apply filter"
 
-# ExternalFilter.phtml:146
-msgid "Apply the filter."
-msgstr "Apply the filter."
+# ExternalFilter.phtml:70
+msgid "Apply the filter and show the results."
+msgstr "Apply the filter and show the results."
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "April"
 msgstr "April"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "August"
 msgstr "August"
 
@@ -137,19 +162,19 @@ msgstr "August"
 msgid "Automatically reload in regular intervals if something new has been posted."
 msgstr "Automatically reload in regular intervals if something new has been posted."
 
-# GroupPresenter.php:467
-msgid "Avatars are small images that will be visible with your name. Here you can upload an avatar for your group (upload min. 80x100px, max. 2048x2048px). In the next step you can crop it."
-msgstr "Avatars are small images that will be visible with your name. Here you can upload an avatar for your group (upload min. 80x100px, max. 2048x2048px). In the next step you can crop it."
+# GroupPresenter.php:485
+msgid "Avatars are small images that will be visible with your name. Here you can upload an avatar for your group (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it."
+msgstr "Avatars are small images that will be visible with your name. Here you can upload an avatar for your group (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it."
 
-# UserPresenter.php:631
-msgid "Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 80x100px, max. 2048x2048px). In the next step you can crop it."
-msgstr "Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 80x100px, max. 2048x2048px). In the next step you can crop it."
+# UserPresenter.php:646
+msgid "Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it."
+msgstr "Avatars are small images that will be visible with your name. Here you can upload your avatar (upload min. 120x150px, max. 1500x1500px). In the next step you can crop it."
 
-# detail.phtml:4
+# detail.phtml:18
 msgid "Back to list of groups."
 msgstr "Back to list of groups."
 
-# detail.phtml:4
+# detail.phtml:18
 msgid "Back to list of users."
 msgstr "Back to list of users."
 
@@ -165,20 +190,20 @@ msgstr "Back to the list of reports"
 msgid "Back to the list of resources"
 msgstr "Back to the list of resources"
 
-# edit.phtml:50
+# edit.phtml:65
 msgid "Below you can add details: Describe the topics of this group by one or more tags. If your group is located in a particular town, you can mark it on a map. These information will help other users to find your group."
 msgstr "Below you can add details: Describe the topics of this group by one or more tags. If your group is located in a particular town, you can mark it on a map. These information will help other users to find your group."
 
-# edit.phtml:39
+# edit.phtml:105
 msgid "Below you can add details: Describe the topics of this resource by one or more tags. If you have created resource accessible only to selected peaople, you can insert recipients of this resource. These information will help other users to find your resource."
 msgstr "Below you can add details: Describe the topics of this resource by one or more tags. If you have created resource accessible only to selected peaople, you can insert recipients of this resource. These information will help other users to find your resource."
 
-# @layout.phtml:221
+# @layout.phtml:231
 msgid "By using this platform you accept our"
 msgstr "By using this platform you accept our"
 
-# default.phtml:148
-# detail.phtml:150
+# default.phtml:164
+# detail.phtml:170
 msgid "Cancel friendship"
 msgstr "Cancel friendship"
 
@@ -186,113 +211,119 @@ msgstr "Cancel friendship"
 msgid "Cancel subscription"
 msgstr "Cancel subscription"
 
-# ListerControlMain_groups.phtml:279
-# ListerControlMain_resources.phtml:315
-# ListerControlMain_users.phtml:257
+# ListerControlMain_groups.phtml:278
+# ListerControlMain_resources.phtml:307
+# ListerControlMain_users.phtml:273
 msgid "Cannot find what you are searching?"
 msgstr "Cannot find what you are searching?"
 
-# changelostpassword.phtml:0
+# changelostpassword.phtml:15
 msgid "Change lost password"
 msgstr "Change lost password"
 
-# UserPresenter.php:290
-# UserPresenter.php:318
-# changepassword.phtml:0
-# edit.phtml:61
+# UserPresenter.php:307
+# UserPresenter.php:338
+# changepassword.phtml:15
+# edit.phtml:74
 msgid "Change password"
 msgstr "Change password"
 
-# ListerControlMain_groups.phtml:215
-# ListerControlMain_groups.phtml:229
-# ListerControlMain_resources.phtml:250
-# ListerControlMain_resources.phtml:264
-# ListerControlMain_users.phtml:192
-# ListerControlMain_users.phtml:206
+# ListerControlMain_groups.phtml:214
+# ListerControlMain_groups.phtml:228
+# ListerControlMain_resources.phtml:242
+# ListerControlMain_resources.phtml:256
+# ListerControlMain_users.phtml:208
+# ListerControlMain_users.phtml:222
 msgid "Change the filter"
 msgstr "Change the filter"
 
-# default.phtml:4
-msgid "Choose from the menus above."
-msgstr "Choose from the menus above."
+# RestServer.php:433
+msgid "Chyba"
+msgstr "Chyba"
 
 # ChatLister_body.phtml:4
-# detail.phtml:352
-# messages.phtml:33
+# detail.phtml:359
+# messages.phtml:47
 msgid "Clear"
 msgstr "Clear"
 
-# ExternalFilter.php:205
+# ExternalFilter.php:219
 msgid "Clear Filter"
 msgstr "Clear Filter"
 
-# login.phtml:22
+# login.phtml:40
 msgid "Click here if you forgot your password."
 msgstr "Click here if you forgot your password."
 
-# edit.phtml:20
-# edit.phtml:18
+# default.phtml:64
+msgid "Click here to continue."
+msgstr "Click here to continue."
+
+# edit.phtml:34
+# edit.phtml:33
 msgid "Click inside the image and select your avatar."
 msgstr "Click inside the image and select your avatar."
 
-# ExternalFilter.phtml:117
+# ExternalFilter.phtml:137
 msgid "Click inside the map to set the center. Click a second time to set the search radius."
 msgstr "Click inside the map to set the center. Click a second time to set the search radius."
 
-# edit.phtml:38
-# edit.phtml:31
-# edit.phtml:35
-msgid "Click inside the map to set the resource location."
-msgstr "Click inside the map to set the resource location."
+# MapControl.phtml:394
+msgid "Click inside the map to set the location. If the location is already set, you first need to clear the map: <b class='icon-clear'></b>."
+msgstr "Click inside the map to set the location. If the location is already set, you first need to clear the map: <b class='icon-clear'></b>."
 
-# edit.phtml:13
+# edit.phtml:71
 msgid "Close"
 msgstr "Close"
 
-# detail.phtml:325
+# detail.phtml:332
 msgid "Comments"
 msgstr "Comments"
 
-# detail.phtml:401
+# detail.phtml:408
 msgid "Comments are only visible when you are signed in."
 msgstr "Comments are only visible when you are signed in."
 
-# ExternalFilter.php:169
+# ExternalFilter.php:183
 msgid "Connect filters with"
 msgstr "Connect filters with"
 
-# detail.phtml:120
+# detail.phtml:134
 msgid "Copy this link and send it to people who you would like to join. This link is like a key to this group."
 msgstr "Copy this link and send it to people who you would like to join. This link is like a key to this group."
 
-# GroupPresenter.php:474
-# create.phtml:0
+# GroupPresenter.php:492
+# create.phtml:14
 msgid "Create new group"
 msgstr "Create new group"
 
-# ResourcePresenter.php:472
+# ResourcePresenter.php:557
 msgid "Create new resource"
 msgstr "Create new resource"
 
-# edit.phtml:14
+# AdministrationPresenter.php:523
+msgid "Database error."
+msgstr "Database error."
+
+# edit.phtml:72
 msgid "December"
 msgstr "December"
 
-# GroupPresenter.php:466
+# GroupPresenter.php:484
 msgid "Describe in few sentences what this group is about."
 msgstr "Describe in few sentences what this group is about."
 
-# ResourcePresenter.php:405
+# ResourcePresenter.php:464
 msgid "Describe in few sentences what this resource is about."
 msgstr "Describe in few sentences what this resource is about."
 
-# GroupPresenter.php:466
-# ResourcePresenter.php:405
-# UserPresenter.php:630
+# GroupPresenter.php:484
+# ResourcePresenter.php:464
+# UserPresenter.php:645
 msgid "Description:"
 msgstr "Description:"
 
-# detail.phtml:0
+# detail.phtml:14
 msgid "Details of the group"
 msgstr "Details of the group"
 
@@ -300,118 +331,139 @@ msgstr "Details of the group"
 msgid "Details of the resource"
 msgstr "Details of the resource"
 
-# detail.phtml:0
+# detail.phtml:14
 msgid "Details of the user"
 msgstr "Details of the user"
 
-# default.phtml:66
+# default.phtml:89
 msgid "Discover new groups"
 msgstr "Discover new groups"
 
-# default.phtml:73
+# default.phtml:96
 msgid "Discover new resources"
 msgstr "Discover new resources"
 
-# default.phtml:59
+# default.phtml:82
 msgid "Discover new users"
 msgstr "Discover new users"
 
-# UserPresenter.php:628
+# ChatLister_ajax.phtml:163
+# ListerControlMain_messages.phtml:208
+msgid "Do you really want to delete this message?"
+msgstr "Do you really want to delete this message?"
+
+# UserPresenter.php:643
 msgid "Do you want be visible to everyone (world), one to registered users (registered) or only to your friends (friends)?"
 msgstr "Do you want be visible to everyone (world), one to registered users (registered) or only to your friends (friends)?"
 
-# @layout.phtml:154
-msgid "Download the mobile application."
-msgstr "Download the mobile application."
+# setupmaintenance.phtml:112
+msgid "Documentation:"
+msgstr "Documentation:"
 
-# edit.phtml:12
+# ContainerTreeSelectControl.phtml:66
+msgid "Done"
+msgstr "Done"
+
+# AdministrationPresenter.php:732
+msgid "Done importing resources. Error writing log file."
+msgstr "Done importing resources. Error writing log file."
+
+# AdministrationPresenter.php:734
+msgid "Done importing resources. Please check the log file."
+msgstr "Done importing resources. Please check the log file."
+
+# AdministrationPresenter.php:528
+msgid "Done updating locales."
+msgstr "Done updating locales."
+
+# @layout.phtml:168
+msgid "Download the mobile application"
+msgstr "Download the mobile application"
+
+# edit.phtml:26
 msgid "Edit the group image"
 msgstr "Edit the group image"
 
-# edit.phtml:36
-# edit.phtml:29
+# edit.phtml:50
+# edit.phtml:89
 msgid "Edit the location"
 msgstr "Edit the location"
 
-# edit.phtml:10
+# edit.phtml:24
 msgid "Edit your avatar"
 msgstr "Edit your avatar"
 
-# edit.phtml:33
+# edit.phtml:48
 msgid "Edit your location"
 msgstr "Edit your location"
 
-# User.php:331
+# User.php:362
 msgid "Email change on Mycitizen.net"
 msgstr "Email change on Mycitizen.net"
 
-# UserPresenter.php:134
+# UserPresenter.php:147
 msgid "Email couldn't be changed!"
 msgstr "Email couldn't be changed!"
 
-# UserPresenter.php:121
+# UserPresenter.php:134
 msgid "Email couldn't be changed! Link is not active anymore"
 msgstr "Email couldn't be changed! Link is not active anymore"
 
-# UserPresenter.php:117
 # UserPresenter.php:130
+# UserPresenter.php:143
 msgid "Email has been succesfully changed."
 msgstr "Email has been succesfully changed."
 
-# UserPresenter.php:502
+# UserPresenter.php:522
 msgid "Email is already registered to another account."
 msgstr "Email is already registered to another account."
 
-# UserPresenter.php:517
+# UserPresenter.php:532
 msgid "Email is not valid. Check it and try again."
 msgstr "Email is not valid. Check it and try again."
 
-# UserPresenter.php:475
-# UserPresenter.php:627
+# UserPresenter.php:496
+# UserPresenter.php:642
 msgid "Email:"
 msgstr "Email:"
 
-# ListerControlMain.php:674
+# ListerControlMain.php:644
 msgid "Empty Trash"
 msgstr "Empty Trash"
 
 # GroupUserListerControl.phtml:19
 # ResourceListerControl.phtml:11
-# default.phtml:104
-# detail.phtml:174
-# default.phtml:116
+# default.phtml:120
+# detail.phtml:188
+# default.phtml:132
 # detail.phtml:166
-# default.phtml:164
-# detail.phtml:176
+# default.phtml:180
+# detail.phtml:196
 msgid "Enabled"
 msgstr "Enabled"
 
-# GroupPresenter.php:470
+# GroupPresenter.php:488
 msgid "Enter a key that will be used for inviting members into this group. Use letters, numbers and \"-\", with a minimum lenght of 5)."
 msgstr "Enter a key that will be used for inviting members into this group. Use letters, numbers and \"-\", with a minimum lenght of 5)."
 
-# GroupPresenter.php:463
+# GroupPresenter.php:481
 msgid "Enter a name for the group."
 msgstr "Enter a name for the group."
 
-# ResourcePresenter.php:400
+# ResourcePresenter.php:459
 msgid "Enter a name for the resource."
 msgstr "Enter a name for the resource."
 
-# UserPresenter.php:289
-# UserPresenter.php:317
+# UserPresenter.php:306
+# UserPresenter.php:336
 msgid "Entered passwords are not the same."
 msgstr "Entered passwords are not the same."
 
-# RestServer.php:433
-msgid "Error"
-msgstr "Error"
-
-# BasePresenter.php:235
+# BasePresenter.php:282
 msgid "Error deleting image from cache."
 msgstr "Error deleting image from cache."
 
-# BasePresenter.php:260
+# BasePresenter.php:307
 msgid "Error deleting image from cache: "
 msgstr "Error deleting image from cache: "
 
@@ -421,232 +473,232 @@ msgstr "Error deleting image from cache: "
 msgid "Error loading chat. Are you logged in?"
 msgstr "Error loading chat. Are you logged in?"
 
-# BasePresenter.php:275
+# BasePresenter.php:322
 msgid "Error recreating image."
 msgstr "Error recreating image."
 
-# GroupListerControl.php:82
-# GroupListerControl.php:113
-# GroupUserListerControl.php:58
-# GroupUserListerControl.php:98
-# ListerControlMain.php:416
-# ListerControlMain.php:472
-# ListerControlMain.php:519
-# MapControl.php:62
-# ResourceGroupListerControl.php:45
-# ResourceGroupListerControl.php:81
-# ResourceListerControl.php:42
-# ResourceListerControl.php:77
-# ResourceMemberListerControl.php:45
-# ResourceMemberListerControl.php:81
-# TagListerControl.php:160
-# UserListerControl.php:67
-# UserListerControl.php:108
-# AdministrationPresenter.php:87
-# AdministrationPresenter.php:217
-# GroupPresenter.php:231
-# GroupPresenter.php:495
-# GroupPresenter.php:770
-# GroupPresenter.php:812
-# GroupPresenter.php:896
-# ResourcePresenter.php:198
-# ResourcePresenter.php:247
-# ResourcePresenter.php:477
-# ResourcePresenter.php:859
-# ResourcePresenter.php:899
-# UserPresenter.php:276
-# UserPresenter.php:291
-# UserPresenter.php:319
-# UserPresenter.php:351
-# UserPresenter.php:423
-# UserPresenter.php:481
-# UserPresenter.php:561
-# UserPresenter.php:633
-# UserPresenter.php:1091
-# UserPresenter.php:1204
+# GroupListerControl.php:96
+# GroupListerControl.php:127
+# GroupUserListerControl.php:72
+# GroupUserListerControl.php:112
+# ListerControlMain.php:393
+# ListerControlMain.php:449
+# ListerControlMain.php:496
+# MapControl.php:76
+# ResourceGroupListerControl.php:59
+# ResourceGroupListerControl.php:95
+# ResourceListerControl.php:56
+# ResourceListerControl.php:91
+# ResourceMemberListerControl.php:59
+# ResourceMemberListerControl.php:95
+# TagListerControl.php:176
+# UserListerControl.php:81
+# UserListerControl.php:122
+# AdministrationPresenter.php:111
+# AdministrationPresenter.php:266
+# GroupPresenter.php:248
+# GroupPresenter.php:513
+# GroupPresenter.php:789
+# GroupPresenter.php:831
+# GroupPresenter.php:915
+# ResourcePresenter.php:257
+# ResourcePresenter.php:306
+# ResourcePresenter.php:562
+# ResourcePresenter.php:1039
+# ResourcePresenter.php:1079
+# UserPresenter.php:293
+# UserPresenter.php:308
+# UserPresenter.php:339
+# UserPresenter.php:371
+# UserPresenter.php:444
+# UserPresenter.php:501
+# UserPresenter.php:576
+# UserPresenter.php:648
+# UserPresenter.php:1111
+# UserPresenter.php:1237
 msgid "Error submitting form."
 msgstr "Error submitting form."
 
-# Group.php:453
-# User.php:710
-# BasePresenter.php:302
+# Group.php:458
+# User.php:741
+# BasePresenter.php:349
 msgid "Error writing image: "
 msgstr "Error writing image: "
 
-# ResourcePresenter.php:423
+# ResourcePresenter.php:489
 msgid "Event description:"
 msgstr "Event description:"
 
-# ResourcePresenter.php:426
+# ResourcePresenter.php:492
 msgid "Event time:"
 msgstr "Event time:"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "February"
 msgstr "February"
 
-# GroupListerControl.php:112
-# MapControl.php:61
-# TagListerControl.php:159
+# GroupListerControl.php:126
+# MapControl.php:75
+# TagListerControl.php:174
 msgid "Filter"
 msgstr "Filter"
 
 # ChatLister_body.phtml:3
-# detail.phtml:351
-# messages.phtml:32
+# detail.phtml:358
+# messages.phtml:46
 msgid "Filter by name"
 msgstr "Filter by name"
 
-# ListerControlMain.php:109
+# ListerControlMain.php:123
 msgid "Filter is off."
 msgstr "Filter is off."
 
-# ListerControlMain.php:107
+# ListerControlMain.php:121
 msgid "Filter is on."
 msgstr "Filter is on."
 
-# User.php:258
+# BasePresenter.php:437
+msgid "Find more information at:"
+msgstr "Find more information at:"
+
+# User.php:289
 msgid "Finish your registration at Mycitizen.net"
 msgstr "Finish your registration at Mycitizen.net"
 
-# GroupPresenter.php:1145
-# UserPresenter.php:1508
+# GroupPresenter.php:1162
+# UserPresenter.php:1539
 msgid "Finished cropping and resizing."
 msgstr "Finished cropping and resizing."
+
+# AdministrationPresenter.php:520
+msgid "Found unused locale '%s', removing from database."
+msgstr "Found unused locale '%s', removing from database."
 
 # ListerControlMain_users.phtml:22
 msgid "Friends"
 msgstr "Friends"
 
-# StaticModel.php:44
+# StaticModel.php:59
 msgid "Friendship accepted"
 msgstr "Friendship accepted"
 
-# StaticModel.php:52
+# StaticModel.php:69
 msgid "Friendship canceled"
 msgstr "Friendship canceled"
 
-# StaticModel.php:40
+# StaticModel.php:54
 msgid "Friendship request"
 msgstr "Friendship request"
 
-# StaticModel.php:48
-# default.phtml:108
+# StaticModel.php:64
+# default.phtml:124
 msgid "Friendship request rejected"
 msgstr "Friendship request rejected"
 
-# detail.phtml:122
+# detail.phtml:142
 msgid "Friendship request rejected."
 msgstr "Friendship request rejected."
 
-# default.phtml:103
+# default.phtml:119
 msgid "Friendship request sent"
 msgstr "Friendship request sent"
 
-# detail.phtml:117
+# detail.phtml:137
 msgid "Friendship request sent."
 msgstr "Friendship request sent."
 
-# setupmaintenance.phtml:24
+# setupmaintenance.phtml:75
 msgid "GD (images) supported"
 msgstr "GD (images) supported"
 
-# setupmaintenance.phtml:21
+# setupmaintenance.phtml:78
 msgid "Gettext supported"
 msgstr "Gettext supported"
 
-# GroupPresenter.php:25
+# GroupPresenter.php:41
 msgid "Given group does not exist."
 msgstr "Given group does not exist."
 
-# detail.phtml:187
-# detail.phtml:192
-# detail.phtml:197
-# detail.phtml:202
+# detail.phtml:188
+# detail.phtml:194
+# detail.phtml:200
+# detail.phtml:206
 msgid "Go to resource"
 msgstr "Go to resource"
 
-# GroupPresenter.php:967
+# GroupPresenter.php:986
 msgid "Group %s has not been subscribed to resource."
 msgstr "Group %s has not been subscribed to resource."
 
-# ResourcePresenter.php:321
+# ResourcePresenter.php:380
 msgid "Group %s is already subscribed."
 msgstr "Group %s is already subscribed."
 
-# ResourcePresenter.php:319
+# ResourcePresenter.php:378
 msgid "Group %s subscribed to this resource."
 msgstr "Group %s subscribed to this resource."
 
-# GroupPresenter.php:965
+# GroupPresenter.php:984
 msgid "Group %s unsubscribed from resource."
 msgstr "Group %s unsubscribed from resource."
 
-# ListerControlMain.php:411
-msgid "Group Administrator"
-msgstr "Group Administrator"
-
-# ListerControlMain.php:410
-msgid "Group Moderator"
-msgstr "Group Moderator"
-
-# detail.phtml:211
+# detail.phtml:225
 msgid "Group chat"
 msgstr "Group chat"
 
-# edit.phtml:0
+# edit.phtml:14
 msgid "Group edit"
 msgstr "Group edit"
 
-# GroupPresenter.php:470
+# GroupPresenter.php:488
 msgid "Group key:"
 msgstr "Group key:"
 
-# detail.phtml:164
+# detail.phtml:178
 msgid "Group location on a map"
 msgstr "Group location on a map"
 
-# default.phtml:117
-# detail.phtml:187
+# default.phtml:133
+# detail.phtml:201
 msgid "Group members"
 msgstr "Group members"
 
-# detail.phtml:106
+# detail.phtml:120
 msgid "Group owner: "
 msgstr "Group owner: "
 
-# default.phtml:128
-# detail.phtml:198
+# default.phtml:144
+# detail.phtml:212
 msgid "Group resources"
 msgstr "Group resources"
 
-# GroupListerControl.php:111
+# GroupListerControl.php:125
 msgid "Group status"
 msgstr "Group status"
 
-# GroupPresenter.php:535
+# GroupPresenter.php:555
 msgid "Group updated"
 msgstr "Group updated"
 
-# BasePresenter.php:113
-# default.phtml:0
-# default.phtml:36
+# BasePresenter.php:148
+# default.phtml:14
+# default.phtml:52
 msgid "Groups"
 msgstr "Groups"
 
-# User.php:328
+# User.php:359
 msgid "Hello,\nYou have requested email change on Mycitizen.net.\nTo finish your request click on following link.\n"
 msgstr "Hello,\nYou have requested email change on Mycitizen.net.\nTo finish your request click on following link.\n"
 
-# User.php:295
+# User.php:326
 msgid "Hello,\nYou have requested password change on Mycitizen.net.\nTo finish your request click on following link.\n"
 msgstr "Hello,\nYou have requested password change on Mycitizen.net.\nTo finish your request click on following link.\n"
 
-# User.php:255
+# User.php:286
 msgid "Hello,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link.\n"
 msgstr "Hello,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link.\n"
 
-# detail.phtml:44
+# detail.phtml:58
 msgid "Here you can report the group if you think it has violated the rules. Reports will be processed by our moderators."
 msgstr "Here you can report the group if you think it has violated the rules. Reports will be processed by our moderators."
 
@@ -654,7 +706,7 @@ msgstr "Here you can report the group if you think it has violated the rules. Re
 msgid "Here you can report the resource if you think it has violated the rules. Reports will be processed by our moderators."
 msgstr "Here you can report the resource if you think it has violated the rules. Reports will be processed by our moderators."
 
-# detail.phtml:49
+# detail.phtml:69
 msgid "Here you can report the user if you think her or she has violated the rules. Reports will be processed by our moderators."
 msgstr "Here you can report the user if you think her or she has violated the rules. Reports will be processed by our moderators."
 
@@ -662,40 +714,69 @@ msgstr "Here you can report the user if you think her or she has violated the ru
 msgid "Hidden group"
 msgstr "Hidden group"
 
-# ListerControlMain_users.phtml:64
+# ListerControlMain_users.phtml:62
 msgid "Hidden user"
 msgstr "Hidden user"
 
-# edit.phtml:9
+# edit.phtml:67
 msgid "Hours"
 msgstr "Hours"
 
-# login.phtml:30
+# ListerControlMain_groups.phtml:82
+msgid "I am a group moderator."
+msgstr "I am a group moderator."
+
+# default.phtml:71
+# detail.phtml:25
+msgid "I am a member."
+msgstr "I am a member."
+
+# ListerControlMain_resources.phtml:106
+msgid "I am a resource moderator."
+msgstr "I am a resource moderator."
+
+# default.phtml:73
+# detail.phtml:25
+msgid "I am not a member."
+msgstr "I am not a member."
+
+# default.phtml:88
+# detail.phtml:18
+msgid "I am not subscribed."
+msgstr "I am not subscribed."
+
+# default.phtml:86
+# detail.phtml:18
+msgid "I am subscribed."
+msgstr "I am subscribed."
+
+# ListerControlMain_groups.phtml:78
+# ListerControlMain_resources.phtml:102
+msgid "I am the owner."
+msgstr "I am the owner."
+
+# login.phtml:48
 msgid "If you are new here, please "
 msgstr "If you are new here, please "
 
-# UserPresenter.php:706
-msgid "Image is too big! Max. size is for upload is 2048x2048"
-msgstr "Image is too big! Max. size is for upload is 2048x2048"
+# UserPresenter.php:721
+msgid "Image is too big! Max. size is for upload is 1500x1500"
+msgstr "Image is too big! Max. size is for upload is 1500x1500"
 
-# GroupPresenter.php:467
-# UserPresenter.php:631
+# GroupPresenter.php:485
+# UserPresenter.php:646
 msgid "Image must be in JPEG or PNG format."
 msgstr "Image must be in JPEG or PNG format."
 
-# setupmaintenance.phtml:9
-msgid "Import resources from file"
-msgstr "Import resources from file"
+# setupmaintenance.phtml:28
+msgid "Import resources from a file"
+msgstr "Import resources from a file"
 
-# ExternalFilter.php:180
-msgid "Inbox"
-msgstr "Inbox"
-
-# ResourcePresenter.php:434
+# ResourcePresenter.php:513
 msgid "Information:"
 msgstr "Information:"
 
-# ResourcePresenter.php:265
+# ResourcePresenter.php:324
 msgid "Insufficient permissions to subscribe group %s to this resource."
 msgstr "Insufficient permissions to subscribe group %s to this resource."
 
@@ -705,52 +786,56 @@ msgstr "Insufficient permissions to subscribe group %s to this resource."
 msgid "Is active"
 msgstr "Is active"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "January"
 msgstr "January"
 
-# ResourceGroupListerControl.php:66
+# ResourceGroupListerControl.php:80
 msgid "Jméno"
 msgstr "Jméno"
 
-# default.phtml:84
-# detail.phtml:133
+# default.phtml:100
+# detail.phtml:147
 msgid "Join group"
 msgstr "Join group"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "July"
 msgstr "July"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "June"
 msgstr "June"
 
-# ExternalFilter.php:194
-# detail.phtml:66
+# ExternalFilter.php:208
+# detail.phtml:80
 # detail.phtml:75
-# detail.phtml:74
+# detail.phtml:94
 msgid "Language"
 msgstr "Language"
 
-# GroupPresenter.php:465
-# ResourcePresenter.php:403
-# UserPresenter.php:629
+# AdministrationPresenter.php:425
+msgid "Language code"
+msgstr "Language code"
+
+# GroupPresenter.php:483
+# ResourcePresenter.php:462
+# UserPresenter.php:644
 msgid "Language:"
 msgstr "Language:"
 
-# detail.phtml:27
+# detail.phtml:41
 # detail.phtml:36
-# detail.phtml:31
+# detail.phtml:45
 msgid "Last activity: "
 msgstr "Last activity: "
 
-# default.phtml:95
-# detail.phtml:137
+# default.phtml:111
+# detail.phtml:151
 msgid "Leave group"
 msgstr "Leave group"
 
-# detail.phtml:117
+# detail.phtml:131
 msgid "Link to invite new members"
 msgstr "Link to invite new members"
 
@@ -758,7 +843,7 @@ msgstr "Link to invite new members"
 msgid "Loading chat.."
 msgstr "Loading chat.."
 
-# MapControl.php:60
+# MapControl.php:74
 msgid "Location"
 msgstr "Location"
 
@@ -767,49 +852,53 @@ msgstr "Location"
 msgid "Login"
 msgstr "Login"
 
-# GroupPresenter.php:464
+# ExternalFilter.php:195
+msgid "Mailbox"
+msgstr "Mailbox"
+
+# GroupPresenter.php:482
 msgid "Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members)."
 msgstr "Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members)."
 
-# ResourcePresenter.php:402
+# ResourcePresenter.php:461
 msgid "Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers)."
 msgstr "Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers)."
 
-# edit.phtml:94
+# edit.phtml:109
 msgid "Manage members of this group"
 msgstr "Manage members of this group"
 
-# edit.phtml:99
+# edit.phtml:114
 msgid "Manage subscribed resources"
 msgstr "Manage subscribed resources"
 
-# ExternalFilter.phtml:118
-msgid "Map"
-msgstr "Map"
+# edit.phtml:145
+msgid "Manage subscribers of this resource"
+msgstr "Manage subscribers of this resource"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "March"
 msgstr "March"
 
-# GroupPresenter.php:467
-# UserPresenter.php:631
+# GroupPresenter.php:485
+# UserPresenter.php:646
 msgid "Maximum image size is 512kB"
 msgstr "Maximum image size is 512kB"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "May"
 msgstr "May"
 
-# ResourcePresenter.php:469
+# ResourcePresenter.php:548
 msgid "Media ID:"
 msgstr "Media ID:"
 
-# ResourcePresenter.php:468
+# ResourcePresenter.php:547
 msgid "Media type:"
 msgstr "Media type:"
 
-# default.phtml:187
-# detail.phtml:200
+# default.phtml:203
+# detail.phtml:220
 msgid "Member of groups"
 msgstr "Member of groups"
 
@@ -817,275 +906,311 @@ msgstr "Member of groups"
 msgid "Members"
 msgstr "Members"
 
-# ChatLister_ajax.phtml:47
-# ListerControlMain_messages.phtml:112
+# ChatLister_ajax.phtml:54
+# ListerControlMain_messages.phtml:136
 msgid "Message not displayed because the user has been deactivated."
 msgstr "Message not displayed because the user has been deactivated."
 
-# ResourcePresenter.php:414
+# ResourcePresenter.php:480
 msgid "Message:"
 msgstr "Message:"
 
-# edit.phtml:10
+# edit.phtml:68
 msgid "Minutes"
 msgstr "Minutes"
 
-# UserPresenter.php:1184
+# ListerControlMain.php:387
+# UserPresenter.php:1217
 msgid "Moderator"
 msgstr "Moderator"
 
-# User.php:22
+# User.php:36
 msgid "More than one user with the same id found."
 msgstr "More than one user with the same id found."
 
-# default.phtml:56
+# default.phtml:76
+msgid "My Connections"
+msgstr "My Connections"
+
+# default.phtml:79
 msgid "My Friends"
 msgstr "My Friends"
 
-# default.phtml:63
+# default.phtml:86
 msgid "My Groups"
 msgstr "My Groups"
 
-# MapContainer.phtml:334
-# MapControl.phtml:381
+# MapContainer.phtml:353
+# MapControl.phtml:402
 msgid "My Location"
 msgstr "My Location"
 
-# default.phtml:70
+# default.phtml:93
 msgid "My Resources"
 msgstr "My Resources"
 
-# detail.phtml:225
+# detail.phtml:245
 msgid "My friends"
 msgstr "My friends"
 
-# MapContainer.phtml:31
-# MapContainer.phtml:280
-# MapControl.phtml:36
+# MapContainer.phtml:50
+# MapContainer.phtml:299
+# MapControl.phtml:55
 msgid "My real position"
 msgstr "My real position"
 
-# ExternalFilter.php:173
-# GroupListerControl.php:105
+# ExternalFilter.php:187
+# GroupListerControl.php:119
 # Groupresourcewidget_body.phtml:8
-# GroupUserListerControl.php:83
+# GroupUserListerControl.php:97
 # GroupUserListerControl.phtml:10
 # ListerControlMain_groups.phtml:8
 # ListerControlMain_resources.phtml:8
 # ListerControlMain_users.phtml:8
-# ResourceListerControl.php:68
+# ResourceListerControl.php:82
 # ResourceListerControl.phtml:8
-# ResourceMemberListerControl.php:66
-# TagListerControl.php:158
-# UserListerControl.php:93
+# ResourceMemberListerControl.php:80
+# TagListerControl.php:173
+# UserListerControl.php:107
 # UserListerControl.phtml:11
 msgid "Name"
 msgstr "Name"
 
-# GroupPresenter.php:463
-# ResourcePresenter.php:400
-# UserPresenter.php:623
+# GroupPresenter.php:481
+# ResourcePresenter.php:459
+# UserPresenter.php:638
 msgid "Name:"
 msgstr "Name:"
 
-# edit.phtml:15
-# edit.phtml:16
-# edit.phtml:13
-# edit.phtml:14
+# edit.phtml:29
+# edit.phtml:30
+# edit.phtml:27
+# edit.phtml:28
 msgid "Needs to be created."
 msgstr "Needs to be created."
 
-# BasePresenter.php:70
-# BasePresenter.php:70
-# BasePresenter.php:175
-# BasePresenter.php:175
+# BasePresenter.php:105
+# BasePresenter.php:105
+# BasePresenter.php:210
+# BasePresenter.php:210
 msgid "New messages"
 msgstr "New messages"
 
-# ListerControlMain_messages.phtml:119
+# ListerControlMain_messages.phtml:143
 msgid "No messages"
 msgstr "No messages"
 
-# detail.phtml:92
+# detail.phtml:106
 # detail.phtml:101
-# detail.phtml:100
+# detail.phtml:120
 msgid "No tags."
 msgstr "No tags."
 
-# ListerControlMain.php:409
-# UserPresenter.php:1183
+# ListerControlMain.php:386
+msgid "Normal"
+msgstr "Normal"
+
+# UserPresenter.php:1216
 msgid "Normal user"
 msgstr "Normal user"
 
-# ListerControlMain_groups.phtml:215
-# ListerControlMain_resources.phtml:250
-# ListerControlMain_users.phtml:192
+# ListerControlMain_groups.phtml:214
+# ListerControlMain_resources.phtml:242
+# ListerControlMain_users.phtml:208
 msgid "Nothing found."
 msgstr "Nothing found."
 
-# ListerControlMain_groups.phtml:217
-# ListerControlMain_resources.phtml:252
-# ListerControlMain_users.phtml:194
+# ListerControlMain_groups.phtml:216
+# ListerControlMain_resources.phtml:244
+# ListerControlMain_users.phtml:210
 msgid "Nothing to display"
 msgstr "Nothing to display"
 
-# edit.phtml:14
+# BasePresenter.php:420
+msgid "Notification from %s"
+msgstr "Notification from %s"
+
+# ResourcePresenter.php:505
+msgid "Notify members:"
+msgstr "Notify members:"
+
+# edit.phtml:72
 msgid "November"
 msgstr "November"
 
-# edit.phtml:12
+# edit.phtml:70
 msgid "Now"
 msgstr "Now"
 
-# setupmaintenance.phtml:56
-msgid "Number of groups"
-msgstr "Number of groups"
+# default.phtml:64
+msgid "Now is the best time to update your profile. You can enter your name and place and tags for your interests."
+msgstr "Now is the best time to update your profile. You can enter your name and place and tags for your interests."
 
-# setupmaintenance.phtml:62
-msgid "Number of resources"
-msgstr "Number of resources"
-
-# setupmaintenance.phtml:44
-msgid "Number of users"
-msgstr "Number of users"
-
-# edit.phtml:14
+# edit.phtml:72
 msgid "October"
 msgstr "October"
 
-# ChatLister_ajax.phtml:121
-# ListerControlMain_messages.phtml:142
-# messages.phtml:100
+# ChatLister_ajax.phtml:128
+# ListerControlMain_messages.phtml:166
+# messages.phtml:115
 msgid "On"
 msgstr "On"
 
-# default.phtml:82
+# default.phtml:98
 msgid "On invitation only"
 msgstr "On invitation only"
 
-# AdministrationPresenter.php:44
-# AdministrationPresenter.php:75
+# AdministrationPresenter.php:65
+# AdministrationPresenter.php:96
 msgid "Only administrators can visit this section!"
 msgstr "Only administrators can visit this section!"
 
-# GroupPresenter.php:470
+# GroupPresenter.php:488
 msgid "Only letters, numbers and '-', with a minimum lenght of 5."
 msgstr "Only letters, numbers and '-', with a minimum lenght of 5."
 
 # Groupresourcewidget_body.phtml:35
-# ListerControlMain_groups.phtml:98
-# ListerControlMain_groups.phtml:127
-# ListerControlMain_resources.phtml:128
-# ListerControlMain_resources.phtml:161
-# ListerControlMain_users.phtml:76
-# ListerControlMain_users.phtml:105
+# ListerControlMain_groups.phtml:94
+# ListerControlMain_groups.phtml:123
+# ListerControlMain_resources.phtml:117
+# ListerControlMain_resources.phtml:150
+# ListerControlMain_users.phtml:89
+# ListerControlMain_users.phtml:118
 msgid "Owner"
 msgstr "Owner"
 
-# setupmaintenance.phtml:18
+# setupmaintenance.phtml:61
 msgid "PHP Version"
 msgstr "PHP Version"
 
-# TagListerControl.php:122
+# setupmaintenance.phtml:64
+msgid "PHP max execution time"
+msgstr "PHP max execution time"
+
+# setupmaintenance.phtml:67
+msgid "PHP memory limit"
+msgstr "PHP memory limit"
+
+# setupmaintenance.phtml:72
+msgid "PHP memory usage"
+msgstr "PHP memory usage"
+
+# TagListerControl.php:137
 msgid "Parent level:"
 msgstr "Parent level:"
 
-# AdministrationPresenter.php:85
+# AdministrationPresenter.php:108
 msgid "Parent tag:"
 msgstr "Parent tag:"
 
-# UserPresenter.php:289
-# UserPresenter.php:317
+# UserPresenter.php:306
+# UserPresenter.php:336
 msgid "Password again:"
 msgstr "Password again:"
 
-# User.php:298
+# User.php:329
 msgid "Password change on Mycitizen.net"
 msgstr "Password change on Mycitizen.net"
 
-# UserPresenter.php:307
-# UserPresenter.php:335
+# UserPresenter.php:324
+# UserPresenter.php:355
 msgid "Password couldn't be changed! Try again later."
 msgstr "Password couldn't be changed! Try again later."
 
-# UserPresenter.php:274
-# UserPresenter.php:288
-# UserPresenter.php:316
-# UserPresenter.php:476
+# UserPresenter.php:290
+# UserPresenter.php:305
+# UserPresenter.php:335
+# UserPresenter.php:497
 msgid "Password:"
 msgstr "Password:"
 
-# default.phtml:169
-# detail.phtml:181
+# default.phtml:185
+# detail.phtml:201
 msgid "Permission to create items"
 msgstr "Permission to create items"
 
-# UserPresenter.php:625
+# UserPresenter.php:640
 msgid "Phone:"
 msgstr "Phone:"
 
-# GroupPresenter.php:229
+# detail.phtml:237
 msgid "Please enter some text."
 msgstr "Please enter some text."
 
-# changepassword.phtml:3
+# changepassword.phtml:18
 msgid "Please enter your new password"
 msgstr "Please enter your new password"
 
-# GroupPresenter.php:810
-# ResourcePresenter.php:897
-# UserPresenter.php:349
+# GroupPresenter.php:829
+# ResourcePresenter.php:1077
+# UserPresenter.php:369
 msgid "Please give us some details."
 msgstr "Please give us some details."
 
-# detail.phtml:122
+# detail.phtml:136
 msgid "Please go to the edit screen and generate a link."
 msgstr "Please go to the edit screen and generate a link."
 
-# @layout.phtml:95
+# ResourcePresenter.php:548
+msgid "Please paste here the <u>underlined</u> part of the url for the media that you want to add:<br/>
+	<ul>
+		<li><b>YouTube:</b> https://www.youtube.com/watch?v=<u>xxxxx</u></li>
+		<li><b>Vimeo:</b> http://vimeo.com/<u>xxxxx</u></li>
+		<li><b>Soundcloud:</b> http://soundcloud.com/<u>xxx/yyy</u></li>
+		<li><b>Bambuser:</b> http://bambuser.com/v/<u>xxx</u></li>
+	</ul>"
+msgstr "Please paste here the <u>underlined</u> part of the url for the media that you want to add:<br/>
+	<ul>
+		<li><b>YouTube:</b> https://www.youtube.com/watch?v=<u>xxxxx</u></li>
+		<li><b>Vimeo:</b> http://vimeo.com/<u>xxxxx</u></li>
+		<li><b>Soundcloud:</b> http://soundcloud.com/<u>xxx/yyy</u></li>
+		<li><b>Bambuser:</b> http://bambuser.com/v/<u>xxx</u></li>
+	</ul>"
+
+# @layout.phtml:113
 msgid "Please select first a part of the image."
 msgstr "Please select first a part of the image."
 
-# UserPresenter.php:474
+# UserPresenter.php:495
 msgid "Please use only the English alphabet."
 msgstr "Please use only the English alphabet."
 
-# ResourcePresenter.php:197
+# ResourcePresenter.php:256
 msgid "Post"
 msgstr "Post"
 
-# detail.phtml:335
+# detail.phtml:342
 msgid "Post new comment"
 msgstr "Post new comment"
 
-# detail.phtml:333
+# detail.phtml:340
 msgid "Post reply"
 msgstr "Post reply"
 
-# @layout.phtml:221
+# @layout.phtml:231
 msgid "Privacy policy"
 msgstr "Privacy policy"
 
-# GroupPresenter.php:809
-# ResourcePresenter.php:896
-# UserPresenter.php:348
+# GroupPresenter.php:828
+# ResourcePresenter.php:1076
+# UserPresenter.php:368
 msgid "Reason:"
 msgstr "Reason:"
 
-# UserPresenter.php:108
+# UserPresenter.php:121
 msgid "Registration couldn't be finished! Link is not active anymore"
 msgstr "Registration couldn't be finished! Link is not active anymore"
 
-# UserPresenter.php:104
+# UserPresenter.php:117
 msgid "Registration has been succesfull. You can now sign in."
 msgstr "Registration has been succesfull. You can now sign in."
 
-# UserPresenter.php:535
+# UserPresenter.php:550
 msgid "Registration has been successful. A message has been sent to your email with further instructions how to activate your account."
 msgstr "Registration has been successful. A message has been sent to your email with further instructions how to activate your account."
 
-# default.phtml:142
-# detail.phtml:144
+# default.phtml:158
+# detail.phtml:164
 msgid "Reject friendship request"
 msgstr "Reject friendship request"
 
@@ -1093,31 +1218,36 @@ msgstr "Reject friendship request"
 msgid "Reload the chat."
 msgstr "Reload the chat."
 
-# TagListerControl.php:124
+# TagListerControl.php:139
 msgid "Remove"
 msgstr "Remove"
 
-# UserPresenter.php:477
+# ChatLister_ajax.phtml:33
+# ListerControlMain_messages.phtml:77
+msgid "Remove this message."
+msgstr "Remove this message."
+
+# UserPresenter.php:498
 msgid "Repeat password:"
 msgstr "Repeat password:"
 
-# detail.phtml:323
+# detail.phtml:330
 msgid "Replies"
 msgstr "Replies"
 
-# GroupPresenter.php:840
+# GroupPresenter.php:859
 msgid "Report about group %s, reason: %s"
 msgstr "Report about group %s, reason: %s"
 
-# ResourcePresenter.php:927
+# ResourcePresenter.php:1107
 msgid "Report about resource %s, reason: %s"
 msgstr "Report about resource %s, reason: %s"
 
-# UserPresenter.php:402
+# UserPresenter.php:423
 msgid "Report about user %s, reason: %s"
 msgstr "Report about user %s, reason: %s"
 
-# detail.phtml:35
+# detail.phtml:49
 msgid "Report group"
 msgstr "Report group"
 
@@ -1125,26 +1255,35 @@ msgstr "Report group"
 msgid "Report resource"
 msgstr "Report resource"
 
-# detail.phtml:39
+# detail.phtml:54
 msgid "Report user"
 msgstr "Report user"
 
-# AdministrationPresenter.php:193
+# AdministrationPresenter.php:206
+# reports.phtml:20
 msgid "Reports"
 msgstr "Reports"
 
-# default.phtml:97
-# detail.phtml:112
+# default.phtml:113
+# detail.phtml:132
 msgid "Request friendship"
 msgstr "Request friendship"
 
-# default.phtml:132
+# default.phtml:148
 msgid "Request friendship again"
 msgstr "Request friendship again"
 
-# UserPresenter.php:422
+# UserPresenter.php:443
 msgid "Request new password"
 msgstr "Request new password"
+
+# TagListerControl.php:175
+msgid "Reset"
+msgstr "Reset"
+
+# ExternalFilter.phtml:80
+msgid "Reset the filter and show the entire list."
+msgstr "Reset the filter and show the entire list."
 
 # detail.phtml:156
 msgid "Resource location on a map"
@@ -1154,32 +1293,36 @@ msgstr "Resource location on a map"
 msgid "Resource owner: "
 msgstr "Resource owner: "
 
-# ResourceListerControl.php:74
+# ResourceListerControl.php:88
 msgid "Resource status"
 msgstr "Resource status"
 
-# ResourcePresenter.php:401
+# ResourcePresenter.php:460
 msgid "Resource type:"
 msgstr "Resource type:"
 
-# ResourcePresenter.php:526
+# ResourcePresenter.php:612
 msgid "Resource updated"
 msgstr "Resource updated"
 
-# BasePresenter.php:132
-# default.phtml:0
-# default.phtml:35
+# BasePresenter.php:167
+# default.phtml:14
+# default.phtml:51
 msgid "Resources"
 msgstr "Resources"
 
-# ExternalFilter.phtml:117
+# ExternalFilter.phtml:137
 msgid "Restrict your search to a location"
 msgstr "Restrict your search to a location"
 
-# default.phtml:103
-# default.phtml:108
-# detail.phtml:117
-# detail.phtml:122
+# @layout.phtml:199
+msgid "Return to the home screen."
+msgstr "Return to the home screen."
+
+# default.phtml:119
+# default.phtml:124
+# detail.phtml:137
+# detail.phtml:142
 msgid "Revoke request"
 msgstr "Revoke request"
 
@@ -1189,25 +1332,25 @@ msgstr "Revoke request"
 msgid "Role"
 msgstr "Role"
 
-# MapContainer.phtml:328
-# MapControl.phtml:371
-msgid "Search"
-msgstr "Search"
+# ResourcePresenter.php:645
+# ResourcePresenter.php:675
+msgid "Screenshot processing"
+msgstr "Screenshot processing"
 
-# detail.phtml:348
+# detail.phtml:355
 msgid "Search Comments"
 msgstr "Search Comments"
 
-# MapContainer.phtml:328
-# MapControl.phtml:371
+# MapContainer.phtml:347
+# MapControl.phtml:390
 msgid "Search for a place"
 msgstr "Search for a place"
 
-# ExternalFilter.phtml:150
+# ExternalFilter.phtml:74
 msgid "Search for similar topics like your interests and around your location."
 msgstr "Search for similar topics like your interests and around your location."
 
-# edit.phtml:11
+# edit.phtml:69
 msgid "Seconds"
 msgstr "Seconds"
 
@@ -1219,19 +1362,19 @@ msgstr "See details about the user and respond to the request."
 msgid "Select Parent Level"
 msgstr "Select Parent Level"
 
-# default.phtml:112
+# default.phtml:128
 msgid "Select a group for more details."
 msgstr "Select a group for more details."
 
-# ResourcePresenter.php:403
+# ResourcePresenter.php:462
 msgid "Select a language of this resource."
 msgstr "Select a language of this resource."
 
-# GroupPresenter.php:465
+# GroupPresenter.php:483
 msgid "Select a language that will be used in this group for comunication."
 msgstr "Select a language that will be used in this group for comunication."
 
-# default.phtml:124
+# default.phtml:140
 msgid "Select a resource for more details."
 msgstr "Select a resource for more details."
 
@@ -1242,22 +1385,22 @@ msgid "Select a tag"
 msgstr "Select a tag"
 
 # AddTagComponent_Group.phtml:23
-msgid "Select a tag that describes a topic that this group is about."
-msgstr "Select a tag that describes a topic that this group is about."
+msgid "Select a tag that describes a topic that this group is about and click add."
+msgstr "Select a tag that describes a topic that this group is about and click add."
 
 # AddTagComponent_Resource.phtml:23
-msgid "Select a tag that describes a topic that this resource is about."
-msgstr "Select a tag that describes a topic that this resource is about."
+msgid "Select a tag that describes a topic that this resource is about and click add."
+msgstr "Select a tag that describes a topic that this resource is about and click add."
 
 # AddTagComponent_User.phtml:23
-msgid "Select a tag that describes one of your interests."
-msgstr "Select a tag that describes one of your interests."
+msgid "Select a tag that describes one of your interests and click add."
+msgstr "Select a tag that describes one of your interests and click add."
 
-# edit.phtml:7
+# edit.phtml:65
 msgid "Select a time"
 msgstr "Select a time"
 
-# default.phtml:181
+# default.phtml:197
 msgid "Select a user for more details."
 msgstr "Select a user for more details."
 
@@ -1265,74 +1408,84 @@ msgstr "Select a user for more details."
 msgid "Select one or more groups to subscribe to this resource. Only groups are displayed that you own or where you have at least moderator permissions."
 msgstr "Select one or more groups to subscribe to this resource. Only groups are displayed that you own or where you have at least moderator permissions."
 
-# detail.phtml:146
+# detail.phtml:160
 msgid "Select one or more resources to unsubscribe. Only resources are displayed that this group is subscribed to. You can subscribe to resources on the detail page of a resource."
 msgstr "Select one or more resources to unsubscribe. Only resources are displayed that this group is subscribed to. You can subscribe to resources on the detail page of a resource."
 
-# MapContainer.phtml:337
+# MapContainer.phtml:356
 msgid "Selected Location"
 msgstr "Selected Location"
 
-# AdministrationPresenter.php:216
-# GroupPresenter.php:233
-# GroupPresenter.php:811
-# ResourcePresenter.php:898
-# UserPresenter.php:350
-# UserPresenter.php:560
-# UserPresenter.php:1090
+# AdministrationPresenter.php:265
+# GroupPresenter.php:250
+# GroupPresenter.php:830
+# ResourcePresenter.php:1078
+# UserPresenter.php:370
+# UserPresenter.php:575
+# UserPresenter.php:1110
 msgid "Send"
 msgstr "Send"
 
-# messages.phtml:6
+# messages.phtml:20
 msgid "Send message to a friend"
 msgstr "Send message to a friend"
 
-# edit.phtml:14
+# edit.phtml:72
 msgid "September"
 msgstr "September"
 
-# AdministrationPresenter.php:176
+# AdministrationPresenter.php:231
+# settings.phtml:20
 msgid "Settings"
 msgstr "Settings"
 
-# MapControl.phtml:380
-# MapControl.phtml:381
+# AdministrationPresenter.php:238
+# setupmaintenance.phtml:20
+msgid "Setup and Maintenance"
+msgstr "Setup and Maintenance"
+
+# MapControl.phtml:401
+# MapControl.phtml:402
 msgid "Show the location where you are right now."
 msgstr "Show the location where you are right now."
 
-# UserPresenter.php:275
-# @layout.phtml:171
+# UserPresenter.php:292
+# @layout.phtml:184
 msgid "Sign in"
 msgstr "Sign in"
 
-# @layout.phtml:167
-# login.phtml:4
+# @layout.phtml:180
+# login.phtml:18
 msgid "Sign out"
 msgstr "Sign out"
 
-# UserPresenter.php:480
-# @layout.phtml:172
+# UserPresenter.php:500
+# @layout.phtml:185
 msgid "Sign up"
 msgstr "Sign up"
 
-# ExternalFilter.php:207
+# ExternalFilter.php:221
 msgid "Similar to me"
 msgstr "Similar to me"
 
-# settings.phtml:8
+# setupmaintenance.phtml:92
 msgid "Software version:"
 msgstr "Software version:"
 
-# User.php:26
+# User.php:40
 msgid "Specified user not found."
 msgstr "Specified user not found."
 
-# ExternalFilter.php:184
+# AdministrationPresenter.php:187
+msgid "Statistics"
+msgstr "Statistics"
+
+# ExternalFilter.php:198
 # UserListerControl.phtml:22
 msgid "Status"
 msgstr "Status"
 
-# ResourcePresenter.php:246
+# ResourcePresenter.php:305
 # detail.phtml:126
 msgid "Subscribe"
 msgstr "Subscribe"
@@ -1341,22 +1494,22 @@ msgstr "Subscribe"
 msgid "Subscribe as group"
 msgstr "Subscribe as group"
 
-# default.phtml:97
+# default.phtml:113
 msgid "Subscribe to resource"
 msgstr "Subscribe to resource"
 
-# default.phtml:140
-# detail.phtml:310
+# default.phtml:156
+# detail.phtml:317
 msgid "Subscribed Groups"
 msgstr "Subscribed Groups"
 
-# default.phtml:129
-# detail.phtml:299
+# default.phtml:145
+# detail.phtml:306
 msgid "Subscribed Users"
 msgstr "Subscribed Users"
 
-# default.phtml:198
-# detail.phtml:211
+# default.phtml:214
+# detail.phtml:231
 msgid "Subscribed to resources"
 msgstr "Subscribed to resources"
 
@@ -1364,7 +1517,7 @@ msgstr "Subscribed to resources"
 msgid "Subscribers"
 msgstr "Subscribers"
 
-# detail.phtml:144
+# detail.phtml:158
 msgid "Subscriptions as group"
 msgstr "Subscriptions as group"
 
@@ -1372,363 +1525,425 @@ msgstr "Subscriptions as group"
 msgid "Surname"
 msgstr "Surname"
 
-# UserPresenter.php:624
+# UserPresenter.php:639
 msgid "Surname:"
 msgstr "Surname:"
 
-# setupmaintenance.phtml:34
+# setupmaintenance.phtml:100
 msgid "System check"
 msgstr "System check"
 
-# StaticModel.php:55
-# StaticModel.php:59
-# StaticModel.php:63
-msgid "System message: Warning!!!"
-msgstr "System message: Warning!!!"
+# AdministrationPresenter.php:456
+msgid "System check finished."
+msgstr "System check finished."
+
+# StaticModel.php:83
+msgid "System message:  You've received a warning about your resource."
+msgstr "System message:  You've received a warning about your resource."
+
+# StaticModel.php:78
+msgid "System message: You've received a warning about your group."
+msgstr "System message: You've received a warning about your group."
+
+# StaticModel.php:73
+msgid "System message: You've received a warning."
+msgstr "System message: You've received a warning."
 
 # AddTagComponent_Group.phtml:28
 # AddTagComponent_Resource.phtml:28
 msgid "Tag"
 msgstr "Tag"
 
-# TagListerControl.php:121
-# AdministrationPresenter.php:84
+# AdministrationPresenter.php:130
+msgid "Tag \"%s\" saved."
+msgstr "Tag \"%s\" saved."
+
+# TagListerControl.php:136
+# AdministrationPresenter.php:107
 msgid "Tag name:"
 msgstr "Tag name:"
 
 # AddTagComponent_User.phtml:27
-# ExternalFilter.phtml:72
-# AdministrationPresenter.php:162
+# AdministrationPresenter.php:217
+# tags.phtml:21
 msgid "Tags"
 msgstr "Tags"
 
-# GroupPresenter.php:810
+# GroupPresenter.php:829
 msgid "Tell us why you report this group, including examples:"
 msgstr "Tell us why you report this group, including examples:"
 
-# ResourcePresenter.php:897
+# ResourcePresenter.php:1077
 msgid "Tell us why you report this resource, including examples:"
 msgstr "Tell us why you report this resource, including examples:"
 
-# UserPresenter.php:349
+# UserPresenter.php:369
 msgid "Tell us why you report this user, including examples:"
 msgstr "Tell us why you report this user, including examples:"
 
-# ResourcePresenter.php:444
+# AdministrationPresenter.php:426
+msgid "Test"
+msgstr "Test"
+
+# setupmaintenance.phtml:84
+msgid "Test locale"
+msgstr "Test locale"
+
+# setupmaintenance.phtml:41
+msgid "Test the import in a dry run"
+msgstr "Test the import in a dry run"
+
+# ResourcePresenter.php:523
 msgid "Text:"
 msgstr "Text:"
 
-# detail.phtml:224
+# detail.phtml:250
 msgid "The chat is only visible to group members."
 msgstr "The chat is only visible to group members."
 
-# GroupPresenter.php:527
-msgid "The image is too big! Max. size is for upload is 2048x2048"
-msgstr "The image is too big! Max. size is for upload is 2048x2048"
+# GroupPresenter.php:545
+msgid "The image is too big! Max. size for upload is 1500x1500"
+msgstr "The image is too big! Max. size for upload is 1500x1500"
 
-# GroupPresenter.php:198
-# UserPresenter.php:213
+# GroupPresenter.php:547
+# UserPresenter.php:723
+msgid "The image is too small! Min. size for upload is 120x150"
+msgstr "The image is too small! Min. size for upload is 120x150"
+
+# GroupPresenter.php:215
+# UserPresenter.php:230
 msgid "The image is too small. Minimum size is 80px x 100px."
 msgstr "The image is too small. Minimum size is 80px x 100px."
 
-# UserPresenter.php:629
+# UserPresenter.php:644
 msgid "The main language you want to use. You will still be able to see other languages."
 msgstr "The main language you want to use. You will still be able to see other languages."
 
-# UserPresenter.php:474
+# UserPresenter.php:495
 msgid "The minimal length of your username is %s characters."
 msgstr "The minimal length of your username is %s characters."
 
-# UserPresenter.php:621
+# AdministrationPresenter.php:109
+msgid "The tag cannot be its own parent."
+msgstr "The tag cannot be its own parent."
+
+# UserPresenter.php:636
 msgid "The username cannot be changed."
 msgstr "The username cannot be changed."
 
-# UserPresenter.php:673
+# default.phtml:61
+msgid "There are unread reports."
+msgstr "There are unread reports."
+
+# UserPresenter.php:688
 msgid "This email is already used for another account."
 msgstr "This email is already used for another account."
 
-# UserPresenter.php:441
+# UserPresenter.php:462
 msgid "This email is not registered in our system!"
 msgstr "This email is not registered in our system!"
 
-# UserPresenter.php:677
+# UserPresenter.php:692
 msgid "This email is not valid. Please check it and try again."
 msgstr "This email is not valid. Please check it and try again."
 
-# detail.phtml:118
+# detail.phtml:132
 msgid "This group can only be viewed by members. Users need to have the key below to become members."
 msgstr "This group can only be viewed by members. Users need to have the key below to become members."
 
-# GroupPresenter.php:1184
+# GroupPresenter.php:824
+msgid "This group contains wrong information."
+msgstr "This group contains wrong information."
+
+# GroupPresenter.php:1201
 msgid "This group doesn't have a key."
 msgstr "This group doesn't have a key."
 
-# GroupPresenter.php:806
+# GroupPresenter.php:825
 msgid "This group violates the rules of conduct."
 msgstr "This group violates the rules of conduct."
 
-# GroupPresenter.php:805
-msgid "This group was created by mistake."
-msgstr "This group was created by mistake."
+# default.phtml:107
+# detail.phtml:114
+msgid "This is my group."
+msgstr "This is my group."
 
-# @layout.phtml:252
-# detail.phtml:12
+# detail.phtml:26
 msgid "This is my profile."
 msgstr "This is my profile."
 
-# GroupPresenter.php:804
+# default.phtml:119
+# detail.phtml:109
+msgid "This is my resource."
+msgstr "This is my resource."
+
+# GroupPresenter.php:823
 msgid "This is not a real group but spam."
 msgstr "This is not a real group but spam."
 
-# UserPresenter.php:343
+# UserPresenter.php:363
 msgid "This is not a real person but spam."
 msgstr "This is not a real person but spam."
 
-# ResourcePresenter.php:891
+# ResourcePresenter.php:1071
 msgid "This is not a real resource but spam."
 msgstr "This is not a real resource but spam."
 
-# default.phtml:91
-# detail.phtml:100
-msgid "This is your group."
-msgstr "This is your group."
-
-# default.phtml:103
-# detail.phtml:109
-msgid "This is your resource."
-msgstr "This is your resource."
-
-# UserPresenter.php:345
+# UserPresenter.php:365
 msgid "This person violates the rules of conduct."
 msgstr "This person violates the rules of conduct."
 
-# UserPresenter.php:344
+# UserPresenter.php:364
 msgid "This person was created by mistake."
 msgstr "This person was created by mistake."
 
-# ResourcePresenter.php:18
+# ResourcePresenter.php:1072
+msgid "This resource contains wrong information."
+msgstr "This resource contains wrong information."
+
+# ResourcePresenter.php:47
 msgid "This resource doesn't exist."
 msgstr "This resource doesn't exist."
 
-# ResourcePresenter.php:893
-msgid "This resource violates the rules of conduct."
-msgstr "This resource violates the rules of conduct."
-
-# ResourcePresenter.php:892
-msgid "This resource was created by mistake."
-msgstr "This resource was created by mistake."
-
-# UserPresenter.php:27
-msgid "This user doesn't exist."
-msgstr "This user doesn't exist."
-
-# edit.phtml:8
+# edit.phtml:66
 msgid "Time"
 msgstr "Time"
 
-# edit.phtml:15
+# edit.phtml:73
 msgid "Time Zone"
 msgstr "Time Zone"
 
-# detail.phtml:222
-msgid "Time:"
-msgstr "Time:"
-
-# UserPresenter.php:475
-msgid "To this address we will send a request to confirm your registration."
-msgstr "To this address we will send a request to confirm your registration."
-
-# UserPresenter.php:1087
+# UserPresenter.php:1107
 msgid "To:"
 msgstr "To:"
 
-# default.phtml:84
+# default.phtml:107
 msgid "Top Groups"
 msgstr "Top Groups"
 
-# default.phtml:88
+# default.phtml:111
 msgid "Top Resources"
 msgstr "Top Resources"
 
-# default.phtml:80
+# BasePresenter.php:210
+msgid "0"
+msgstr "0"
+
+# ResourcePresenter.php:1073
+msgid "This resource violates the rules of conduct."
+msgstr "This resource violates the rules of conduct."
+
+# UserPresenter.php:40
+msgid "This user doesn't exist."
+msgstr "This user doesn't exist."
+
+# AdministrationPresenter.php:737
+msgid "This was just a dry run - nothing was saved."
+msgstr "This was just a dry run - nothing was saved."
+
+# detail.phtml:229
+msgid "Time:"
+msgstr "Time:"
+
+# UserPresenter.php:496
+msgid "To this address we will send a request to confirm your registration."
+msgstr "To this address we will send a request to confirm your registration."
+
+# default.phtml:103
 msgid "Top Users"
 msgstr "Top Users"
 
-# ExternalFilter.php:182
+# ExternalFilter.php:196
 msgid "Trash"
 msgstr "Trash"
 
-# ListerControlMain.php:689
+# ListerControlMain.php:659
 msgid "Trash emptied."
 msgstr "Trash emptied."
 
-# ListerControlMain_groups.phtml:279
-# ListerControlMain_resources.phtml:315
-# ListerControlMain_users.phtml:257
+# ListerControlMain_groups.phtml:278
+# ListerControlMain_resources.phtml:307
+# ListerControlMain_users.phtml:273
 msgid "Try a different filter."
 msgstr "Try a different filter."
 
-# ExternalFilter.php:195
-# ResourceListerControl.php:75
+# ExternalFilter.php:209
+# ResourceListerControl.php:89
 msgid "Type"
 msgstr "Type"
 
-# ResourcePresenter.php:425
-# ResourcePresenter.php:436
-# ResourcePresenter.php:446
-# ResourcePresenter.php:454
+# ResourcePresenter.php:650
+msgid "URL doesn't seem to exist"
+msgstr "URL doesn't seem to exist"
+
+# ResourcePresenter.php:491
+# ResourcePresenter.php:515
+# ResourcePresenter.php:525
+# ResourcePresenter.php:533
 msgid "URL must start with http:// or https://!"
 msgstr "URL must start with http:// or https://!"
 
-# ResourcePresenter.php:425
-# ResourcePresenter.php:436
-# ResourcePresenter.php:446
-# ResourcePresenter.php:454
+# ResourcePresenter.php:491
+# ResourcePresenter.php:515
+# ResourcePresenter.php:525
+# ResourcePresenter.php:533
 msgid "URL to external source:"
 msgstr "URL to external source:"
 
-# default.phtml:118
-# detail.phtml:131
+# default.phtml:134
+# detail.phtml:151
 msgid "Unblock this user"
 msgstr "Unblock this user"
 
-# GroupPresenter.php:895
+# ExternalFilter.php:194
+msgid "Unread"
+msgstr "Unread"
+
+# GroupPresenter.php:914
 msgid "Unsubscribe"
 msgstr "Unsubscribe"
 
-# default.phtml:107
+# default.phtml:123
 msgid "Unsubscribe from resource"
 msgstr "Unsubscribe from resource"
 
-# GroupListerControl.php:81
-# GroupUserListerControl.php:57
-# ListerControlMain.php:415
-# ListerControlMain.php:471
-# ListerControlMain.php:518
-# ResourceGroupListerControl.php:44
-# ResourceListerControl.php:41
-# ResourceMemberListerControl.php:44
-# TagListerControl.php:123
-# UserListerControl.php:66
-# GroupPresenter.php:491
-# GroupPresenter.php:769
-# ResourcePresenter.php:475
-# ResourcePresenter.php:858
-# UserPresenter.php:647
-# UserPresenter.php:1202
+# GroupListerControl.php:95
+# GroupUserListerControl.php:71
+# ListerControlMain.php:392
+# ListerControlMain.php:448
+# ListerControlMain.php:495
+# ResourceGroupListerControl.php:58
+# ResourceListerControl.php:55
+# ResourceMemberListerControl.php:58
+# TagListerControl.php:138
+# UserListerControl.php:80
+# GroupPresenter.php:509
+# GroupPresenter.php:788
+# ResourcePresenter.php:560
+# ResourcePresenter.php:1038
+# UserPresenter.php:662
+# UserPresenter.php:1235
 msgid "Update"
 msgstr "Update"
 
-# setupmaintenance.phtml:12
-msgid "Update languages from .po files"
-msgstr "Update languages from .po files"
+# setupmaintenance.phtml:46
+msgid "Update languages"
+msgstr "Update languages"
 
-# UserPresenter.php:631
+# UserPresenter.php:646
 msgid "Upload Avatar:"
 msgstr "Upload Avatar:"
 
-# GroupPresenter.php:467
+# GroupPresenter.php:485
 msgid "Upload group image:"
 msgstr "Upload group image:"
 
-# default.phtml:6
-# default.phtml:6
-# default.phtml:6
+# default.phtml:20
+# default.phtml:20
+# default.phtml:20
 msgid "Use the filter to narrow down the list of items."
 msgstr "Use the filter to narrow down the list of items."
 
-# StaticModel.php:43
+# StaticModel.php:58
 msgid "User %s accepted your friendship."
 msgstr "User %s accepted your friendship."
 
-# StaticModel.php:51
+# StaticModel.php:68
 msgid "User %s canceled your friendship."
 msgstr "User %s canceled your friendship."
 
-# StaticModel.php:47
+# StaticModel.php:63
 msgid "User %s rejected your friendship."
 msgstr "User %s rejected your friendship."
 
-# StaticModel.php:39
+# StaticModel.php:53
 msgid "User %s requested your friendship."
 msgstr "User %s requested your friendship."
 
-# register.phtml:0
+# setupmaintenance.phtml:115
+msgid "User Forum:"
+msgstr "User Forum:"
+
+# register.phtml:15
 msgid "User Signup"
 msgstr "User Signup"
 
-# GroupUserListerControl.php:96
+# GroupUserListerControl.php:110
 msgid "User Status"
 msgstr "User Status"
 
-# ChatLister_ajax.phtml:43
-# ListerControlMain_messages.phtml:108
+# ChatLister_ajax.phtml:50
+# ListerControlMain_messages.phtml:132
 msgid "User has been deactivated"
 msgstr "User has been deactivated"
 
-# lostpassword.phtml:0
+# lostpassword.phtml:14
 msgid "User lost password"
 msgstr "User lost password"
 
-# GroupUserListerControl.php:90
-# ResourceMemberListerControl.php:73
-# UserListerControl.php:100
+# GroupUserListerControl.php:104
+# ResourceMemberListerControl.php:87
+# UserListerControl.php:114
 # UserListerControl.phtml:19
 msgid "User permissions"
 msgstr "User permissions"
 
-# UserPresenter.php:1238
+# UserPresenter.php:1271
 msgid "User permissions changed."
 msgstr "User permissions changed."
 
-# default.phtml:160
-# detail.phtml:172
+# default.phtml:176
+# detail.phtml:192
 msgid "User role"
 msgstr "User role"
 
-# login.phtml:0
+# login.phtml:14
 msgid "User signin"
 msgstr "User signin"
 
-# ResourceGroupListerControl.php:79
-# ResourceMemberListerControl.php:79
-# UserListerControl.php:106
+# ResourceGroupListerControl.php:93
+# ResourceMemberListerControl.php:93
+# UserListerControl.php:120
 msgid "User status"
 msgstr "User status"
 
-# edit.phtml:0
+# edit.phtml:14
 msgid "User update"
 msgstr "User update"
 
-# UserPresenter.php:713
+# UserPresenter.php:730
 msgid "User updated"
 msgstr "User updated"
 
-# UserPresenter.php:497
+# UserPresenter.php:517
 msgid "User with the same name already exists."
 msgstr "User with the same name already exists."
 
-# detail.phtml:160
+# detail.phtml:180
 msgid "User's location on a map"
 msgstr "User's location on a map"
 
-# UserPresenter.php:474
+# UserPresenter.php:495
 msgid "Username cannot be empty!"
 msgstr "Username cannot be empty!"
 
-# UserPresenter.php:273
-# UserPresenter.php:474
-# UserPresenter.php:618
+# UserPresenter.php:289
+# UserPresenter.php:495
+# UserPresenter.php:633
 msgid "Username:"
 msgstr "Username:"
 
-# BasePresenter.php:106
-# default.phtml:0
-# default.phtml:36
+# BasePresenter.php:141
+# default.phtml:14
+# default.phtml:52
 msgid "Users"
 msgstr "Users"
 
-# default.phtml:73
+# ResourcePresenter.php:236
+msgid "View big screenshot"
+msgstr "View big screenshot"
+
+# default.phtml:89
 msgid "View details"
 msgstr "View details"
 
@@ -1736,7 +1951,7 @@ msgstr "View details"
 msgid "View details."
 msgstr "View details."
 
-# detail.phtml:106
+# detail.phtml:120
 msgid "View group owner:"
 msgstr "View group owner:"
 
@@ -1744,265 +1959,267 @@ msgstr "View group owner:"
 msgid "View resource owner:"
 msgstr "View resource owner:"
 
-# GroupPresenter.php:464
-# ResourcePresenter.php:402
-# UserPresenter.php:628
+# GroupPresenter.php:482
+# ResourcePresenter.php:461
+# UserPresenter.php:643
 msgid "Visibility:"
 msgstr "Visibility:"
 
-# AdministrationPresenter.php:299
-msgid "We have received complaints about inapproprite language in your group. Please make neccessary adjustments or your group will be deactivated."
-msgstr "We have received complaints about inapproprite language in your group. Please make neccessary adjustments or your group will be deactivated."
+# AdministrationPresenter.php:355
+msgid "We have received complaints about inappropriate language in your group. Please make neccessary adjustments or your group will be deactivated."
+msgstr "We have received complaints about inappropriate language in your group. Please make neccessary adjustments or your group will be deactivated."
 
-# AdministrationPresenter.php:319
+# AdministrationPresenter.php:375
 msgid "We have received complaints about inapproprite language in your resource. Please make necessary adjustments or your resource will be deactivated."
 msgstr "We have received complaints about inapproprite language in your resource. Please make necessary adjustments or your resource will be deactivated."
 
-# AdministrationPresenter.php:281
+# AdministrationPresenter.php:337
 msgid "We have received complaints about you spaming other users. Please stop or your account will be deactivated."
 msgstr "We have received complaints about you spaming other users. Please stop or your account will be deactivated."
 
-# AdministrationPresenter.php:287
+# AdministrationPresenter.php:343
 msgid "We have received complaints that you use inappropriate language. Please stop or your account will be deactivated."
 msgstr "We have received complaints that you use inappropriate language. Please stop or your account will be deactivated."
 
-# AdministrationPresenter.php:293
+# AdministrationPresenter.php:349
 msgid "We have received complaints that your group contains spam. Please delete inappropriate content or your group will be deactivated."
 msgstr "We have received complaints that your group contains spam. Please delete inappropriate content or your group will be deactivated."
 
-# AdministrationPresenter.php:313
+# AdministrationPresenter.php:369
 msgid "We have received complaints that your resource contains spam. Please delete inappropriate content or your resource will be deactivated."
 msgstr "We have received complaints that your resource contains spam. Please delete inappropriate content or your resource will be deactivated."
 
-# default.phtml:42
+# AdministrationPresenter.php:197
+msgid "Web Statistics"
+msgstr "Web Statistics"
+
+# default.phtml:56
 msgid "Welcome"
 msgstr "Welcome"
 
-# UserPresenter.php:630
+# UserPresenter.php:645
 msgid "Write some lines about your life, your work and your interests."
 msgstr "Write some lines about your life, your work and your interests."
 
-# UserPresenter.php:475
+# UserPresenter.php:496
 msgid "Wrong email format!"
 msgstr "Wrong email format!"
 
-# GroupPresenter.php:1173
+# BasePresenter.php:97
+msgid "You are a moderator on this platform."
+msgstr "You are a moderator on this platform."
+
+# GroupPresenter.php:1190
 msgid "You are already a member."
 msgstr "You are already a member."
 
-# default.phtml:121
-# detail.phtml:191
+# BasePresenter.php:98
+msgid "You are an administrator on this platform."
+msgstr "You are an administrator on this platform."
+
+# default.phtml:137
+# detail.phtml:205
 msgid "You are not allowed to see the members."
 msgstr "You are not allowed to see the members."
 
-# default.phtml:191
-# detail.phtml:204
+# default.phtml:207
+# detail.phtml:224
 msgid "You are not allowed to see the memberships."
 msgstr "You are not allowed to see the memberships."
 
-# default.phtml:144
-# detail.phtml:314
+# default.phtml:160
+# detail.phtml:321
 msgid "You are not allowed to see the subscribed groups."
 msgstr "You are not allowed to see the subscribed groups."
 
-# default.phtml:133
-# detail.phtml:303
+# default.phtml:149
+# detail.phtml:310
 msgid "You are not allowed to see the subscribed users."
 msgstr "You are not allowed to see the subscribed users."
 
-# default.phtml:132
-# detail.phtml:202
-# default.phtml:202
-# detail.phtml:215
+# default.phtml:148
+# detail.phtml:216
+# default.phtml:218
+# detail.phtml:235
 msgid "You are not allowed to see the subscriptions."
 msgstr "You are not allowed to see the subscriptions."
 
-# GroupPresenter.php:29
+# GroupPresenter.php:45
 msgid "You are not allowed to view this group."
 msgstr "You are not allowed to view this group."
 
-# ResourcePresenter.php:22
+# ResourcePresenter.php:51
 msgid "You are not allowed to view this resource."
 msgstr "You are not allowed to view this resource."
 
-# UserPresenter.php:31
+# UserPresenter.php:44
 msgid "You are not allowed to view this user."
 msgstr "You are not allowed to view this user."
 
-# detail.phtml:243
+# detail.phtml:263
 msgid "You can only send messages to friends."
 msgstr "You can only send messages to friends."
 
-# default.phtml:113
+# default.phtml:129
 msgid "You currently block this user"
 msgstr "You currently block this user"
 
-# detail.phtml:127
+# detail.phtml:147
 msgid "You currently block this user."
 msgstr "You currently block this user."
 
-# GroupPresenter.php:1190
+# GroupPresenter.php:1207
 msgid "You have entered a wrong key."
 msgstr "You have entered a wrong key."
 
-# GroupPresenter.php:1200
+# GroupPresenter.php:1217
 msgid "You have joined the group."
 msgstr "You have joined the group."
 
-# messages.phtml:14
+# messages.phtml:28
 msgid "You have no friends yet. You can start sending messages only after someone has accepted your friendship request."
 msgstr "You have no friends yet. You can start sending messages only after someone has accepted your friendship request."
 
-# ResourcePresenter.php:151
+# ResourcePresenter.php:200
 msgid "You have no permission to create a resource."
 msgstr "You have no permission to create a resource."
 
-# GroupPresenter.php:129
-# GroupPresenter.php:515
+# GroupPresenter.php:145
+# GroupPresenter.php:533
 msgid "You have no permission to create groups."
 msgstr "You have no permission to create groups."
 
-# ResourcePresenter.php:516
+# ResourcePresenter.php:602
 msgid "You have no permission to create resources."
 msgstr "You have no permission to create resources."
 
-# detail.phtml:245
+# detail.phtml:265
 msgid "You need to log in to send messages."
 msgstr "You need to log in to send messages."
 
-# detail.phtml:339
+# detail.phtml:346
 msgid "You need to subscribe in order to comment."
 msgstr "You need to subscribe in order to comment."
 
-# UserPresenter.php:689
+# UserPresenter.php:704
 msgid "You requested a change of your email address. A message with a link was sent to your old address. The new address will be activated once you confirmed the change."
 msgstr "You requested a change of your email address. A message with a link was sent to your old address. The new address will be activated once you confirmed the change."
 
-# default.phtml:53
-msgid "Your Connections"
-msgstr "Your Connections"
-
-# UserPresenter.php:512
-msgid "Your IP is known at www.stopforumspam.com as spam source and was blocked. "
-msgstr "Your IP is known at www.stopforumspam.com as spam source and was blocked. "
-
-# BasePresenter.php:52
+# BasePresenter.php:72
 msgid "Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."
 msgstr "Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."
 
-# UserPresenter.php:507
-msgid "Your email is known at www.stopforumspam.com as spam source and was blocked. "
-msgstr "Your email is known at www.stopforumspam.com as spam source and was blocked. "
+# UserPresenter.php:527
+msgid "Your email or IP is known at www.stopforumspam.com as spam source and was blocked."
+msgstr "Your email or IP is known at www.stopforumspam.com as spam source and was blocked."
 
-# UserPresenter.php:421
+# UserPresenter.php:442
 msgid "Your email:"
 msgstr "Your email:"
 
-# GroupPresenter.php:215
-# UserPresenter.php:230
+# GroupPresenter.php:232
+# UserPresenter.php:247
 msgid "Your image still needs to be cropped to the right dimensions before you can continue!"
 msgstr "Your image still needs to be cropped to the right dimensions before you can continue!"
 
-# GroupPresenter.php:208
-# UserPresenter.php:223
+# GroupPresenter.php:225
+# UserPresenter.php:240
 msgid "Your image still needs to be resized before you can continue!"
 msgstr "Your image still needs to be resized before you can continue!"
 
-# setupmaintenance.phtml:27
-msgid "Your local s supported"
-msgstr "Your local s supported"
-
-# UserPresenter.php:1125
+# UserPresenter.php:1149
 msgid "Your message has been sent."
 msgstr "Your message has been sent."
 
-# messages.phtml:0
-# messages.phtml:30
+# UserPresenter.php:1136
+msgid "Your message was empty."
+msgstr "Your message was empty."
+
+# messages.phtml:14
+# messages.phtml:44
 msgid "Your messages"
 msgstr "Your messages"
 
-# UserPresenter.php:303
+# UserPresenter.php:320
 msgid "Your password has been successfully changed, you can now log in."
 msgstr "Your password has been successfully changed, you can now log in."
 
-# UserPresenter.php:332
+# UserPresenter.php:352
 msgid "Your password has been successfully changed."
 msgstr "Your password has been successfully changed."
 
-# UserPresenter.php:476
+# UserPresenter.php:497
 msgid "Your password must be at least 8 characters long and contain at least one small letter, one big letter and one number."
 msgstr "Your password must be at least 8 characters long and contain at least one small letter, one big letter and one number."
 
-# UserPresenter.php:288
-# UserPresenter.php:316
-# UserPresenter.php:476
+# UserPresenter.php:305
+# UserPresenter.php:335
+# UserPresenter.php:497
 msgid "Your password must contain at least %s characters."
 msgstr "Your password must contain at least %s characters."
 
-# UserPresenter.php:288
-# UserPresenter.php:316
-# UserPresenter.php:476
+# UserPresenter.php:305
+# UserPresenter.php:335
+# UserPresenter.php:497
 msgid "Your password must contain at least one big letter."
 msgstr "Your password must contain at least one big letter."
 
-# UserPresenter.php:288
-# UserPresenter.php:316
-# UserPresenter.php:476
+# UserPresenter.php:305
+# UserPresenter.php:335
+# UserPresenter.php:497
 msgid "Your password must contain at least one number."
 msgstr "Your password must contain at least one number."
 
-# UserPresenter.php:288
-# UserPresenter.php:316
-# UserPresenter.php:476
+# UserPresenter.php:305
+# UserPresenter.php:335
+# UserPresenter.php:497
 msgid "Your password must contain at least one small letter."
 msgstr "Your password must contain at least one small letter."
 
-# UserPresenter.php:477
+# UserPresenter.php:498
 msgid "Your passwords are different."
 msgstr "Your passwords are different."
 
-# GroupPresenter.php:851
-# ResourcePresenter.php:938
-# UserPresenter.php:414
+# GroupPresenter.php:870
+# ResourcePresenter.php:1118
+# UserPresenter.php:435
 msgid "Your report has been received."
 msgstr "Your report has been received."
 
-# UserPresenter.php:474
+# UserPresenter.php:495
 msgid "Your username can only contain letters and numbers without spaces!"
 msgstr "Your username can only contain letters and numbers without spaces!"
 
-# ExternalFilter.php:176
+# ExternalFilter.php:190
 msgid "active"
 msgstr "active"
 
-# GroupPresenter.php:277
-# ResourcePresenter.php:360
-# UserPresenter.php:545
-# UserPresenter.php:549
+# GroupPresenter.php:294
+# ResourcePresenter.php:419
+# UserPresenter.php:560
+# UserPresenter.php:564
 msgid "add new tag"
 msgstr "add new tag"
 
-# setupmaintenance.phtml:47
-msgid "administators"
-msgstr "administators"
-
-# ListerControlMain_groups.phtml:82
-# ListerControlMain_resources.phtml:113
-# @layout.phtml:237
+# ListerControlMain_users.phtml:71
 msgid "administrator"
 msgstr "administrator"
 
-# ExternalFilter.php:175
-# ExternalFilter.php:192
+# default.phtml:27
+msgid "administrators"
+msgstr "administrators"
+
+# ExternalFilter.php:189
+# ExternalFilter.php:206
 msgid "all"
 msgstr "all"
 
-# ExternalFilter.php:158
+# ExternalFilter.php:172
 msgid "all resources"
 msgstr "all resources"
 
-# ExternalFilter.php:189
-# ExternalFilter.php:197
+# ExternalFilter.php:203
+# ExternalFilter.php:211
 msgid "all tags"
 msgstr "all tags"
 
@@ -2010,26 +2227,41 @@ msgstr "all tags"
 msgid "auto reload"
 msgstr "auto reload"
 
-# edit.phtml:7
-# edit.phtml:22
-# edit.phtml:5
+# default.phtml:39
+msgid "banned"
+msgstr "banned"
+
+# edit.phtml:21
+# edit.phtml:80
+# edit.phtml:19
 msgid "cancel and return"
 msgstr "cancel and return"
 
-# MapContainer.phtml:330
-# MapControl.phtml:374
-# @layout.phtml:239
+# ContainerTreeSelectControl.phtml:2
+msgid "change"
+msgstr "change"
+
+# default.phtml:96
+msgid "chat messages"
+msgstr "chat messages"
+
+# MapContainer.phtml:349
+# MapControl.phtml:393
 msgid "clear map"
 msgstr "clear map"
 
-# BasePresenter.php:124
-# BasePresenter.php:142
+# BasePresenter.php:159
+# BasePresenter.php:177
 msgid "create"
 msgstr "create"
 
-# setupmaintenance.phtml:53
-# setupmaintenance.phtml:59
-# setupmaintenance.phtml:65
+# default.phtml:33
+msgid "creation rights removed"
+msgstr "creation rights removed"
+
+# default.phtml:36
+# default.phtml:58
+# default.phtml:77
 msgid "deactivated"
 msgstr "deactivated"
 
@@ -2038,41 +2270,41 @@ msgstr "deactivated"
 msgid "detail"
 msgstr "detail"
 
+# ResourcePresenter.php:180
+msgid "document"
+msgstr "document"
+
 # ResourceListerControl.phtml:37
-# @layout.phtml:242
-# @layout.phtml:262
-# @layout.phtml:265
-# default.phtml:49
-# detail.phtml:32
-# default.phtml:63
+# default.phtml:65
+# detail.phtml:46
+# default.phtml:79
 # detail.phtml:41
-# default.phtml:50
-# detail.phtml:36
+# default.phtml:66
+# detail.phtml:50
 msgid "edit"
 msgstr "edit"
 
-# @layout.phtml:241
-# default.phtml:57
-msgid "friend"
-msgstr "friend"
+# ResourcePresenter.php:178
+msgid "event"
+msgstr "event"
 
-# AdministrationPresenter.php:60
+# AdministrationPresenter.php:81
 msgid "from_email"
 msgstr "from_email"
 
-# AdministrationPresenter.php:62
+# AdministrationPresenter.php:83
 msgid "gps_default_latitude"
 msgstr "gps_default_latitude"
 
-# AdministrationPresenter.php:64
+# AdministrationPresenter.php:85
 msgid "gps_default_longitude"
 msgstr "gps_default_longitude"
 
-# MapControl.php:42
+# MapControl.php:56
 msgid "group"
 msgstr "group"
 
-# ExternalFilter.php:177
+# ExternalFilter.php:191
 msgid "inactive"
 msgstr "inactive"
 
@@ -2080,151 +2312,140 @@ msgstr "inactive"
 msgid "insert to resource"
 msgstr "insert to resource"
 
-# @layout.phtml:224
+# @layout.phtml:234
 msgid "is a product of"
 msgstr "is a product of"
 
-# @layout.phtml:224
+# @layout.phtml:234
 msgid "license"
 msgstr "license"
 
-# ListerControlMain_messages.phtml:80
+# ResourcePresenter.php:181
+msgid "link to external resource"
+msgstr "link to external resource"
+
+# ResourcePresenter.php:188
+msgid "live-video on Bambuser"
+msgstr "live-video on Bambuser"
+
+# ListerControlMain_messages.phtml:104
 msgid "mark as read"
 msgstr "mark as read"
 
-# ListerControlMain_messages.phtml:81
+# ListerControlMain_messages.phtml:105
 msgid "mark as unread"
 msgstr "mark as unread"
 
-# @layout.phtml:244
-# default.phtml:55
-# detail.phtml:11
-msgid "member"
-msgstr "member"
+# ResourcePresenter.php:177
+msgid "message"
+msgstr "message"
 
 # ChatLister_ajax.phtml:24
-# ListerControlMain_groups.phtml:86
-# ListerControlMain_resources.phtml:117
-# @layout.phtml:251
+# ListerControlMain_users.phtml:75
 msgid "moderator"
 msgstr "moderator"
 
-# setupmaintenance.phtml:50
+# default.phtml:30
 msgid "moderators"
 msgstr "moderators"
 
-# ListerControlMain_groups.phtml:285
+# ListerControlMain_groups.phtml:284
 msgid "more groups"
 msgstr "more groups"
 
-# ListerControlMain_resources.phtml:320
+# ListerControlMain_resources.phtml:312
 msgid "more resources"
 msgstr "more resources"
 
-# ListerControlMain_users.phtml:263
+# ListerControlMain_users.phtml:279
 msgid "more users"
 msgstr "more users"
 
-# ListerControlMain_messages.phtml:60
+# ListerControlMain_messages.phtml:84
 msgid "move to trash"
 msgstr "move to trash"
 
-# detail.phtml:14
+# default.phtml:73
+# detail.phtml:28
 msgid "my friend"
 msgstr "my friend"
 
-# @layout.phtml:253
-# default.phtml:59
+# default.phtml:75
 msgid "no friend"
 msgstr "no friend"
 
-# @layout.phtml:254
-# default.phtml:57
-msgid "no member"
-msgstr "no member"
-
-# detail.phtml:14
+# detail.phtml:28
 msgid "not my friend"
 msgstr "not my friend"
 
-# @layout.phtml:256
-# default.phtml:72
-msgid "not subscribed"
-msgstr "not subscribed"
-
-# AdministrationPresenter.php:66
+# AdministrationPresenter.php:87
 msgid "object_creation_min_time"
 msgstr "object_creation_min_time"
 
-# default.phtml:80
+# default.phtml:96
 # detail.phtml:28
-# default.phtml:69
-# detail.phtml:24
+# default.phtml:85
+# detail.phtml:38
 msgid "only visible to friends"
 msgstr "only visible to friends"
 
-# @layout.phtml:258
-# default.phtml:65
-# detail.phtml:20
+# default.phtml:81
+# detail.phtml:34
 msgid "only visible to members"
 msgstr "only visible to members"
 
-# @layout.phtml:259
-# default.phtml:63
-# detail.phtml:18
-# default.phtml:78
+# default.phtml:79
+# detail.phtml:32
+# default.phtml:94
 # detail.phtml:26
-# default.phtml:67
-# detail.phtml:22
+# default.phtml:83
+# detail.phtml:36
 msgid "only visible to registered users"
 msgstr "only visible to registered users"
 
-# ListerControlMain_groups.phtml:78
-# ListerControlMain_resources.phtml:109
-# @layout.phtml:257
-msgid "owner"
-msgstr "owner"
+# ResourcePresenter.php:179
+msgid "organization"
+msgstr "organization"
 
-# detail.phtml:177
-# detail.phtml:189
+# default.phtml:93
+msgid "private messages"
+msgstr "private messages"
+
+# detail.phtml:191
+# detail.phtml:209
 msgid "regenerate image"
 msgstr "regenerate image"
+
+# UserPresenter.php:291
+msgid "remember me"
+msgstr "remember me"
 
 # UserListerControl.phtml:69
 msgid "remove user from resource"
 msgstr "remove user from resource"
 
-# ChatLister_ajax.phtml:34
-# ListerControlMain_messages.phtml:100
+# ChatLister_ajax.phtml:41
+# ListerControlMain_messages.phtml:124
 msgid "reply"
 msgstr "reply"
 
-# MapControl.php:43
+# MapControl.php:57
 msgid "resource"
 msgstr "resource"
 
-# ListerControlMain_messages.phtml:64
+# ListerControlMain_messages.phtml:88
 msgid "restore from trash"
 msgstr "restore from trash"
 
-# AdministrationPresenter.php:183
-msgid "setup and maintenance"
-msgstr "setup and maintenance"
-
-# login.phtml:30
+# login.phtml:48
 msgid "sign up"
 msgstr "sign up"
 
-# @layout.phtml:263
-# default.phtml:70
-msgid "subscribed"
-msgstr "subscribed"
+# ResourcePresenter.php:185
+msgid "sound on Soundcloud"
+msgstr "sound on Soundcloud"
 
-# detail.phtml:18
-msgid "subscriber"
-msgstr "subscriber"
-
-# ExternalFilter.php:200
+# ExternalFilter.php:214
 msgid "tag_name"
 msgstr "tag_name"
 
@@ -2233,32 +2454,69 @@ msgstr "tag_name"
 msgid "top level"
 msgstr "top level"
 
-# MapControl.php:41
+# default.phtml:24
+# default.phtml:55
+# default.phtml:74
+msgid "total"
+msgstr "total"
+
+# MapControl.php:55
 msgid "user"
 msgstr "user"
 
-# @layout.phtml:267
+# ResourcePresenter.php:187
+msgid "video on Vimeo"
+msgstr "video on Vimeo"
+
+# ResourcePresenter.php:186
+msgid "video on YouTube"
+msgstr "video on YouTube"
+
+# default.phtml:48
+msgid "visbility 'friends'"
+msgstr "visbility 'friends'"
+
+# default.phtml:67
+msgid "visbility 'members'"
+msgstr "visbility 'members'"
+
+# default.phtml:45
+# default.phtml:64
+# default.phtml:83
+msgid "visbility 'registered'"
+msgstr "visbility 'registered'"
+
+# default.phtml:86
+msgid "visbility 'susbcribed'"
+msgstr "visbility 'susbcribed'"
+
+# default.phtml:42
 # default.phtml:61
-# detail.phtml:16
-# default.phtml:76
+# default.phtml:80
+msgid "visbility 'world'"
+msgstr "visbility 'world'"
+
+# default.phtml:77
+# detail.phtml:30
+# default.phtml:92
 # detail.phtml:24
-# default.phtml:65
-# detail.phtml:20
+# default.phtml:81
+# detail.phtml:34
 msgid "visible to the world"
 msgstr "visible to the world"
 
-# ChatLister_ajax.phtml:121
-# ListerControlMain_messages.phtml:142
-# messages.phtml:100
+# ChatLister_ajax.phtml:128
+# ListerControlMain_messages.phtml:166
+# messages.phtml:115
 msgid "wrote"
 msgstr "wrote"
 
-# MapControl.phtml:382
-# MapControl.phtml:387
+# MapControl.phtml:403
+# MapControl.phtml:408
 msgid "zoom in"
 msgstr "zoom in"
 
-# MapControl.phtml:382
-# MapControl.phtml:387
+# MapControl.phtml:403
+# MapControl.phtml:408
 msgid "zoom out"
 msgstr "zoom out"

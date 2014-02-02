@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -19,7 +18,7 @@
 	{control updateform begin}
 	<div class="back"><a href="{plink User:default, $user_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
 			
-
+<div style="padding-bottom:10px;">
 {if isset($img_src) && $img_src!=null}
 	<div class="user-edit-image">
 		<h3>{_"Edit your avatar"}</h3>
@@ -50,6 +49,8 @@
     	{control mapedit}
 	</div>
 {/if}
+<div class="cleaner"></div>
+</div>
 
 	<div class="edit-wrapper">
 	<table>

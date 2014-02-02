@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -65,8 +64,8 @@
 		$("#report_box").fancybox({
 			closeBtn : true,
 			helpers : {
-				overlay : null,
-				 title : null
+				css: {'background' : 'rgba(200, 200, 200, .5)'},
+				title : null
 			},
 		});
 	});
@@ -84,7 +83,7 @@
 
 		<div class="group_detail_tags">
 			<h3>{_"Topics"}</h3>
-			{ifset $group_tags}
+			{if isset($group_tags) && count($group_tags)}
 			<table>
 				{?$i=0}
 				 {foreach $group_tags as $key=>$tag_name}
@@ -104,7 +103,7 @@
 				{/foreach}
 			</table>
 			{else}
-			{_"No tags."}
+			{_"No tags"}
 			{/if}
 		</div>
 		
@@ -141,6 +140,7 @@
 		{/if}
 	{/if}
 	
+	{ifset $logged_user}
 	<div class="group_actions">
          {ifset $default_data}
             {ifset $default_data['object_data']['logged_user_member']}
@@ -172,6 +172,7 @@
 			</div>
          {/if}
     </div>
+    {/if}
 
 	
 	{ifset $showmap}
@@ -235,7 +236,8 @@
 		$("#notify_box").fancybox({
 			closeBtn : true,
 			helpers : {
-				 title : null
+				css: {'background' : 'rgba(200, 200, 200, .5)'},
+				title : null
 			},
 		});
 	});

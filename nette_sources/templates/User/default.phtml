@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -135,16 +134,6 @@
 						<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Accept friendship request"}</a> 
 					</div>
 				{/if}
-<!--
-{* remove because not good to allow requesting after having been blocked *}
-				{if Auth::isAuthorized(1,$default_data['object_data']["user_id"]) > 0}
-					{if $default_data['object_data']['friend_user_relationship'] == 2}
-						<div class="user-connection">
-							<a href="javascript:void(0);" onClick='userInsert_Friend({$default_data['object_data']["user_id"]},{link User:default});' class="button">{_"Request friendship again"}</a>
-						</div>
-					{/if}
-				{/if}
--->
 			{/if}
 
 			{if $default_data['object_data']['user_friend_relationship'] < 2 && $default_data['object_data']['friend_user_relationship'] == 1}

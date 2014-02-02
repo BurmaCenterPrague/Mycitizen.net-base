@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -76,7 +75,7 @@
 					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
 						</div>
 
 						<div class="restore-from-trash">
@@ -207,7 +206,7 @@
 					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
 						</div>
 
 						<div class="restore-from-trash">

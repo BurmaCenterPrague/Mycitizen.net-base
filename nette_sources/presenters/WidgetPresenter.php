@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -211,7 +210,13 @@ final class WidgetPresenter extends BasePresenter
 		$user_data = $user->getUserData();
 		
 		$page = $query->getQuery('page');
-
+		$owner_name = $query->getQuery('owner');
+		if (!empty($owner_name)) {
+			$owner_ids = User::getOwnerIdsFromLogin($owner_name);
+		} else {
+			$owner_ids = null;
+		}
+		
 		$options = array(
                         'itemsPerPage'=>30,
                         'lister_type'=>array(ListerControlMain::LISTER_TYPE_RESOURCE),
@@ -220,6 +225,7 @@ final class WidgetPresenter extends BasePresenter
                         		'page' => $page,
 								'template_filter' => '',
 								'only_active' => true,
+								'owner' => $owner_ids,
                         		'all_members_only'=>array(
                         			array(
                         				'type'=>2,

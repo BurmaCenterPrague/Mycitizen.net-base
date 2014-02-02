@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -15,7 +14,7 @@
 <div class="lister-body">
    {snippet list_body}
 
-
+{if !empty($data)}
 	{foreach $data as $row}
     {var $res => Resource::Create($row['id'])}
     {? $id=$row['id']}
@@ -87,6 +86,9 @@
         	</table>
 			</div>
     {/foreach}
+{else}
+	<h3>{_"Nothing to display"}</h3>
+{/if}
  {/snippet}
 </div>
 
@@ -140,67 +142,67 @@
    {/snippet}
 </div>
 
-	<script>
-		$(document).ready(function(){
-			$('blockquote').css({ "cursor":"pointer"});
-			
-			$('[id^=reply_]').click(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				var editor = tinymce.editors[0];
-				var content = editor.getContent();
-				var quote = $('[id$='+id+'_text]').html();
-				quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
-				var author_name = $('[id$='+id+'_author]').html();
-				var author_id = $('[id$='+id+'_author]').attr('rel');
-				var date = $('[id$='+id+'_date]').html();
-				var quote_shortened = quote.substr(0,300);
-				if (quote_shortened != quote ) { quote_shortened += '...'; }
-				var reply = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
-				content = reply;
-				editor.setContent(content);
-				$('html, body').animate({
-					scrollTop: $("#chat_top_anchor").offset().top
-				}, 2000);
-				editor.focus();
-			});
+<script>
+	$(document).ready(function(){
+		$('blockquote').css({ "cursor":"pointer"});
 		
-			$('blockquote').click(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				$('html, body').animate({
-					scrollTop: $("#chat_message_"+id).offset().top
-				}, 'normal');
-			});
-		
-			$('blockquote').mouseover(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				$("#chat_message_"+id).css({ "border-left":"solid 4px #E08E1B", "padding-left":"20px"});
-				if ($("#chat_message_"+id).css("border-left")) {
-					$(this).css('cursor','pointer');
-				};
-			});
-
-			$('blockquote').mouseout(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0px"});
-			});
-		
+		$('[id^=reply_]').click(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			var editor = tinymce.editors[0];
+			var content = editor.getContent();
+			var quote = $('[id$='+id+'_text]').html();
+			quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
+			var author_name = $('[id$='+id+'_author]').html();
+			var author_id = $('[id$='+id+'_author]').attr('rel');
+			var date = $('[id$='+id+'_date]').html();
+			var quote_shortened = quote.substr(0,300);
+			if (quote_shortened != quote ) { quote_shortened += '...'; }
+			var reply = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
+			content = reply;
+			editor.setContent(content);
+			$('html, body').animate({
+				scrollTop: $("#chat_top_anchor").offset().top
+			}, 2000);
+			editor.focus();
+		});
+	
+		$('blockquote').click(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			$('html, body').animate({
+				scrollTop: $("#chat_message_"+id).offset().top
+			}, 'normal');
+		});
+	
+		$('blockquote').mouseover(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			$("#chat_message_"+id).css({ "border-left":"solid 4px #E08E1B", "padding-left":"20px"});
+			if ($("#chat_message_"+id).css("border-left")) {
+				$(this).css('cursor','pointer');
+			};
 		});
 
-		function removeMessage(id) {
-			$('#chat_message_'+id).css({'background-color':'#E30'});
-			var group_id={$template_variables['group_id']};
-			setTimeout( function(){
-				reply=confirm({_"Do you really want to delete this message?"});
-				if (reply==true) {
-					$.post("?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
-						$('#totrash-'+id).slideUp();
-						$('#chat_message_'+id).slideUp('normal');
-				} else {
-					$('#chat_message_'+id).css({'background-color':'transparent'});
-				}	
-			}, 500 );				
-				
-		}
+		$('blockquote').mouseout(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0px"});
+		});
+	
+	});
 
-	</script>
+	function removeMessage(id) {
+		$('#chat_message_'+id).css({'background-color':'#E30'});
+		var group_id={$template_variables['group_id']};
+		setTimeout( function(){
+			reply=confirm({_"Do you really want to delete this message?"});
+			if (reply==true) {
+				$.post("?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
+					$('#totrash-'+id).slideUp();
+					$('#chat_message_'+id).slideUp('normal');
+			} else {
+				$('#chat_message_'+id).css({'background-color':'transparent'});
+			}	
+		}, 500 );				
+			
+	}
+
+</script>
 

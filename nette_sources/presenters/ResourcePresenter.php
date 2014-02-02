@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -563,13 +562,13 @@ final class ResourcePresenter extends BasePresenter
 			'media_bambuser' => 'Bambuser'
 		);
 		$form->addSelect('media_type', _('Media type:'), $media_types);
-		$form->addText('media_link', _('Media ID:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Please paste here the <u>underlined</u> part of the url for the media that you want to add:<br/>
+		$form->addText('media_link', _('Media ID:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Please paste here the <u>underlined</u> part of the url for the media that you want to add:').'<br/>
 	<ul>
 		<li><b>YouTube:</b> https://www.youtube.com/watch?v=<u>xxxxx</u></li>
 		<li><b>Vimeo:</b> http://vimeo.com/<u>xxxxx</u></li>
 		<li><b>Soundcloud:</b> http://soundcloud.com/<u>xxx/yyy</u></li>
 		<li><b>Bambuser:</b> http://bambuser.com/v/<u>xxx</u></li>
-	</ul>'))->id("help-name"));
+	</ul>')->id("help-name"));
 		$form->setCurrentGroup(NULL);
 		
 		if (empty($resource_id)) {

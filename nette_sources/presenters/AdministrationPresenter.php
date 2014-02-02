@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -36,7 +35,7 @@ final class AdministrationPresenter extends BasePresenter
 		if (!isset($_SESSION['update_ping']) || $_SESSION['update_ping']+3600 < time()) {
 			$url = "https://mycitizen.net/versioncheck/version.csv";
 			if ($fp = @fopen ($url, 'r')) {
-			$data = fgetcsv($fp);
+			$data = fgetcsv($fp,1000,"\t");
 			fclose($fp);
 			$_SESSION['update_ping'] = time();
 			
@@ -222,6 +221,7 @@ final class AdministrationPresenter extends BasePresenter
 		$access = $user->getAccessLevel();
 		$menu_admin = array();
 
+		
 		$menu_mod = array(
 			'1' => array(
 				'title' => _('Statistics'),
@@ -531,6 +531,24 @@ final class AdministrationPresenter extends BasePresenter
 		
 		
 		$this->flashMessage(_('System check finished. Find the results below.'));
+		
+		// no redirect here!
+		
+	}
+	
+	
+	/**
+	*	Purge users.
+	*
+	*
+	*/
+	public function handlePurgeUsers($months) {	
+	
+		$number_cleared = Administration::clearUsers($months);
+		
+		$this->flashMessage(sprintf(_('%d user(s) purged.'), $number_cleared));
+		
+		$this->redirect("Administration:setupmaintenance");
 	}
 	
 	/**
@@ -844,5 +862,57 @@ final class AdministrationPresenter extends BasePresenter
  
 	}
 
+	
+	public function handleMove($tag_id, $direction) {
+		$result = dibi::fetchAll("SELECT * FROM `tag` WHERE `tag_parent_id` = 0 ORDER BY `tag_position`,`tag_id`");
+		$tags = array();
+		
+		foreach($result as $tag) {
+			$tags[$tag['tag_id']] = $tag;
+		}
+		
+		if ($direction == 'down') {
+			$tags = array_reverse($tags, true);
+		}
+//var_dump($tags);die();
+			// find the one above
+			$id_above = 0;
+			foreach($tags as $tag) {
+				if ($tag['tag_id'] == $tag_id) break;
+				$id_above = $tag['tag_id'];
+			}
+
+			if ($id_above > 0) {
+				// swap $id_above and $tag_id
+				if ($direction == 'up') {
+					if ($tags[$tag_id]['tag_position'] == $tags[$id_above]['tag_position'] ) {
+						$tags[$id_above]['tag_position'] = $tags[$tag_id]['tag_position'] + 1;
+						dibi::query('UPDATE `tag` SET `tag_position` = `tag_position` + 1 WHERE `tag_position` > %i', $tags[$tag_id]['tag_position']);
+					} else {
+						$tmp = $tags[$id_above]['tag_position'];
+						$tags[$id_above]['tag_position'] = $tags[$tag_id]['tag_position'];
+						$tags[$tag_id]['tag_position'] = $tmp;
+					}
+				} else {
+					if ($tags[$id_above]['tag_position'] == $tags[$tag_id]['tag_position'] ) {
+						$tags[$tag_id]['tag_position'] = $tags[$id_above]['tag_position'] + 1;					
+						dibi::query('UPDATE `tag` SET `tag_position` = `tag_position` + 1 WHERE `tag_position` > %i', $tags[$id_above]['tag_position']);
+					} else {
+						$tmp = $tags[$tag_id]['tag_position'];
+						$tags[$tag_id]['tag_position'] = $tags[$id_above]['tag_position'];
+						$tags[$id_above]['tag_position'] = $tmp;
+					}
+				}
+				
+				dibi::query('UPDATE `tag` SET `tag_position` = %i WHERE `tag_id` = %i', $tags[$id_above]['tag_position'], $id_above);			
+				dibi::query('UPDATE `tag` SET `tag_position` = %i WHERE `tag_parent_id` = %i', $tags[$id_above]['tag_position'], $id_above);				
+
+				dibi::query('UPDATE `tag` SET `tag_position` = %i WHERE `tag_id` = %i', $tags[$tag_id]['tag_position'], $tag_id);
+				dibi::query('UPDATE `tag` SET `tag_position` = %i WHERE `tag_parent_id` = %i', $tags[$tag_id]['tag_position'], $tag_id);
+
+			}
+
+
+	}
 	
 }

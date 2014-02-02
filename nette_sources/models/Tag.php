@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -70,6 +69,17 @@ class Tag extends BaseModel
 			dibi::begin();
 			if (!empty($this->tag_data)) {
 				if (empty($this->numeric_id)) {
+					if (!empty($this->tag_data['tag_parent_id'])) {
+						$parent_position = dibi::fetchSingle("SELECT `tag_position` FROM `tag` WHERE `tag_id` = %i", $this->tag_data['tag_parent_id']);
+						if ($parent_position) {
+							$this->tag_data['tag_position'] = $parent_position;
+						}						
+					} elseif (empty($this->tag_data['tag_position'])) {
+						$last_position = dibi::fetchSingle("SELECT `tag_position` FROM `tag` ORDER BY `tag_position` DESC LIMIT 1");
+						if ($last_position) {
+							$this->tag_data['tag_position'] = $last_position + 1;
+						}
+					}
 					dibi::query('INSERT INTO `tag`', $this->tag_data);
 					$this->numeric_id = dibi::insertId();
 				} else {
@@ -127,7 +137,7 @@ class Tag extends BaseModel
 	
 	public static function getTreeArray()
 	{
-		$result = dibi::fetchAll("SELECT * FROM `tag` ORDER BY `tag_id`,`tag_parent_id`");
+		$result = dibi::fetchAll("SELECT * FROM `tag` ORDER BY `tag_parent_id`,`tag_position`,`tag_id`");
 		$tags   = array();
 		foreach ($result as $row) {
 			$data                                   = $row->toArray();

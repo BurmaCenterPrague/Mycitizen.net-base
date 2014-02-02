@@ -1,11 +1,10 @@
 <?php
 /**
- * mycitizen.net - Open source social networking for civil society
+ * mycitizen.net - Social networking for civil society
  *
- * @version 0.3 beta
  *
  * @author http://mycitizen.org
- * @copyright  Copyright (c) 2013 Burma Center Prague (http://www.burma-center.org)
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
  * @link http://mycitizen.net
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
  *
@@ -76,8 +75,8 @@
 		$("#report_box").fancybox({
 			closeBtn : true,
 			helpers : {
-				overlay : null,
-				 title : null
+				css: {'background' : 'rgba(200, 200, 200, .5)'},
+				title : null
 			},
 		});
 	});
@@ -96,15 +95,9 @@
 			{$object_language}
 		</div>
 
-		{if isset($data['user_url']) && !empty($data['user_url'])}
-		<div class="user-detail-url">
-			<a href="{$data['user_url']}" class="button" target="_blank" title="{$data['user_url']}"><b class="icon-www"></b>{_"Visit Homepage"}</a>
-		</div>
-		{/if}
-				
 		<div class="user-detail-tags">
 			<h3>{_"Interests"}</h3>
-			{ifset $user_tags}
+			{if isset($user_tags) && count($user_tags)}
 			<table>
 				{?$i=0}
 				 {foreach $user_tags as $key=>$tag_name}
@@ -124,14 +117,14 @@
 				{/foreach}
 			</table>
 			{else}
-			{_"No tags."}
+			{_"No tags"}
 			{/if}
 		</div>
 
 	</div>
 	
-	
-	<div class="user_action">
+	{ifset $logged_user}
+	<div class="user_actions">
 	{if !isset($thats_me)}
         {if isset($default_data) && isset($default_data['object_data']['user_friend_relationship'])  && isset($default_data['object_data']['friend_user_relationship'])}
 		 	{if $default_data['object_data']['user_friend_relationship'] == 0 && $default_data['object_data']['friend_user_relationship'] == 0}
@@ -180,12 +173,19 @@
     	{/if}
 	{/if}
 	</div>
+	{/if}
 
    
 	{ifset $showmap}
 	<div class="user_detail_map">
 		<h3>{_"User's location on a map"}</h3>
 		{control map}
+	</div>
+	{/if}
+
+	{if isset($data['user_url']) && !empty($data['user_url'])}
+	<div class="user-detail-url">
+		<a href="{$data['user_url']}" class="button" target="_blank" title="{$data['user_url']}"><b class="icon-www"></b>{_"Visit Homepage"}</a>
 	</div>
 	{/if}
 
