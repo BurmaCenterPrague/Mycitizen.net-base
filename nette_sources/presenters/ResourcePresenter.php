@@ -43,11 +43,11 @@ final class ResourcePresenter extends BasePresenter
 			$this->resource = Resource::create($resource_id);
 			$d              = $this->resource->getResourceData();
 			if (empty($d)) {
-				$this->flashMessage(_("This resource doesn't exist."), 'error');
+				$this->flashMessage(_t("This resource doesn't exist."), 'error');
 				$this->redirect("Resource:default");
 			}
 			if (Auth::isAuthorized(Auth::TYPE_RESOURCE, $resource_id) == 0) {
-				$this->flashMessage(_("You are not allowed to view this resource."), 'error');
+				$this->flashMessage(_t("You are not allowed to view this resource."), 'error');
 				$this->redirect("Resource:default");
 				
 			}
@@ -173,18 +173,18 @@ final class ResourcePresenter extends BasePresenter
 			$this->template->resource_type = $data['object_data']['resource_type']==5 ? $resource_name[$data['object_data']['media_type']] : $resource_name[$data['object_data']['resource_type']];
 
 			$resource_type_labels = array(
-				1=>_('message'),
-				2=>_('event'),
-				3=>_('organization'),
-				4=>_('document'),
-				6=>_('link to external resource'),
+				1=>_t('message'),
+				2=>_t('event'),
+				3=>_t('organization'),
+				4=>_t('document'),
+				6=>_t('link to external resource'),
 				7=>'7',
 				8=>'8',
 				9=>'friendship',
-				'media_soundcloud'=>_('sound on Soundcloud'),
-				'media_youtube'=>_('video on YouTube'),
-				'media_vimeo'=>_('video on Vimeo'),
-				'media_bambuser'=>_('live-video on Bambuser')
+				'media_soundcloud'=>_t('sound on Soundcloud'),
+				'media_youtube'=>_t('video on YouTube'),
+				'media_vimeo'=>_t('video on Vimeo'),
+				'media_bambuser'=>_t('live-video on Bambuser')
 				);
 			$this->template->resource_type_label  = $data['object_data']['resource_type']==5 ? $resource_type_labels[$data['object_data']['media_type']] : $resource_type_labels[$data['object_data']['resource_type']];
 			
@@ -196,7 +196,7 @@ final class ResourcePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
-			$this->flashMessage(_("You have no permission to create resources."), 'error');
+			$this->flashMessage(_t("You have no permission to create resources."), 'error');
 			$this->redirect("Resource:default");
 		}
 		$resource = Resource::create();
@@ -204,7 +204,7 @@ final class ResourcePresenter extends BasePresenter
 		$this->template->load_js_css_tinymce = true;
 		$this->template->load_js_css_datetimepicker = true;
 		$this->template->load_js_css_tree = true;
-
+		
 		$this->resource = $resource;
 		
 	}
@@ -236,7 +236,7 @@ final class ResourcePresenter extends BasePresenter
 			
 			$screenshot_url = $resource->getThumbnailUrl();
 			If (!empty($screenshot_url)) $this->template->screenshot_url = $screenshot_url;
-			$image = $resource->getScreenshot(_('View big screenshot'),true);
+			$image = $resource->getScreenshot(_t('View big screenshot'),true);
 			if (!empty($image)) $this->template->screenshot = $image;
 
 			
@@ -256,8 +256,8 @@ final class ResourcePresenter extends BasePresenter
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', '');
 		$form['message_text']->getControlPrototype()->class('tinymce-small');
-		$form->addSubmit('send', _('Post'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Post'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -305,8 +305,8 @@ final class ResourcePresenter extends BasePresenter
 		}
 		
 		$form->addMultiSelect('group_id', '', $group_selection);
-		$form->addSubmit('send', _('Subscribe'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Subscribe'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -324,7 +324,7 @@ final class ResourcePresenter extends BasePresenter
 	{
 	
 		if (Auth::isAuthorized(Auth::TYPE_RESOURCE, $this->resource->getResourceId()) < 1) {
-			$this->flashMessage(sprintf(_("Insufficient permissions to subscribe group %s to this resource."),$group_name), 'error');
+			$this->flashMessage(sprintf(_t("Insufficient permissions to subscribe group %s to this resource."),$group_name), 'error');
 			$this->redirect("Resource:default", array(
 				'resource_id' => $this->resource->getResourceId()
 			));
@@ -387,9 +387,11 @@ final class ResourcePresenter extends BasePresenter
 				}
 			}
 
-			$this->flashMessage(sprintf(_("Group %s subscribed to this resource."),$group_name));
+			Activity::addActivity(Activity::GROUP_RESOURCE_ADDED, $group_id, 2);
+			
+			$this->flashMessage(sprintf(_t("Group %s subscribed to this resource."),$group_name));
 		} else {
-			$this->flashMessage(sprintf(_("Group %s is already subscribed."),$group_name), 'error');
+			$this->flashMessage(sprintf(_t("Group %s is already subscribed."),$group_name), 'error');
 		}
 		
 		unset($group);
@@ -414,6 +416,9 @@ final class ResourcePresenter extends BasePresenter
 		
 		$resource->save();
 		$this->resource->setLastActivity();
+		
+		Activity::addActivity(Activity::RESOURCE_COMMENT, $this->resource->getResourceId(), 3);
+		
 		$resource->updateUser($user->getUserId(), array(
 			'resource_user_group_access_level' => 1
 		));
@@ -428,7 +433,7 @@ final class ResourcePresenter extends BasePresenter
 	{
 		$resource_id = $this->resource->getResourceId();
 		$form        = new NAppForm($this, 'tagform');
-		$form->addComponent(new AddTagComponent("resource", $resource_id, _("add new tag")), 'add_tag');
+		$form->addComponent(new AddTagComponent("resource", $resource_id, _t("add new tag")), 'add_tag');
 		return $form;
 		
 	}
@@ -472,12 +477,12 @@ final class ResourcePresenter extends BasePresenter
 		}
 		$form = new NAppForm($this, 'updateform');
 		$form->addGroup();
-		$form->addText('resource_name', _('Name:'))->addRule(NForm::FILLED, _('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the resource.'))->id("help-name"));
-		$form->addSelect('resource_type', _('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
-		$form->addSelect('resource_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
-		$form->addSelect('resource_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Select a language of this resource.'))->id("help-name"));
+		$form->addText('resource_name', _t('Name:'))->addRule(NForm::FILLED, _t('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the resource.'))->id("help-name"));
+		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
+		$form->addSelect('resource_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
+		$form->addSelect('resource_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Select a language of this resource.'))->id("help-name"));
 		
-		$form->addTextArea('resource_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Describe in few sentences what this resource is about.'))->id("help-name"));
+		$form->addTextArea('resource_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this resource is about.'))->id("help-name"));
 		
 		if (isset($resource_data['resource_type'])) {
 			$form->addHidden('resource_type_exists');
@@ -493,7 +498,7 @@ final class ResourcePresenter extends BasePresenter
 		} else {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_message")->style("display:none"));
 		}
-		$form->addTextArea('message_text', _('Message:'), 100, 10);
+		$form->addTextArea('message_text', _t('Message:'), 100, 10);
 		$form['message_text']->getControlPrototype()->class('tinymce-small');
 	
 		//event
@@ -502,10 +507,10 @@ final class ResourcePresenter extends BasePresenter
 		} else {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_event")->style("display:none"));
 		}
-		$form->addTextArea('event_description', _('Event description:'), 50, 10);
+		$form->addTextArea('event_description', _t('Event description:'), 50, 10);
 		$form['event_description']->getControlPrototype()->class('tinymce');
-		$form->addText('event_url', _('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
-		$form->addText('event_timestamp', _('Event time:'));
+		$form->addText('event_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
+		$form->addText('event_timestamp', _t('Event time:'));
 		
 		$event_alert_times = array(
 			0 => 'no alert',
@@ -519,7 +524,7 @@ final class ResourcePresenter extends BasePresenter
 			3600*24 => '24 h',
 			3600*24*7 => '1 week'
 		);
-		$form->addSelect('event_alert', _('Notify members:'), $event_alert_times);
+		$form->addSelect('event_alert', _t('Notify members:'), $event_alert_times);
 
 		//organization
 		if (!empty($resource_id) && $resource_data['resource_type'] == 3) {
@@ -527,9 +532,9 @@ final class ResourcePresenter extends BasePresenter
 		} else {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_organization")->style("display:none"));
 		}
-		$form->addTextArea('organization_information', _('Information:'), 50, 10);
+		$form->addTextArea('organization_information', _t('Information:'), 50, 10);
 		$form['organization_information']->getControlPrototype()->class('tinymce');
-		$form->addText('organization_url', _('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
+		$form->addText('organization_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		
 		//text information
 		if (!empty($resource_id) && $resource_data['resource_type'] == 4) {
@@ -537,9 +542,9 @@ final class ResourcePresenter extends BasePresenter
 		} else {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_information")->style("display:none"));
 		}
-		$form->addTextArea('text_information', _('Text:'), 50, 10);
+		$form->addTextArea('text_information', _t('Text:'), 50, 10);
 		$form['text_information']->getControlPrototype()->class('tinymce');
-		$form->addText('text_information_url', _('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
+		$form->addText('text_information_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		
 		//other (external link)
 		if (!empty($resource_id) && $resource_data['resource_type'] == 6) {
@@ -547,7 +552,7 @@ final class ResourcePresenter extends BasePresenter
 		} else {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_other")->style("display:none"));
 		}
-		$form->addText('other_url', _('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
+		$form->addText('other_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		
 		//audio/video link
 		if (!empty($resource_id) && $resource_data['resource_type'] == 5) {
@@ -561,8 +566,8 @@ final class ResourcePresenter extends BasePresenter
 			'media_soundcloud' => 'Soundcloud',
 			'media_bambuser' => 'Bambuser'
 		);
-		$form->addSelect('media_type', _('Media type:'), $media_types);
-		$form->addText('media_link', _('Media ID:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Please paste here the <u>underlined</u> part of the url for the media that you want to add:').'<br/>
+		$form->addSelect('media_type', _t('Media type:'), $media_types);
+		$form->addText('media_link', _t('Media ID:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Please paste here the <u>underlined</u> part of the url for the media that you want to add:').'<br/>
 	<ul>
 		<li><b>YouTube:</b> https://www.youtube.com/watch?v=<u>xxxxx</u></li>
 		<li><b>Vimeo:</b> http://vimeo.com/<u>xxxxx</u></li>
@@ -572,12 +577,12 @@ final class ResourcePresenter extends BasePresenter
 		$form->setCurrentGroup(NULL);
 		
 		if (empty($resource_id)) {
-			$form->addSubmit('register', _('Create new resource'));
+			$form->addSubmit('register', _t('Create new resource'));
 			
 		} else {
-			$form->addSubmit('send', _('Update'));
+			$form->addSubmit('send', _t('Update'));
 		}
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'updateformSubmitted'
@@ -617,7 +622,7 @@ final class ResourcePresenter extends BasePresenter
 		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
 			if (Auth::MODERATOR > $user->getAccessLevel()) {
 				if (!$user->hasRightsToCreate()) {
-					$this->flashMessage(_("You have no permission to create resources."), 'error');
+					$this->flashMessage(_t("You have no permission to create resources."), 'error');
 					$this->redirect("Resource:default");
 				}
 			}
@@ -627,7 +632,7 @@ final class ResourcePresenter extends BasePresenter
 			$data['resource_type']   = $values['resource_type'];		
 		}
 		$this->resource->setResourceData($data);
-		if ($this->resource->save()) $this->flashMessage(_("Resource updated"));
+		if ($this->resource->save()) $this->flashMessage(_t("Resource updated"));
 		$this->resource->setLastActivity();
 		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
 			$this->resource->updateUser($user->getUserId(), array(
@@ -636,7 +641,11 @@ final class ResourcePresenter extends BasePresenter
 		}
 
 		$resource_id = $this->resource->getResourceId();
-		
+		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
+			Activity::addActivity(Activity::RESOURCE_CREATED, $resource_id, 3, $user->getUserId());
+		} else {
+			Activity::addActivity(Activity::RESOURCE_UPDATED, $resource_id, 3);
+		}
 		
 		$resource_type = (isset($values['resource_type'])) ? $values['resource_type'] : $values['resource_type_exists'];
 		
@@ -660,12 +669,12 @@ final class ResourcePresenter extends BasePresenter
 
 		if (isset($direct_url) && !empty($direct_url)) {
 			$this->saveDirectScreenshot($resource_id,$direct_url);
-			$this->flashMessage(_("Screenshot processing"));
+			$this->flashMessage(_t("Screenshot processing"));
 		} elseif (isset($url) && !empty($url) && isset($this->grabzIt)) {
 			$headers = @get_headers($url);
 
 			if(!$headers || strpos($headers[0], '404 Not Found')!==false) {
-				$this->flashMessage(_("URL doesn't seem to exist"),'error');
+				$this->flashMessage(_t("URL doesn't seem to exist"),'error');
 			} else {
 				// delete previous versions
 				// We keep screenshots up to 1 day old, assuming that usually the views of websites don't change fundamentally during that time.
@@ -690,7 +699,7 @@ final class ResourcePresenter extends BasePresenter
 				$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
 				if (!file_exists($filepath)) {
 					if ($this->grabzIt->Save($callback)) {
-						$this->flashMessage(_("Screenshot processing"));
+						$this->flashMessage(_t("Screenshot processing"));
 					}
 				}
 			}
@@ -945,6 +954,7 @@ final class ResourcePresenter extends BasePresenter
 							}
 						}
 					}
+					Activity::addActivity(Activity::RESOURCE_SUBSCRIBED, $resource_id, 3, $user_id);
 					print "true";
 				}
 			}
@@ -967,6 +977,7 @@ final class ResourcePresenter extends BasePresenter
 				if (!empty($resource_id)) {
 					$resource->removeUser($user_id);
 					StaticModel::removeCron(1, $user_id, 3, $resource_id);
+					Activity::addActivity(Activity::RESOURCE_UNSUBSCRIBED, $resource_id, 3, $user_id);
 					print "true";
 				}
 			}
@@ -1053,8 +1064,8 @@ final class ResourcePresenter extends BasePresenter
 		$resource      = Resource::create($resource_id);
 		$resource_data = $resource->getResourceData();
 		$form->addCHeckbox('status');
-		$form->addSubmit('send', _('Update'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminResourceFormSubmitted'
@@ -1086,15 +1097,15 @@ final class ResourcePresenter extends BasePresenter
 	protected function createComponentReportform()
 	{
 		$types = array(
-			'0' => _('This is not a real resource but spam.'),
-			'1' => _('This resource contains wrong information.'),
-			'2' => _('This resource violates the rules of conduct.')
+			'0' => _t('This is not a real resource but spam.'),
+			'1' => _t('This resource contains wrong information.'),
+			'2' => _t('This resource violates the rules of conduct.')
 		);
 		$form  = new NAppForm($this, 'reportform');
-		$form->addRadioList('report_type', _('Reason:'), $types);
-		$form->addTextarea('report_text', _('Tell us why you report this resource, including examples:'))->addRule(NForm::FILLED, _('Please give us some details.'));
-		$form->addSubmit('send', _('Send'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addRadioList('report_type', _t('Reason:'), $types);
+		$form->addTextarea('report_text', _t('Tell us why you report this resource, including examples:'))->addRule(NForm::FILLED, _t('Please give us some details.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'reportformSubmitted'
@@ -1116,13 +1127,13 @@ final class ResourcePresenter extends BasePresenter
 			$reported_resource_data  = $this->resource->getResourceData();
 			
 			$types = array(
-			'0' => _('(spam)'),
-			'1' => _('(error)'),
-			'2' => _('(inappropriate language)')
+			'0' => _t('(spam)'),
+			'1' => _t('(error)'),
+			'2' => _t('(inappropriate language)')
 			);
 
 			$data                    = array(
-				'resource_name' => sprintf(_("Report about resource %s, reason: %s"), $reported_resource_data['resource_name'], $types[$resource_data['report_type']]),
+				'resource_name' => sprintf(_t("Report about resource %s, reason: %s"), $reported_resource_data['resource_name'], $types[$resource_data['report_type']]),
 				'resource_type' => 7,
 				'resource_visibility_level' => 3,
 				'resource_description' => $values['report_text'],
@@ -1133,7 +1144,7 @@ final class ResourcePresenter extends BasePresenter
 			$resource->setResourceData($data);
 			$resource->save();
 			$resource_id = $resource->getResourceId();
-			$this->flashMessage(_("Your report has been received."));
+			$this->flashMessage(_t("Your report has been received."));
 		}
 	}
 	

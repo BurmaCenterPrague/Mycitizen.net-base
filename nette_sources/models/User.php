@@ -32,11 +32,11 @@ class User extends BaseModel implements IIdentity
 			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` as user_portrait FROM `user` WHERE `user_id` = %i", $user_id); // user_largeicon` as user_portrait
 			if (sizeof($result) > 2) {
 				return false;
-				throw new Exception(_("More than one user with the same id found."));
+				throw new Exception(_t("More than one user with the same id found."));
 			}
 			if (sizeof($result) < 1) {
 				return false;
-				throw new Exception(_("Specified user not found."));
+				throw new Exception(_t("Specified user not found."));
 			}
 			$data_array       = $result[0]->toArray();
 			$this->numeric_id = $data_array['user_id'];
@@ -306,13 +306,13 @@ class User extends BaseModel implements IIdentity
 		$id    = $this->numeric_id;
 //		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 //		if (isset($language)) $language = $session->language; else $language = 1;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
+		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 //		$link  = "http://" . URI . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
-		$body  = sprintf(_("Hello %s,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
 		
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		
-		return mail($email, '=?UTF-8?B?' . base64_encode(_('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
+		return mail($email, '=?UTF-8?B?' . base64_encode(_t('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
 	}
 	
 	public static function getEmailOwner($email)
@@ -348,12 +348,12 @@ class User extends BaseModel implements IIdentity
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		$language = $session->language;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
-		$body  = sprintf(_("Hello %s,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
+		$language = Language::getId($session->language);
+		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+		$body  = sprintf(_t("Hello %s,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
 		
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
-		mail($email, '=?UTF-8?B?' . base64_encode(_('Password change on Mycitizen.net')) . '?=', $body, $headers);
+		mail($email, '=?UTF-8?B?' . base64_encode(_t('Password change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
 	
@@ -383,12 +383,12 @@ class User extends BaseModel implements IIdentity
 		$email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		$language = $session->language;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&lang=" . $language;
-		$body  = sprintf(_("Hello %s,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
+		$language = Language::getId($session->language);
+		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+		$body  = sprintf(_t("Hello %s,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
 		
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
-		mail($email, '=?UTF-8?B?' . base64_encode(_('Email change on Mycitizen.net')) . '?=', $body, $headers);
+		mail($email, '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
 	
@@ -473,7 +473,8 @@ class User extends BaseModel implements IIdentity
 				$data['user_id']            = $user_id;
 				$data['user_friend_status'] = 0;
 				dibi::query('INSERT INTO `user_friend`', $data);
-				StaticModel::sendSystemMessage(2, $this->numeric_id, $user_id);
+//				StaticModel::sendSystemMessage(2, $this->numeric_id, $user_id);
+				Activity::addActivity(Activity::FRIENDSHIP_REQUEST, $this->numeric_id, 1, $user_id);
 			} else {
 			
 				switch ($this->reverseFriendsStatus($user_id)) {
@@ -486,7 +487,8 @@ class User extends BaseModel implements IIdentity
 					$data['user_friend_status'] = 2;
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $user_id, $this->numeric_id);
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $this->numeric_id, $user_id);
-					StaticModel::sendSystemMessage(3, $this->numeric_id, $user_id);
+//					StaticModel::sendSystemMessage(3, $this->numeric_id, $user_id);
+					Activity::addActivity(Activity::FRIENDSHIP_YES, $this->numeric_id, 1, $user_id);
 					break;
 				case 3:	// other person has rejected/blocked
 					return;
@@ -522,13 +524,15 @@ class User extends BaseModel implements IIdentity
 				case 1:	// other person requested friendship -> reject/block
 					$data['user_friend_status'] = 3;
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $user_id, $this->numeric_id);
-					StaticModel::sendSystemMessage(4, $this->numeric_id, $user_id);
+					Activity::addActivity(Activity::FRIENDSHIP_NO, $this->numeric_id, 1, $user_id);
+//					StaticModel::sendSystemMessage(4, $this->numeric_id, $user_id);
 					break;
 				case 2: // friendship exists -> terminate
 					$data['user_friend_status'] = 3;
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $user_id, $this->numeric_id);
 					$data['user_friend_status'] = 0;
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $this->numeric_id, $user_id);
+					Activity::addActivity(Activity::FRIENDSHIP_END, $this->numeric_id, 1, $user_id);
 					break;
 				case 3:	// other person also blocks -> reset to zero
 					$data['user_friend_status'] = 0;
@@ -673,6 +677,8 @@ class User extends BaseModel implements IIdentity
 	{
 		if (Auth::MODERATOR <= Auth::isAuthorized(1, $this->numeric_id)) {
 			dibi::query("UPDATE `user` SET `user_status` = '0' WHERE `user_id` = %i", $this->numeric_id);
+			dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = '0' WHERE `member_type` = '1' AND `member_id` = %i", $this->numeric_id);
+			dibi::query("UPDATE `group_user` SET `group_user_status` = '0' WHERE `user_id` = %i", $this->numeric_id);
 		}
 	}
 	
@@ -772,7 +778,7 @@ class User extends BaseModel implements IIdentity
 					if(!file_exists($link)) {
 						$img_r = @imagecreatefromstring(base64_decode($src));
 						if (!imagejpeg($img_r, $link)) {
-							die(_("Error writing image: ").$link);
+							die(_t("Error writing image: ").$link);
 						};
 					}
 				}
@@ -791,13 +797,22 @@ class User extends BaseModel implements IIdentity
 		}
 		return 0;
 	}
+
+	public static function getUserLanguage($user_id)
+	{
+		$result = dibi::fetchSingle("SELECT `user_language` FROM `user` WHERE `user_id` = %i ", $user_id);
+		if (!empty($result)) {
+			return $result;
+		}
+		return 0;
+	}
 	
 	public static function getAllUsersForCron()
 	{
 		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
 		if (sizeof($result) < 1) {
 			return false;
-			throw new Exception(_("Specified user not found."));
+			throw new Exception(_t("Specified user not found."));
 		}
 		foreach($result as $user_array)	{	
 			$result_array[] = $user_array->toArray();

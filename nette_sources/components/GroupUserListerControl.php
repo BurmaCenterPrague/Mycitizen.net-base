@@ -68,7 +68,7 @@ class GroupUserListerControl extends ListerControl
 		$form->addSelect('group_user_access_level', null, $access_level);
 		$form->addCHeckbox('group_user_status');
 		$form->addSubmit('send', 'Update');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminUserFormSubmitted'
@@ -108,7 +108,7 @@ class GroupUserListerControl extends ListerControl
 		);
 		$form->addSelect('group_user_status', 'User Status', $enabled);
 		$form->addSubmit('filter', 'Apply filter');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'

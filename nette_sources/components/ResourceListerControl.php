@@ -52,7 +52,7 @@ class ResourceListerControl extends ListerControl
 		$form->addHidden('resource_id');
 		$form->addCHeckbox('resource_status');
 		$form->addSubmit('send', 'Update');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminResourceFormSubmitted'
@@ -87,7 +87,7 @@ class ResourceListerControl extends ListerControl
 		$form->addSelect('resource_status', 'Resource status', $enabled);
 		$form->addSelect('resource_type', 'Type', $type);
 		$form->addSubmit('filter', 'Apply filter');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'

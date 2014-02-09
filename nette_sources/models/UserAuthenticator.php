@@ -30,7 +30,10 @@ class UserAuthenticator extends BaseModel implements IAuthenticator {
 		$hasher = new PasswordHash(8, false);
 		
 		if( !$hasher->CheckPassword($password, $result[0]->user_password)) {
-           	throw new NAuthenticationException("Your password does not match.", self::INVALID_CREDENTIAL);
+		### 1. better message - match what? 2. add to personal activity
+//			$user_id = dibi::fetchSingle("SELECT `user_id` FROM `user` WHERE `user_login` = %s", $username);
+			Activity::addActivity(Activity::LOGIN_FAILED, $result[0]->user_id, 1);
+           	throw new NAuthenticationException(_t("The password is wrong."), self::INVALID_CREDENTIAL);
         }
         return User::create($result[0]->user_id);
     }

@@ -29,7 +29,7 @@ class TagContainer extends NFormContainer {
                         return ;
          }
 
-			$this->addComponent(new ContainerTreeSelectControl(_('Add tag').':'), 'tag_id');
+			$this->addComponent(new ContainerTreeSelectControl(_t('Add tag').':'), 'tag_id');
 	
      }
 

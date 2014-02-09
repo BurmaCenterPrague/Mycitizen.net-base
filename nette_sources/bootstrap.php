@@ -79,4 +79,7 @@ $router[] = new NSimpleRouter(array(
 	'action' => 'default',
 	),$flag);
 
+
+require_once(LIBS_DIR.'/TranslationHelper/TranslationHelper.php');
+
 $application->run();

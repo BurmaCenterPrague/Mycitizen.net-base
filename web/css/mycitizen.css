@@ -51,7 +51,7 @@ input[type="button"], input[type="submit"],.button {
 	text-transform: uppercase;
 	font-size: 10px;
 	letter-spacing: 1px;
-	margin: 1.2em 0;
+	margin: 1em 0;
 	white-space:nowrap;
 	cursor:pointer;
 }
@@ -1557,3 +1557,12 @@ max-width:500px;
 .filter-top-left {
 	float:left;width:500px;margin:10px;
 }
+
+.activity-box h3 { text-align:left;}
+.activity-box a { text-decoration:none;}
+.activity-item { background-color:#D0CCC3; border-radius:10px; padding:5px 20px; margin:5px 0; min-height:30px; text-align:left;cursor:pointer;}
+.activity-time { display:inline-block; width:100px;}
+.activity-link { display:inline-block; width:300px;}
+.activity-link a { color:#000;}
+.activity-link img { display:inline-block; vertical-align:middle; border: 4px solid #A9A295; width: 20px;}
+.activity-description { display:inline-block;}

@@ -76,18 +76,18 @@
 							'media_bambuser'=>'live-video'
 							)}
 						{? $resource_type_labels = array(
-							1=>_('message'),
-							2=>_('event'),
-							3=>_('organization'),
-							4=>_('document'),
-							6=>_('link to external resource'),
+							1=>_t('message'),
+							2=>_t('event'),
+							3=>_t('organization'),
+							4=>_t('document'),
+							6=>_t('link to external resource'),
 							7=>'7',
 							8=>'8',
 							9=>'friendship',
-							'media_soundcloud'=>_('sound on Soundcloud'),
-							'media_youtube'=>_('video on YouTube'),
-							'media_vimeo'=>_('video on Vimeo'),
-							'media_bambuser'=>_('live-video on Bambuser')
+							'media_soundcloud'=>_t('sound on Soundcloud'),
+							'media_youtube'=>_t('video on YouTube'),
+							'media_vimeo'=>_t('video on Vimeo'),
+							'media_bambuser'=>_t('live-video on Bambuser')
 							)}
 						{var $res => Resource::Create($row['id'])}
 						{var $resdata => $res->getResourceData()}

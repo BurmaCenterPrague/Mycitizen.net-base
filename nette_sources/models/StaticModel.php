@@ -49,48 +49,54 @@ class StaticModel extends BaseModel {
 		
 		$name = $recipient->getUserLogin($recipient->getUserId());
 		
-      
 		$data = array();
 
 		switch($message_type) {
+// no emails, because user will have unread emails in mailbox
+/*
 			case self::SYSTEM_MESSAGE_FRIENDSHIPOFFER:
-				$message_subject = sprintf(_("User %s requested your friendship."), $sender_data['user_login']);
-				$message_text = _("Friendship request");
+				$message_subject = sprintf(_t("User %s requested your friendship."), $sender_data['user_login']);
+				$message_text = _t("Friendship request");
 				$email_text = $message_subject;
 				$data['resource_type'] = 10;
+				Activity::addActivity(Activity::FRIENDSHIP_REQUEST, $from, 1, $to);
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPACCEPTED:
-				$message_subject = sprintf(_("User %s accepted your friendship."), $sender_data['user_login']);
-            	$message_text = _("Friendship accepted");
+				$message_subject = sprintf(_t("User %s accepted your friendship."), $sender_data['user_login']);
+            	$message_text = _t("Friendship accepted");
             	$email_text = $message_subject;
             	$data['resource_type'] = 9;
+            	Activity::addActivity(Activity::FRIENDSHIP_YES, $from, 1, $to);
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPREJECTED:
-				$message_subject = sprintf(_("User %s rejected your friendship."), $sender_data['user_login']);
-	            $message_text = _("Friendship request rejected");
+				$message_subject = sprintf(_t("User %s rejected your friendship."), $sender_data['user_login']);
+	            $message_text = _t("Friendship request rejected");
 	            $email_text = $message_subject;
 	            $data['resource_type'] = 9;
+	            Activity::addActivity(Activity::FRIENDSHIP_NO, $from, 1, $to);
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPTRERMINATED:
-				$message_subject = sprintf(_("User %s canceled your friendship."), $sender_data['user_login']);
-	            $message_text = _("Friendship canceled");
+				$message_subject = sprintf(_t("User %s canceled your friendship."), $sender_data['user_login']);
+	            $message_text = _t("Friendship canceled");
 	            $email_text = $message_subject;
 	            $data['resource_type'] = 9;
+	            Activity::addActivity(Activity::FRIENDSHIP_END, $from, 1, $to);
 				break;
+*/
 			case self::SYSTEM_MESSAGE_WARNING_USER:
-				$message_subject = _("System message: You've received a warning.");
+				$message_subject = _t("System message: You've received a warning.");
 	            $message_text = $message;
 	            $email_text = $message_subject."\n\r".$message_text;
 	            $data['resource_type'] = 9;
 				break;
 			case self::SYSTEM_MESSAGE_WARNING_GROUP:
-				$message_subject = _("System message: You've received a warning about your group.");
+				$message_subject = _t("System message: You've received a warning about your group.");
 				$message_text = $message;
 				$email_text = $message_subject."\n\r".$message_text;
 				$data['resource_type'] = 9;
          	  	break;
 			case self::SYSTEM_MESSAGE_WARNING_RESOURCE:
-				$message_subject = _("System message:  You've received a warning about your resource.");
+				$message_subject = _t("System message:  You've received a warning about your resource.");
          		$message_text = $message;
          		$email_text = $message_subject."\n\r".$message_text;
          		$data['resource_type'] = 9;
@@ -117,7 +123,7 @@ class StaticModel extends BaseModel {
 			}
 		}
 		
-		$email_text = sprintf(_("Dear %s"), $name).",\n\r\n\r".$email_text;
+		$email_text = sprintf(_t("Dear %s"), $name).",\n\r\n\r".$email_text;
 		
 		self::addCron(time()+60, 1, $to, $email_text, $object_type, $object_id);
 
@@ -226,15 +232,5 @@ class StaticModel extends BaseModel {
 	}
 */
 
-
-
-  public static function pgettext($context, $msgid)
-  {
-     $contextString = "{$context}\004{$msgid}";
-     $translation = dcgettext('messages', $contextString,LC_MESSAGES);
-     if ($translation == $contextString) return $msgid;
-     else return $translation;
-  }
-  
 
 }

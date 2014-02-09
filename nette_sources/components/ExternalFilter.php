@@ -168,7 +168,7 @@ class ExternalFilter extends NControl
 	public function createComponentFilter()
 	{
 		$type  = array(
-			'all' => _("all resources")
+			'all' => _t("all resources")
 		);
 		$types = Resource::getTypeArray();
 		foreach ($types as $id => $name) {
@@ -179,45 +179,45 @@ class ExternalFilter extends NControl
 		}
 		
 		$form = new NAppForm($this, "filter");
-		$form->addRadioList('filter_pairing', _('Connect filters with'), array(
+		$form->addRadioList('filter_pairing', _t('Connect filters with'), array(
 			'and' => 'AND',
 			'or' => 'OR'
 		))->separatorPrototype->setName(NULL);
-		$form->addText('name', _('Name'));
+		$form->addText('name', _t('Name'));
 		$enabled = array(
-			'null' => _('all'),
-			'1' => _('active'),
-			'0' => _('inactive')
+			'null' => _t('all'),
+			'1' => _t('active'),
+			'0' => _t('inactive')
 		);
 		$trash   = array(
-			'2' => _('Unread'),
-			'0' => _('Mailbox'),
-			'1' => _('Trash')
+			'2' => _t('Unread'),
+			'0' => _t('Mailbox'),
+			'1' => _t('Trash')
 		);
-		$form->addSelect('status', _('Status'), $enabled);
+		$form->addSelect('status', _t('Status'), $enabled);
 		$form->addRadioList('trash', '', $trash)->getSeparatorPrototype()->setName(NULL);
 		$form['trash']->setDefaultValue('1');
 		$form['trash']->getControlPrototype()->class('trash-radio');
 				
-		$form->addCheckbox("all", _("all tags"));
+		$form->addCheckbox("all", _t("all tags"));
 		
 		$language    = Language::getArray();
-		$language[0] = _('all');
+		$language[0] = _t('all');
 		ksort($language);
-		$form->addSelect('language', _('Language'), $language);
-		$form->addSelect('type', _('Type'), $type);
+		$form->addSelect('language', _t('Language'), $language);
+		$form->addSelect('type', _t('Type'), $type);
 		$tags = $form->addContainer('tags');
-		$tags->addCheckbox("all", _("all tags"));
+		$tags->addCheckbox("all", _t("all tags"));
 		foreach (Tag::getTreeArray() as $key => $row) {
 			$level_class = $row['level'] ? 'tag_child tag_child_parent_'.substr('00'.$row['tag_parent_id'],-3,3) : 'tag_parent_'.substr('00'.$row['tag_id'],-3,3);
-			$tags->addCheckbox($row['tag_id'], StaticModel::pgettext('tags',$row['tag_name']));
+			$tags->addCheckbox($row['tag_id'], _t_tags($row['tag_name']));
 			$tags[$row['tag_id']]->getControlPrototype()->class($level_class);
 			$tags['all']->getControlPrototype()->class('tag-checkbox');
 		}
 		$form->addComponent(new MapContainer('map', 'map'), 'mapfilter');
-		$form->addSubmit('reset', _('Clear Filter'));
-		$form->addSubmit('filter', _('Apply Filter'));
-		$form->addSubmit('suggest', _('Similar to me'));
+		$form->addSubmit('reset', _t('Clear Filter'));
+		$form->addSubmit('filter', _t('Apply Filter'));
+		$form->addSubmit('suggest', _t('Similar to me'));
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'

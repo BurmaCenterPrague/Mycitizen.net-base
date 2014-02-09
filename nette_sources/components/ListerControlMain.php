@@ -117,9 +117,9 @@ class ListerControlMain extends NControl
 	public function renderFiltercheck()
 	{
 		if ($this->activeFilter())
-			echo _("Filter is on.");
+			echo _t("Filter is on.");
 		else
-			echo _("Filter is off.");
+			echo _t("Filter is off.");
 	}
 	
 	/**
@@ -382,14 +382,14 @@ class ListerControlMain extends NControl
 		$form      = new NAppForm($this, "userform" . $data_row['id']);
 		$form->addHidden('id');
 		$access_level = array(
-			'1' => _('Normal'),
-			'2' => _('Moderator'),
-//			'3' => _('Group Administrator')
+			'1' => _t('Normal'),
+			'2' => _t('Moderator'),
+//			'3' => _t('Group Administrator')
 		);
 		$form->addSelect('access_level', null, $access_level);
 		$form->addCheckbox('status');
-		$form->addSubmit('send', _('Update'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminUserFormSubmitted'
@@ -444,8 +444,8 @@ class ListerControlMain extends NControl
 		$form       = new NAppForm($this, "groupform" . $data_row['id']);
 		$form->addHidden('id');
 		$form->addCheckbox('status');
-		$form->addSubmit('send', _('Update'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminGroupFormSubmitted'
@@ -491,8 +491,8 @@ class ListerControlMain extends NControl
 		$form          = new NAppForm($this, "resourceform" . $data_row['id']);
 		$form->addHidden('id');
 		$form->addCheckbox('status');
-		$form->addSubmit('send', _('Update'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminResourceFormSubmitted'
@@ -640,7 +640,7 @@ class ListerControlMain extends NControl
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$form = new NAppForm($this, 'emptytrashform');
-		$form->addSubmit('empty', _('Empty Trash'));
+		$form->addSubmit('empty', _t('Empty Trash'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -655,7 +655,7 @@ class ListerControlMain extends NControl
 		$user = NEnvironment::getUser()->getIdentity();
 		
 		Resource::emptyTrash();
-		$this->flashMessage(_("Trash emptied."));
+		$this->flashMessage(_t("Trash emptied."));
 		//		$this->redirect("User:messages");
 		$this->handleChangePage(1);
 	}

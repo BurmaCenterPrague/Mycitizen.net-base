@@ -413,6 +413,10 @@ class Resource extends BaseModel {
 	public static function getType() {
       return 3;
    }
+
+	public static function getResourceType($resource_id) {
+      return dibi::fetchSingle("SELECT `resource_type` FROM `resource` WHERE `resource_id` = %i", $resource_id);
+   }
    
 	public function getResourceAuthor() {
 		return $resource_data['resource_author'];		
@@ -491,10 +495,11 @@ class Resource extends BaseModel {
 	}
 	
 	public function bann() {
-      if(Auth::MODERATOR <= Auth::isAuthorized(3,$this->numeric_id)) {
-         dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i",$this->numeric_id);
-      }
-   }
+    	if(Auth::MODERATOR <= Auth::isAuthorized(3,$this->numeric_id)) {
+    		dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i",$this->numeric_id);
+			dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
+    	}
+	}
 
 	public function remove_message($type, $object_id) {
       if(Auth::MODERATOR <= Auth::isAuthorized($type,$object_id)) {

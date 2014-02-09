@@ -90,7 +90,7 @@ final class AdministrationPresenter extends BasePresenter
 		$user   = NEnvironment::getUser()->getIdentity();
 		$access = $user->getAccessLevel();
 		if ($access < 3) {
-			$this->flashMessage(_('Only administrators can visit this section!'), 'error');
+			$this->flashMessage(_t('Only administrators can visit this section!'), 'error');
 			$this->redirect("Administration:default");
 		}
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -106,13 +106,13 @@ final class AdministrationPresenter extends BasePresenter
 		# workaround to get labels of settings into GetText:
 		$setting_labels = array(
 		// TRANSLATORS: Email from where messages are sent.
-			_('from_email'),
+			_t('from_email'),
 		// TRANSLATORS: Default GPS latitude.
-			_('gps_default_latitude'),
+			_t('gps_default_latitude'),
 		// TRANSLATORS: Default GPS longitude.
-			_('gps_default_longitude'),
+			_t('gps_default_longitude'),
 		// TRANSLATORS: Minimum registration time in seconds to receive creation rights.
-			_('object_creation_min_time')
+			_t('object_creation_min_time')
 		);
 	
 	}
@@ -121,7 +121,7 @@ final class AdministrationPresenter extends BasePresenter
 		$user   = NEnvironment::getUser()->getIdentity();
 		$access = $user->getAccessLevel();
 		if ($access < 3) {
-			$this->flashMessage(_('Only administrators can visit this section!'), 'error');
+			$this->flashMessage(_t('Only administrators can visit this section!'), 'error');
 			$this->redirect("Administration:default");
 		}	
 
@@ -142,11 +142,11 @@ final class AdministrationPresenter extends BasePresenter
 	protected function createComponentRegistertag()
 	{
 		$form = new NAppForm($this, 'registertag');
-		$form->addText('tag_name', _('Tag name:'));
-		$form->addComponent(new ContainerTreeSelectControl(_('Parent tag:')), 'tag_parent_id');
-		$form['tag_parent_id']->addRule(~NForm::EQUAL, _("The tag cannot be its own parent."), $form['tag_name']);
-		$form->addSubmit('register', _('Add'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addText('tag_name', _t('Tag name:'));
+		$form->addComponent(new ContainerTreeSelectControl(_t('Parent tag:')), 'tag_parent_id');
+		$form['tag_parent_id']->addRule(~NForm::EQUAL, _t("The tag cannot be its own parent."), $form['tag_name']);
+		$form->addSubmit('register', _t('Add'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -165,7 +165,7 @@ final class AdministrationPresenter extends BasePresenter
 		
 		$new_tag->setTagData($values);
 		$new_tag->save();
-		$this->flashMessage(sprintf(_('Tag "%s" saved.'),$values['tag_name']));
+		$this->flashMessage(sprintf(_t('Tag "%s" saved.'),$values['tag_name']));
 		$this->redirect("Administration:tag");
 	}
 	
@@ -224,7 +224,7 @@ final class AdministrationPresenter extends BasePresenter
 		
 		$menu_mod = array(
 			'1' => array(
-				'title' => _('Statistics'),
+				'title' => _t('Statistics'),
 				'presenter' => 'administration',
 				'action' => 'default',
 				'parameters' => array(),
@@ -234,7 +234,7 @@ final class AdministrationPresenter extends BasePresenter
 
 		if (!empty($this->template->PIWIK_URL) && !empty($this->template->PIWIK_ID) && !empty($this->template->PIWIK_TOKEN)) {
 			$menu_mod['2'] = array(
-					'title' => _('Web Statistics'),
+					'title' => _t('Web Statistics'),
 					'presenter' => 'administration',
 					'action' => 'piwik',
 					'parameters' => array(),
@@ -243,7 +243,7 @@ final class AdministrationPresenter extends BasePresenter
 		}
 		
 		$menu_mod['3'] = array(
-				'title' => _('Reports'),
+				'title' => _t('Reports'),
 				'presenter' => 'administration',
 				'action' => 'reports',
 				'parameters' => array(),
@@ -254,28 +254,28 @@ final class AdministrationPresenter extends BasePresenter
 		if ($access == 3) {
 			$menu_admin    = array(
 				'4' => array(
-					'title' => _('Tags'),
+					'title' => _t('Tags'),
 					'presenter' => 'administration',
 					'action' => 'tags',
 					'parameters' => array(),
 					'parent' => 0
 				),
 				'5' => array(
-					'title' => _('Add tag'),
+					'title' => _t('Add tag'),
 					'presenter' => 'administration',
 					'action' => 'tag',
 					'parameters' => array(),
 					'parent' => 4
 				),
 				'6' => array(
-					'title' => _('Settings'),
+					'title' => _t('Settings'),
 					'presenter' => 'administration',
 					'action' => 'settings',
 					'parameters' => array(),
 					'parent' => 0
 				),
 				'7' => array(
-					'title' => _('Setup and Maintenance'),
+					'title' => _t('Setup and Maintenance'),
 					'presenter' => 'administration',
 					'action' => 'setupmaintenance',
 					'parameters' => array(),
@@ -301,8 +301,8 @@ final class AdministrationPresenter extends BasePresenter
 			$defaults[$key] = $value;
 			$form->addText($key, Settings::getVariableLabel($key) . ":");
 		}
-		$form->addSubmit('send', _('Submit'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Submit'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->setdefaults($defaults);
 		$form->onSubmit[] = array(
@@ -327,14 +327,14 @@ final class AdministrationPresenter extends BasePresenter
 				if (@file_exists(WWW_DIR.'/.maintenance.php')) {
 					unlink(WWW_DIR.'/.maintenance.php');
 				}
-				$this->flashMessage(_("Maintenance mode deactivated."));
+				$this->flashMessage(_t("Maintenance mode deactivated."));
 			}
 
 			if ($values['maintenance_mode'] != 0 && Settings::getVariable('maintenance_mode') == 0) {
 				if (!@file_exists(WWW_DIR.'/.maintenance.php')) {
 					file_put_contents(WWW_DIR.'/.maintenance.php',$values['maintenance_mode']);
 				}
-				$this->flashMessage(_("Maintenance mode activated."));
+				$this->flashMessage(_t("Maintenance mode activated."));
 			}
 
 
@@ -396,13 +396,13 @@ final class AdministrationPresenter extends BasePresenter
 		$user = NEnvironment::getUser()->getIdentity();
 		if ($object_type == 1) {
 			if ($warning_type == "0") {
-				$message = _("We have received complaints about you spaming other users. Please stop or your account will be deactivated.");
+				$message = _t("We have received complaints about you spaming other users. Please stop or your account will be deactivated.");
 			}
 			if ($warning_type == "1") {
 				$message = "";
 			}
 			if ($warning_type == "2") {
-				$message = _("We have received complaints that you use inappropriate language. Please stop or your account will be deactivated.");
+				$message = _t("We have received complaints that you use inappropriate language. Please stop or your account will be deactivated.");
 			}
 			
 			StaticModel::sendSystemMessage(1, $user->getUserId(), $object_id, $message);
@@ -410,17 +410,17 @@ final class AdministrationPresenter extends BasePresenter
 		
 		if ($object_type == 2) {
 			if ($warning_type == "0") {
-				$message = _("We have received complaints that your group contains spam. Please delete inappropriate content or your group will be deactivated.");
+				$message = _t("We have received complaints that your group contains spam. Please delete inappropriate content or your group will be deactivated.");
 			}
 			if ($warning_type == "1") {
 				$message = "";
 			}
 			if ($warning_type == "2") {
-				$message = _("We have received complaints about inappropriate language in your group. Please make neccessary adjustments or your group will be deactivated.");
+				$message = _t("We have received complaints about inappropriate language in your group. Please make neccessary adjustments or your group will be deactivated.");
 			}
 			
 			$object = Group::create($object_id);
-			$message .= "\n"._('Name').": ".$object->getName();
+			$message .= "\n"._t('Name').": ".$object->getName();
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				if (!empty($owner)) {
@@ -431,16 +431,16 @@ final class AdministrationPresenter extends BasePresenter
 		
 		if ($object_type == 3) {
 			if ($warning_type == "0") {
-				$message = _("We have received complaints that your resource contains spam. Please delete inappropriate content or your resource will be deactivated.");
+				$message = _t("We have received complaints that your resource contains spam. Please delete inappropriate content or your resource will be deactivated.");
 			}
 			if ($warning_type == "1") {
 				$message = "";
 			}
 			if ($warning_type == "2") {
-				$message = _("We have received complaints about inappropriate language in your resource. Please make necessary adjustments or your resource will be deactivated.");
+				$message = _t("We have received complaints about inappropriate language in your resource. Please make necessary adjustments or your resource will be deactivated.");
 			}
 			$object = Resource::create($object_id);
-			$message .= "\n"._('Name').": ".$object->getName();
+			$message .= "\n"._t('Name').": ".$object->getName();
 			if (!empty($object)) {
 				$owner = $object->getOwner();
 				if (!empty($owner)) {
@@ -488,8 +488,8 @@ final class AdministrationPresenter extends BasePresenter
 	*/
 	protected function createComponentTestlocaleform() {
 		$form = new NAppForm($this, 'testlocaleform');
-		$form->addText('locale', _('Language code'));
-		$form->addSubmit('send', _('Test'));
+		$form->addText('locale', _t('Language code'));
+		$form->addSubmit('send', _t('Test'));
 		$form->onSubmit[] = array(
 			$this,
 			'testlocaleformSubmitted'
@@ -530,7 +530,7 @@ final class AdministrationPresenter extends BasePresenter
 		}
 		
 		
-		$this->flashMessage(_('System check finished. Find the results below.'));
+		$this->flashMessage(_t('System check finished. Find the results below.'));
 		
 		// no redirect here!
 		
@@ -546,7 +546,7 @@ final class AdministrationPresenter extends BasePresenter
 	
 		$number_cleared = Administration::clearUsers($months);
 		
-		$this->flashMessage(sprintf(_('%d user(s) purged.'), $number_cleared));
+		$this->flashMessage(sprintf(_t('%d user(s) purged.'), $number_cleared));
 		
 		$this->redirect("Administration:setupmaintenance");
 	}
@@ -614,15 +614,15 @@ final class AdministrationPresenter extends BasePresenter
 		// removing old locales
 		foreach ($languages as $lang) {
 			if (!in_array($lang,$dirs)) {
-				$this->flashMessage(sprintf(_("Found unused locale '%s', removing from database."),$lang));
+				$this->flashMessage(sprintf(_t("Found unused locale '%s', removing from database."),$lang));
 				
 				if (!Language::removeCode($lang)) {
-					$this->flashMessage(_("Database error."), 'error');
+					$this->flashMessage(_t("Database error."), 'error');
 				}	
 			}
 		}
 
-		$this->flashMessage(_("Done updating locales."));
+		$this->flashMessage(_t("Done updating locales."));
 	}
 	
 	
@@ -826,12 +826,12 @@ final class AdministrationPresenter extends BasePresenter
 		// save the log to a file with extension .log
 		$messages = array_map(function($s) { return $s.PHP_EOL; }, $messages);
 		if (!@file_put_contents($path_file.'.log',$messages)) {
-			$this->flashMessage(_("Done importing resources. Error writing log file."), 'error');
+			$this->flashMessage(_t("Done importing resources. Error writing log file."), 'error');
 		} else {
-			$this->flashMessage(_("Done importing resources. Please check the log file."));
+			$this->flashMessage(_t("Done importing resources. Please check the log file."));
 		}
 		if (isset($test_run)) {
-			$this->flashMessage(_("This was just a dry run - nothing was saved."));
+			$this->flashMessage(_t("This was just a dry run - nothing was saved."));
 		}
 	}
 	

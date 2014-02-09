@@ -37,11 +37,11 @@ final class GroupPresenter extends BasePresenter
 			$this->group = Group::create($group_id);
 			$d           = $this->group->getGroupData();
 			if (empty($d)) {
-				$this->flashMessage(_("Given group does not exist."), 'error');
+				$this->flashMessage(_t("Given group does not exist."), 'error');
 				$this->redirect("Group:default");
 			}
 			if (Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) == 0) {
-				$this->flashMessage(_("You are not allowed to view this group."), 'error');
+				$this->flashMessage(_t("You are not allowed to view this group."), 'error');
 				$this->redirect("Group:default");
 				
 			}
@@ -131,7 +131,7 @@ final class GroupPresenter extends BasePresenter
 		
 		if (isset($data) && isset($data['object_data']['group_language'])) {
 			$languages = Language::getArray();
-			$this->template->object_language = $languages[$data['object_data']['group_language']];
+			if (isset($languages[$data['object_data']['group_language']])) $this->template->object_language = $languages[$data['object_data']['group_language']];
 		}
 		
 	}
@@ -141,12 +141,12 @@ final class GroupPresenter extends BasePresenter
 		$user = NEnvironment::getUser()->getIdentity();
 		if (Auth::MODERATOR > $user->getAccessLevel()) {
 			if (!$user->hasRightsToCreate()) {
-				$this->flashMessage(_("You have no permission to create groups."), 'error');
+				$this->flashMessage(_t("You have no permission to create groups."), 'error');
 				$this->redirect("Group:default");
 			}
 		}
 		$group = Group::create();
-		
+
 		$this->group = $group;
 	}
 	
@@ -211,7 +211,7 @@ final class GroupPresenter extends BasePresenter
 			
 			} elseif ($size_x < 80 || $size_y < 100) {
 		
-				$this->flashMessage(sprintf(_("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
+				$this->flashMessage(sprintf(_t("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
 				
 				$group->removeAvatar();
 				$group->removeIcons();
@@ -221,14 +221,14 @@ final class GroupPresenter extends BasePresenter
 			} elseif ($size_x > 160 || $size_y > 200 ) {
 
 				$this->template->image_too_large = true;
-				$this->flashMessage(_("Your image still needs to be resized before you can continue!"));
+				$this->flashMessage(_t("Your image still needs to be resized before you can continue!"));
 				$group->removeIcons();
 			
 			} elseif (abs(round($size_x/$size_y*500/4)-100) > 10) {
 			// more than 10% deviation from ideal ratio
 				
 				$this->template->image_props_wrong = true;
-				$this->flashMessage(_("Your image still needs to be cropped to the right dimensions before you can continue!"));
+				$this->flashMessage(_t("Your image still needs to be cropped to the right dimensions before you can continue!"));
 				$group->removeIcons();
 
 			}
@@ -242,11 +242,11 @@ final class GroupPresenter extends BasePresenter
 	protected function createComponentChatform()
 	{
 		$form = new NAppForm($this, 'chatform');
-		$form->addTextarea('message_text', ''); // circumvented by TinyMCE ->addRule(NForm::FILLED, _('Please enter some text.'));
+		$form->addTextarea('message_text', ''); // circumvented by TinyMCE ->addRule(NForm::FILLED, _t('Please enter some text.'));
 		$form['message_text']->getControlPrototype()->class('tinymce-small');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		
-		$form->addSubmit('send', _('Send'));
+		$form->addSubmit('send', _t('Send'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -272,6 +272,9 @@ final class GroupPresenter extends BasePresenter
 		$resource->setResourceData($data);
 		$resource->save();
 		$this->group->setLastActivity();
+		
+		Activity::addActivity(Activity::GROUP_CHAT, $this->group->getGroupId(), 2);
+		
 		$resource->updateUser($user->getUserId(), array(
 			'resource_user_group_access_level' => 1
 		));
@@ -290,7 +293,7 @@ final class GroupPresenter extends BasePresenter
 	{
 		$group_id = $this->group->getGroupId();
 		$form     = new NAppForm($this, 'tagform');
-		$form->addComponent(new AddTagComponent("group", $group_id, _("add new tag")), 'add_tag');
+		$form->addComponent(new AddTagComponent("group", $group_id, _t("add new tag")), 'add_tag');
 		return $form;
 	}
 	
@@ -481,18 +484,18 @@ final class GroupPresenter extends BasePresenter
 			$group_id   = $this->group->getGroupId();
 		}
 		$form = new NAppForm($this, 'updateform');
-		$form->addText('group_name', _('Name:'))->addRule(NForm::FILLED, _('Group name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a name for the group.'))->id("help-name"));
-		$form->addSelect('group_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
-		$form->addSelect('group_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Select a language that will be used in this group for communication.'))->id("help-name"));
-		$form->addTextArea('group_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Describe in few sentences what this group is about.'))->id("help-name"));
-		$form->addFile('group_avatar', _('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","1500x1500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_('Maximum image size is %s'),"512kB"), 512 * 1024);
+		$form->addText('group_name', _t('Name:'))->addRule(NForm::FILLED, _t('Group name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the group.'))->id("help-name"));
+		$form->addSelect('group_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
+		$form->addSelect('group_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Select a language that will be used in this group for communication.'))->id("help-name"));
+		$form->addTextArea('group_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this group is about.'))->id("help-name"));
+		$form->addFile('group_avatar', _t('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","1500x1500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'),"512kB"), 512 * 1024);
 		
 		if ($group_data['group_visibility_level'] == 3) {
-			$form->addText('group_hash', _('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
+			$form->addText('group_hash', _t('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _t("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
 		}
 		
 		if (empty($group_id)) {
-			$form->addSubmit('register', _('Create new group'));
+			$form->addSubmit('register', _t('Create new group'));
 			
 		} else {
 		
@@ -509,11 +512,11 @@ final class GroupPresenter extends BasePresenter
 		
 			if ($size_x<=160 || $size_y<=200) {
 		
-				$form->addSubmit('send', _('Update'));
+				$form->addSubmit('send', _t('Update'));
 			}
 		}
 		
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'updateformSubmitted'
@@ -533,11 +536,11 @@ final class GroupPresenter extends BasePresenter
 		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
 			if (Auth::MODERATOR > $user->getAccessLevel()) {
 				if (!$user->hasRightsToCreate()) {
-					$this->flashMessage(_("You have no permission to create groups."), 'error');
+					$this->flashMessage(_t("You have no permission to create groups."), 'error');
 					$this->redirect("Group:default");
 				}
 			}
-			$values['group_author'] = $user->getUserId();	
+			$values['group_author'] = $user->getUserId();
 		}
 		
 		if ($values['group_avatar']->getTemporaryFile() != "") {
@@ -545,9 +548,9 @@ final class GroupPresenter extends BasePresenter
 			$size= getimagesize($values['group_avatar']->getTemporaryFile());
 			
 			if ($size[0]>1500 || $size[1]>1500) {
-				$this->flashMessage(sprintf(_("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
+				$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
 			} elseif ($size[0]<80 || $size[1]<100) {
-				$this->flashMessage(sprintf(_("The image is too small! Min. size for upload is %s"), "80x100"),'error');
+				$this->flashMessage(sprintf(_t("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 			} else {
 				$values['group_portrait'] = base64_encode(file_get_contents($values['group_avatar']->getTemporaryFile()));
 			}
@@ -555,7 +558,7 @@ final class GroupPresenter extends BasePresenter
 		unset($values['group_avatar']);
 
 		$this->group->setGroupData($values);
-		if ($this->group->save()) $this->flashMessage(_("Group updated"));
+		if ($this->group->save()) $this->flashMessage(_t("Group updated"));
 		$this->group->setLastActivity();
 
 		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
@@ -564,6 +567,11 @@ final class GroupPresenter extends BasePresenter
 			));
 		}
 		$group_id = $this->group->getGroupId();
+		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
+			Activity::addActivity(Activity::GROUP_CREATED, $group_id, 2, $user->getUserId());
+		} else {
+			Activity::addActivity(Activity::GROUP_UPDATED, $group_id, 2);
+		}
 
 		$this->redirect("Group:edit", array(
 			'group_id' => $group_id
@@ -658,6 +666,7 @@ final class GroupPresenter extends BasePresenter
 					if (!$group->userIsRegistered($user_id)) {
 						$group->updateUser($user_id, array());
 					}
+					Activity::addActivity(Activity::GROUP_JOINED, $group_id, 2, $user_id);
 					print "true";
 				}
 			}
@@ -680,6 +689,7 @@ final class GroupPresenter extends BasePresenter
 				if (!empty($group_id)) {
 					//insert here
 					$group->removeUser($user_id);
+					Activity::addActivity(Activity::GROUP_LEFT, $group_id, 2, $user_id);
 					print "true";
 				}
 			}
@@ -789,8 +799,8 @@ final class GroupPresenter extends BasePresenter
 		$group      = Group::create($group_id);
 		$group_data = $group->getGroupData();
 		$form->addCheckbox('status');
-		$form->addSubmit('send', _('Update'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminGroupFormSubmitted'
@@ -824,15 +834,15 @@ final class GroupPresenter extends BasePresenter
 	protected function createComponentReportform()
 	{
 		$types = array(
-			'0' => _('This is not a real group but spam.'),
-			'1' => _('This group contains wrong information.'),
-			'2' => _('This group violates the rules of conduct.')
+			'0' => _t('This is not a real group but spam.'),
+			'1' => _t('This group contains wrong information.'),
+			'2' => _t('This group violates the rules of conduct.')
 		);
 		$form  = new NAppForm($this, 'reportform');
-		$form->addRadioList('report_type', _('Reason:'), $types);
-		$form->addTextarea('report_text', _('Tell us why you report this group, including examples:'))->addRule(NForm::FILLED, _('Please give us some details.'));
-		$form->addSubmit('send', _('Send'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addRadioList('report_type', _t('Reason:'), $types);
+		$form->addTextarea('report_text', _t('Tell us why you report this group, including examples:'))->addRule(NForm::FILLED, _t('Please give us some details.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'reportformSubmitted'
@@ -854,13 +864,13 @@ final class GroupPresenter extends BasePresenter
 			$reported_group_data     = $this->group->getGroupData();
 			
 			$types = array(
-			'0' => _('(spam)'),
-			'1' => _('(error)'),
-			'2' => _('(inappropriate language)')
+			'0' => _t('(spam)'),
+			'1' => _t('(error)'),
+			'2' => _t('(inappropriate language)')
 			);
 			
 			$data                    = array(
-				'resource_name' => sprintf(_("Report about group %s, reason: %s"), $reported_group_data['group_name'], $types[$resource_data['report_type']]),
+				'resource_name' => sprintf(_t("Report about group %s, reason: %s"), $reported_group_data['group_name'], $types[$resource_data['report_type']]),
 				'resource_type' => 7,
 				'resource_visibility_level' => 3,
 				'resource_description' => $values['report_text'],
@@ -871,21 +881,21 @@ final class GroupPresenter extends BasePresenter
 			$resource->setResourceData($data);
 			$resource->save();
 			$resource_id = $resource->getResourceId();
-			$this->flashMessage(_("Your report has been received."));
+			$this->flashMessage(_t("Your report has been received."));
 		}
 	}
 	
 	protected function createComponentNotifyform()
 	{
 		$types = array(
-			'local' => _('Send them a local message.'),
-			'email' => _('Send them an email.')
+			'local' => _t('Send them a local message.'),
+			'email' => _t('Send them an email.')
 		);
 		$form  = new NAppForm($this, 'notifyform');
-		$form->addRadioList('notification_type', _('How to contact them').':', $types);
-		$form->addTextarea('notification_text', _('Text').':')->addRule(NForm::FILLED, _('Please enter some text.'));
-		$form->addSubmit('send', _('Send'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addRadioList('notification_type', _t('How to contact them').':', $types);
+		$form->addTextarea('notification_text', _t('Text').':')->addRule(NForm::FILLED, _t('Please enter some text.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->setDefaults(array('notification_type'=>'local'));
 		$form->onSubmit[] = array(
 			$this,
@@ -912,7 +922,7 @@ final class GroupPresenter extends BasePresenter
 		$URI = NEnvironment::getVariable("URI");
 		foreach ($users_a as $user_a) {
 			if ($values['notification_type'] == 'email') {
-				StaticModel::addCron(time() + 60, 1, $user_a['user_id'], sprintf(_('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
+				StaticModel::addCron(time() + 60, 1, $user_a['user_id'], sprintf(_t('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
 			} else {
 				$resource                          = Resource::create();
 				$data                              = array();
@@ -921,7 +931,7 @@ final class GroupPresenter extends BasePresenter
 				$data['resource_visibility_level'] = 3;
 				$data['resource_name'] = '<group message>';
 				$data['resource_data']             = json_encode(array(
-					'message_text' => '<p><b>'.sprintf(_('A message from your group %s'),'<a href="'.$URI.'/group/?group_id='.$this->group->getGroupId().'">"'.$group_name.'"</a>').":</b></p>\n<p>".nl2br($values['notification_text']).'</p>'
+					'message_text' => '<p><b>'.sprintf(_t('A message from your group %s'),'<a href="'.$URI.'/group/?group_id='.$this->group->getGroupId().'">"'.$group_name.'"</a>').":</b></p>\n<p>".nl2br($values['notification_text']).'</p>'
 				));
 				$resource->setResourceData($data);
 				$resource->save();
@@ -942,7 +952,7 @@ final class GroupPresenter extends BasePresenter
 			}	
 			
 		}
-		$this->flashMessage(_("Your message has been sent to the members of this group."));
+		$this->flashMessage(_t("Your message has been sent to the members of this group."));
 		$this->redirect("this");
 	}
 	
@@ -985,8 +995,8 @@ final class GroupPresenter extends BasePresenter
 		}
 		
 		$form->addMultiSelect('resource_id', '', $resource_selection);
-		$form->addSubmit('send', _('Unsubscribe'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Unsubscribe'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -1059,9 +1069,11 @@ final class GroupPresenter extends BasePresenter
 			// remove cron
 			StaticModel::removeCron(2, $group_id, 3, $resource_id);
 			
-			$this->flashMessage(sprintf(_("Group %s unsubscribed from resource."),$group_name));
+			Activity::addActivity(Activity::GROUP_RESOURCE_REMOVED, $group_id, 2);
+			
+			$this->flashMessage(sprintf(_t("Group %s unsubscribed from resource."),$group_name));
 		} else {
-			$this->flashMessage(sprintf(_("Group %s has not been subscribed to resource."),$group_name), 'error');
+			$this->flashMessage(sprintf(_t("Group %s has not been subscribed to resource."),$group_name), 'error');
 		}
 		
 		unset($resource);
@@ -1100,7 +1112,7 @@ final class GroupPresenter extends BasePresenter
 
 		if ($group_id == 0 || Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
 			
-			$this->flashMessage(_("You are not allowed to edit this group."), 'error');
+			$this->flashMessage(_t("You are not allowed to edit this group."), 'error');
 			$this->redirect("Group:default",$group_id);
 		}
 				
@@ -1141,7 +1153,7 @@ final class GroupPresenter extends BasePresenter
 		
 		// save to cache
 		Group::saveImage($group_id);
-		$this->flashMessage(_("Finished cropping and resizing."));
+		$this->flashMessage(_t("Finished cropping and resizing."));
 		$this->redirect("Group:edit",$group_id);
 		
 		$this->redirect("Group:edit",$group_id);
@@ -1171,7 +1183,7 @@ final class GroupPresenter extends BasePresenter
 		
 		if ($group->isMember($user_id)) {
 			
-			$this->flashMessage(_("You are already a member."), 'error');
+			$this->flashMessage(_t("You are already a member."), 'error');
 			
 			$this->redirect("Group:default",$group_id);
 			
@@ -1182,13 +1194,13 @@ final class GroupPresenter extends BasePresenter
 		
 		if (empty($hash)) {
 		
-			$this->flashMessage(_("This group doesn't have a key."), 'error');
+			$this->flashMessage(_t("This group doesn't have a key."), 'error');
 			
 			$this->redirect("Group:default");
 		
 		} elseif ($key != $hash ) {
 			
-			$this->flashMessage(_("You have entered a wrong key."), 'error');
+			$this->flashMessage(_t("You have entered a wrong key."), 'error');
 			
 			sleep(5);
 		
@@ -1198,7 +1210,7 @@ final class GroupPresenter extends BasePresenter
 		
 			$group->setMember($user_id);
 		
-			$this->flashMessage(_("You have joined the group."));
+			$this->flashMessage(_t("You have joined the group."));
 		
 			$this->redirect("Group:default",$group_id);
 		

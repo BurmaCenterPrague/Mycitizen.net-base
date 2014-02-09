@@ -430,7 +430,7 @@ if($this->format == RestFormat::PLAIN || $this->format == RestFormat::HTML) {
   			<tr>
     			<td style="color:red;" align="left">
        				<ul style="margin-top: 6px; margin-bottom: 2px;list-style-type: none;">
-         				<li class="feedback-list-item">'._("Error")." ".$data['error']['code'].": ".$data['error']['message'].'</li>
+         				<li class="feedback-list-item">'._t("Error")." ".$data['error']['code'].": ".$data['error']['message'].'</li>
        				</ul> 
     			</td>
   			</tr>

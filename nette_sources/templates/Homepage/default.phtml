@@ -53,6 +53,7 @@
 
 <div class="wrapper-intro">
 {ifset $logged}
+<div class="wrapper-intro-left" style="display: inline-block;">
 	<h2>{_"Welcome"} {$username}!</h2>
 	{ifset $access_level_welcome}
 	<h4>{$access_level_welcome}<h4>
@@ -63,6 +64,7 @@
 	{ifset $incomplete_profile}
 	<h4>{_"Now is the best time to complete your profile. You can enter your name, your location and tags for your interests."}</h4><p><a href="{link User:edit, $my_id}" class="button">{_"Click here to continue."}</a></p>
 	{/if}
+</div>
 {else}
 	<div class="intro">
 	{include $intro}
@@ -71,6 +73,7 @@
 </div>
 
 {ifset $logged}{* Users who are logged in see "own" items. *}
+<div class="cleaner"></div>
 <div class="wrapper-home">
 	<div class="home-connections">
 		<h3>{_"My Connections"}</h3>

@@ -87,7 +87,7 @@
 				<tr>
 					<td>
 					{foreach $tag_name->getPath() as $tag}
-						<span>{? echo StaticModel::pgettext('tags',$tag)}</span>
+						<span>{? echo _t_tags($tag)}</span>
 						{if !$iterator->isLast()}
 						<div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div>
 						{/if}

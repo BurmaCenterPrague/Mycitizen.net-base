@@ -20,7 +20,15 @@ abstract class BasePresenter extends NPresenter
 	{
 		parent::startup();
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		$language = $session->language;
+		$query = NEnvironment::getHttpRequest();
+		$lang = $query->getQuery("language");
+		if (isset($lang) && !empty($lang)) {
+			$flag = Language::getFlag($lang);
+			if (!empty($flag)) $language = $flag;
+			$session->language = $language;
+		}
+
+		if (empty($language)) $language = $session->language;
 		if (empty($language)) {
 			$session->language = 'en_US';
 			$language          = $session->language;
@@ -35,18 +43,19 @@ abstract class BasePresenter extends NPresenter
 		$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";		
 		$this->template->footer = WWW_DIR."/files/".$language."/footer.phtml";
 		
-
-
-		// for gettext
 		define('LOCALE_DIR', WWW_DIR . '/../locale');
 		setlocale(LC_ALL, $language);
+
+		// for gettext
+
+
 
 		$domain = "messages";
 		bindtextdomain($domain, LOCALE_DIR );
 		textdomain($domain);
 		bind_textdomain_codeset($domain, 'UTF-8');
 		textdomain($domain);
-		
+/**/	
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
@@ -63,7 +72,7 @@ abstract class BasePresenter extends NPresenter
 		$maintenance_mode = Settings::getVariable('maintenance_mode');
 		if ($maintenance_mode) {
 			if ($maintenance_mode > time()) {
-				$this->flashMessage(sprintf(_("Stand by for scheduled maintenance in %s minutes and %s seconds. Please finish your activities."),date("i",$maintenance_mode-time()),date("s",$maintenance_mode-time())), 'error');
+				$this->flashMessage(sprintf(_t("Stand by for scheduled maintenance in %s minutes and %s seconds. Please finish your activities."),date("i",$maintenance_mode-time()),date("s",$maintenance_mode-time())), 'error');
 				if (!@file_exists(WWW_DIR.'/.maintenance.php')) {
 					file_put_contents(WWW_DIR.'/.maintenance.php',$maintenance_mode);
 				}
@@ -71,7 +80,7 @@ abstract class BasePresenter extends NPresenter
 				if (!@file_exists(WWW_DIR.'/.maintenance.php')) {
 					Settings::setVariable('maintenance_mode',0);
 				} else {
-					$this->flashMessage(_("Maintenance mode active."), 'error');
+					$this->flashMessage(_t("Maintenance mode active."), 'error');
 					$user = NEnvironment::getUser()->getIdentity();
 					if (isset($user)) {
 						$access_level = $user->getAccessLevel();
@@ -99,14 +108,14 @@ abstract class BasePresenter extends NPresenter
 		if ($user->isLoggedIn()) {
 			if (!$user->getIdentity()->isActive()) {
 				if ($user->getIdentity()->isConfirmed()) {
-					$this->flashMessage(sprintf(_("Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
+					$this->flashMessage(sprintf(_t("Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
 					$user->logout();
 					$this->redirect("User:login");
 				} else {
-					$this->flashMessage(sprintf(_("You first need to confirm your registration. Please check your email account and click on the link of the confirmation email."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
+					$this->flashMessage(sprintf(_t("You first need to confirm your registration. Please check your email account and click on the link of the confirmation email."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
 					
-					if ($user->sendConfirmationEmail()) {
-						$this->flashMessage("We have resent your confirmation email - just in case you didn't get it before.");
+					if ($user->getIdentity()->sendConfirmationEmail()) {
+						$this->flashMessage(_t("We have resent your confirmation email - just in case you didn't get it before."));
 					}
 
 					$user->logout();
@@ -135,8 +144,8 @@ abstract class BasePresenter extends NPresenter
 			$access_level = $userObject->getAccessLevel();
 			switch ($access_level) {
 				case 1: break;
-				case 2: $this->template->access_level_welcome =_('You are a moderator on this platform.');break;
-				case 3: $this->template->access_level_welcome =_('You are an administrator on this platform.');break;
+				case 2: $this->template->access_level_welcome =_t('You are a moderator on this platform.');break;
+				case 3: $this->template->access_level_welcome =_t('You are an administrator on this platform.');break;
 			}
 			if ($access_level == 3 || $access_level == 2) {
 				$this->template->admin = true;
@@ -144,7 +153,7 @@ abstract class BasePresenter extends NPresenter
 			
 			$this->template->access_level = $access_level;
 			$this->template->messages = Resource::getUnreadMessages();
-			$this->template->messages = $this->template->messages ? '<b class="icon-message"></b>'._("New messages").': '.$this->template->messages : '<b class="icon-no-message"></b>'._("New messages").': 0';
+			$this->template->messages = $this->template->messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->template->messages : '<b class="icon-no-message"></b>'._t("New messages").': 0';
 			
 		} else {
 			if (!$this->isAccessible()) {
@@ -181,14 +190,14 @@ abstract class BasePresenter extends NPresenter
 		$presenter = $this->name;
 		$menu      = array();
 		$menu[1]   = array(
-			'title' => _('Users'),
+			'title' => _t('Users'),
 			'presenter' => 'user',
 			'action' => 'default',
 			'parameters' => array(),
 			'parent' => 0
 		);
 		$menu[2]   = array(
-			'title' => _('Groups'),
+			'title' => _t('Groups'),
 			'presenter' => 'group',
 			'action' => 'default',
 			'parameters' => array(),
@@ -199,7 +208,7 @@ abstract class BasePresenter extends NPresenter
 			$userObject = NEnvironment::getUser()->getIdentity();
 			if ($userObject->hasRightsToCreate() || $userObject->getAccessLevel() >= 2) {
 				$menu[3] = array(
-					'title' => _('create'),
+					'title' => _t('create'),
 					'presenter' => 'group',
 					'action' => 'create',
 					'parent' => 2
@@ -207,7 +216,7 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 		$menu[4] = array(
-			'title' => _('Resources'),
+			'title' => _t('Resources'),
 			'presenter' => 'resource',
 			'action' => 'default',
 			'parameters' => array(),
@@ -217,7 +226,7 @@ abstract class BasePresenter extends NPresenter
 			$userObject = NEnvironment::getUser()->getIdentity();
 			if ($userObject->hasRightsToCreate() || $userObject->getAccessLevel() >= 2) {
 				$menu[5] = array(
-					'title' => _('create'),
+					'title' => _t('create'),
 					'presenter' => 'resource',
 					'action' => 'create',
 					'parent' => 4
@@ -225,14 +234,18 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 		
-		/*
-		$menu[6] = array('title'=>_('Help'),
-		'presenter'=>'help',
-		'action'=>'default',
-		'parameters'=>array(),
-		'parent'=>0
-		);
-		*/
+		if ($user->isLoggedIn()) {
+			$userObject = NEnvironment::getUser()->getIdentity();
+			$access_level = $userObject->getAccessLevel();
+			if ($access_level == 3 || $access_level == 2) {
+				$menu[6] = array('title'=>_t('Administration'),
+				'presenter'=>'administration',
+				'action'=>'default',
+				'parameters'=>array(),
+				'parent'=>0
+				);
+			}
+		}
 		
 		foreach ($menu as $key => $menu_data) {
 			if (preg_match('/' . $presenter . '/i', $menu_data['presenter'])) {
@@ -250,7 +263,7 @@ abstract class BasePresenter extends NPresenter
 	public function handleReloadStatusBar()
 	{
 		$messages = Resource::getUnreadMessages();
-		print $messages ? '<b class="icon-message"></b>'._("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._("New messages").': '._("0");
+		print $messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._t("New messages").': '._t("0");
 		$this->terminate();
 	}
 	
@@ -258,8 +271,8 @@ abstract class BasePresenter extends NPresenter
 	public function handleReloadTitle()
 	{
 		$messages = Resource::getUnreadMessages();
-		if ($messages > 1) print sprintf(_("%s new messages"),$this->translate_number($messages)).' | ';
-		if ($messages == 1) print _("1 new message").' | ';
+		if ($messages > 1) print sprintf(_t("%s new messages"),$this->translate_number($messages)).' | ';
+		if ($messages == 1) print _t("1 new message").' | ';
 
 		$this->terminate();
 	}
@@ -332,7 +345,7 @@ abstract class BasePresenter extends NPresenter
 		} elseif ($type == 2 ) {
 			$object = Group::create($id);
 		} else {
-			echo _("Error deleting image from cache.");
+			echo _t("Error deleting image from cache.");
 		}
 
 		if (isset($object)) {
@@ -357,7 +370,7 @@ abstract class BasePresenter extends NPresenter
 
 					if(file_exists($link)) {
 						if (!unlink($link)) {
-							echo _("Error deleting image from cache: ").$link;
+							echo _t("Error deleting image from cache: ").$link;
 						}
 					}
 				}
@@ -372,7 +385,7 @@ abstract class BasePresenter extends NPresenter
 		} elseif ($type == 2 ) {
 			$object = Group::create($id);
 		} else {
-			$this->flashMessage(_("Error recreating image."), 'error');
+			$this->flashMessage(_t("Error recreating image."), 'error');
 		}
 		
 		if (isset($object)) {
@@ -399,7 +412,7 @@ abstract class BasePresenter extends NPresenter
 					if(!file_exists($link)) {
 						$img_r = imagecreatefromstring(base64_decode($src));
 						if (!imagejpeg($img_r, $link)) {
-							$this->flashMessage(_("Error writing image: ").$link, 'error');
+							$this->flashMessage(_t("Error writing image: ").$link, 'error');
 						};
 					}
 				}
@@ -470,7 +483,7 @@ abstract class BasePresenter extends NPresenter
 		
 		$options = 'From: '.$sender_name.' <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 			
-		$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_('Notification from %s'), $sender_name)) . '?=';
+		$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
 		
 		$result = dibi::fetchAll("SELECT `cron_id`, `time`, `recipient_type`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time` FROM `cron` WHERE `time` < %i AND `executed_time` = 0", time());
 		
@@ -483,15 +496,15 @@ abstract class BasePresenter extends NPresenter
 				$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
 
 				switch ($task['object_type']) {
-					case 0: $link = $uri.'/user/messages/'; break;
-					case 1: $link = $uri.'/user/?user_id='.$task['object_id']; break;
-					case 2: $link = $uri.'/group/?group_id='.$task['object_id']; break;
-					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id']; break;
-					default: $link = $uri; break;
+					case 0: $link = $uri.'/user/messages/?language='.User::getUserLanguage($task['recipient_id']); break;
+					case 1: $link = $uri.'/user/?user_id='.$task['object_id']. '&language='.User::getUserLanguage($task['recipient_id']); break;
+					case 2: $link = $uri.'/group/?group_id='.$task['object_id']. '&language='.User::getUserLanguage($task['recipient_id']); break;
+					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='. User::getUserLanguage($task['recipient_id']); break;
+					default: $link = $uri.'&language='.User::getUserLanguage($task['recipient_id']); break;
 				}
 			
 				$mail_body = $task['text'];
-				$mail_body .= "\r\n\n"._('Find more information at:')."\r\n";
+				$mail_body .= "\r\n\n"._t('Find more information at:')."\r\n";
 				$mail_body .= $link;
 				$mail_body .= "\r\nYours,\r\n".$sender_name."\r\n\r\n";
 			
@@ -517,16 +530,16 @@ abstract class BasePresenter extends NPresenter
 				$users_a = $group->getAllUsers($filter);
 
 				switch ($task['object_type']) {
-					case 0: $link = $uri.'/user/messages/'; break;
-					case 1: $link = $uri.'/user/?user_id='.$task['object_id']; break;
-					case 2: $link = $uri.'/group/?group_id='.$task['object_id']; break;
-					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id']; break;
-					default: $link = $uri; break;
+					case 0: $link = $uri.'/user/messages/?language='.Group::getGroupLanguage($task['recipient_id']); break;
+					case 1: $link = $uri.'/user/?user_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
+					case 2: $link = $uri.'/group/?group_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
+					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
+					default: $link = $uri.'&language='.Group::getGroupLanguage($task['recipient_id']); break;
 				}
 
 				$mail_body = $task['text'];
-				$mail_body .= "\r\n\r\n".sprintf(_('You receive this message as a member of the group "%s".'),$group_name);
-				$mail_body .= "\r\n\r\n"._('Find more information at:')."\r\n";
+				$mail_body .= "\r\n\r\n".sprintf(_t('You receive this message as a member of the group "%s".'),$group_name);
+				$mail_body .= "\r\n\r\n"._t('Find more information at:')."\r\n";
 				$mail_body .= $link;
 				$mail_body .= "\r\n\r\nYours,\r\n\r\n".$sender_name."\r\n\r\n";
 
@@ -563,10 +576,10 @@ abstract class BasePresenter extends NPresenter
 		if (is_array($users_a)) {
 			foreach ($users_a as $user_a) {
 				if (User::getUnreadMessages($user_a['user_id'])) {
-					$email_text = sprintf(_("Dear %s"), $user_a['user_login']). ",\n\n";
-					$email_text .= _("You have unread messages!");
+					$email_text = sprintf(_t("Dear %s"), $user_a['user_login']). ",\n\n";
+					$email_text .= _t("You have unread messages!");
 //					$email_text .= "\n\n";
-//					$email_text .= "("._("You can change your notification settings in your profile.").")";
+//					$email_text .= "("._t("You can change your notification settings in your profile.").")";
 					StaticModel::addCron(time(), 1, $user_a['user_id'], $email_text, 0, 0);
 					User::setUserCronSent($user_a['user_id']);
 					if (isset($verbose)) {

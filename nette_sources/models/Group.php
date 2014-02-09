@@ -47,6 +47,17 @@ class Group extends BaseModel {
      		$this->group_data[$key] = $value;
     	}
 	}
+	
+	public static function getGroupLanguage($group_id)
+	{
+		$result = dibi::fetchSingle("SELECT `group_language` FROM `group` WHERE `group_id` = %i ", $group_id);
+		if (!empty($result)) {
+			return $result;
+		}
+		return 0;
+	}
+
+
 
 	public function getGroupData() {
 		$data = $this->group_data;
@@ -317,10 +328,12 @@ class Group extends BaseModel {
 	}
 	   
 	public function bann() {
-      if(Auth::ADMINISTRATOR == Auth::isAuthorized(2,$this->numeric_id)) {
-         dibi::query("UPDATE `group` SET `group_status` = '0' WHERE `group_id` = %i",$this->numeric_id);
-      }
-   }
+    	if(Auth::ADMINISTRATOR == Auth::isAuthorized(2,$this->numeric_id)) {
+    		dibi::query("UPDATE `group` SET `group_status` = '0' WHERE `group_id` = %i",$this->numeric_id);
+			dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = '0' WHERE `member_type` = '2' AND `member_id` = %i", $this->numeric_id);
+			dibi::query("UPDATE `group_user` SET `group_user_status` = '0' WHERE `group_id` = %i", $this->numeric_id);
+    	}
+	}
 
 	public function getLastActivity() {
       $result = dibi::fetchSingle("SELECT `group_last_activity` FROM `group` WHERE `group_id` = %i",$this->numeric_id);
@@ -455,7 +468,7 @@ class Group extends BaseModel {
 					if(!file_exists($link)) {
 						$img_r = @imagecreatefromstring(base64_decode($src));
 						if (!imagejpeg($img_r, $link)) {
-							$this->flashMessage(_("Error writing image: ").$link, 'error');
+							$this->flashMessage(_t("Error writing image: ").$link, 'error');
 						};
 					}
 				}

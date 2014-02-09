@@ -51,9 +51,9 @@ class MapControl extends NControl
 			$template->type = $this->options['type'];
 
 			switch ($this->object['type']) {
-				case 'user': $template->item_location_label = _('user');break;
-				case 'group': $template->item_location_label = _('group');break;
-				case 'resource': $template->item_location_label = _('resource');break;
+				case 'user': $template->item_location_label = _t('user');break;
+				case 'group': $template->item_location_label = _t('group');break;
+				case 'resource': $template->item_location_label = _t('resource');break;
 			}
 		}
 		if (isset($this->options['external_container'])) {
@@ -72,7 +72,7 @@ class MapControl extends NControl
 		$form = new NAppForm($this, "mapfilter");
 		$form->addText('location', 'Location');
 		$form->addSubmit('filter', 'Filter');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'

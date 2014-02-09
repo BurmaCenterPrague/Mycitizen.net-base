@@ -20,7 +20,7 @@
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css?a" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
 {ifset $load_js_css_tree}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
@@ -191,11 +191,29 @@
 	});
 
 	$(document).ready(function() {
-		$(".fancybox").fancybox();
+		$(".fancybox").fancybox({
+			closeBtn : true,
+			helpers : {
+				overlay : {
+					css: {'background' : 'rgba(200, 200, 200, .5)'}
+				},
+				title : null
+			},
+		});
 	});
+	
+	function loadActivity(where, id) {
+		$(where).fadeOut('fast',function(){
+			$(this).load("/?do=activity&id="+id,function(){
+				$(this).fadeIn();
+				$('.fancybox-inner').animate({
+					scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
+				}, 2000);
+			});
+		});
+	}	
 </script>
 <title>{$PROJECT_NAME} | {include #title}</title>
-
 </head>
 <body>
 {ifset $mobile}
@@ -213,30 +231,70 @@
 	<div id="layout">
 		<div id="topheader">
 			<div class="header">
-				<div class="login">
-					{ifset $logged}
-						<a href="{link User:default, $my_id}">{!$image} {$username}</a>
-						<div>
-							<a href="{link User:messages}" title="{_"read or write messages"}"><span id="messages">{!$messages}</span></a>
+				<div class="login" style="{ifset $logged}min-height:70px;{/if}min-width:170px;">
+				{ifset $logged}
+					<a href="{link User:default, $my_id}" class="user-info">{!$image} {$username}</a>
+					<div>
+						<a href="{link User:messages}" title="{_"read or write messages"}"><span id="messages">{!$messages}</span></a>
+						<div class="hidden-menu" style="display:none; opacity:0.00;">
+						<div class="fading">
 							<a href="{link User:edit, $my_id}"  class="button" >{_"Edit profile"}</a>
-							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>			
-						</div> 
-					{else}
-						<div>
-							<a href="{link User:login}" class="button" >{_"Sign in"}</a>
-							<a href="{link User:register}" class="button" >{_"Sign up"}</a>
+							<a href="#activity_box" class="button" id="show_activity">{_"Recent activity"}</a>
+							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
 						</div>
-					{/if}
-				
+						</div>
+					</div>
+<script type="text/javascript">
+$(function() {
+	$("#show_activity").fancybox({
+		minWidth:800,
+		minHeight:500,
+		closeBtn : true,
+		helpers : {
+			overlay : {
+				css: {'background' : 'rgba(200, 200, 200, .5)'}
+			},
+			title : null
+		},
+		afterLoad: function() {
+			loadActivity("#load-more-1", 2);
+		}
+	});
+});
+</script>
+
+<div id="activity_box" class="activity-box" style="display:none;">
+	<h2>{_"Recent Activity"}</h2>
+	<div id="load-more-1">
+	</div>
+</div>
+				{else}
+					<div>
+						<a href="{link User:login}" class="button" >{_"Sign in"}</a>
+						<a href="{link User:register}" class="button" >{_"Sign up"}</a>
+					</div>
+				{/if}
+
 				</div>
 
-				{ifset $admin}
-				<div class="admin-menu">
-					<a href="{link Administration:default}">{_"Administration"}</a>
-				</div>	
-				{/if}
 			</div> <!-- header -->
-		
+<script>
+	$(document).ready(function(){
+		$('.user-info').mouseenter(function(){
+			$('.hidden-menu').filter(":hidden").slideDown("normal", function(){ //fade
+        		$(this).fadeTo("normal", 1.00, function() { //slide up
+         		});
+     		});
+		});
+	
+		$('.header').mouseleave(function(){
+			$('.hidden-menu').filter(":visible").fadeTo("normal", 0.00, function(){ //fade
+        		$(this).slideUp("normal", function() { //slide up
+         		});
+     		});
+		});
+	});
+</script>
 			<div class="logo">
 				<h1><a href="{link Homepage:default}"><img src="/images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
 			</div>
@@ -261,7 +319,7 @@
 			
 		</div> <!-- topheader -->
 
-		<div class="content">
+		<div class="content" style="margin-top:30px;">
 			@{include #content}
 			<div class="cleaner"></div>
 		</div>

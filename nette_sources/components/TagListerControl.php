@@ -133,9 +133,9 @@ class TagListerControl extends NControl
 		$form     = new NAppForm($this, "tagform" . $data_row['tag_id']);
 		$form->addHidden('tag_id');
 		$form->addText('tag_name', 'Tag name:');
-		$form->addComponent(new ContainerTreeSelectControl(_('Parent level:'), $data_row['tag_id']), 'tag_parent_id');
+		$form->addComponent(new ContainerTreeSelectControl(_t('Parent level:'), $data_row['tag_id']), 'tag_parent_id');
 		$form->addSubmit('send', 'Update');
-		$form->addSubmit('remove', _('Remove'));
+		$form->addSubmit('remove', _t('Remove'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminUserFormSubmitted'
@@ -172,7 +172,7 @@ class TagListerControl extends NControl
 		$form->addText('name', 'Name');
 		$form->addSubmit('filter', 'Filter');
 		$form->addSubmit('reset', 'Reset');
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'

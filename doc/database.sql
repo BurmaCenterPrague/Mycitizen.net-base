@@ -1,14 +1,5 @@
-
-
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-
 
 CREATE TABLE IF NOT EXISTS `access_level` (
   `access_level_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -17,13 +8,10 @@ CREATE TABLE IF NOT EXISTS `access_level` (
   PRIMARY KEY (`access_level_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;
 
-
 INSERT INTO `access_level` (`access_level_id`, `access_level_name`, `access_level_description`) VALUES
 (1, 'normal', 'Basic user'),
 (2, 'moderator', 'Basic user with privileges to moderate'),
 (3, 'administrator', 'Administrator with privileges to moderate and change settings');
-
--- --------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS `cron` (
   `cron_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,10 +23,7 @@ CREATE TABLE IF NOT EXISTS `cron` (
   `object_type` int(2) NOT NULL,
   `object_id` int(11) NOT NULL,
   PRIMARY KEY (`cron_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=8 ;
-
--- --------------------------------------------------------
-
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=12 ;
 
 CREATE TABLE IF NOT EXISTS `group` (
   `group_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -59,18 +44,14 @@ CREATE TABLE IF NOT EXISTS `group` (
   `group_icon` longblob,
   `group_hash` varchar(16) NOT NULL,
   PRIMARY KEY (`group_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=20 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=22 ;
 
 CREATE TABLE IF NOT EXISTS `group_tag` (
   `group_tag_id` int(11) NOT NULL AUTO_INCREMENT,
   `tag_id` int(11) NOT NULL,
   `group_id` int(11) NOT NULL,
   PRIMARY KEY (`group_tag_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=35 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=39 ;
 
 CREATE TABLE IF NOT EXISTS `group_user` (
   `group_user_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -79,9 +60,7 @@ CREATE TABLE IF NOT EXISTS `group_user` (
   `group_user_status` int(1) NOT NULL DEFAULT '1',
   `group_user_access_level` int(2) NOT NULL DEFAULT '1',
   PRIMARY KEY (`group_user_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=52 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=59 ;
 
 CREATE TABLE IF NOT EXISTS `language` (
   `language_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -89,17 +68,13 @@ CREATE TABLE IF NOT EXISTS `language` (
   `language_code` varchar(255) NOT NULL,
   `language_name` varchar(255) NOT NULL,
   PRIMARY KEY (`language_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=12 ;
 
 CREATE TABLE IF NOT EXISTS `phpsessions` (
   `id` varchar(32) NOT NULL,
   `session_expires` int(10) NOT NULL,
   `session_data` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS `resource` (
   `resource_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -121,26 +96,21 @@ CREATE TABLE IF NOT EXISTS `resource` (
   `resource_trash` tinyint(1) NOT NULL DEFAULT '0',
   `resource_last_activity` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`resource_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=549 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=572 ;
 
 CREATE TABLE IF NOT EXISTS `resource_tag` (
   `resource_tag_id` int(11) NOT NULL AUTO_INCREMENT,
   `tag_id` int(11) NOT NULL,
   `resource_id` int(11) NOT NULL,
   PRIMARY KEY (`resource_tag_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=448 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=453 ;
 
 CREATE TABLE IF NOT EXISTS `resource_type` (
   `resource_type_id` int(11) NOT NULL AUTO_INCREMENT,
   `resource_type_group` int(11) NOT NULL,
   `resource_type_name` varchar(255) NOT NULL,
   PRIMARY KEY (`resource_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=10 ;
-
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
 
 INSERT INTO `resource_type` (`resource_type_id`, `resource_type_group`, `resource_type_name`) VALUES
 (1, 0, 'message'),
@@ -153,9 +123,6 @@ INSERT INTO `resource_type` (`resource_type_id`, `resource_type_group`, `resourc
 (8, 0, 'comment'),
 (9, 0, 'system_message');
 
--- --------------------------------------------------------
-
-
 CREATE TABLE IF NOT EXISTS `resource_user_group` (
   `resource_user_group_id` int(11) NOT NULL AUTO_INCREMENT,
   `member_id` int(11) NOT NULL,
@@ -166,10 +133,7 @@ CREATE TABLE IF NOT EXISTS `resource_user_group` (
   `resource_user_group_access_level` int(2) NOT NULL DEFAULT '1',
   `resource_trash` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`resource_user_group_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=659 ;
-
--- --------------------------------------------------------
-
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=703 ;
 
 CREATE TABLE IF NOT EXISTS `settings` (
   `variable_name` varchar(255) NOT NULL,
@@ -177,7 +141,6 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `variable_display_label` varchar(255) NOT NULL,
   UNIQUE KEY `variable_name` (`variable_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 INSERT INTO `settings` (`variable_name`, `variable_value`, `variable_display_label`) VALUES
 ('from_email', '', 'Address where system emails come from'),
@@ -190,9 +153,6 @@ INSERT INTO `settings` (`variable_name`, `variable_value`, `variable_display_lab
 ('sign_in_disabled', '0', 'Sign in disabled (0 or 1)'),
 ('sign_up_disabled', '0', 'Sign up disabled (0 or 1)');
 
--- --------------------------------------------------------
-
-
 CREATE TABLE IF NOT EXISTS `status` (
   `status_id` int(11) NOT NULL AUTO_INCREMENT,
   `status_name` varchar(255) NOT NULL,
@@ -200,26 +160,18 @@ CREATE TABLE IF NOT EXISTS `status` (
   PRIMARY KEY (`status_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;
 
-
 INSERT INTO `status` (`status_id`, `status_name`, `status_description`) VALUES
 (1, 'active', 'User/Group/Resource is active'),
 (2, 'deactivated', 'User/Group/Resource is not active'),
 (3, 'banned', 'User/Group/Resource was deactivated forcefully by administrator');
 
-
--- --------------------------------------------------------
-
-
 CREATE TABLE IF NOT EXISTS `tag` (
   `tag_id` int(11) NOT NULL AUTO_INCREMENT,
   `tag_name` varchar(255) NOT NULL,
-  `tag_desription` text NOT NULL,
+  `tag_position` int(11) NOT NULL,
   `tag_parent_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`tag_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=145 ;
-
--- --------------------------------------------------------
-
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=156 ;
 
 CREATE TABLE IF NOT EXISTS `user` (
   `user_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -249,10 +201,10 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_last_activity` timestamp NULL DEFAULT NULL,
   `user_registration` timestamp NULL DEFAULT NULL,
   `user_url` varchar(512) NOT NULL,
+  `user_send_notifications` int(2) NOT NULL DEFAULT '24',
+  `user_last_notification` int(16) NOT NULL,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=9 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=36 ;
 
 CREATE TABLE IF NOT EXISTS `user_friend` (
   `user_friend_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -261,35 +213,14 @@ CREATE TABLE IF NOT EXISTS `user_friend` (
   `user_friend_status` int(1) NOT NULL DEFAULT '0',
   `user_friend_access_level` int(2) NOT NULL DEFAULT '1',
   PRIMARY KEY (`user_friend_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=25 ;
-
--- --------------------------------------------------------
-
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=27 ;
 
 CREATE TABLE IF NOT EXISTS `user_tag` (
   `user_tag_id` int(11) NOT NULL AUTO_INCREMENT,
   `tag_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   PRIMARY KEY (`user_tag_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=96 ;
-
--- --------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS `visibility_level` (
-  `visibility_level_id` int(11) NOT NULL AUTO_INCREMENT,
-  `visibility_level_name` varchar(255) NOT NULL,
-  `visibility_level_description` text NOT NULL,
-  PRIMARY KEY (`visibility_level_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;
-
-
-INSERT INTO `visibility_level` (`visibility_level_id`, `visibility_level_name`, `visibility_level_description`) VALUES
-(1, 'world', 'All users (even unregistered) see posts of this user or group'),
-(2, 'registered', 'Only registered users see posts of this user or group'),
-(3, 'friends/members', 'Only friends of this user or members of this group see posts');
-
--- --------------------------------------------------------
-
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5 ;
 
 CREATE TABLE IF NOT EXISTS `visits` (
   `visit_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -297,8 +228,5 @@ CREATE TABLE IF NOT EXISTS `visits` (
   `object_id` int(11) NOT NULL,
   `ip_address` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`visit_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=638 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=697 ;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

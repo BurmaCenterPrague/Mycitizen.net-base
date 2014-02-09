@@ -37,11 +37,11 @@ final class UserPresenter extends BasePresenter
 			$this->user = User::create($user_id);
 			$d          = $this->user->getUserData();
 			if (empty($d)) {
-				$this->flashMessage(_("This user doesn't exist."), 'error');
+				$this->flashMessage(_t("This user doesn't exist."), 'error');
 				$this->redirect("User:default");
 			}
 			if (Auth::isAuthorized(Auth::TYPE_USER, $user_id) == 0) {
-				$this->flashMessage(_("You are not allowed to view this user."), 'error');
+				$this->flashMessage(_t("You are not allowed to view this user."), 'error');
 				$this->redirect("User:default");
 			}
 			
@@ -133,22 +133,26 @@ final class UserPresenter extends BasePresenter
 		if (User::finishRegistration($user_id, $control_key)) {
 		
 			if (isset($device) && $device=="mobile") {
-				echo _("The registration has been successful. You can now sign in.");
+				echo _t("The registration has been successful. You can now sign in.");
+				
+				Activity::addActivity(Activity::USER_JOINED, $user_id, 1);
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("The registration has been successful. You can now sign in."));
+				$this->flashMessage(_t("The registration has been successful. You can now sign in."));
 			
+				Activity::addActivity(Activity::USER_JOINED, $user_id, 1);
+				
 				$this->redirect('User:login');
 			}
 		} else {
 		
 			if (isset($device) && $device=="mobile") {
-				echo _("The registration couldn't be finished! Link is not active anymore.");
+				echo _t("The registration couldn't be finished! Link is not active anymore.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("The registration couldn't be finished! Link is not active anymore."), 'error');
+				$this->flashMessage(_t("The registration couldn't be finished! Link is not active anymore."), 'error');
 			
 				$this->redirect('Homepage:default');
 			}
@@ -167,21 +171,21 @@ final class UserPresenter extends BasePresenter
 		
 		if (User::finishEmailChange($user_id, $control_key)) {
 			if (isset($device) && $device=="mobile") {
-				echo _("Email has been successfully changed.");
+				echo _t("Email has been successfully changed.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("Email has been succesfully changed."));
+				$this->flashMessage(_t("Email has been succesfully changed."));
 			
 				$this->redirect('Homepage:default');
 			}
 		} else {
 			if (isset($device) && $device=="mobile") {
-				echo _("Email couldn't be changed! Link is not active anymore.");
+				echo _t("Email couldn't be changed! Link is not active anymore.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("Email couldn't be changed! Link is not active anymore."), 'error');
+				$this->flashMessage(_t("Email couldn't be changed! Link is not active anymore."), 'error');
 			
 				$this->redirect('Homepage:default');
 			}
@@ -200,21 +204,21 @@ final class UserPresenter extends BasePresenter
 		
 		if (User::finishEmailChangeAdmin($user_id,$user_email)) {
 			if (isset($device) && $device=="mobile") {
-				echo _("Email has been succesfully changed.");
+				echo _t("Email has been succesfully changed.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("Email has been succesfully changed."));
+				$this->flashMessage(_t("Email has been succesfully changed."));
 			
 				$this->redirect("this");
 			}
 		} else {
 			if (isset($device) && $device=="mobile") {
-				echo _("Email couldn't be changed!");
+				echo _t("Email couldn't be changed!");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_("Email couldn't be changed!"), 'error');
+				$this->flashMessage(_t("Email couldn't be changed!"), 'error');
 			
 				$this->redirect("this");
 			}
@@ -298,7 +302,7 @@ final class UserPresenter extends BasePresenter
 			
 			} elseif ($size_x < 80 || $size_y < 100) {
 
-				$this->flashMessage(sprintf(_("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
+				$this->flashMessage(sprintf(_t("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
 				
 				$user->removeAvatar();
 				$user->removeIcons();
@@ -308,14 +312,14 @@ final class UserPresenter extends BasePresenter
 			} elseif ($size_x > 160 || $size_y > 200 ) {
 
 				$this->template->image_too_large = true;
-				$this->flashMessage(_("Your image still needs to be resized before you can continue!"));
+				$this->flashMessage(_t("Your image still needs to be resized before you can continue!"));
 				$user->removeIcons();
 			
 			} elseif (abs(round($size_x/$size_y*500/4)-100) > 10) {
 			// more than 10% deviation from ideal ratio
 				
 				$this->template->image_props_wrong = true;
-				$this->flashMessage(_("Your image still needs to be cropped to the right dimensions before you can continue!"));
+				$this->flashMessage(_t("Your image still needs to be cropped to the right dimensions before you can continue!"));
 				$user->removeIcons();
 			
 			}
@@ -331,30 +335,42 @@ final class UserPresenter extends BasePresenter
 	
 	public function actionLogin()
 	{
+		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language = Language::getId($session->language);
+		if ($language == 0) {
+			$language = 1;
+		}
+		
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
 			$user->logout();
 			NEnvironment::getSession()->destroy();
 		}
 		
-
 		if (Settings::getVariable('sign_in_disabled')) {
 			$this->template->sign_in_disabled = true;
 			$this->redirect('Homepage:default');
 		} else {
-			if ($this->facebook()) $this->redirect('Homepage:default');
+			if ($this->facebook()) $this->redirect('Homepage:default',  array('language' => $language));
 		}
 		
 	}
 	
 	public function actionLogout()
 	{
+		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language = Language::getId($session->language);
+		if ($language == 0) {
+			$language = 1;
+		}
+		
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
 			$user->logout();
 			NEnvironment::getSession()->destroy();
 		}
-		$this->redirect('Homepage:default');
+		
+		$this->redirect('Homepage:default', array('language' => $language));
 	}
 	
 	public function actionLostpassword()
@@ -370,11 +386,11 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentLoginform()
 	{
 		$form = new NAppForm($this, 'loginform');
-		$form->addText('user_login', _('Username:'));
-		$form->addPassword('user_password', _('Password:'));
-		$form->addCheckbox('remember_me', _('Remember me'));
-		$form->addSubmit('signin', _('Sign in'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addText('user_login', _t('Username:'));
+		$form->addPassword('user_password', _t('Password:'));
+		$form->addCheckbox('remember_me', _t('Remember me'));
+		$form->addSubmit('signin', _t('Sign in'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'loginformSubmitted'
@@ -389,9 +405,9 @@ final class UserPresenter extends BasePresenter
 		$notification_setting = $user->getNotificationSetting();
 	
 		$form = new NAppForm($this, 'notificationsform');
-		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('off'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
-		$form->addProtection(_('Error submitting form.'));
-		$form->addSubmit('send', _('Update'));
+		$form->addSelect('user_send_notifications', _t('Emails on unread messages:'), array('0'=>_t('off'), '1'=>_t('max. once per hour'), '24'=>_t('max. once per day'), '168'=>_t('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
 
 		$form->onSubmit[] = array(
 			$this,
@@ -417,10 +433,10 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentChangelostpasswordform()
 	{
 		$form = new NAppForm($this, 'changelostpasswordform');
-		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
-		$form->addPassword('user_password_again', _('Password again:'))->addRule(NForm::EQUAL, _("Entered passwords are not the same."), $form['user_password']);
-		$form->addSubmit('send', _('Change password'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addPassword('user_password', _t('Password:'))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password_again', _t('Password again:'))->addRule(NForm::EQUAL, _t("Entered passwords are not the same."), $form['user_password']);
+		$form->addSubmit('send', _t('Change password'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'changelostpasswordformSubmitted'
@@ -433,11 +449,11 @@ final class UserPresenter extends BasePresenter
 
 		$values = $form->getValues();
 		if (User::finishPasswordchange($this->user_id, $this->control_key, $values['user_password'])) {
-			$this->flashMessage(_("Your password has been successfully changed, you can now log in."));
+			$this->flashMessage(_t("Your password has been successfully changed, you can now log in."));
 			
 			$this->redirect('User:login');
 		} else {
-			$this->flashMessage(_("Password couldn't be changed! Try again later."), 'error');
+			$this->flashMessage(_t("Password couldn't be changed! Try again later."), 'error');
 			
 			$this->redirect('Homepage:default');
 		}
@@ -448,11 +464,11 @@ final class UserPresenter extends BasePresenter
 		$query = NEnvironment::getHttpRequest();
 		$user_id = $query->getQuery("user_id");
 		$form = new NAppForm($this, 'changepasswordform');
-		$form->addPassword('user_password', _('Password:'))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
-		$form->addPassword('user_password_again', _('Password again:'))->addRule(NForm::EQUAL, _("Entered passwords are not the same."), $form['user_password']);
+		$form->addPassword('user_password', _t('Password:'))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password_again', _t('Password again:'))->addRule(NForm::EQUAL, _t("Entered passwords are not the same."), $form['user_password']);
 		$form->addHidden('user_id',$user_id);
-		$form->addSubmit('send', _('Change password'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Change password'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'changepasswordformSubmitted'
@@ -466,10 +482,10 @@ final class UserPresenter extends BasePresenter
 
 		$values = $form->getValues();
 		if (User::changePassword($values['user_id'], $values['user_password'])) {
-			$this->flashMessage(_("Your password has been successfully changed."));
+			$this->flashMessage(_t("Your password has been successfully changed."));
 			$this->redirect('User:edit', $values['user_id']);
 		} else {
-			$this->flashMessage(_("Password couldn't be changed! Try again later."), 'error');
+			$this->flashMessage(_t("Password couldn't be changed! Try again later."), 'error');
 			$this->redirect('User:edit', $values['user_id']);
 		}
 	}
@@ -477,15 +493,15 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentReportform()
 	{
 		$types = array(
-			'0' => _('This is not a real person but spam.'),
-			'1' => _('This person was created by mistake.'),
-			'2' => _('This person violates the rules of conduct.')
+			'0' => _t('This is not a real person but spam.'),
+			'1' => _t('This person was created by mistake.'),
+			'2' => _t('This person violates the rules of conduct.')
 		);
 		$form  = new NAppForm($this, 'reportform');
-		$form->addRadioList('report_type', _('Reason:'), $types);
-		$form->addTextarea('report_text', _('Tell us why you report this user, including examples:'))->addRule(NForm::FILLED, _('Please give us some details.'));
-		$form->addSubmit('send', _('Send'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addRadioList('report_type', _t('Reason:'), $types);
+		$form->addTextarea('report_text', _t('Tell us why you report this user, including examples:'))->addRule(NForm::FILLED, _t('Please give us some details.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'reportformSubmitted'
@@ -530,14 +546,14 @@ final class UserPresenter extends BasePresenter
 			);
 			
 			$types = array(
-				'0' => _('(spam)'),
-				'1' => _('(error)'),
-				'2' => _('(inappropriate language)')
+				'0' => _t('(spam)'),
+				'1' => _t('(error)'),
+				'2' => _t('(inappropriate language)')
 			);
 			
 			$reported_user_data      = $this->user->getUserData();
 			$data                    = array(
-				'resource_name' => sprintf(_("Report about user %s, reason: %s"), $reported_user_data['user_login'], $types[$resource_data['report_type']]),
+				'resource_name' => sprintf(_t("Report about user %s, reason: %s"), $reported_user_data['user_login'], $types[$resource_data['report_type']]),
 				'resource_type' => 7,
 				'resource_visibility_level' => 3,
 				'resource_description' => $values['report_text'],
@@ -549,16 +565,16 @@ final class UserPresenter extends BasePresenter
 			$resource->save();
 			//$resource->updateUser($user->getUserId(),array('resource_user_group_access_level'=>1));
 			$resource_id = $resource->getResourceId();
-			$this->flashMessage(_("Your report has been received."));
+			$this->flashMessage(_t("Your report has been received."));
 		}
 	}
 	
 	protected function createComponentLostpasswordform()
 	{
 		$form = new NAppForm($this, 'lostpasswordform');
-		$form->addText('user_email', _('Your email:'));
-		$form->addSubmit('send', _('Request new password'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addText('user_email', _t('Your email:'));
+		$form->addSubmit('send', _t('Request new password'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'lostpasswordformSubmitted'
@@ -574,10 +590,10 @@ final class UserPresenter extends BasePresenter
 		$user   = User::getEmailOwner($values['user_email']);
 		if (!empty($user)) {
 			$user->sendLostpasswordEmail();
-			$this->flashMessage(_("An email has been sent to you with further instructions."));
+			$this->flashMessage(_t("An email has been sent to you with further instructions."));
 			
 		} else {
-			$this->flashMessage(_("This email is not registered in our system!"), 'error');
+			$this->flashMessage(_t("This email is not registered in our system!"), 'error');
 		}
 	}
 	
@@ -586,7 +602,7 @@ final class UserPresenter extends BasePresenter
 		$values = $form->getValues();
 		
 		if (Settings::getVariable('sign_in_disabled') && User::getAccessLevelFromLogin($values['user_login']) < 2) {
-			$this->flashMessage(_("Sign in is disabled. Please try again later."), 'error');
+			$this->flashMessage(_t("Sign in is disabled. Please try again later."), 'error');
 			$this->redirect("Homepage:default");
 		}
 
@@ -629,17 +645,17 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentRegisterform()
 	{
 		$form = new NAppForm($this, 'registerform');
-		$form->addText('user_login', _('Username:'))->addRule(NForm::FILLED, _('Username cannot be empty!'))->addRule(NForm::MIN_LENGTH, _('The minimal length of your username is %s characters.'), 3)->addRule($form::REGEXP, _('Your username can only contain letters, numbers, space, dash and underscore!'), '/^[a-zA-Z0-9 \-_]+$/')->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Please use only the English alphabet.').' '._('Your username can only contain letters, numbers, space, dash and underscore!'))->id("help-name"));
-		$form->addText('user_email', _('Email:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('To this address we will send a request to confirm your registration.'))->id("help-name"))->addRule($form::REGEXP, _('Wrong email format!'), '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/');
-		$form->addPassword('user_password', _('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your password must be at least 8 characters long and contain at least one lower-case letter, one upper-case letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _('Your password must contain at least one upper-case letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _("Your password must contain at least one number."), '/\d+/');
-		$form->addPassword('password_again', _('Repeat password:'))->addRule(NForm::EQUAL, _('Your passwords are different.'), $form['user_password']);
+		$form->addText('user_login', _t('Username:'))->addRule(NForm::FILLED, _t('Username cannot be empty!'))->addRule(NForm::MIN_LENGTH, _t('The minimal length of your username is %s characters.'), 3)->addRule($form::REGEXP, _t('Your username can only contain letters, numbers, space, dash and underscore!'), '/^[a-zA-Z0-9 \-_]+$/')->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Please use only the English alphabet.').' '._t('Your username can only contain letters, numbers, space, dash and underscore!'))->id("help-name"));
+		$form->addText('user_email', _t('Email:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('To this address we will send a request to confirm your registration.'))->id("help-name"))->addRule($form::REGEXP, _t('Wrong email format!'), '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/');
+		$form->addPassword('user_password', _t('Password:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Your password must be at least 8 characters long and contain at least one lower-case letter, one upper-case letter and one number.'))->id("help-name"))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t('Your password must contain at least one small letter.'), '/[a-z]+/')->addRule($form::REGEXP, _t('Your password must contain at least one upper-case letter.'), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('password_again', _t('Repeat password:'))->addRule(NForm::EQUAL, _t('Your passwords are different.'), $form['user_password']);
 		
 		$question = Settings::getVariable('signup_question');
 		if ($question) {
-			$form->addText('text', _($question))->addRule(NForm::FILLED, _('Please enter the text!'));
+			$form->addText('text', _($question))->addRule(NForm::FILLED, _t('Please enter the text!'));
 		}
-		$form->addSubmit('register', _('Sign up'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('register', _t('Sign up'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'registerformSubmitted'
@@ -656,7 +672,7 @@ final class UserPresenter extends BasePresenter
 		$user   = NEnvironment::getUser();
 
 		if (Settings::getVariable('sign_up_disabled')) {
-			$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
+			$this->flashMessage(_t("Sign up is disabled. Please try again later."), 'error');
 			$this->redirect("Homepage:default");
 		}
 
@@ -665,7 +681,7 @@ final class UserPresenter extends BasePresenter
 		if ($answer) {
 			if ($answer != $values['text']) {
 				sleep(5);
-				$this->flashMessage(_("You entered the wrong captcha."), 'error');
+				$this->flashMessage(_t("You entered the wrong captcha."), 'error');
 				$user->logout();
 				$this->redirect('User:register');
 			}
@@ -674,22 +690,48 @@ final class UserPresenter extends BasePresenter
 		
 		$login = $values['user_login'];
 		if (User::loginExists($login)) {
-			$this->flashMessage(_("User with the same name already exists."), 'error');
+			$this->flashMessage(_t("User with the same name already exists."), 'error');
 			$this->redirect('User:register');
 		}
 		
 		if (User::emailExists($values['user_email'])) {
-			$this->flashMessage(_("Email is already registered to another account."), 'error');
+			$this->flashMessage(_t("Email is already registered to another account."), 'error');
 			$this->redirect('User:register');
 		}
 		
+		if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+
+// check if IP is actually from Cloudflare and header HTTP_CF_CONNECTING_IP not faked
+// https://www.cloudflare.com/ips
+/*
+			$cf_valid_ips = array(
+			'199.27.128.0',
+			'173.245.48.0',
+			'103.21.244.0',
+			'103.22.200.0',
+			'103.31.4.0',
+			'141.101.64.0',
+			'108.162.192.0',
+			'190.93.240.0',
+			'188.114.96.0',
+			'197.234.240.0',
+			'198.41.128.0',
+			'162.158.0.0');
+			if (in_array($_SERVER["REMOTE_ADDR"],$cf_valid_ips)) {
+				$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+			}
+*/
+				$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+			
+		}
+		
 		if (StaticModel::isSpamSFS($values['user_email'], $_SERVER['REMOTE_ADDR'])) {
-			$this->flashMessage(_("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
+			$this->flashMessage(_t("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
 			$this->redirect('User:register');
 		}
 
 		if (!StaticModel::validEmail($values['user_email'])) {
-			$this->flashMessage(_("Email is not valid. Check it and try again."), 'error');
+			$this->flashMessage(_t("Email is not valid. Check it and try again."), 'error');
 			$this->redirect('User:register');
 		}
 		
@@ -712,9 +754,9 @@ final class UserPresenter extends BasePresenter
 		
 		$result = $new_user->sendConfirmationEmail();
 		if ($result ) {
-			$this->flashMessage(_("Registration has been successful. A message has been sent to your email with further instructions how to activate your account."));
+			$this->flashMessage(_t("Registration has been successful. A message has been sent to your email with further instructions how to activate your account."));
 		} else {
-			$this->flashMessage(_("There has been an error sending the confirmation email. Please try again in a while."), 'error');
+			$this->flashMessage(_t("There has been an error sending the confirmation email. Please try again in a while."), 'error');
 		}
 		$this->redirect('Homepage:default');
 	}
@@ -727,10 +769,10 @@ final class UserPresenter extends BasePresenter
 			$this->redirect('Homepage:default');
 		}
 		$form = new NAppForm($this, 'securityquestionform');
-		$form->addText('text', _($question))->addRule(NForm::FILLED, _('Please enter the text!'));
+		$form->addText('text', _($question))->addRule(NForm::FILLED, _t('Please enter the text!'));
 
-		$form->addSubmit('register', _('Continue'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('register', _t('Continue'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'securityquestionformSubmitted'
@@ -745,7 +787,7 @@ final class UserPresenter extends BasePresenter
 		$values = $form->getValues();
 		
 		if (Settings::getVariable('sign_up_disabled')) {
-			$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
+			$this->flashMessage(_t("Sign up is disabled. Please try again later."), 'error');
 			$this->redirect("Homepage:default");
 		}
 
@@ -754,7 +796,7 @@ final class UserPresenter extends BasePresenter
 		if ($answer) {
 			if ($answer != $values['text']) {
 				sleep(5);
-				$this->flashMessage(_("You entered the wrong captcha."), 'error');
+				$this->flashMessage(_t("You entered the wrong captcha."), 'error');
 				$this->redirect('User:register');
 			}
 		} else {
@@ -772,11 +814,11 @@ final class UserPresenter extends BasePresenter
 		$form = new NAppForm($this, 'tagform');
 		if (isset($this->user) && !is_null($this->user->getUserId()) && (Auth::isAuthorized(1, $user->getUserId()) >= 2)) {
 		
-			$form->addComponent(new AddTagComponent("user", $this->user->getUserId(), _("add new tag")), 'add_tag');
+			$form->addComponent(new AddTagComponent("user", $this->user->getUserId(), _t("add new tag")), 'add_tag');
 			
 		} else {
 			
-			$form->addComponent(new AddTagComponent("user", null, _("add new tag")), 'add_tag');
+			$form->addComponent(new AddTagComponent("user", null, _t("add new tag")), 'add_tag');
 			
 		}
 		return $form;
@@ -787,8 +829,8 @@ final class UserPresenter extends BasePresenter
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', '');
 		$form['message_text']->getControlPrototype()->class('tinymce-small');
-		$form->addSubmit('send', _('Send'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -849,23 +891,23 @@ final class UserPresenter extends BasePresenter
 
 		$user_data = $user->getUserData();
 		$form      = new NAppForm($this, 'updateform');
-		$form->addText('user_login', _('Username:'));
+		$form->addText('user_login', _t('Username:'));
 		
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) {
-			$form['user_login']->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('The username cannot be changed.'))->id("help-name"))->setDisabled();
+			$form['user_login']->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('The username cannot be changed.'))->id("help-name"))->setDisabled();
 		}
-		$form->addText('user_name', _('Name:'));
-		$form->addText('user_surname', _('Surname:'));
-		$form->addText('user_phone', _('Phone:'));
-		$form->addText('user_email', _('Email:'));
-		$form->addSelect('user_visibility_level', _('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Do you want be visible to everyone (world), only to registered users (registered) or only to your friends (friends)?'))->id("help-name"));
-		$form->addSelect('user_send_notifications', _('Emails on unread messages:'), array('0'=>_('no'), '1'=>_('max. once per hour'), '24'=>_('max. once per day'), '168'=>_('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
-		$form->addSelect('user_language', _('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('The main language you want to use. You will still be able to see other languages.'))->id("help-name"));
-		$form->addTextArea('user_description', _('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Write some lines about your life, your work and your interests.'))->id("help-name"));
-		$form->addText('user_url', _('Homepage:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_('Your website, blog or Facebook profile.'))->id("help-name"))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
-		$form->addFile('user_avatar', _('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_('Avatars are small images that will be visible with your name. Here you can upload your avatar (min. %s, max. %s). In the next step you can crop it.'),"120x150px","1500x1500px") )->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_('Maximum image size is %s'), "512kB"), 512 * 1024);
+		$form->addText('user_name', _t('Name:'));
+		$form->addText('user_surname', _t('Surname:'));
+		$form->addText('user_phone', _t('Phone:'));
+		$form->addText('user_email', _t('Email:'));
+		$form->addSelect('user_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Do you want be visible to everyone (world), only to registered users (registered) or only to your friends (friends)?'))->id("help-name"));
+		$form->addSelect('user_send_notifications', _t('Emails on unread messages:'), array('0'=>_t('no'), '1'=>_t('max. once per hour'), '24'=>_t('max. once per day'), '168'=>_t('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
+		$form->addSelect('user_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('The main language you want to use. You will still be able to see other languages.'))->id("help-name"));
+		$form->addTextArea('user_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Write some lines about your life, your work and your interests.'))->id("help-name"));
+		$form->addText('user_url', _t('Homepage:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Your website, blog or Facebook profile.'))->id("help-name"))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
+		$form->addFile('user_avatar', _t('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your name. Here you can upload your avatar (min. %s, max. %s). In the next step you can crop it.'),"120x150px","1500x1500px") )->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'), "512kB"), 512 * 1024);
 		
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		 
 		$img = $user->getAvatar();
 		$size_x = 0;
@@ -879,7 +921,7 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		if ($size_x<=160 || $size_y<=200) {
-			$form->addSubmit('send', _('Update'));
+			$form->addSubmit('send', _t('Update'));
 		}
 		
 		
@@ -905,11 +947,11 @@ final class UserPresenter extends BasePresenter
 		if (!empty($user)) {
 			$data = $user->getUserData();
 			if ($data['user_email'] != $values['user_email'] && User::emailExists($values['user_email'])) {
-				$this->flashMessage(_("This email is already used for another account."), 'error');
+				$this->flashMessage(_t("This email is already used for another account."), 'error');
 				$this->redirect("this");
 			}
 			if ($data['user_email'] != $values['user_email'] && !StaticModel::validEmail($values['user_email'])) {
-				$this->flashMessage(_("This email is not valid. Please check it and try again."), 'error');
+				$this->flashMessage(_t("This email is not valid. Please check it and try again."), 'error');
 				$this->redirect("this");
 			}
 			if ($data['user_email'] != $values['user_email']) {
@@ -921,7 +963,7 @@ final class UserPresenter extends BasePresenter
 					$values['user_email']     = $data['user_email'];
 					
 					$user->sendEmailchangeEmail();
-					$this->flashMessage(_("You requested a change of your email address. A message with a link was sent to your old address. The new address will be activated once you confirmed the change."));
+					$this->flashMessage(_t("You requested a change of your email address. A message with a link was sent to your old address. The new address will be activated once you confirmed the change."));
 				} else { // mods and admins
 					$this->emailchangeAdmin($user->getUserId(),$values['user_email']);
 				}
@@ -938,16 +980,19 @@ final class UserPresenter extends BasePresenter
 				$size= getimagesize($values['user_avatar']->getTemporaryFile());
 				
 				if ($size[0]>1500 || $size[1]>1500) {
-					$this->flashMessage(sprintf(_("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
+					$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
 				} elseif ($size[0]<80 || $size[1]<100) {
-					$this->flashMessage(sprintf(_("The image is too small! Min. size for upload is %s"), "80x100"),'error');
+					$this->flashMessage(sprintf(_t("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 				} else {
 					$values['user_portrait'] = base64_encode(file_get_contents($values['user_avatar']->getTemporaryFile()));
 				}
 			}
 			unset($values['user_avatar']);
 			$user->setUserData($values);
-			if ($user->save()) $this->flashMessage(_("User updated"));;
+			if ($user->save()) {
+				$this->flashMessage(_t("User updated"));
+				Activity::addActivity(Activity::USER_UPDATED, $user->getUserId(), 1);
+			}
 			$this->redirect("this");
 		}
 	}
@@ -1147,6 +1192,7 @@ final class UserPresenter extends BasePresenter
 			BasePresenter::removeImage($user_id,1);
 			$user->removeAvatar();
 			$user->removeIcons();
+			Activity::addActivity(Activity::USER_UPDATED, $user->getUserId(), 1);
 		}
 		$this->redirect("this");
 	}
@@ -1168,6 +1214,7 @@ final class UserPresenter extends BasePresenter
 			$this->terminate();
 		}
 		$user->insertTag($tag_id);
+		Activity::addActivity(Activity::USER_UPDATED, $user->getUserId(), 1);
 		$this->template->user_tags = $this->user->groupSortTags($user->getTags());
 		$this->invalidateControl('tagHandle');
 	}
@@ -1187,6 +1234,7 @@ final class UserPresenter extends BasePresenter
 			$this->terminate();
 		}
 		$user->removeTag($tag_id);
+		Activity::addActivity(Activity::USER_UPDATED, $user->getUserId(), 1);
 		$this->template->user_tags = $this->user->groupSortTags($user->getTags());
 		$this->invalidateControl('tagHandle');
 	}
@@ -1338,11 +1386,11 @@ final class UserPresenter extends BasePresenter
 		$user    = NEnvironment::getUser()->getIdentity();
 		$friends = $user->getFriends();
 		$form    = new NAppForm($this, 'messageform');
-		$form->addSelect('friend_id', _('To:'), $friends);
+		$form->addSelect('friend_id', _t('To:'), $friends);
 		$form->addTextarea('message_text', '');
 		$form['message_text']->getControlPrototype()->class('tinymce-small');
-		$form->addSubmit('send', _('Send'));
-		$form->addProtection(_('Error submitting form.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->onSubmit[] = array(
 			$this,
@@ -1367,7 +1415,7 @@ final class UserPresenter extends BasePresenter
 			'message_text' => $values['message_text']
 		));
 		if (strip_tags($values['message_text']) == '') {
-			$this->flashMessage(_("Your message was empty."), 'error');
+			$this->flashMessage(_t("Your message was empty."), 'error');
 			$this->redirect("User:messages");
 		}
 		$resource->setResourceData($data);
@@ -1380,7 +1428,7 @@ final class UserPresenter extends BasePresenter
 			'resource_user_group_access_level' => 1,
 			'resource_opened_by_user' => 1
 		));
-		$this->flashMessage(_("Your message has been sent."));
+		$this->flashMessage(_t("Your message has been sent."));
 		$this->redirect("User:messages");
 	}
 	
@@ -1450,14 +1498,14 @@ final class UserPresenter extends BasePresenter
 		$user         = User::create($user_id);
 		$user_data    = $user->getUserData();
 		$access_level = array(
-			'1' => _('Normal user'),
-			'2' => _('Moderator'),
-			'3' => _('Administrator')
+			'1' => _t('Normal user'),
+			'2' => _t('Moderator'),
+			'3' => _t('Administrator')
 		);
 		if (!empty($logged_user) && $logged_user->getAccessLevel() == 3 && $user_id != 1) {
 			$form->addSelect('access_level', null, $access_level);
 		} elseif ($user_id == 1) {
-			$form->addSelect('access_level', null, array('3' => _('Administrator')));
+			$form->addSelect('access_level', null, array('3' => _t('Administrator')));
 		}
 		if (!empty($logged_user) && $logged_user->getAccessLevel() == 3 && $user_id != 1) {			
 			$form->addCheckbox('status');
@@ -1469,9 +1517,9 @@ final class UserPresenter extends BasePresenter
 		}
 		if (!isset($form['status']) && !isset($form['creation_rights']) && !isset($form['access_level'])) {
 		} else {
-			$form->addSubmit('send', _('Update'));
+			$form->addSubmit('send', _t('Update'));
 		}
-		$form->addProtection(_('Error submitting form.'));
+		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
 			$this,
 			'adminUserFormSubmitted'
@@ -1492,7 +1540,7 @@ final class UserPresenter extends BasePresenter
 			$user_id = $session->data['object_id'];
 
 			if ($user_id == 1) {
-				$this->flashMessage(_("Administrator with id 1 cannot be changed"), 'error');
+				$this->flashMessage(_t("Administrator with id 1 cannot be changed"), 'error');
 				$this->redirect("User:default");
 			}
 			$values = $form->getValues();
@@ -1505,7 +1553,7 @@ final class UserPresenter extends BasePresenter
 			$user->setUserData($values);
 			$user->save();
 			
-			$this->flashMessage(_("User permissions changed."));
+			$this->flashMessage(_t("User permissions changed."));
 			
 			$this->redirect("User:default");
 		}
@@ -1624,7 +1672,7 @@ final class UserPresenter extends BasePresenter
 
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
 			
-			$this->flashMessage(_("You are not allowed to edit this user."), 'error');
+			$this->flashMessage(_t("You are not allowed to edit this user."), 'error');
 			$this->redirect("User:default",$user_id);
 		}
 		
@@ -1665,7 +1713,7 @@ final class UserPresenter extends BasePresenter
 		
 		// save to cache
 		User::saveImage($user_id);
-		$this->flashMessage(_("Finished cropping and resizing."));
+		$this->flashMessage(_t("Finished cropping and resizing."));
 		$this->redirect("User:edit",$user_id);
 	}
 
@@ -1734,7 +1782,7 @@ final class UserPresenter extends BasePresenter
 				
 				// FB user needs email address (no phone-only signups admitted)
 				if (empty($user_profile['email'])) {
-					$this->flashMessage(_("Your Facebook account doesn't have an email address."), 'error');
+					$this->flashMessage(_t("Your Facebook account doesn't have an email address."), 'error');
 					$this->redirect('Homepage:default');
 				}
 
@@ -1745,7 +1793,7 @@ final class UserPresenter extends BasePresenter
 					if ($user_profile['username'] == User::userloginFromEmail($user_profile['email'])) {
 						// name and email match -> let's assume that user is registered (In Facebook we trust.)
 						if (Settings::getVariable('sign_in_disabled')) {
-							$this->flashMessage(_("Sign in is disabled. Please try again later."), 'error');
+							$this->flashMessage(_t("Sign in is disabled. Please try again later."), 'error');
 							$this->redirect("Homepage:default");
 						}
 						$user = NEnvironment::getUser();
@@ -1754,7 +1802,7 @@ final class UserPresenter extends BasePresenter
 						return true;
 					} else {
 						// username exists, but email doesn't match
-						$this->flashMessage(_("User with the same name already exists."), 'error');
+						$this->flashMessage(_t("User with the same name already exists."), 'error');
 						$this->redirect('Homepage:default');
 					}
 				
@@ -1762,13 +1810,13 @@ final class UserPresenter extends BasePresenter
 					// user is new
 					// check email (same user cannot log in with same email with two different methods)
 					if (User::emailExists($user_profile['email'])) {
-						$this->flashMessage(_("Email is already registered with another account."), 'error');
+						$this->flashMessage(_t("Email is already registered with another account."), 'error');
 						$this->redirect('Homepage:default');
 					}
 					
 					// spam check
 					if (StaticModel::isSpamSFS($user_profile['email'], '')) {
-						$this->flashMessage(_("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
+						$this->flashMessage(_t("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
 						$this->redirect('Homepage:default');
 					}
 //					var_dump($user_profile);die();
@@ -1777,13 +1825,13 @@ final class UserPresenter extends BasePresenter
 						$question = Settings::getVariable('signup_question');
 					
 						if ($question) {
-							$this->flashMessage(_("The administrator asks you to answer a security question before you can enter."));
+							$this->flashMessage(_t("The administrator asks you to answer a security question before you can enter."));
 							$this->redirect('User:captcha');
 						}
 					}
 					
 					if (Settings::getVariable('sign_up_disabled')) {
-						$this->flashMessage(_("Sign up is disabled. Please try again later."), 'error');
+						$this->flashMessage(_t("Sign up is disabled. Please try again later."), 'error');
 						$this->redirect("Homepage:default");
 					}
 					$new_user = User::create();
@@ -1831,6 +1879,7 @@ final class UserPresenter extends BasePresenter
 					User::saveImage($new_user->getUserId());
 			
 					$new_user->setRegistrationDate();
+					Activity::addActivity(Activity::USER_JOINED, $user_id, 1);
 					User::finishRegistration($new_user->getUserId(), $values['user_hash']);
 					$user = NEnvironment::getUser();
 					$user->login($user_profile['username'], '', 'facebook');
@@ -1838,8 +1887,8 @@ final class UserPresenter extends BasePresenter
 					$user->getIdentity()->registerFirstLogin();
 					$user->getIdentity()->setLastActivity();
 
-					$this->flashMessage(_("Success!"));
-					$this->flashMessage(_("Please check now your profile and enter a description and tags."));
+					$this->flashMessage(_t("Success!"));
+					$this->flashMessage(_t("Please check now your profile and enter a description and tags."));
 					
 					$this->redirect("User:edit", $user_id);
 				}

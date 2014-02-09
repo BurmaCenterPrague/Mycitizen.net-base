@@ -55,7 +55,7 @@ class ResourceMemberListerControl extends ListerControl {
         $form->addSelect('resource_user_group_access_level',null,$access_level);
         $form->addCheckbox('resource_user_group_status');
         $form->addSubmit('send', 'Update');
-        $form->addProtection(_('Error submitting form.'));
+        $form->addProtection(_t('Error submitting form.'));
         $form->onSubmit[] = array($this, 'adminUserFormSubmitted');
         $form->setDefaults(array('member_id'=>$data_row['member_id'],'member_type'=>$data_row['member_type'],'resource_user_group_access_level'=>$data_row['resource_user_group_access_level'],'resource_user_group_status'=>$data_row['resource_user_group_status']));
         return $form;
@@ -91,7 +91,7 @@ class ResourceMemberListerControl extends ListerControl {
 						);
         $form->addSelect('resource_user_group_status','User status',$enabled);
         $form->addSubmit('filter', 'Apply filter');
-        $form->addProtection(_('Error submitting form.'));
+        $form->addProtection(_t('Error submitting form.'));
         $form->onSubmit[] = array($this, 'filterFormSubmitted');
 		$form->setDefaults($this->getFilterArray());
 		return $form;

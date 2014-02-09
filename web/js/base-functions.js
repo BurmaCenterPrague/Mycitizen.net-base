@@ -120,7 +120,11 @@ function userRemove_Friend(friend_id,refresh_path) {
 
 function selectLanguage(language) {
    $.getJSON("?language="+language+"&do=selectLanguage",function(payload){
-      location.href=self.location.href;
+   		var url = self.location.href;
+   		var url = url.replace(/\?language=[0-9]+&/i,"?");
+   		var url = url.replace(/&language=[0-9]+/i,"");
+   		var url = url.replace(/\?language=[0-9]+/i,"");
+		location.href=url;
    });
 }
 

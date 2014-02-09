@@ -75,7 +75,9 @@
 		$("#report_box").fancybox({
 			closeBtn : true,
 			helpers : {
-				css: {'background' : 'rgba(200, 200, 200, .5)'},
+				overlay : {
+					css: {'background' : 'rgba(200, 200, 200, .5)'}
+				},
 				title : null
 			},
 		});
@@ -105,9 +107,9 @@
 						<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
 							{foreach $tag_name->getIdWithPath() as $tag}
 								{if $iterator->isLast()}
-									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo StaticModel::pgettext('tags',$tag['name'])}</a>
+									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a>
 								{else}
-									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo StaticModel::pgettext('tags',$tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
 								{/if}
 							{/foreach}
 							</div>
