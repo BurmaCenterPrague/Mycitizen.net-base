@@ -18,6 +18,12 @@ class MapControl extends NControl
 	protected $options = array('type' => 'view');
 	
 	protected $object;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($parent, $name, $data = array(), $options = array())
 	{
 		parent::__construct($parent, $name);
@@ -31,7 +37,12 @@ class MapControl extends NControl
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function render()
 	{
 		$template = $this->template;
@@ -66,7 +77,12 @@ class MapControl extends NControl
 		$template->render();
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentMapfilter()
 	{
 		$form = new NAppForm($this, "mapfilter");
@@ -79,7 +95,12 @@ class MapControl extends NControl
 		);
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleMapData()
 	{
 		$position = array();
@@ -151,7 +172,12 @@ class MapControl extends NControl
 		print_r(json_encode($position));
 		$this->parent->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleMapEdit($latitude, $longitude)
 	{
 		if ($this->object['type'] == 'user') {

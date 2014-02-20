@@ -123,11 +123,11 @@
 		$(document).ready(function(){
 			$('[id^=reply_]').click(function(){
 				var id = parseInt($(this).attr('id').substr(-5,5));
-				var editor = tinymce.get('frmmessageform-message_text');
-				var content = editor.getContent();
+				var elements = document.getElementsByName( 'message_text' );
+				var instance_name = elements[0].getAttribute( 'id' );
 				var quote = $('[id$='+id+'_text]').html();
 				quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
-				var author_name = $('[id$='+id+'_author]').html();
+				var author_name = $('[id$='+id+'_author]').html().trim();
 				var author_id = $('[id$='+id+'_author]').attr('rel');
 				var date = $('[id$='+id+'_date]').html();
 				var quote_shortened = quote.substr(0,300);
@@ -135,11 +135,12 @@
 				$('#frmmessageform-friend_id').val(author_id);
 				var reply = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
 				content = reply;
-				editor.setContent(content);
+				//editor.setContent(content);
+				CKEDITOR.instances[instance_name].insertHtml(content);
 				$('html, body').animate({
 					scrollTop: $("#message_top_anchor").offset().top
 				}, 2000);
-				editor.focus();
+				CKEDITOR.instances[instance_name].focus();
 			});
 		
 			$('blockquote').click(function(){
@@ -164,6 +165,26 @@
 		
 		});
 	</script>
+<script>
+	$(document).ready(function() {
+		CKEDITOR.replace( 'message_text', {
+			height: '200px',
+			width: '740px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'p strong em; a[!href]; del ins; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]',
+			toolbarGroups: [
+				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+				{ name: 'links'},
+				{ name: 'insert'},
+				{ name: 'styles'},
+				{ name: 'colors'}
+			],
+			extraPlugins: 'smiley'
+		});
+	});
+</script>
 </div>
 {/block}
 

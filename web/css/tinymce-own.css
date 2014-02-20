@@ -1,9 +1,0 @@
-/**
-*	Formatting inside TinyMCE editor window
-**/
-
-blockquote {
-	color:#999;
-	border-left: solid 2px #999;
-	padding-left: 5px;
-}

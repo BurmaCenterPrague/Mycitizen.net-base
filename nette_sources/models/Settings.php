@@ -14,7 +14,13 @@
 
 class Settings {
 	public static $labels = array();
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAllVariables() {
 		$result = dibi::fetchAll("SELECT * FROM `settings`");
 		$data = array();
@@ -24,17 +30,35 @@ class Settings {
 		}
 		return $data;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getVariableLabel($variable_name) {
       $result = dibi::fetchSingle("SELECT `variable_display_label` FROM `settings` WHERE `variable_name` = %s",$variable_name);
       return $result;	
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getVariable($variable_name) {
       $result = dibi::fetchSingle("SELECT `variable_value` FROM `settings` WHERE `variable_name` = %s",$variable_name);
       return $result;
    }
-   
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function setVariable($variable_name,$variable_value) {
 		dibi::query("UPDATE `settings` SET `variable_value` = %s WHERE `variable_name` = %s",$variable_value,$variable_name);
 	}

@@ -1,0 +1,136 @@
+<?php
+/**
+ * mycitizen.net - Social networking for civil society
+ *
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+
+$user = NEnvironment::getUser()->getIdentity();
+if ($user) {
+	$user_id = $user->getUserId();
+} else {
+	die('Did you sign in?');
+}
+
+$user_name = User::getFullName($user_id);
+if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $load_external_js_css = true;
+$load_external_js_css = false;
+?>
+<!DOCTYPE HTML>
+<html>
+	<head>
+    	<link rel="stylesheet" media="screen" href="/css/mycitizen.min.css" />
+    	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    	<title>Image Browser</title>
+    	<link rel="stylesheet" media="screen" href="/css/jquery.fancybox.min.css" />
+{ifset $load_external_js_css}
+		<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+{else}
+		<script type="text/javascript" src="/js/jquery-1.10.2.min.js"></script>
+		<link href='/css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
+{/if}
+    	<script type="text/javascript" src="/js/jquery.fancybox.min.js"></script>
+    	<script>
+    		function insert(url) {
+    			var message = '';
+    	 		window.opener.CKEDITOR.tools.callFunction(<?php echo (int) $_GET['CKEditorFuncNum'] ?>, url, message);
+    	 		window.close();
+    		}
+    		function deleteImage(fileName) {
+    			if (confirm({_"Do you really want to delete this file?"}+" "+fileName)) {
+	    	 		$.getJSON('{? echo NEnvironment::getVariable("URI");}/?do=deleteImage&file_name=' + encodeURIComponent(fileName) + '&user_id={$user_id}',function(payload){
+    	  				location.href=self.location.href;
+					});
+				}
+    		}
+
+    	</script>
+    </head>
+	<body>
+<?php
+
+
+$allowed_extensions = array('jpg','jpeg','gif','png');
+$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
+$path = WWW_DIR.'/images/uploads/user-'.$user_id;
+
+if(!file_exists($path) || !is_dir($path)) {
+	mkdir($path);
+}
+
+// retrieve files
+$file_names = array_diff(scandir($path), array('.','..'));
+
+?>
+<div id="layout">
+	<div id="topheader">
+		<div style="padding:20px 20px 0 250px;">
+			<h1>{_"Please select an image"}</h1>
+			<h2>{_"Images of %s", $user_name}</h2>
+		</div>
+		<div style="float:right;">
+			<a href="javascript:void(0);" onclick="window.close()" class="button" style="text-decoration:none;">{_"close"}</a>
+		</div>
+	</div>
+	<div id="content">
+	<div class="wrapper-text">
+		<p>{_"If you need to upload a new image, close this window and click on 'Upload'."}<br/>
+		<b>{_"Note:"}</b> {_"Images are public. If you want to prevent others from seeing them, you should choose a file name that is hard to guess."}</p>
+	<table>
+		<tr>
+<?php
+$row = 1;
+$column = 1;
+
+if (count($file_names)) {
+	foreach ($file_names as $file_name) {
+		$file_path = $path.'/'.$file_name;
+		$web_path = '/images/uploads/user-'.$user_id.'/'.$file_name;
+		$image = NImage::fromFile($file_path);
+		$width = $image->width;
+		$height = $image->height;
+		$img_b64 = base64_encode($image->resize(120, 100)->sharpen()->toString(IMAGETYPE_JPEG,90));
+		?>
+		<td style="width:150px; border:solid 1px #CCC; padding:10px 2px 5px 10px; margin:0; border-radius: 8px; background-color:#eae9e3;">
+		<div style="height:120px;">
+			<div style="float:right; cursor:pointer;">
+				<b onclick="deleteImage({$file_name});" class="icon-cancel" title="{_"delete"}"></b>
+			</div>
+			<a href="{$web_path}" class="fancybox" rel="group" title="{$file_name}, {$width}x{$height}"><img src="data:image/jpeg;base64,<?php echo $img_b64 ?>" style="border:solid 1px #666;"/></a>
+		</div>
+		<a href="javascript:void(0);" onclick="insert({$web_path})" class="button" style="text-decoration:none;">{_"insert"}</a>
+		<h4><?php echo $file_name ?></h4>
+		<h4><?php echo $width ?> x <?php echo $height ?> {_"pixel"}</h4>
+		</td>
+	<?php
+		$column++;
+		if ($column > 6) {
+			$column = 1;
+			$row++;
+			echo '</tr><tr>';
+		}
+		unset($image);
+	}
+} else {
+	echo '<h3>'._t('No images.').'</h3>';
+}
+?>
+		</tr>
+	</table>
+	</div>
+	</div>
+</div>
+<script>
+$(document).ready(function() {
+	$("a.fancybox").fancybox();
+});
+</script>
+</body>
+</html>

@@ -16,12 +16,21 @@
 <script>
 	$(document).ready(function(){
 		$("#frmupdateform-event_timestamp").hide();
-		var divToday = $("<span>").attr('id', 'today').html({_"now"}).addClass("button").css('margin', '2px');
-	    var divDate = $("<div>").attr('id', 'date').css('width', '500px');
+		$("#frmupdateform-event_timestamp_end").hide();
+		var divToday1 = $("<span>").attr('id', 'today_1').html({_"now"}).addClass("button").css('margin', '2px');
+		var divPreset = $("<span>").attr('id', 'preset').html({_"reset to initial selection"}).addClass("button").css('margin', '2px');
+	    var divDate1 = $("<div>").attr('id', 'date_1').css('width', '500px');
+		var divToday2 = $("<span>").attr('id', 'today_2').html({_"now"}).addClass("button").css('margin', '2px');
+	    var divDate2 = $("<div>").attr('id', 'date_2').css('width', '500px');
 	    
-	    $("#frmupdateform-event_timestamp").parent().append(divToday).append(divDate);
+	    if ($("#frmupdateform-event_timestamp").val() != 'undefined') {
+	    	$("#frmupdateform-event_timestamp").parent().append(divToday1).append(divPreset).append(divDate1);
+	    } else {
+		    $("#frmupdateform-event_timestamp").parent().append(divToday1).append(divDate1);
+		}
+	    $("#frmupdateform-event_timestamp_end").parent().append(divToday2).append(divDate2);
 	    	
-		 var calendarPicker = $("#date").calendarPicker({
+		 var calendarPicker1 = $("#date_1").calendarPicker({
 			monthNames:[{_'Jan'}, {_'Feb'}, {_'Mar'}, {_'Apr'}, {_'May'}, {_'Jun'}, {_'Jul'}, {_'Aug'}, {_'Sep'}, {_'Oct'}, {_'Nov'}, {_'Dec'}],
 			dayNames: [{_'Sun'}, {_'Mon'}, {_'Tue'}, {_'Wed'}, {_'Thu'}, {_'Fri'}, {_'Sat'}],
 			//useWheel:true,
@@ -33,11 +42,106 @@
 			minutes:2,
 			showDayArrows:false,
 			callback:function(cal) {
-			  $("#frmupdateform-event_timestamp").val(cal.currentDate);
+				if ($("#frmupdateform-event_timestamp").val() == null) {
+			  		$("#frmupdateform-event_timestamp").val(cal.currentDate);
+				}
 			}});
+
+		 var calendarPicker2 = $("#date_2").calendarPicker({
+			monthNames:[{_'Jan'}, {_'Feb'}, {_'Mar'}, {_'Apr'}, {_'May'}, {_'Jun'}, {_'Jul'}, {_'Aug'}, {_'Sep'}, {_'Oct'}, {_'Nov'}, {_'Dec'}],
+			dayNames: [{_'Sun'}, {_'Mon'}, {_'Tue'}, {_'Wed'}, {_'Thu'}, {_'Fri'}, {_'Sat'}],
+			//useWheel:true,
+			//callbackDelay:500,
+			years:2,
+			months:4,
+			days:5,
+			hours:4,
+			minutes:2,
+			showDayArrows:false,
+			callback:function(cal) {
+				if ($("#frmupdateform-event_timestamp_end").val() == null) {
+		  			$("#frmupdateform-event_timestamp_end").val(cal.currentDate);
+				}
+			}});
+
+		if ($("#frmupdateform-event_timestamp").val() != '') {
+			var dateString = $("#frmupdateform-event_timestamp").val();
+			calendarPicker1.changeDate(new Date(dateString))
+		}
+
+		if ($("#frmupdateform-event_timestamp_end").val() != '') {
+			var dateString = $("#frmupdateform-event_timestamp_end").val();
+			calendarPicker2.changeDate(new Date(dateString))
+		}
+
+		$("#today_1").click(function(){
+			calendarPicker1.changeDate(new Date())
+		});
+		$("#today_2").click(function(){
+			calendarPicker2.changeDate(new Date())
+		});
+		
+		$("#preset").click(function(){
+			var presetTime = $("#frmupdateform-preset_time").val();
+			$("#frmupdateform-event_timestamp").val(presetTime);
+			calendarPicker1.changeDate(new Date(presetTime));
+		});
+
+	});
+</script>
+<script>
+	$(document).ready(function() {
+		CKEDITOR.replace( 'organization_information', {
+			height: '300px',
+			width: '800px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
+			extraPlugins: 'smiley'
+		});
+		CKEDITOR.replace( 'event_description', {
+			height: '300px',
+			width: '800px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
+			extraPlugins: 'smiley'
+		});
+		CKEDITOR.replace( 'text_information', {
+			height: '300px',
+			width: '800px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
+			extraPlugins: 'smiley'
+		});
+
+		if ($("#frmupdateform-event_allday").prop('checked')) {
+			$(".calHour").hide();
+			$(".calMinute").hide();
+		}
 			
-		$("#today").click(function(){
-			calendarPicker.changeDate(new Date())
+		$("#frmupdateform-event_allday").click(function(){
+			if ($(this).prop('checked')) {
+				$(".calHour").hide();
+				$(".calMinute").hide();
+			} else {
+				$(".calHour").show();
+				$(".calMinute").show();			}
+		});
+		
+		if ($("#frmupdateform-event_timestamp").val() != $("#frmupdateform-event_timestamp_end").val()) {
+			$("#frmupdateform-event_end").prop('checked', true);
+		} else {
+			$("#frmupdateform-event_timestamp_end").parent().parent().hide();
+		}
+		
+		$("#frmupdateform-event_end").click(function(){
+			if ($(this).prop('checked')) {
+				$("#frmupdateform-event_timestamp_end").parent().parent().show();
+			} else {
+				$("#frmupdateform-event_timestamp_end").parent().parent().hide();
+			}
 		});
 	});
 </script>

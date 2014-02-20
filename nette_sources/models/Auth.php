@@ -23,7 +23,13 @@ class Auth
 	const TYPE_USER = 1;
 	const TYPE_GROUP = 2;
 	const TYPE_RESOURCE = 3;
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getVisibilityLevelArray()
 	{
 		$result     = dibi::fetchAll("SELECT * FROM `visibility_level`");
@@ -35,6 +41,12 @@ class Auth
 		return $languages;
 		
 	}
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAccessLevelArray()
 	{
 		$result     = dibi::fetchAll("SELECT * FROM `access_level`");
@@ -181,13 +193,14 @@ class Auth
 						$top_access = 3;
 					}
 					
-					// Mod has same permissions as admin.
+					// resource-specific access levels
 					$access = $resource->getUserAccessLevel($logged_user->getUserId());
+					// Ressource mod has same permissions as admin.
 					if ($access == 2) {
 						$access = 3;
 					}
 					
-					// User role at resource can beat general user role.
+					// permission for resource can beat general permission
 					if ($top_access < $access) {
 						$top_access = $access;
 					}

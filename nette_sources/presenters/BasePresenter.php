@@ -15,7 +15,12 @@ abstract class BasePresenter extends NPresenter
 {
 	// for Nette FW
 	public $oldLayoutMode = FALSE;
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function startup()
 	{
 		parent::startup();
@@ -46,16 +51,14 @@ abstract class BasePresenter extends NPresenter
 		define('LOCALE_DIR', WWW_DIR . '/../locale');
 		setlocale(LC_ALL, $language);
 
+/*
 		// for gettext
-
-
-
 		$domain = "messages";
 		bindtextdomain($domain, LOCALE_DIR );
 		textdomain($domain);
 		bind_textdomain_codeset($domain, 'UTF-8');
 		textdomain($domain);
-/**/	
+*/	
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
@@ -163,7 +166,12 @@ abstract class BasePresenter extends NPresenter
 		}
 		$this->registerHelpers();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function registerHelpers()
 	{
 		$this->template->registerHelper('htmlpurify', function ($dirty_html) {
@@ -184,7 +192,12 @@ abstract class BasePresenter extends NPresenter
 		$messages = new FlashMessageControl();
 		return $messages;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMenu($name)
 	{
 		$presenter = $this->name;
@@ -259,15 +272,24 @@ abstract class BasePresenter extends NPresenter
 		$control->setOrientation(MenuControl::MENU_ORIENTATION_HORIZONTAL);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleReloadStatusBar()
 	{
 		$messages = Resource::getUnreadMessages();
 		print $messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._t("New messages").': '._t("0");
 		$this->terminate();
 	}
-	
-		
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleReloadTitle()
 	{
 		$messages = Resource::getUnreadMessages();
@@ -276,7 +298,13 @@ abstract class BasePresenter extends NPresenter
 
 		$this->terminate();
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	private function translate_number($in) {
 		function translate_array( $matches ) {
 			$number = '';
@@ -287,13 +315,22 @@ abstract class BasePresenter extends NPresenter
 		}
 		return preg_replace_callback("/(\d)/u","translate_array",strval($in));
 	}
-	
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleReloadChat($group_id)
 	{
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleSelectLanguage($language)
 	{
 		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -303,7 +340,12 @@ abstract class BasePresenter extends NPresenter
 		}
 		$this->redirect("this");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function visit($type_id, $object_id)
 	{
 		$ip_address = $_SERVER['REMOTE_ADDR'];
@@ -338,7 +380,12 @@ abstract class BasePresenter extends NPresenter
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeImage($id,$type) {
 		if ($type == 1 ) {
 			$object = User::create($id);
@@ -378,6 +425,12 @@ abstract class BasePresenter extends NPresenter
 		}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleImage($id,$type,$redirect=true) {
 	
 		if ($type == 1 ) {
@@ -410,7 +463,7 @@ abstract class BasePresenter extends NPresenter
 					} else $this->terminate();			
 		
 					if(!file_exists($link)) {
-						$img_r = imagecreatefromstring(base64_decode($src));
+						$img_r = @imagecreatefromstring(base64_decode($src));
 						if (!imagejpeg($img_r, $link)) {
 							$this->flashMessage(_t("Error writing image: ").$link, 'error');
 						};
@@ -429,7 +482,12 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function isAccessible()
 	{
 		return false;
@@ -439,27 +497,43 @@ abstract class BasePresenter extends NPresenter
 	*	callback called by GrabzIt server to retrieve the thumbnail;
 	*	cannot be in ResourcePresenter.php because of permissions for visibility-restricted resources
 	*/
-	public function handleSaveScreenshot($id, $resource_id = null, $md5 = null) {
-		if (isset($md5) && isset($resource_id)) {
-			$resource_id = (int) $resource_id;
-			$md5 = filter_var($md5, FILTER_SANITIZE_STRING);
 
-			$app_key = NEnvironment::getVariable("GRABZIT_KEY");
-			$app_secret = NEnvironment::getVariable("GRABZIT_SECRET");
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
+	public function handleSaveScreenshot($id = null, $resource_id = null, $md5 = null) {
+		if (isset($id)) {
+			if (isset($md5) && isset($resource_id)) {
+				$resource_id = (int) $resource_id;
+				$md5 = filter_var($md5, FILTER_SANITIZE_STRING);
+
+				$app_key = NEnvironment::getVariable("GRABZIT_KEY");
+				$app_secret = NEnvironment::getVariable("GRABZIT_SECRET");
 		
-			if (!empty($app_key) && !empty($app_secret)) {
-				include(LIBS_DIR.'/GrabzIt/GrabzItClient.class.php');
-				$grabzIt = new GrabzItClient($app_key, $app_secret);
-			}
+				if (!empty($app_key) && !empty($app_secret)) {
+					include(LIBS_DIR.'/GrabzIt/GrabzItClient.class.php');
+					$grabzIt = new GrabzItClient($app_key, $app_secret);
 			
-			$result = $grabzIt->GetResult($id);
-			if ($result) {
-				$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
-				file_put_contents($filepath, $result);
+					$result = $grabzIt->GetResult($id);
+					if ($result) {
+						$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
+						file_put_contents($filepath, $result);
+						echo "true";
+					}
+				} else {
+					echo "Please enter app key and app secret.";
+				}
+			} else {
+				echo "Number of parameters is wrong.";
 			}
-
-			$this->terminate();
 		}
+		else {
+			echo "No id for GetResult().";
+		}
+
+		$this->terminate();
 	}
 	
 	
@@ -468,6 +542,8 @@ abstract class BasePresenter extends NPresenter
 	*	needs to be called with /?do=cron&token=xyz
 	*	token is set in config.ini
 	* 	adding &verbose=1 will output some more info
+	 *	@param
+	 *	@return
 	*/
 	public function handleCron($token, $verbose = null) {
 	
@@ -595,4 +671,99 @@ abstract class BasePresenter extends NPresenter
 		$this->terminate();
 	}
 
+	/**
+	*	processes scheduled tasks; sends email notifications;
+	*	needs to be called with /?do=cron&token=xyz
+	*	token is set in config.ini
+	* 	adding &verbose=1 will output some more info
+	 *	@param
+	 *	@return
+	*/
+	public function handleUpload($token, $verbose = null) {
+		$user = NEnvironment::getUser();
+		if (!$user->isLoggedIn()) die('You are not logged in.');
+		
+		$allowed_extensions = array('jpg','jpeg','gif','png');
+		$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
+		$path = '/images/uploads';
+		$max_size = 3000000;
+		$max_width = 800;
+		$max_height = 600;
+
+		$query = NEnvironment::getHttpRequest();
+		$file_info = $query->getFile('upload');
+		$file_name = $file_info->getName();
+		$funcNum = $query->getQuery('CKEditorFuncNum');
+		if (!$funcNum) die();
+		
+
+		$user = NEnvironment::getUser()->getIdentity();
+		if ($user) {
+			$user_id = $user->getUserId();
+			$path .= '/user-'.$user_id;
+		} else {
+			die('Did you sign in?');
+		}
+//var_dump(WWW_DIR . $path);die();
+		if(!file_exists(WWW_DIR . $path)) {
+			mkdir(WWW_DIR . $path);
+		}
+
+		$name = pathinfo($file_name, PATHINFO_FILENAME);
+		$ext = pathinfo($file_name, PATHINFO_EXTENSION);
+		if (in_array($ext, $allowed_extensions)===false) {
+			$message = 'ERROR: wrong extension';
+		} elseif (in_array($file_info->getContentType(), $allowed_types)===false) {
+			$message = 'ERROR: wrong file type';
+		} elseif ($file_info->getSize()==0) {
+			$message = 'ERROR: The image is too small!';
+		} elseif ($file_info->getSize()>$max_size) {
+			$message = 'ERROR: The image is too big!';
+		} elseif (!is_uploaded_file($file_info->getTemporaryFile())) {
+			$message = 'ERROR: security check';
+		} else {
+			$url = sprintf( "%s/%s.%s", $path, $name, $ext);
+
+			// check if file exists
+			$appendix = 0;
+			while (file_exists( WWW_DIR . $url)) {
+				$appendix++;
+				$url = sprintf( "%s/%s-%s.%s", $path, $name, $appendix, $ext);
+			}
+
+			if (move_uploaded_file($file_info->getTemporaryFile(), WWW_DIR . $url)) {
+		
+				// resize
+				$image = NImage::fromFile(WWW_DIR . $url);
+				$width = $image->width;
+				$height = $image->height;
+				if ($width > $max_width || $height > $max_height) {
+					$image->resize($max_width, $max_height);
+					$image->save(WWW_DIR . $url);
+				}
+				echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '$url', '$message');</script>";
+
+			} else {
+				$message = 'ERROR: cannot move file';
+			}
+		}
+
+		die();
+	}
+
+	public function handleDeleteImage($file_name, $user_id) {
+		$user_env = NEnvironment::getUser();		
+		if (!$user_env->isLoggedIn()) die('You are not logged in.');
+		$user = $user_env->getIdentity();
+		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) die('No permission');
+		$allowed_extensions = array('jpg','jpeg','gif','png');
+		$ext = pathinfo($file_name, PATHINFO_EXTENSION);
+		if (in_array($ext, $allowed_extensions)===false) die('Wrong extension.');
+				
+		$file_path = WWW_DIR . '/images/uploads/user-'.$user_id.'/'.$file_name;
+
+		unlink($file_path);
+		echo "true";
+		die();
+	}
 }

@@ -13,7 +13,7 @@ $application = NEnvironment::getApplication();
 
 if (NEnvironment::getConfig('debug')->showErrors) {
 	NDebug::enable(NDebug::DEVELOPMENT);
-//	NDebug::enableProfiler();
+	NDebug::enableProfiler();
 	$application->catchExceptions = false;
 } else {
 	$application->catchExceptions = true;
@@ -43,10 +43,10 @@ $session = NEnvironment::getSession();
 $session->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration);
 
 // enforce secure connections
-if (NEnvironment::getConfig('variable')->secured == 1) {
+if (NEnvironment::getConfig('variable')->SECURED == 1) {
 	$flag = NRoute::SECURED;
 	$flag_all = NULL;
-} elseif (NEnvironment::getConfig('variable')->secured == 2) {
+} elseif (NEnvironment::getConfig('variable')->SECURED == 2) {
 	$flag = NRoute::SECURED;
 	$flag_all = NRoute::SECURED;
 } else {

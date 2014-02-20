@@ -37,7 +37,12 @@ class ListerControlMain extends NControl
 	protected $persistent_filter = array();
 	protected $template_variables = array();
 	protected $active = false;
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function __construct($parent, $name, $options = array())
 	{
 		parent::__construct($parent, $name);
@@ -85,11 +90,16 @@ class ListerControlMain extends NControl
 				$this->setFilterArray($filter);
 			}
 		}
-		
+//		var_dump($options);die();
 		$this->generateList();
 		$this->registerHelpers();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function registerHelpers()
 	{
 		$this->template->registerHelper('htmlpurify', function($dirty_html)
@@ -104,7 +114,12 @@ class ListerControlMain extends NControl
 			return $purifier->purify($dirty_html);
 		});
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function render()
 	{
 		$this->renderFilter();
@@ -114,6 +129,12 @@ class ListerControlMain extends NControl
 	/**
 	 *	Outputs status of filter as readable text
 	 */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderFiltercheck()
 	{
 		if ($this->activeFilter())
@@ -125,6 +146,12 @@ class ListerControlMain extends NControl
 	/**
 	 *	Outputs status of filter for use in class
 	 */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderFilterstatus()
 	{
 		if ($this->activeFilter())
@@ -136,13 +163,19 @@ class ListerControlMain extends NControl
 	/**
 	 *	Checks whether filter is active or not
 	 */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function activeFilter()
 	{
 		$active = false;
 		$filter = $this->getFilterArray();
 		if (isset($filter['name']) && strlen($filter['name']) > 0)
 			$active = true;
-		elseif (!empty($filter['type']) && !is_array($filter['type']))
+		elseif (!empty($filter['type']) && !is_array($filter['type']) && $this->name == 'defaultresourceresourcelister')
 			$active = true;
 		elseif (isset($filter['language']) && $filter['language'] > 0)
 			$active = true;
@@ -158,7 +191,12 @@ class ListerControlMain extends NControl
 			}
 		return $active;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderFilter()
 	{
 		$template = $this->template;
@@ -188,7 +226,13 @@ class ListerControlMain extends NControl
 		
 		$template->render();
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderBody()
 	{
 		$template = $this->template;
@@ -223,22 +267,46 @@ class ListerControlMain extends NControl
 		$template->render();
 		
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setItemsCount($count)
 	{
 		$this->itemscount = $count;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getItemsCount()
 	{
 		return $this->itemscount;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setItemsPerPage($count)
 	{
 		$this->itemsperpage = $count;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getMaxPage()
 	{
 		$maxpage = (int) ($this->itemscount / $this->itemsperpage);
@@ -247,7 +315,13 @@ class ListerControlMain extends NControl
 		}
 		return $maxpage;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setCurrentPage($page)
 	{
 		$maxpage = $this->getMaxPage();
@@ -259,17 +333,83 @@ class ListerControlMain extends NControl
 		}
 		$this->currentpage = $page;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageFirstIndex($page)
 	{
 		$itemsonpage = $this->itemsperpage;
 		return $itemsonpage * ($page - 1);
 	}
-	
+
+	/**
+	 *	Retrieves the data for lists.
+	 *	Checks the authorization to view these items (to view that they exist).
+	 *	Removes own connections from recommendations.
+	 *	Adds forms to items for administration purposes.
+	 *	@param void
+	 *	@return void 
+	 */
 	public function generateList()
 	{
-		$this->data = $this->getPageData($this->getFilterArray());
-		foreach ($this->data as $data_row) {
+
+		$filter = $this->getFilterArray();
+
+		if (isset($filter['trash']) && $filter['trash'] == 2) {
+			$logged_user = NEnvironment::getUser()->getIdentity();
+			if (isset($logged_user)) {
+				$logged_user_id = $logged_user->getUserId();
+				$count_unread = User::getUnreadMessages($logged_user_id);
+				if ($count_unread == 0) $filter['trash'] = 0;
+				$this->setFilterArray($filter);
+				unset($logged_user);
+			}
+		} elseif (isset($filter['trash']) && $filter['trash'] == 'null') {
+			$logged_user = NEnvironment::getUser()->getIdentity();
+			if (isset($logged_user)) {
+				$logged_user_id = $logged_user->getUserId();
+				$count_unread = User::getUnreadMessages($logged_user_id);
+				if ($count_unread > 0) $filter['trash'] = 2;
+				$this->setFilterArray($filter);
+				unset($logged_user);
+			}
+		}
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.".$this->name);
+		$cache->clean();
+		$cache_key = md5(json_encode($filter));
+		if ($this->name != 'messagelisteruser' && $cache->offsetExists($cache_key)) { // $this->name != 'messagelisteruser'
+			$this->data = $cache->offsetGet($cache_key);
+		} else {
+			$this->data = $this->getPageData($filter);
+		
+			// check permissions, remove items that user may not view
+			foreach ($this->data as $key => $data_row) {
+				if ($data_row['type_name'] == "user") {
+					if (Auth::isAuthorized(1,$data_row['id'])==0) unset($this->data[$key]);
+				}
+				if ($data_row['type_name'] == "group") {
+					if (Auth::isAuthorized(2,$data_row['id'])==0) unset($this->data[$key]);
+				}
+				if ($data_row['type_name'] == "resource") {
+					if (Auth::isAuthorized(3,$data_row['id'])==0) unset($this->data[$key]);
+				}
+			}
+
+			// if this is a list of recommended items: remove those where user is already connected
+			if (isset($filter['exclude_connections_user_id'])) {
+				$filter_connections = array_merge($filter, array('user_id' => $filter['exclude_connections_user_id']));
+				$data_connections = $this->getPageData($filter_connections);
+				$this->data = array_diff($this->data, $data_connections);
+			}
+			$cache->save($cache_key, $this->data, array(NCache::EXPIRE => time()+120));
+		}
+		
+		foreach ($this->data as $key => $data_row) {
 			if ($data_row['type_name'] == "user") {
 				$this->createComponentUserListItem($data_row);
 			}
@@ -280,9 +420,15 @@ class ListerControlMain extends NControl
 				$this->createComponentResourceListItem($data_row);
 			}
 		}
-		
+
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setFilterArray($filter, $keep_old_data = false)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -294,7 +440,12 @@ class ListerControlMain extends NControl
 			$session->filterdata = array_merge($this->persistent_filter, $filter);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function clearFilterArray($filter = null)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -308,7 +459,12 @@ class ListerControlMain extends NControl
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getFilterArray()
 	{
 		$filter  = array();
@@ -347,7 +503,12 @@ class ListerControlMain extends NControl
 		
 		return $filter;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleChangePage($page)
 	{
 		$filter = $this->getFilterArray();
@@ -358,7 +519,12 @@ class ListerControlMain extends NControl
 		$this->invalidateControl('list_pager');
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function pageToLimit($page)
 	{
 		if (!empty($page)) {
@@ -373,7 +539,12 @@ class ListerControlMain extends NControl
 			'count' => $this->itemsperpage
 		);
 	}
-	
+
+	/**
+	 *	Define administration form for connected users.
+	 *	@param array $data_row
+	 *	@return array $form
+	 */
 	public function createComponentUserListItem($data_row)
 	{
 		$params    = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -381,10 +552,10 @@ class ListerControlMain extends NControl
 		$user_data = $user->getUserData();
 		$form      = new NAppForm($this, "userform" . $data_row['id']);
 		$form->addHidden('id');
+//		No Group Administrator because this is reserved for the owner.
 		$access_level = array(
 			'1' => _t('Normal'),
-			'2' => _t('Moderator'),
-//			'3' => _t('Group Administrator')
+			'2' => _t('Moderator')
 		);
 		$form->addSelect('access_level', null, $access_level);
 		$form->addCheckbox('status');
@@ -401,7 +572,12 @@ class ListerControlMain extends NControl
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminUserFormSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -435,7 +611,12 @@ class ListerControlMain extends NControl
 		}
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentGroupListItem($data_row)
 	{
 		$params     = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -456,7 +637,12 @@ class ListerControlMain extends NControl
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminGroupFormSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -482,7 +668,12 @@ class ListerControlMain extends NControl
 		}
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentResourceListItem($data_row)
 	{
 		$params        = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -503,7 +694,12 @@ class ListerControlMain extends NControl
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminResourceFormSubmitted(NAppForm $form)
 	{
 		$values   = $form->getValues();
@@ -518,10 +714,15 @@ class ListerControlMain extends NControl
 		$resource->save();
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentFilter($name)
 	{
-		$options                 = array(
+		$options = array(
 			'components' => array(
 				$this->name
 			),
@@ -582,8 +783,12 @@ class ListerControlMain extends NControl
 		
 		return $control;
 	}
-	
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageData($filter)
 	{
 		
@@ -620,7 +825,12 @@ class ListerControlMain extends NControl
 		
 		return $data;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getDataCount($filter)
 	{
 		$data = array();
@@ -629,13 +839,23 @@ class ListerControlMain extends NControl
 		
 		return $data;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setRefreshPath($path, $params = array())
 	{
 		$this->refresh_path        = $path;
 		$this->refresh_path_params = $params;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentEmptytrashform()
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -649,7 +869,12 @@ class ListerControlMain extends NControl
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function emptytrashformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();

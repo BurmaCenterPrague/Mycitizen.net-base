@@ -16,29 +16,32 @@
 <div class="lister-body">
    {snippet list_body}
 
+	{if isset($template_variables['map_used']) && $template_variables['map_used']}
+		<img src="/images/icon-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
+	{/if}
+
     <div class="list-header-wrapper">
         <div class="list-header-name">
 		{if isset($data) && isset($template_variables['show_extended_columns']) }
 			{_"Name"}
 		{/if}
         </div>
-			{ifset $template_variables['administration']}
-					<div class="list-header-role">
-						{_"Role"}
-					</div>
-					<div class="list-header-active">
-						{_"Is active"}
-					</div>
-			{else}
-				{ifset $template_variables['show_extended_columns']}
-				<div class="list-header-connections">
-					{if count($lister_type) == 1}
-							{_"Friends"}
-					{/if}
-				</div>
+		{ifset $template_variables['administration']}
+		<div class="list-header-role">
+			{_"Role"}
+		</div>
+		<div class="list-header-active">
+			{_"Is active"}
+		</div>
+		{else}
+			{ifset $template_variables['show_extended_columns']}
+		<div class="list-header-connections">
+				{if count($lister_type) == 1}
+			{_"Friends"}
 				{/if}
+		</div>
 			{/if}
-
+		{/if}
     </div>
 
 
@@ -174,7 +177,7 @@
 
                     {else}
 						{ifset $template_variables['show_extended_columns']}
-							<div class="list-body-links">{$row['links']}</div>
+					<div class="list-body-links">{$row['links']}</div>
 						{/if}
                     {/if}
 
@@ -191,23 +194,23 @@
                         {$control[$formName]['status']->control}
                      </div>
 
-                     <div class="list-body-send">
+                    <div class="list-body-send">
                         {$control[$formName]['send']->control}
-                     </div>
+                    </div>
                      {control $formName end}
 
                      {else}
 						{ifset $template_variables['show_extended_columns']}
-                        	<div class="list-body-links">{$row['links']}</div>
+                    <div class="list-body-links">{$row['links']}</div>
 						{/if}
                      {/if}
 						{/if}
 				{else}
 					{ifset $template_variables['show_extended_columns']}
-                     	<div class="list-body-links">{$row['links']}</div>
+                    <div class="list-body-links">{$row['links']}</div>
 					{/if}
 				{/if}
-			</div>	
+			</div>
     {if $number_displayed==3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
     	</div>
     {/if}
@@ -218,8 +221,8 @@
 	
 {else}
 	<div class="not-found">
-	{if $active_filter}
-		{_"Nothing found."} <a id="filter_box_a" title="{_"Change the filter"}" href="#filter_container"><b class="icon-filter"></b></a></div>
+	{if $active_filter && !isset($template_variables['recommendations']) }
+		{_"Nothing found."}
 	{else}
 		{_"Nothing to display"}
 	{/if}

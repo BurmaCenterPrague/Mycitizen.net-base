@@ -14,14 +14,32 @@
 
 class SessionDatabaseHandler {
 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function open() {
 
    }
 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function close() {
 
    }
 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function read($id) {
    	$session_data = dibi::fetchSingle("SELECT `session_data` FROM `phpsessions` WHERE `id` = %s",$id);
       if(!empty($session_data)) {
@@ -29,6 +47,12 @@ class SessionDatabaseHandler {
       }
    }
 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function write($id, $data) {
       try {
          dibi::begin();
@@ -47,10 +71,22 @@ class SessionDatabaseHandler {
       dibi::commit();
 	}
 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function destroy($id) {
       dibi::query("DELETE FROM `phpsessions` WHERE `id` = %s",$id);
    }
 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function clean($maxlifetime) {
       $old = (time() - $maxlifetime);
       dibi::query("DELETE FROM `phpsessions` WHERE `session_expires` < %i",$old);

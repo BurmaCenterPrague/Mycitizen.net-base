@@ -24,6 +24,9 @@ logo:	[Kateřina Kropáčová](http://kanadruhou.cz)
 included packages
 -----------------
 - [CalendarPicker](http://roberto.open-lab.com/2010/04/06/ultra-light-jquery-calendar/) (modified) (MIT License)
+- [CKEditor](http://ckeditor.com/) 4.3.2 (GPL, LGPL and MPL Licenses)
+- [FullCalendar](http://arshaw.com/fullcalendar/) 1.6.4 (MIT License)
+- GettextExtractor 2.0 (modified) (New BSD License)
 - [GrabzIt API](http://grabz.it/api/php/) 2.0.9 (MIT License)
 - [HTML Purifier](http://htmlpurifier.org/) 4.5.0 (GNU Lesser General Public
     License)
@@ -32,11 +35,9 @@ included packages
 - [jQuery UI, jQuery UI Datepicker](http://jqueryui.com ) 1.10.3 (MIT License)
 - [jQuery UI Fancybox](http://fancyapps.com/fancybox/) 2.1.5, [license](http://www.fancyapps.com/fancybox/#license)
 - [Mobile-Detect](http://mobiledetect.net) 2.7.6 (MIT License)
-- [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GNU GPL version 2 or 3)
+- [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GPL version 2 or 3)
 - [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
-- [TinyMCE](http://www.tinymce.com/) 4.0.12 (GNU Lesser General Public
-    License version 2.1)
 - [Treeview 1.4.1](http://docs.jquery.com/Plugins/Treeview) (MIT license or GPL)
 - [zxcvbn](https://github.com/lowe/zxcvbn) 1.0 [license](https://github.com/lowe/zxcvbn/blob/master/LICENSE.txt)
 

@@ -16,6 +16,12 @@ class GroupUserListerControl extends ListerControl
 {
 	protected $group = null;
 	protected $group_id = null;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($parent, $name, $group_id, $options)
 	{
 		$this->group    = Group::create($group_id);
@@ -26,14 +32,24 @@ class GroupUserListerControl extends ListerControl
 			'group_id' => $this->group_id
 		));
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function render()
 	{
 		parent::render();
 		$this->renderFilter();
 		$this->renderBody();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderFilter()
 	{
 		parent::renderFilter();
@@ -44,7 +60,12 @@ class GroupUserListerControl extends ListerControl
 		$template->render();
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderBody()
 	{
 		parent::renderBody();
@@ -54,7 +75,12 @@ class GroupUserListerControl extends ListerControl
 		$template->setFile(dirname(__FILE__) . '/GroupUserListerControl.phtml');
 		$template->render();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentListItem($data_row)
 	{
 		$params = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -80,7 +106,12 @@ class GroupUserListerControl extends ListerControl
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminUserFormSubmitted(NAppForm $form)
 	{
 		$values  = $form->getValues();
@@ -89,7 +120,12 @@ class GroupUserListerControl extends ListerControl
 		$this->group->updateUser($user_id, $values);
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentFilter()
 	{
 		$form = new NAppForm($this, "filter");
@@ -116,7 +152,12 @@ class GroupUserListerControl extends ListerControl
 		$form->setDefaults($this->getFilterArray());
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function filterFormSubmitted(NAppForm $form)
 	{
 		$values     = $form->getValues();
@@ -126,13 +167,23 @@ class GroupUserListerControl extends ListerControl
 		$this->setFilterArray($new_filter);
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getDataCount($filter)
 	{
 		$data = $this->group->getAllUsers($filter);
 		return count($data);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageData($filter)
 	{
 		if (!isset($filter['page'])) {

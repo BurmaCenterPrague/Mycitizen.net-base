@@ -15,12 +15,22 @@
 final class GroupPresenter extends BasePresenter
 {
 	protected $group;
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function startup()
 	{
 		parent::startup();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionDefault($group_id = null)
 	{
 	
@@ -29,7 +39,7 @@ final class GroupPresenter extends BasePresenter
 		
 		if ($query->getQuery("do")=='invitation') return;
 		
-		$this->template->load_js_css_tinymce = true;
+		$this->template->load_js_css_editor = true;
 	
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!is_null($group_id)) {
@@ -135,7 +145,12 @@ final class GroupPresenter extends BasePresenter
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionCreate()
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -149,7 +164,12 @@ final class GroupPresenter extends BasePresenter
 
 		$this->group = $group;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionEdit($group_id = null)
 	{
 		$this->template->load_js_css_jcrop = true;
@@ -186,13 +206,13 @@ final class GroupPresenter extends BasePresenter
 		
 		$this->template->hash = $this->group->getGroupHash();
 		
-		$data                = $this->group->getAvatar();
+		$data = $this->group->getAvatar();
 		
 		$this->template->img_src = $data;
 		$this->template->icon = Group::getImage($this->template->group_id, 'icon');
 		$this->template->large_icon = Group::getImage($this->template->group_id, 'large_icon');
 		
-		$f                   = finfo_open();
+		$f = finfo_open();
 		
 		$size_x = 0;
 		$size_y = 0;
@@ -238,12 +258,17 @@ final class GroupPresenter extends BasePresenter
 		
 		$this->template->mime_type = $image_type;	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChatform()
 	{
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', ''); // circumvented by TinyMCE ->addRule(NForm::FILLED, _t('Please enter some text.'));
-		$form['message_text']->getControlPrototype()->class('tinymce-small');
+		$form['message_text']->getControlPrototype()->class('ckeditor');
 		$form->addProtection(_t('Error submitting form.'));
 		
 		$form->addSubmit('send', _t('Send'));
@@ -255,7 +280,12 @@ final class GroupPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function chatformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -288,7 +318,12 @@ final class GroupPresenter extends BasePresenter
 		));
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentTagform()
 	{
 		$group_id = $this->group->getGroupId();
@@ -296,7 +331,12 @@ final class GroupPresenter extends BasePresenter
 		$form->addComponent(new AddTagComponent("group", $group_id, _t("add new tag")), 'add_tag');
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDefaultgroupuserlister($name)
 	{
 		
@@ -324,7 +364,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDefaultgroupresourcelister($name)
 	{
 		$options = array(
@@ -349,7 +394,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDetailgroupuserlister($name)
 	{
 		
@@ -381,7 +431,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDetailgroupresourcelister($name)
 	{
 		$options = array(
@@ -411,7 +466,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentUserlister($name)
 	{
 		$name= 'groupmemberlister';
@@ -470,7 +530,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentUpdateform()
 	{
 		$visibility = array(
@@ -526,7 +591,12 @@ final class GroupPresenter extends BasePresenter
 		}
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function updateformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -577,7 +647,12 @@ final class GroupPresenter extends BasePresenter
 			'group_id' => $group_id
 		));
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleGroupAdministration($group_id, $values)
 	{
 		$group = Group::create($group_id);
@@ -620,7 +695,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleInsertTag($group_id, $tag_id)
 	{
 		$this->group = Group::create($group_id);
@@ -635,7 +715,12 @@ final class GroupPresenter extends BasePresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleRemoveTag($group_id, $tag_id)
 	{
 		$this->group = Group::create($group_id);
@@ -649,7 +734,12 @@ final class GroupPresenter extends BasePresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleGroupUserInsert($group_id, $user_id)
 	{
 		if (empty($group_id) || empty($user_id)) {
@@ -674,7 +764,12 @@ final class GroupPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleGroupUserRemove($group_id, $user_id)
 	{
 		if (empty($group_id) || empty($user_id)) {
@@ -697,7 +792,12 @@ final class GroupPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleDefaultPage($object_type, $object_id)
 	{
 		$this->group                  = Group::create($object_id);
@@ -717,7 +817,12 @@ final class GroupPresenter extends BasePresenter
 		$this->redirect("this");
 		//$this->presenter->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChatlistergroup($name)
 	{
 		$options = array(
@@ -750,7 +855,12 @@ final class GroupPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMap($name)
 	{
 		$data    = array(
@@ -767,7 +877,12 @@ final class GroupPresenter extends BasePresenter
 		));
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMapedit($name)
 	{
 		$data = array(
@@ -788,6 +903,12 @@ final class GroupPresenter extends BasePresenter
 	}
 	
 ### needed?
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function createComponentGroupadministrator($data_row)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -810,7 +931,12 @@ final class GroupPresenter extends BasePresenter
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminGroupFormSubmitted(NAppForm $form)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -830,7 +956,12 @@ final class GroupPresenter extends BasePresenter
 			$this->redirect("Group:default");
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentReportform()
 	{
 		$types = array(
@@ -850,7 +981,12 @@ final class GroupPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function reportformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -884,7 +1020,12 @@ final class GroupPresenter extends BasePresenter
 			$this->flashMessage(_t("Your report has been received."));
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentNotifyform()
 	{
 		$types = array(
@@ -904,7 +1045,12 @@ final class GroupPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function notifyformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -955,7 +1101,12 @@ final class GroupPresenter extends BasePresenter
 		$this->flashMessage(_t("Your message has been sent to the members of this group."));
 		$this->redirect("this");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isAccessible()
 	{
 		if ($this->getAction() == "default") {
@@ -1010,6 +1161,12 @@ final class GroupPresenter extends BasePresenter
 	*	Processing and receiving return values to unsubscribe from resource.
 	*
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function unsubscriberesourceformSubmitted(NAppForm $form)
 	{
 	
@@ -1079,7 +1236,12 @@ final class GroupPresenter extends BasePresenter
 		unset($resource);
 	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleRemoveAvatar($group_id = null)
 	{
 		if (Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
@@ -1100,6 +1262,11 @@ final class GroupPresenter extends BasePresenter
 	}
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleCrop() {
 		$query = NEnvironment::getHttpRequest();
 
@@ -1160,6 +1327,11 @@ final class GroupPresenter extends BasePresenter
 	}
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleInvitation() {
 	
 		$query = NEnvironment::getHttpRequest();
@@ -1217,6 +1389,12 @@ final class GroupPresenter extends BasePresenter
 		}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='grouplister';
@@ -1244,6 +1422,12 @@ final class GroupPresenter extends BasePresenter
 	/**
 	*	For the moderation of chat messages
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleRemoveMessage($message_id,$group_id)
 	{
 		//if (Auth::MODERATOR<=Auth::isAuthorized($object_type,$object_id)) $this->terminate();

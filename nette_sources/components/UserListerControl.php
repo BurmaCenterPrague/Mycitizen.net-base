@@ -19,6 +19,12 @@ class UserListerControl extends ListerControl
 	
 	protected $user_lister_type = self::USERLISTER_NORMAL;
 	protected $object_id = null;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($parent, $name, $options)
 	{
 		parent::__construct($parent, $name, $options);
@@ -28,13 +34,24 @@ class UserListerControl extends ListerControl
 			$this->object_id        = $options['resource_id'];
 		}
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function render()
 	{
 		parent::render();
 		$this->renderFilter();
 		$this->renderBody();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderFilter()
 	{
 		parent::renderFilter();
@@ -48,7 +65,12 @@ class UserListerControl extends ListerControl
 		$template->render();
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderBody()
 	{
 		parent::renderBody();
@@ -61,7 +83,12 @@ class UserListerControl extends ListerControl
 		}
 		$template->render();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentListItem($data_row)
 	{
 		$params    = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -89,7 +116,12 @@ class UserListerControl extends ListerControl
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminUserFormSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -99,7 +131,12 @@ class UserListerControl extends ListerControl
 		$user->save();
 		$this->getPresenter()->redirect("User:default");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentFilter()
 	{
 		$form = new NAppForm($this, "filter");
@@ -126,7 +163,12 @@ class UserListerControl extends ListerControl
 		$form->setDefaults($this->getFilterArray());
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function filterFormSubmitted(NAppForm $form)
 	{
 		$values     = $form->getValues();
@@ -136,13 +178,23 @@ class UserListerControl extends ListerControl
 		$this->setFilterArray($new_filter);
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getDataCount($filter)
 	{
 		$data = Administration::getAllUsers($filter);
 		return count($data);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageData($filter)
 	{
 		if (!isset($filter['page'])) {

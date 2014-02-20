@@ -21,6 +21,12 @@ abstract class ListerControl extends NControl {
 	protected $refresh_path = "Homepage:default";
 	protected $refresh_path_params = array();
 	protected $template_source = "ListerControl.phtml";
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($parent,$name,$options = array()) {
 		parent::__construct($parent,$name);
 		if(isset($options['itemsPerPage'])) {
@@ -38,16 +44,34 @@ abstract class ListerControl extends NControl {
         }
 		$this->generateList();
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function render() {
 		$this->renderFilter();
 		$this->renderBody();
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderFilter() {
 		$template = $this->template;
 		$template->data = $this->data;
 		$template->source_template = 'ListerControl_filter.phtml';
 		//$template->setFile(dirname(__FILE__) . '/ListerControl_filter.phtml');
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderBody() {
 		$template = $this->template;
 		if($this->getParent()->name !== $this->presenter->name) {
@@ -94,12 +118,30 @@ abstract class ListerControl extends NControl {
          }
       }
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setItemsCount($count) {
 		$this->itemscount = $count;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setItemsPerPage($count) {
 		$this->itemsperpage = $count;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getMaxPage() {
 		$maxpage = (int) ($this->itemscount/$this->itemsperpage);
         if($this->itemscount % $this->itemsperpage != 0) {
@@ -107,6 +149,12 @@ abstract class ListerControl extends NControl {
         }
 		return $maxpage;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setCurrentPage($page) {
 		$maxpage = $this->getMaxPage();
 		if($page >= $maxpage) {
@@ -117,24 +165,44 @@ abstract class ListerControl extends NControl {
 		}
 		$this->currentpage = $page;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageFirstIndex($page) {
 		$itemsonpage = $this->itemsperpage;
 		return $itemsonpage * ($page - 1);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function generateList() {
         $this->data = $this->getPageData($this->getFilterArray());
         foreach($this->data as $data_row) {
             $this->createComponentListItem($data_row);
         }
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setFilterArray($filter) {
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		$session->filterdata = $filter;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getFilterArray() {
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if(empty($session->filterdata)) {
@@ -143,7 +211,12 @@ abstract class ListerControl extends NControl {
 		$filter = $session->filterdata;
 		return $filter;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleChangePage($page) {
 		$filter = $this->getFilterArray();
 		$this->setCurrentPage($page);
@@ -154,6 +227,12 @@ abstract class ListerControl extends NControl {
 		//$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function pageToLimit($page) {
 		if(!empty($page)) {
 			$pageFirstIndex = $this->getPageFirstIndex($page);
@@ -167,7 +246,12 @@ abstract class ListerControl extends NControl {
 	abstract public function getPageData($filter);
 	
 	abstract public function getDataCount($filter);
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setRefreshPath($path,$params = array()) {
 		$this->refresh_path = $path;
 		$this->refresh_path_params = $params;

@@ -67,6 +67,12 @@ protected $cached;
 *
 * @param string $mode The mode, either debug or production
 */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function __construct($mode = 'debug', $realm = 'Rest Server')
 {
 $this->mode = $mode;
@@ -75,6 +81,12 @@ $dir = dirname(str_replace($_SERVER['DOCUMENT_ROOT'], '', $_SERVER['SCRIPT_FILEN
 $this->root = ($dir == '.' ? '' : $dir . '/');
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function __destruct()
 {
 if ($this->mode == 'production' && !$this->cached) {
@@ -86,12 +98,24 @@ file_put_contents($this->cacheDir . '/urlMap.cache', serialize($this->map));
 }
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function refreshCache()
 {
 $this->map = array();
 $this->cached = false;
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function unauthorized($ask = false)
 {
 if ($ask) {
@@ -101,6 +125,11 @@ throw new RestException(401, "You are not authorized to access this resource.");
 }
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function handle()
 {
 $this->url = $this->getPath();
@@ -141,6 +170,12 @@ $this->handleError(404);
 }
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function addClass($class, $basePath = '')
 {
 $this->loadCache();
@@ -162,11 +197,23 @@ $this->generateMap($class, $basePath);
 }
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function addErrorClass($class)
 {
 $this->errorClasses[] = $class;
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function handleError($statusCode, $errorMessage = null)
 {
 	$method = "handle$statusCode";
@@ -195,6 +242,11 @@ public function handleError($statusCode, $errorMessage = null)
 	$this->sendData(array('error' => array('code' => $statusCode, 'message' => $message)));
 }
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+ */
 protected function loadCache()
 {
 if ($this->cached !== null) {
@@ -221,6 +273,11 @@ apc_delete('urlMap');
 }
 }
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+ */
 protected function findUrl()
 {
 $urls = $this->map[$this->method];
@@ -275,6 +332,11 @@ return $call;
 }
 }
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+ */
 protected function generateMap($class, $basePath)
 {
 
@@ -311,6 +373,12 @@ $this->map[$httpMethod][$url] = $call;
 }
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function getPath()
 {
 $path = substr(preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']), 1);
@@ -324,6 +392,12 @@ $path = preg_replace('/\.(\w+)$/i', '', $path);
 return $path;
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function getMethod()
 {
 $method = $_SERVER['REQUEST_METHOD'];
@@ -336,6 +410,12 @@ $method = 'DELETE';
 return $method;
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function getFormat()
 {
 $format = RestFormat::PLAIN;
@@ -368,6 +448,12 @@ $format = RestFormat::JSON;
 }
 return $format;
 }
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function getData()
 {
 $data = file_get_contents('php://input');
@@ -385,6 +471,11 @@ return $data;
 }
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function sendData($data)
 {
 header("Cache-Control: no-cache, must-revalidate");
@@ -450,6 +541,12 @@ if($this->format == RestFormat::PLAIN || $this->format == RestFormat::HTML) {
 echo $data;
 }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function setStatus($code)
 {
 $code .= ' ' . $this->codes[strval($code)];
@@ -514,7 +611,11 @@ break;
 return $new_json;
 }
 
-
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+ */
 private $codes = array(
 '100' => 'Continue',
 '200' => 'OK',
@@ -558,6 +659,12 @@ private $codes = array(
 class RestException extends Exception
 {
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 public function __construct($code, $message = null)
 {
 parent::__construct($message, $code);

@@ -25,10 +25,22 @@ class MenuControl extends NControl {
 	protected $rows = 4;
 	protected $orientation = "horizontal";
 	protected $styletemplate = "MenuControl_classic";
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($parent,$name,$menu_data) {
 		parent::__construct($parent,$name);
 		$this->prepareData($menu_data);
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function render() {
       $template = $this->template;
 		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -47,6 +59,12 @@ class MenuControl extends NControl {
 		$template->data = $this->menudata;
         $template->render();
     }
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function prepareData($m_data) {
 		$data = array();
 		$parent_sort = array();
@@ -105,6 +123,12 @@ class MenuControl extends NControl {
 		//array_multisort($parent_sort,SORT_ASC,$index_sort,SORT_ASC,$key_sort,SORT_ASC,$data);
 		$this->menudata = $data;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setStyle($style) {
 		if($style == $this::MENU_STYLE_CLASSIC) {
 			$this->styletemplate = "MenuControl_classic";
@@ -116,6 +140,12 @@ class MenuControl extends NControl {
 			$this->styletemplate = "MenuControl_classic";	
 		}
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setOrientation($or) {
 		if($or == $this::MENU_ORIENTATION_VERTICAL) {
 			$this->orientation = "vertical";
@@ -123,6 +153,12 @@ class MenuControl extends NControl {
 			$this->orientation = "horizontal";
 		}
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setTableDimensions($row = null,$col = null) {
 		if(!is_null($row) && is_null($col)) {
 			$this->rows = $row;

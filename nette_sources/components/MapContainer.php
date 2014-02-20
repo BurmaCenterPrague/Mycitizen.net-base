@@ -15,11 +15,23 @@
 class MapContainer extends NFormControl {
 	protected $defaults = array();
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($name, $label) {
 		parent::__construct($name, $label);
 		$this->monitor('NForm');
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function getControl() {
       $control = parent::getControl();
 
@@ -57,16 +69,32 @@ class MapContainer extends NFormControl {
 
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setValue($values) {
    		$this->value = $values;
     	$this->defaults = json_encode($values);
 	}
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getValue() {
 		$data = json_decode($this->value['mapdata'],true);
 		return $data;
 	}
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function attached($obj) {
 		parent::attached($obj);
 

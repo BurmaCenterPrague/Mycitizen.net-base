@@ -16,11 +16,23 @@ class Group extends BaseModel {
 	
 	private $group_data;
 	private $numeric_id;
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function create($group_id = null) {
 			return new Group($group_id);
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($group_id) {
 		if(!empty($group_id)) {
 //			$result = dibi::fetchAll("SELECT * FROM `group` WHERE `group_id` = %i",$group_id);
@@ -42,12 +54,24 @@ class Group extends BaseModel {
 		return true;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setGroupData($data) {
 		foreach($data as $key=>$value) {
      		$this->group_data[$key] = $value;
     	}
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getGroupLanguage($group_id)
 	{
 		$result = dibi::fetchSingle("SELECT `group_language` FROM `group` WHERE `group_id` = %i ", $group_id);
@@ -58,7 +82,11 @@ class Group extends BaseModel {
 	}
 
 
-
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getGroupData() {
 		$data = $this->group_data;
 		
@@ -76,6 +104,12 @@ class Group extends BaseModel {
 
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function save() {
 		try {
 			dibi::begin();
@@ -96,36 +130,72 @@ class Group extends BaseModel {
 		return true;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function delete($group_id) {
 		dibi::query("DELETE FROM `group` WHERE `group_id` = %i",$group_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getGroupId() {
 		return $this->numeric_id;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getVisibilityLevel() {
       return $this->group_data['group_visibility_level'];
    }
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getAccessLevel() {
 		return $this->group_data['group_access_level'];
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function insertTag($tag_id) {
 		$registered_tags = $this->getTags();
 		if(!isset($registered_tags[$tag_id])) {
 			dibi::query('INSERT INTO `group_tag` (`tag_id`,`group_id`) VALUES (%i,%i)',$tag_id,$this->numeric_id);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeTag($tag_id) {
 		$registered_tags = $this->getTags();
       if(isset($registered_tags[$tag_id])) {
          dibi::query('DELETE FROM `group_tag` WHERE `tag_id` = %i AND `group_id` = %i',$tag_id,$this->numeric_id);
       }
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getTags() {
 		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `group_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
 		$array = array();
@@ -135,8 +205,13 @@ class Group extends BaseModel {
 		}		
 		return $array;
 	}
-	
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getName($group_id)
 	{
 		$result = dibi::fetchSingle("SELECT `group_name` FROM `group` WHERE `group_id` = %i", $group_id);
@@ -149,6 +224,12 @@ class Group extends BaseModel {
 	/**
 	*		Groups tags according to their parent and sorts them by parent, then child
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function groupSortTags($tags) {
 
 		uasort($tags, function($a,$b){
@@ -189,7 +270,12 @@ class Group extends BaseModel {
 		
 		return $tags;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getAllUsers($filter) {
     	$limit = null;
     	$count = null;
@@ -223,7 +309,12 @@ class Group extends BaseModel {
       }
       return $users;
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getUserAccessLevel($user_id) {
 		$result = dibi::fetchAll("SELECT `group_user_access_level` FROM `group_user` WHERE `group_id` = %i AND `user_id` = %i",$this->numeric_id,$user_id);
 		if(!empty($result[0])) {
@@ -233,7 +324,12 @@ class Group extends BaseModel {
 		}
 		return 0;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function userIsRegistered($user_id) {
 		$result = dibi::fetchAll("SELECT `user_id` FROM `group_user` WHERE `group_id` = %i AND `user_id` = %i",$this->numeric_id,$user_id);
 		if(!empty($result)) {
@@ -241,7 +337,12 @@ class Group extends BaseModel {
 		} 
       return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function updateUser($user_id,$data) {
 		try {
          dibi::begin();
@@ -258,7 +359,12 @@ class Group extends BaseModel {
       }
       dibi::commit();	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeUser($user_id) {
       		try {
          		dibi::begin();
@@ -271,15 +377,32 @@ class Group extends BaseModel {
       		}
       		dibi::commit();
    	}
-   	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function incrementVisitor() {
        $result = dibi::query("UPDATE `group` SET `group_viewed` = group_viewed+1 WHERE `group_id` = %i",$this->numeric_id);
    }
-   
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getType() {
       return 2;
    }
-   
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getTopGroups($count = 10) {
 		$user = NEnvironment::getUser()->getIdentity();
       if(!empty($user)) {
@@ -297,7 +420,12 @@ class Group extends BaseModel {
       return $result;
 
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getOwner() {
 		$result = dibi::fetchSingle("SELECT `group_author` FROM `group` WHERE `group_id` = %i",$this->numeric_id);
 
@@ -307,7 +435,12 @@ class Group extends BaseModel {
 		}
 		return null;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function hasPosition() {
       $result = dibi::fetchSingle("SELECT `group_id` FROM `group` WHERE `group_id` = %i AND `group_position_x` IS NOT NULL AND `group_position_y` IS NOT NULL",$this->numeric_id);
       if(!empty($result)) {
@@ -316,6 +449,12 @@ class Group extends BaseModel {
       return false;
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function isActive()
 	{
 		$result = dibi::fetchSingle("SELECT `group_status` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
@@ -326,7 +465,12 @@ class Group extends BaseModel {
 		}
 		return false;
 	}
-	   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function bann() {
     	if(Auth::ADMINISTRATOR == Auth::isAuthorized(2,$this->numeric_id)) {
     		dibi::query("UPDATE `group` SET `group_status` = '0' WHERE `group_id` = %i",$this->numeric_id);
@@ -335,32 +479,67 @@ class Group extends BaseModel {
     	}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getLastActivity() {
       $result = dibi::fetchSingle("SELECT `group_last_activity` FROM `group` WHERE `group_id` = %i",$this->numeric_id);
       return $result;
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function setLastActivity() {
       dibi::query("UPDATE `group` SET `group_last_activity` = NOW() WHERE `group_id` = %i",$this->numeric_id);
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getSubscribedResources() {
 		$group_id = $this->numeric_id;
         $result = dibi::fetchAll("SELECT * FROM `resource_user_group` LEFT JOIN `resource` ON `resource_user_group`.`resource_id` = `resource`.`resource_id` WHERE `resource`.`resource_type` IN (2,3,4,5,6) AND `resource`.`resource_status` = '1' AND `resource_user_group`.`member_id` = %i AND `resource_user_group`.`member_type` = 2",$group_id);
       return $result;
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getAvatar()
 	{
 		$portrait = dibi::fetchSingle("SELECT `group_portrait` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
 		return $portrait;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeAvatar()
 	{
 		dibi::query("UPDATE `group` SET `group_portrait` = NULL WHERE `group_id` = %i", $this->numeric_id);
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function groupHasIcon()
 	{
 		$result = dibi::fetchSingle("SELECT `group_icon` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
@@ -370,30 +549,56 @@ class Group extends BaseModel {
 		return false;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `group_icon` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
 		return $portrait;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getBigIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `group_largeicon` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
 		return $portrait;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getGroupHash()
 	{
 		$hash = dibi::fetchSingle("SELECT `group_hash` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
 		return $hash;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeIcons()
 	{
 		dibi::query("UPDATE `group` SET `group_icon` = NULL WHERE `group_id` = %i", $this->numeric_id);
 		dibi::query("UPDATE `group` SET `group_largeicon` = NULL WHERE `group_id` = %i", $this->numeric_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isMember($user_id) {
 		
 		$group_id = $this->numeric_id;
@@ -406,6 +611,12 @@ class Group extends BaseModel {
 		return false;
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setMember($user_id) {
 	
 		$group_id = $this->numeric_id;
@@ -420,6 +631,12 @@ class Group extends BaseModel {
 		
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getImage($group_id,$size,$title=null) {
 	
 		$width=20;
@@ -444,6 +661,12 @@ class Group extends BaseModel {
 
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function saveImage($id) {
 	
 		$object = Group::create($id);

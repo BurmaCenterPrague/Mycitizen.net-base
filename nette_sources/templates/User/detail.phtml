@@ -293,5 +293,72 @@
 		{/if}
 	</div>
 {/if}
+
+<script>
+	$(document).ready(function() {
+		CKEDITOR.replace( 'message_text', {
+			height: '200px',
+			width: '740px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'p strong em; a[!href]; del ins; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]',
+			toolbarGroups: [
+				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+				{ name: 'links'},
+				{ name: 'insert'},
+				{ name: 'styles'},
+				{ name: 'colors'}
+			],
+			extraPlugins: 'smiley'
+		});
+
+
+		$('blockquote').css({ "cursor":"pointer"});
+		$('[id^=reply_]').click(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			var elements = document.getElementsByName( 'message_text' );
+			var instance_name = elements[0].getAttribute( 'id' );
+			var quote = $('[id$='+id+'_text]').html();
+			quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
+			var author_name = $('[id$='+id+'_author]').html().trim();
+			var author_id = $('[id$='+id+'_author]').attr('rel');
+			var date = $('[id$='+id+'_date]').html();
+			var quote_shortened = quote.substr(0,300);
+			if (quote_shortened != quote ) { quote_shortened += '...'; }
+			$('#frmmessageform-friend_id').val(author_id);
+			var reply = '<br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
+			content = reply;
+			//editor.setContent(content);
+			CKEDITOR.instances[instance_name].insertHtml(content);
+			$('html, body').animate({
+				scrollTop: $("#message_top_anchor").offset().top
+			}, 2000);
+			CKEDITOR.instances[instance_name].focus();
+		});
+	
+		$('blockquote').click(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			$('html, body').animate({
+				scrollTop: $("#chat_message_"+id).offset().top
+			}, 'normal');
+		});
+	
+		$('blockquote').mouseover(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			$("#chat_message_"+id).css({ "border-left":"solid 4px #E08E1B", "padding-left":"20px"});
+			if ($("#chat_message_"+id).css("border-left")) {
+				$(this).css('cursor','pointer');
+			};
+		});
+
+		$('blockquote').mouseout(function(){
+			var id = parseInt($(this).attr('id').substr(-5,5));
+			$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0px"});
+		});
+	
+	});
+
+</script>
 </div>
 {/block}

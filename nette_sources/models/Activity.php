@@ -14,7 +14,6 @@
 
 class Activity extends BaseModel {
 	const USER_JOINED = 1;
-	const FRIENDSHIP_REQUEST = 1;
 	const FRIENDSHIP_YES = 2;
 	const FRIENDSHIP_NO = 3;
 	const GROUP_JOINED = 4;
@@ -32,7 +31,7 @@ class Activity extends BaseModel {
 	const GROUP_LEFT = 16;
 	const RESOURCE_UNSUBSCRIBED = 17;
 	const LOGIN_FAILED = 18;
-
+	const FRIENDSHIP_REQUEST = 19;
 	
 
 	/**
@@ -122,17 +121,29 @@ class Activity extends BaseModel {
 		
 		// remove multiple notifications about chat messages and failed logins (starting from latest)
 		if (isset($data) && is_array($data)) {
-			foreach ($data as &$row) {
-				if ($row['activity'] == Activity::GROUP_CHAT || $row['activity'] == Activity::RESOURCE_COMMENT || $row['activity'] == Activity::LOGIN_FAILED) {
+			foreach ($data as $row) {
+				if ($row['activity'] == Activity::GROUP_CHAT || $row['activity'] == Activity::RESOURCE_COMMENT || $row['activity'] == Activity::LOGIN_FAILED || $row['activity'] == Activity::USER_UPDATED || $row['activity'] == Activity::GROUP_UPDATED || $row['activity'] == Activity::RESOURCE_UPDATED) {
 					foreach ($data as $key=>$row2) {
-						if ($row2['activity_id'] != $row['activity_id'] && $row2['activity'] == $row['activity'] && $row2['object_id'] == $row['object_id']) {
+						if ($row2['activity_id'] < $row['activity_id'] && $row2['activity'] == $row['activity'] && $row2['object_id'] == $row['object_id'] && strtotime("midnight",$row2['timestamp']) == strtotime("midnight",$row['timestamp'])) {
 							unset($data[$key]);
 						}
 					}
 				}
 			}
 		}
-		
+
+		// remove notifications about items that date before making connection (starting from latest)
+		if (isset($data) && is_array($data)) {
+			foreach ($data as $row) {
+				if ($row['activity'] == Activity::FRIENDSHIP_YES || $row['activity'] == Activity::GROUP_JOINED || $row['activity'] == Activity::RESOURCE_SUBSCRIBED) {
+					foreach ($data as $key=>$row2) {
+						if ($row2['activity_id'] != $row['activity_id'] &&  $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT &&   $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED  && $row2['object_id'] == $row['object_id'] && $row2['timestamp']<$row['timestamp']) {
+							unset($data[$key]);
+						}
+					}
+				}
+			}
+		}
 		
   		return $data;
   	}

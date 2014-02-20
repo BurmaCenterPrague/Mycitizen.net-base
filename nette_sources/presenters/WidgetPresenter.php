@@ -15,11 +15,22 @@
 final class WidgetPresenter extends BasePresenter
 {
 	private $object_id = null;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function startup()
 	{
 		parent::startup();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionPublicComponents($component_type, $object_type, $object_id)
 	{
 		$this->object_id = $object_id;
@@ -49,7 +60,11 @@ final class WidgetPresenter extends BasePresenter
 		$this->template->object_id = $object_id;
 	}
 
-	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentGroupmembers($name)
 	{
 		$options = array(
@@ -69,7 +84,12 @@ final class WidgetPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentUserresources($name)
 	{
 		$options = array(
@@ -90,7 +110,12 @@ final class WidgetPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentGroupresources($name)
 	{
 		$options = array(
@@ -111,7 +136,12 @@ final class WidgetPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMembergroups($name)
 	{
 		$options = array(
@@ -132,7 +162,12 @@ final class WidgetPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentResourcemembers($name)
 	{
 		$options = array(
@@ -153,7 +188,12 @@ final class WidgetPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionUserResource($resource_id = null)
 	{
 		if (empty($resource_id)) {
@@ -175,7 +215,12 @@ final class WidgetPresenter extends BasePresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionGroupResource($resource_id = null)
 	{
 		if (empty($resource_id)) {
@@ -197,8 +242,12 @@ final class WidgetPresenter extends BasePresenter
 			}
 		}
 	}
-	
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChatwidget($name)
 	{
 		$query = NEnvironment::getHttpRequest();

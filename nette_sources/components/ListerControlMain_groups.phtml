@@ -16,6 +16,10 @@
 <div class="lister-body">
    {snippet list_body}
 
+	{if isset($template_variables['map_used']) && $template_variables['map_used']}
+		<img src="/images/icon-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
+	{/if}
+
     <div class="list-header-wrapper">
         <div class="list-header-name">
 		{if isset($data) && isset($template_variables['show_extended_columns']) }
@@ -176,11 +180,10 @@
                         {$control[$formName]['send']->control}
                      </div>
                      {control $formName end}
-
                      {else}
-								{ifset $template_variables['show_extended_columns']}
-                        			<div class="list-body-links">{$row['links']}</div>
-								{/if}
+						{ifset $template_variables['show_extended_columns']}
+							<div class="list-body-links">{$row['links']}</div>
+						{/if}
                      {/if}
 
 						{else}
@@ -224,8 +227,8 @@
 
 {else}
 	<div class="not-found">
-	{if $active_filter}
-		{_"Nothing found."} <a id="filter_box_a" title="{_"Change the filter"}" href="#filter_container"><b class="icon-filter"></b></a>
+	{if $active_filter && !isset($template_variables['recommendations']) }
+		{_"Nothing found."}
 	{else}
 		{_"Nothing to display"}
 	{/if}

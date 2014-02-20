@@ -35,6 +35,12 @@ class GettextTranslator extends NObject implements ITranslator
     * @param string
     * @return void
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function __construct($filename, $locale = NULL)
    {
       $this->locale = $locale;
@@ -48,6 +54,12 @@ class GettextTranslator extends NObject implements ITranslator
     * @param  int    count (positive number)
     * @return string
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function translate($message, $count = 1)
    {
       $message = (string) $message;
@@ -192,6 +204,12 @@ class Word extends NObject
     * @param string|array
     * @return void
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function __construct($message, $translation)
    {
       $this->message = $message;
@@ -202,6 +220,12 @@ class Word extends NObject
    /**
     * @return string
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getTranslation($form = 0)
    {
       return is_array($this->translation) ? $this->translation[$form] : $this->translation;
@@ -211,6 +235,12 @@ class Word extends NObject
    /**
     * @return string
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function getMessage($form = 0)
    {
       return is_array($this->message) ? $this->message[$form] : $this->message;
@@ -223,6 +253,12 @@ class Word extends NObject
     * @param  int     form of translation
     * @return string
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function translate($form = 0)
    {
       $msg = $this->getTranslation($form);

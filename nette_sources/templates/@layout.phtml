@@ -20,12 +20,12 @@
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css?a" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
+	
 {ifset $load_js_css_tree}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
 {/if}
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.ui.css" />
 {ifset $load_js_css_datetimepicker}
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.calendarPicker.min.css" />
 {/if}
@@ -38,8 +38,8 @@
 {/if}
 {/if}
 {ifset $load_external_js_css}
-		<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-		<link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+		<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+		<link href='//fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
 {else}
 		<script type="text/javascript" src="{$baseUri}js/jquery-1.10.2.min.js"></script>
 		<link href='{$baseUri}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
@@ -47,7 +47,6 @@
 		<script type="text/javascript" src="{$baseUri}js/jquery.nette.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/base-functions.min.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.json-2.2.min.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/jquery.ui.core.min.js"></script>
 		<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
 {ifset $load_js_css_zxcvbn}
 	{ifset $load_external_js_css}
@@ -57,55 +56,20 @@
 	{/if}
 {/if}
 
-{ifset $load_js_css_tinymce}
-	{ifset $use_tinymce_compressor}
-		<script src="{$baseUri}js/tinymce/tinymce.gzip.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/jquery-ui-1.10.4.custom.min.js"></script>
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery-ui-1.10.4.custom.min.css" />
+{ifset $load_fullcalendar}
+	{ifset $load_external_js_css}
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
+		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />		
 	{else}
-		<script src="{$baseUri}js/tinymce/tinymce.min.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/fullcalendar.min.js"></script>
+		<link rel="stylesheet" media="screen" href="{$baseUri}css/fullcalendar.css" />		
 	{/if}
-		<script>
-		tinymce.init({
-			selector: "textarea.tinymce",
-			theme: "modern",
-			width: 800,
-			height: 300,
-			resize: "both",
-			valid_elements : "a[href|!target=_blank|!rel=nofollow],strong/b,div[style|align],br,img[src|alt|height|width|style],lang,dir,span[style],p[style],ul,ol,li[type],hr,h2,h3,h4,i,em,u,code,strike,sub,sup,table,tr,td[colspan],th",
-			valid_styles : { '*' : 'color,font-size,font-weight,font-style,text-decoration,align,float' },
-			plugins: [
-				 "advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
-				 "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
-				 "save table contextmenu directionality emoticons template paste textcolor"
-		   ],
-		   content_css: "/css/content.min.css",
-		   toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons",
-		   relative_urls: false,
-		   disk_cache : true,
-		   button_tile_map: true
-		 });
-		 
-		tinymce.init({
-			selector: "textarea.tinymce-small",
-			theme: "modern",
-			width: 740,
-			height: 200,
-		    statusbar: false,
-		    menubar: false,
-			resize: "both",
-			valid_elements : "a[href|!target=_blank|!rel=nofollow],strong/b,div[style|align],br,img,p[style],img[src|alt],lang,dir,span[style],blockquote[id]",
-			valid_styles : { '*' : 'color,font-size,font-weight,font-style,text-decoration,align,float' },
-			plugins: [
-				 "advlist autolink link charmap preview hr pagebreak",
-				 "code fullscreen nonbreaking",
-				 "contextmenu directionality emoticons textcolor"
-		   ],
-		   content_css: "/css/content.min.css,/css/tinymce-own.min.css",
-		   toolbar: "undo redo | bold italic forecolor | alignleft aligncenter alignright alignjustify | link image charmap emoticons",
-		   relative_urls: false,
-		   disk_cache : true,
-		   button_tile_map: true
-		 });
-		</script>
+{/if}
+		
+{ifset $load_js_css_editor}
+		<script src="{$baseUri}js/ckeditor/ckeditor.js"></script>
 {/if}
 
 {ifset $load_js_css_jcrop}
@@ -239,7 +203,9 @@
 						<div class="hidden-menu" style="display:none; opacity:0.00;">
 						<div class="fading">
 							<a href="{link User:edit, $my_id}"  class="button" >{_"Edit profile"}</a>
+							{if !isset($homepage) || !$homepage}
 							<a href="#activity_box" class="button" id="show_activity">{_"Recent activity"}</a>
+							{/if}
 							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
 						</div>
 						</div>
@@ -262,12 +228,11 @@ $(function() {
 	});
 });
 </script>
-
-<div id="activity_box" class="activity-box" style="display:none;">
-	<h2>{_"Recent Activity"}</h2>
-	<div id="load-more-1">
-	</div>
-</div>
+					<div id="activity_box" class="activity-box" style="display:none;">
+						<h2>{_"Recent Activity"}</h2>
+						<div id="load-more-1">
+						</div>
+					</div>
 				{else}
 					<div>
 						<a href="{link User:login}" class="button" >{_"Sign in"}</a>

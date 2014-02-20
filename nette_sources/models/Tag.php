@@ -16,12 +16,23 @@ class Tag extends BaseModel
 {
 	protected $numeric_id;
 	protected $tag_data;
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function create($tag_id = null)
 	{
 		return new Tag($tag_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function __construct($tag_id)
 	{
 		if (!empty($tag_id)) {
@@ -40,20 +51,35 @@ class Tag extends BaseModel
 		}
 		return true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setTagData($data)
 	{
 		foreach ($data as $key => $value) {
 			$this->tag_data[$key] = $value;
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getTagData()
 	{
 		$data = $this->tag_data;
 		return $data;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getParentTag()
 	{
 		if ($this->tag_data['tag_parent_id'] != 0) {
@@ -62,7 +88,12 @@ class Tag extends BaseModel
 		}
 		return null;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function save()
 	{
 		try {
@@ -94,17 +125,32 @@ class Tag extends BaseModel
 		dibi::commit();
 		return true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getTagId()
 	{
 		return $this->numeric_id;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getName()
 	{
 		return $this->tag_data['tag_name'];
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPath()
 	{
 		$parent = $this->getParentTag();
@@ -116,7 +162,12 @@ class Tag extends BaseModel
 		}
 		return array_reverse($path);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getIdWithPath()
 	{
 		$parent = $this->getParentTag();
@@ -134,7 +185,13 @@ class Tag extends BaseModel
 		}
 		return array_reverse($path);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getTreeArray()
 	{
 		$result = dibi::fetchAll("SELECT * FROM `tag` ORDER BY `tag_parent_id`,`tag_position`,`tag_id`");
@@ -189,8 +246,13 @@ class Tag extends BaseModel
 		
 		return $tag_array;
 	}
-	
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getParentTree($tag_id)
 	{
 		$tree      = self::getTreeArray();
@@ -211,12 +273,24 @@ class Tag extends BaseModel
 		}
 		return $tags;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function delete($tag_id)
 	{
 		dibi::query("DELETE FROM `tag` WHERE `tag_id` = %i", $tag_id);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function remove($tag_id)
 	{
 		$tag = Tag::create($tag_id);

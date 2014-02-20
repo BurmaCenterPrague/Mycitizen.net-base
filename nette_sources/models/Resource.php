@@ -17,11 +17,23 @@ class Resource extends BaseModel {
 	private $resource_data;
 	private $numeric_id;
 	private $parent_numeric_id = null;
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function create($resource_id = null) {
 		return new Resource($resource_id);
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($resource_id) {
 		if(!empty($resource_id)) {
 			$result = dibi::fetchAll("SELECT * FROM `resource` WHERE `resource_id` = %i",$resource_id);
@@ -43,6 +55,12 @@ class Resource extends BaseModel {
 		return true;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setResourceData($data) {
 		if(isset($data['resource_parent_id'])) {
 			unset($data['resource_parent_id']);
@@ -52,6 +70,12 @@ class Resource extends BaseModel {
     	}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getResourceData() {
 		
 		$data = $this->resource_data;
@@ -78,6 +102,12 @@ class Resource extends BaseModel {
 		return $data;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function save() {
 		try {
 			dibi::begin();
@@ -104,15 +134,32 @@ class Resource extends BaseModel {
 		dibi::commit();
 		return true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setParent($parent_id) {
 		$this->parent_numeric_id = $parent_id;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getParentId() {
 		return $this->parent_numeric_id;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getParent() {
 		if(!is_null($this->parent_numeric_id)) {
 			$resource = Resource::create($this->parent_numeric_id);
@@ -121,32 +168,63 @@ class Resource extends BaseModel {
 		return null;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function delete($resource_id) {
 		dibi::query("DELETE FROM `resource` WHERE `resource_id` = %i",$resource_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getResourceId() {
 		return $this->numeric_id;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getVisibilityLevel() {
       return $this->resource_data['resource_visibility_level'];
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function insertTag($tag_id) {
 		$registered_tags = $this->getTags();
 		if(!isset($registered_tags[$tag_id])) {
 			dibi::query('INSERT INTO `resource_tag` (`tag_id`,`resource_id`) VALUES (%i,%i)',$tag_id,$this->numeric_id);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeTag($tag_id) {
 		$registered_tags = $this->getTags();
       if(isset($registered_tags[$tag_id])) {
          dibi::query('DELETE FROM `resource_tag` WHERE `tag_id` = %i AND `resource_id` = %i',$tag_id,$this->numeric_id);
       }
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getTags() {
 		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `resource_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `resource_id` = %i",$this->numeric_id);
 		// ORDER BY (SELECT `resource_parent_id` FROM `resource` r LEFT JOIN `resource_tag` rt ON (r.`resource_id` = rt.`resource_id`) ORDER BY `resource`.`resource_id` ASC LIMIT 1), t.`tag_name` ASC
@@ -157,8 +235,13 @@ class Resource extends BaseModel {
 		}		
 		return $array;
 	}
-	
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getName($resource_id)
 	{
 		$result = dibi::fetchSingle("SELECT `resource_name` FROM `resource` WHERE `resource_id` = %i", $resource_id);
@@ -170,8 +253,10 @@ class Resource extends BaseModel {
 	
 	
 	/**
-	*		Groups tags according to their parent and sorts them by parent, then child
-	*/
+	 *	Groups tags according to their parent and sorts them by parent, then child.
+	 *	@param
+	 *	@return
+	 */
 	public function groupSortTags($tags) {
 	
 		uasort($tags, function($a,$b){
@@ -212,7 +297,12 @@ class Resource extends BaseModel {
 		
 		return $tags;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getAllMembers($filter) {
       $limit = null;
       $count = null;
@@ -261,7 +351,12 @@ class Resource extends BaseModel {
       }
       return $members;
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getUserAccessLevel($user_id) {
 		$result = dibi::fetchAll("SELECT `resource_user_group_access_level` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_id` = %i AND `member_type` = 1",$this->numeric_id,$user_id);
 		if(!empty($result[0])) {
@@ -270,7 +365,12 @@ class Resource extends BaseModel {
 		}
 		return 0;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getGroupAccessLevel($group_id) {
       $result = dibi::fetchAll("SELECT `resource_user_group_access_level` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_id` = %i AND `member_type` = 2",$this->numeric_id,$group_id);
       if(!empty($result[0])) {
@@ -279,7 +379,12 @@ class Resource extends BaseModel {
       }
       return 0;
    }
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function userIsRegistered($user_id) {
 		$result = dibi::fetchAll("SELECT `member_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_id` = %i AND `member_type` = 1",$this->numeric_id,$user_id);
 		if(!empty($result)) {
@@ -287,7 +392,12 @@ class Resource extends BaseModel {
 		} 
       return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function groupIsRegistered($group_id) {
       $result = dibi::fetchAll("SELECT `member_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_id` = %i AND `member_type` = 2",$this->numeric_id,$group_id);
       if(!empty($result)) {
@@ -295,7 +405,12 @@ class Resource extends BaseModel {
       }
       return false;
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function updateUser($user_id,$data) {
 		try {
          dibi::begin();
@@ -313,7 +428,12 @@ class Resource extends BaseModel {
       }
       dibi::commit();	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeUser($user_id) {
       try {
          dibi::begin();
@@ -326,7 +446,12 @@ class Resource extends BaseModel {
       }
       dibi::commit();
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function updateGroup($group_id,$data) {
       try {
          dibi::begin();
@@ -343,8 +468,11 @@ class Resource extends BaseModel {
          throw $e;
       }
       dibi::commit();   
-   }
-   
+   }   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public function removeGroup($group_id) {
       try {
          dibi::begin();
@@ -357,7 +485,13 @@ class Resource extends BaseModel {
       }
       dibi::commit();
    }
-   
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getTypeArray() {
       $result = dibi::fetchAll("SELECT * FROM `resource_type` WHERE `resource_type_group` = 1");
       $languages = array();
@@ -368,20 +502,45 @@ class Resource extends BaseModel {
       return $languages;
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function incrementVisitor() {
 		 $result = dibi::query("UPDATE `resource` SET `resource_viewed` = resource_viewed+1 WHERE `resource_id` = %i",$this->numeric_id);
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setOpened($user_id,$resource_id = 0) {
 		if (!$resource_id) $resource_id = $this->numeric_id;
 		$result = dibi::query("UPDATE `resource_user_group` SET `resource_opened_by_user` = '1' WHERE `resource_id` = %i AND `member_type` = 1 AND `member_id` = %i",$resource_id,$user_id);
+		$this->cleanCache('messagelisteruser');
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setUnopened($user_id,$resource_id = 0) {
 		if (!$resource_id) $resource_id = $this->numeric_id;
 		$result = dibi::query("UPDATE `resource_user_group` SET `resource_opened_by_user` = '0' WHERE `resource_id` = %i AND `member_type` = 1 AND `member_id` = %i",$resource_id,$user_id);
+		$this->cleanCache('messagelisteruser');
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isOpened() {
 		$user = NEnvironment::getUser()->getIdentity();
 		if(!empty($user)) {
@@ -398,6 +557,12 @@ class Resource extends BaseModel {
 		return $result;
    }
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getUnreadMessages() {
 		$user = NEnvironment::getUser()->getIdentity();
 		if(!empty($user)) {
@@ -410,19 +575,40 @@ class Resource extends BaseModel {
 		
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getType() {
       return 3;
    }
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getResourceType($resource_id) {
       return dibi::fetchSingle("SELECT `resource_type` FROM `resource` WHERE `resource_id` = %i", $resource_id);
    }
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getResourceAuthor() {
 		return $resource_data['resource_author'];		
 	}
-	
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getOwner() {
       $result = dibi::fetchSingle("SELECT `resource_author` FROM `resource` WHERE `resource_id` = %i",$this->numeric_id);
 
@@ -432,7 +618,12 @@ class Resource extends BaseModel {
       }
       return null;
 	}
-   
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function hasPosition() {
       $result = dibi::fetchSingle("SELECT `resource_id` FROM `resource` WHERE `resource_id` = %i AND `resource_position_x` IS NOT NULL AND `resource_position_y` IS NOT NULL",$this->numeric_id);
       if(!empty($result)) {
@@ -441,6 +632,12 @@ class Resource extends BaseModel {
       return false;
    }
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function moveToTrash($resource_id) {
 		$user = NEnvironment::getUser()->getIdentity();
     	if(!empty($user)) {
@@ -448,6 +645,12 @@ class Resource extends BaseModel {
 		}
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function moveFromTrash($resource_id) {
 		$user = NEnvironment::getUser()->getIdentity();
       if(!empty($user)) {
@@ -455,6 +658,12 @@ class Resource extends BaseModel {
 		}
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function inTrash() {
 		$user = NEnvironment::getUser()->getIdentity();
       if(!empty($user)) {
@@ -465,7 +674,13 @@ class Resource extends BaseModel {
 		}
 		return false;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function emptyTrash() {
 		$user = NEnvironment::getUser()->getIdentity();
 		if(!empty($user)) {
@@ -483,6 +698,12 @@ class Resource extends BaseModel {
 		}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function isActive()
 	{
 		$result = dibi::fetchSingle("SELECT `resource_status` FROM `resource` WHERE `resource_id` = %i", $this->numeric_id);
@@ -493,7 +714,12 @@ class Resource extends BaseModel {
 		}
 		return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function bann() {
     	if(Auth::MODERATOR <= Auth::isAuthorized(3,$this->numeric_id)) {
     		dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i",$this->numeric_id);
@@ -501,22 +727,46 @@ class Resource extends BaseModel {
     	}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function remove_message($type, $object_id) {
       if(Auth::MODERATOR <= Auth::isAuthorized($type,$object_id)) {
-//      if ($this->groupIsRegistered($group_id)) {
          dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
+         $this->cleanCache('messagelisteruser');
       }
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getLastActivity() {
       $result = dibi::fetchSingle("SELECT `resource_last_activity` FROM `resource` WHERE `resource_id` = %i",$this->numeric_id);
       return $result;
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function setLastActivity() {
       dibi::query("UPDATE `resource` SET `resource_last_activity` = NOW() WHERE `resource_id` = %i",$this->numeric_id);
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getThumbnailUrl() {
 	
 		$url = '';
@@ -543,6 +793,12 @@ class Resource extends BaseModel {
 	
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getScreenshot($title=null, $placeholder=false) {
 	
 		$image = '';
@@ -563,6 +819,13 @@ class Resource extends BaseModel {
 		}
 
 		return $image;
+	}
+
+	private function cleanCache($name)
+	{
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.".$name);
+		$cache->clean(); //array(NCache::ALL => TRUE));
 	}
 
 }

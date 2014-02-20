@@ -19,6 +19,12 @@ class ErrorPresenter extends BasePresenter
 	 * @return void
 	 * from Nette Framework
 	 */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderDefault($exception)
 	{
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -47,6 +53,11 @@ class ErrorPresenter extends BasePresenter
 		}
 	}
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function isAccessible()
 	{
 		return true;

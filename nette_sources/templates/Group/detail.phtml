@@ -260,8 +260,26 @@
 			{control chatform}
 <script>
 	$(document).ready(function() {
+		CKEDITOR.replace( 'message_text', {
+			height: '200px',
+			width: '740px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'p strong em; a[!href]; del ins; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]',
+			toolbarGroups: [
+				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+				{ name: 'links'},
+				{ name: 'insert'},
+				{ name: 'styles'},
+				{ name: 'colors'}
+			],
+			extraPlugins: 'smiley'
+		});
+		
 		$('#frmchatform-send').click(function(){
-			var editorContent = tinymce.get('frmchatform-message_text').getContent();
+			var instance_name = 'frmchatform-message_text';
+			var editorContent = CKEDITOR.instances[instance_name].getData();
 			editorContent = $.trim(editorContent);
 			if (editorContent == '' || editorContent == null) {
 				alert({_'Please enter some text.'});
@@ -283,6 +301,5 @@
 		{/if}
 		</div>	
 	</div>
-	
 </div>
 {/block}

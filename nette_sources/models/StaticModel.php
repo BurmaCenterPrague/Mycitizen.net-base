@@ -21,7 +21,12 @@ class StaticModel extends BaseModel {
 	const SYSTEM_MESSAGE_WARNING_RESOURCE = 6;
 	const SYSTEM_MESSAGE_FRIENDSHIPTRERMINATED = 7;
 
-	 
+
+   /**
+    *	@todo ### Description
+    *	@param
+    *	@return
+    */
    public static function ipIsRegistered($type_id,$object_id,$ip) {
       $result = dibi::fetchSingle("SELECT `ip_address` FROM `visits` WHERE `type_id` = %i AND `object_id` = %i AND `ip_address` = %s",$type_id,$object_id,trim($ip));
 		if(!empty($result)) {
@@ -32,7 +37,13 @@ class StaticModel extends BaseModel {
 		}
       return $languages;
    }
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function sendSystemMessage($message_type, $from, $to, $message = null, $object_type = null, $object_id = null) {
 		$sender = User::create($from);
 		if(!empty($sender)) {
@@ -139,6 +150,12 @@ class StaticModel extends BaseModel {
 		return self::isSpamSFS($email);
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function isSpamSFS($email,$ip = '') {
 	
 		$check_stop_forum_spam = NEnvironment::getVariable("CHECK_STOP_FORUM_SPAM");
@@ -158,6 +175,12 @@ class StaticModel extends BaseModel {
 		return false;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function validEmail($email) {
       $isValid = true;
       $atIndex = strrpos($email, "@");
@@ -220,7 +243,12 @@ class StaticModel extends BaseModel {
 	*/
 	public static function removeCron($recipient_type, $recipient_id, $object_type, $object_id) {
 	
-		dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `recipient_type` = %i AND `recipient_id` = %i AND `object_type` = %i AND `object_id` = %i AND `time` > %i", $recipient_type, $recipient_id, $object_type, $object_id, time());
+		if (!$recipient_type || !$recipient_id) {
+			// remove all crons for that object
+			dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `object_type` = %i AND `object_id` = %i AND `time` > %i", $object_type, $object_id, time());
+		} else {
+			dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `recipient_type` = %i AND `recipient_id` = %i AND `object_type` = %i AND `object_id` = %i AND `time` > %i", $recipient_type, $recipient_id, $object_type, $object_id, time());
+		}
 				
 	}
 

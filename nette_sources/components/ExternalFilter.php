@@ -30,6 +30,11 @@ class ExternalFilter extends NControl
 	protected $hide_apply = false;
 	protected $hide_filter = false;
 	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function __construct($parent, $name, $options = array())
 	{
 		parent::__construct($parent, $name);
@@ -96,6 +101,11 @@ class ExternalFilter extends NControl
 
 	}
 	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function render()
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $this->syncFilterArray();
@@ -164,7 +174,12 @@ class ExternalFilter extends NControl
 				
 		$template->render();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentFilter()
 	{
 		$type  = array(
@@ -189,14 +204,19 @@ class ExternalFilter extends NControl
 			'1' => _t('active'),
 			'0' => _t('inactive')
 		);
-		$trash   = array(
-			'2' => _t('Unread'),
-			'0' => _t('Mailbox'),
-			'1' => _t('Trash')
-		);
+
+		$logged_user = NEnvironment::getUser()->getIdentity();
+		if (isset($logged_user)) {
+			$logged_user_id = $logged_user->getUserId();
+			$count_unread = User::getUnreadMessages($logged_user_id);
+			if ($count_unread) $trash['2'] = _t('Unread');
+		}
+		$trash['0'] = _t('Mailbox');
+		$trash['1'] = _t('Trash');
+		
 		$form->addSelect('status', _t('Status'), $enabled);
 		$form->addRadioList('trash', '', $trash)->getSeparatorPrototype()->setName(NULL);
-		$form['trash']->setDefaultValue('1');
+//		$form['trash']->setDefaultValue('0');
 		$form['trash']->getControlPrototype()->class('trash-radio');
 				
 		$form->addCheckbox("all", _t("all tags"));
@@ -231,7 +251,12 @@ class ExternalFilter extends NControl
 
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentFiltermap($name)
 	{
 		$data    = array();
@@ -240,7 +265,12 @@ class ExternalFilter extends NControl
 		));
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function filterFormSubmitted(NAppForm $form)
 	{
 		if ($form['filter']->isSubmittedBy()) {
@@ -332,7 +362,6 @@ class ExternalFilter extends NControl
 			$new_filter = array_merge($filter, $defaults);
 			
 			if (NEnvironment::getVariable("GLOBAL_FILTER")) $this->syncFilterArray($new_filter);
-			
 			$this->setFilterArray($new_filter);
 			$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 		}
@@ -365,41 +394,48 @@ class ExternalFilter extends NControl
 	  return $angle * $earthRadius;
 	}
 
-
-	/**
-	*	synchronizes the three separate filters for user, group and resource category pages
-	*/
+/**
+ *	Synchronizes the three separate filters for user, group and resource category pages. (Invoked if variable.GLOBAL_FILTER is set in config.ini)
+ *	@param	array $filter optional filter to merge other session filter into
+ *	@return	array resulting filter
+*/
 	public function syncFilterArray($filter=array()) {
 
-		$filter_temp=array();
 		$sync = array('userlister', 'grouplister', 'defaultresourceresourcelister');
 
 		if (empty($filter)) {		
 			foreach ($sync as $component_name) {
 				$session = NEnvironment::getSession()->getNamespace($component_name);
-//				$filter_temp = $session->filterdata;
 				if (is_array($session->filterdata)) {
-					$filter_temp = array_merge($session->filterdata, $filter_temp);
-					$filter = array_merge($filter_temp,$filter);
+					$filter = array_merge($filter, $session->filterdata);
 				}
 			}
 		}
 		
-		if (isset($filter_temp['page'])) unset($filter_temp['page']);
-		if (isset($filter_temp['limit'])) unset($filter_temp['limit']);
-		if (isset($filter_temp['count'])) unset($filter_temp['count']);
-		if (isset($filter_temp['trash'])) unset($filter_temp['trash']);
+		if (isset($filter['page'])) unset($filter['page']);
+		if (isset($filter['limit'])) unset($filter['limit']);
+		if (isset($filter['count'])) unset($filter['count']);
+		if (isset($filter['trash'])) unset($filter['trash']);
 
-		if (!empty($filter_temp))  {
+		if (!empty($filter))  {
 			foreach ($sync as $component_name) {
 				$session = NEnvironment::getSession()->getNamespace($component_name);
-				if (is_array($session->filterdata) && is_array($filter_temp)) $session->filterdata = array_merge($session->filterdata, $filter_temp); else $session->filterdata = $filter_temp;
+				if (is_array($session->filterdata) && is_array($filter)) {
+					$session->filterdata = array_merge($session->filterdata, $filter);
+				} else {
+					$session->filterdata = $filter;
+				}
 			}
 		}
 
 		return $filter;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setFilterArray($filter)
 	{
 		foreach ($this->components as $component_name) {
@@ -420,9 +456,6 @@ class ExternalFilter extends NControl
 			$session->filterdata = $old_filter;
 			$session->data['object_id'] = NULL;
 			
-
-		
-		
 			if ($component_name == 'userlister') $name = 'User';
 			if ($component_name == 'grouplister') $name = 'Group';
 			if ($component_name == 'defaultresourceresourcelister') $name = 'Resource';
@@ -435,7 +468,12 @@ class ExternalFilter extends NControl
 			$user_session->data = NULL;
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function clearFilterArray($filter = null)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) {
@@ -461,7 +499,12 @@ class ExternalFilter extends NControl
 		}
 
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getFilterArray()
 	{
 		$filter = array();

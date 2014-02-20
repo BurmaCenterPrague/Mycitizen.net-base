@@ -13,6 +13,12 @@
  
 final class AdministrationPresenter extends BasePresenter
 {
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function startup()
 	{
 		parent::startup();
@@ -59,32 +65,68 @@ final class AdministrationPresenter extends BasePresenter
 			if (isset($_SESSION['update_new_version_info'])) $this->template->new_version_info = $_SESSION['update_new_version_info'];
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionDefault()
 	{
 		$this->template->stats = Administration::getStatistics();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionUsers()
 	{
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionReports()
 	{	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionTags()
 	{	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionTag()
 	{	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionPiwik()
 	{
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function actionSettings()
 	{
 		$user   = NEnvironment::getUser()->getIdentity();
@@ -116,7 +158,12 @@ final class AdministrationPresenter extends BasePresenter
 		);
 	
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionSetupmaintenance() {
 		$user   = NEnvironment::getUser()->getIdentity();
 		$access = $user->getAccessLevel();
@@ -138,7 +185,12 @@ final class AdministrationPresenter extends BasePresenter
 		$this->template->database_size = $mbytes;
 
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentRegistertag()
 	{
 		$form = new NAppForm($this, 'registertag');
@@ -157,7 +209,12 @@ final class AdministrationPresenter extends BasePresenter
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function registerformSubmitted(NAppForm $form)
 	{
 		$values  = $form->getValues();
@@ -168,7 +225,12 @@ final class AdministrationPresenter extends BasePresenter
 		$this->flashMessage(sprintf(_t('Tag "%s" saved.'),$values['tag_name']));
 		$this->redirect("Administration:tag");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleUserAdministration($user_id, $values)
 	{
 		$user = User::create($user_id);
@@ -177,7 +239,12 @@ final class AdministrationPresenter extends BasePresenter
 		$user->save();
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentUserlister($name)
 ### needed?
 	{
@@ -188,13 +255,23 @@ final class AdministrationPresenter extends BasePresenter
 		$control = new UserListerControl($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentTaglister($name)
 	{
 		$control = new TagListerControl($this, $name, 20);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentReportlister($name)
 	{
 		$options = array(
@@ -213,7 +290,12 @@ final class AdministrationPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentAdminmenu($name)
 	{
 
@@ -291,7 +373,12 @@ final class AdministrationPresenter extends BasePresenter
 		$control->setOrientation(MenuControl::MENU_ORIENTATION_VERTICAL);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentVariablesform()
 	{
 		$form     = new NAppForm($this, 'variablesform');
@@ -312,7 +399,12 @@ final class AdministrationPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function variablesformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -344,6 +436,12 @@ final class AdministrationPresenter extends BasePresenter
 		}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleDeleteReport($report_id) {
 
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()>1 && !empty($report_id)) {
@@ -354,7 +452,12 @@ final class AdministrationPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-		
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleRevokePermission($object_type, $object_id) {
 
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) $this->terminate();
@@ -388,7 +491,12 @@ final class AdministrationPresenter extends BasePresenter
 
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleSendWarning($object_type, $object_id, $warning_type)
 	{
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) $this->terminate();
@@ -451,8 +559,12 @@ final class AdministrationPresenter extends BasePresenter
 		}
 		$this->terminate();
 	}
-	
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleDisableObject($object_type, $object_id)
 	{
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) $this->terminate();
@@ -496,7 +608,12 @@ final class AdministrationPresenter extends BasePresenter
 		);
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function testlocaleformSubmitted(NAppForm $form) {
 		$values = $form->getValues();
 		$locale = $values['locale'];
@@ -514,6 +631,12 @@ final class AdministrationPresenter extends BasePresenter
 	*
 	*
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleSystemCheck() {	
 	
 		$result = Administration::systemCheck();
@@ -542,6 +665,12 @@ final class AdministrationPresenter extends BasePresenter
 	*
 	*
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handlePurgeUsers($months) {	
 	
 		$number_cleared = Administration::clearUsers($months);
@@ -556,6 +685,12 @@ final class AdministrationPresenter extends BasePresenter
 	*
 	*
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleLocales() {
 		
 		$languages = Language::getAllCodes();
@@ -642,6 +777,12 @@ final class AdministrationPresenter extends BasePresenter
 	*
 	*	You will find an error log with the name of the file and appended '.log'.
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleImport($test_run = null) {
 	
 		$user = NEnvironment::getUser()->getIdentity();
@@ -834,7 +975,12 @@ final class AdministrationPresenter extends BasePresenter
 			$this->flashMessage(_t("This was just a dry run - nothing was saved."));
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function lookup_address($string) {
  
 	   $string = str_replace (" ", "+", urlencode($string));
@@ -862,7 +1008,11 @@ final class AdministrationPresenter extends BasePresenter
  
 	}
 
-	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleMove($tag_id, $direction) {
 		$result = dibi::fetchAll("SELECT * FROM `tag` WHERE `tag_parent_id` = 0 ORDER BY `tag_position`,`tag_id`");
 		$tags = array();

@@ -16,6 +16,12 @@ class API_Base extends API implements iAPI
 	public $format = "application/json";
 	protected $user_id = null;
 	protected $partner_id = null;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct() {
 		if((isset($_GET['PASS']) && isset($_GET['USER'])) || (isset($_POST['PASS']) && isset($_POST['USER']))) {
 			$user = NEnvironment::getUser();
@@ -40,7 +46,12 @@ class API_Base extends API implements iAPI
 		$this->isLoggedIn();
 		$this->setFormat();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function setFormat() {
 		if(!empty($_GET['format'])) {
 			$this->format = $_GET['format'];
@@ -51,6 +62,11 @@ class API_Base extends API implements iAPI
 
 	}
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function checkTime($time) {
 		$lowest_time = strtotime("- 2 years");//date('U',mktime(0,0,0,1,1,2000));
 		$highest_time = strtotime("+ 1 day");
@@ -63,7 +79,12 @@ class API_Base extends API implements iAPI
 		}
 		return $time;
 	}
-		
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function isLoggedIn() {
     $user_id = NEnvironment::getUser()->getIdentity();
     if (empty($user_id)) {
@@ -98,6 +119,12 @@ class API_Base extends API implements iAPI
 	 *
 	 * @url	POST	/Login
 	 */	
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getLogin() {
 		if(!$this->isLoggedIn()) {
 			$error = "unkonwn_user";
@@ -120,6 +147,12 @@ class API_Base extends API implements iAPI
 	 *
 	 * @url	POST	/Data
 	 */	
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getData() {
 		 if(!$this->isLoggedIn()) {
          throw new RestException('401',null);
@@ -143,6 +176,12 @@ class API_Base extends API implements iAPI
     *
     * @url  POST   /UserData
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function getUserData() {
 		 if(!$this->isLoggedIn()) {
          throw new RestException('401',null);
@@ -179,6 +218,12 @@ class API_Base extends API implements iAPI
     *
     * @url  POST   /GroupData
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function getGroupData() {
 		 if(!$this->isLoggedIn()) {
          throw new RestException('401',null);
@@ -214,6 +259,12 @@ class API_Base extends API implements iAPI
     *
     * @url  POST   /ResourceData
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function getResourceData() {
 		 if(!$this->isLoggedIn()) {
          throw new RestException('401',null);
@@ -246,6 +297,12 @@ class API_Base extends API implements iAPI
     *
     * @url  POST   /Tags
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function getTags() {
        if(!$this->isLoggedIn()) {
          throw new RestException('401',null);
@@ -259,6 +316,12 @@ class API_Base extends API implements iAPI
     *
     * @url  POST   /Subscribe
     */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
    public function setSubscription() {
        	if(!$this->isLoggedIn()) {
          	throw new RestException('401',null);
@@ -318,6 +381,12 @@ class API_Base extends API implements iAPI
 	*
 	* @url POST	/Register
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function postRegister() {
 		if(!empty($_POST['login']) && !empty($_POST['email']) && !empty($_POST['password'])) {
 			if(User::loginExists($_POST['login'])) {
@@ -366,6 +435,12 @@ class API_Base extends API implements iAPI
 	*
 	* @url POST	/Userexists
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function postUserexists() {
 		if(!empty($_POST['username'])) {
 			if(User::loginExists($_POST['username'])) {
@@ -381,6 +456,12 @@ class API_Base extends API implements iAPI
 	*
 	* @url POST	/Hasmessage
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function postHasmessage() {
 		if(!$this->isLoggedIn()) {
          		throw new RestException('401',null);
@@ -395,6 +476,12 @@ class API_Base extends API implements iAPI
 	*
 	* @url POST	/SendMessage
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function postSendMessage() {
 		if(!$this->isLoggedIn()) {
          		throw new RestException('401',null);
@@ -457,6 +544,12 @@ class API_Base extends API implements iAPI
 	*
 	* @url POST	/ChangeProfile
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function postChangeProfile() {
 	
 		$values['user_name'] = $_POST['firstName'];
@@ -498,6 +591,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST     /ChangeProfileTag
         */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
         public function postChangeProfileTag() {
 
                 $logged_user = NEnvironment::getUser()->getIdentity();
@@ -515,6 +614,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST	/RequestPasswordChange
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function postRequestPasswordChange() {
 		$user = User::getEmailOwner($_POST['user_email']);
 		if(!empty($user)) {
@@ -530,6 +635,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST     /MoveToTrash
         */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
         public function postMoveToTrash() {
 		$user = NEnvironment::getUser()->getIdentity();	
 		$resource_id = $_POST['message_id'];
@@ -550,6 +661,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST     /MoveFromTrash
         */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
         public function postMoveFromTrash() {
 		$user = NEnvironment::getUser()->getIdentity();	
 		$resource_id = $_POST['message_id'];
@@ -569,6 +686,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST     /AcceptFriendship
         */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
         public function postAcceptFriendship() {
 		$user = NEnvironment::getUser()->getIdentity();	
 		$friend_id = $_POST['friend_id'];
@@ -591,6 +714,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST     /DeclineFriendship
         */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
         public function postDeclineFriendship() {
 		$user = NEnvironment::getUser()->getIdentity();	
 		$friend_id = $_POST['friend_id'];
@@ -613,6 +742,12 @@ class API_Base extends API implements iAPI
 	*Comment
 	* @url POST     /CreateGroup
         */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
         public function postCreateGroup() {
 		$user = NEnvironment::getUser()->getIdentity();	
 		

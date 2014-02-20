@@ -22,6 +22,12 @@ class API {
    *
    * @return true | false
    */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
   public function isAuthorized() {
     $user_id = User::getCurrentUserId();
     if(empty($user_id)) {

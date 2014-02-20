@@ -41,7 +41,11 @@
 		{elseif $data['resource_visibility_level'] == 2}
 			<b class="icon-registered" title="{_"only visible to registered users"}"></b>
 		{else}
-			<b class="icon-person" title="{_"only visible to friends"}"></b>
+			{ifset $iamowner}
+			<b class="icon-person" title="{_"only visible to you"}"></b>
+			{else}
+			<b class="icon-person" title="{_"only visible to subscribers"}"></b>
+			{/if}
 		{/if}
 		</div>
 
@@ -238,20 +242,40 @@
 		</div>
 		{/if}
 		{if $data['resource_type'] == 2}
+
+		<div class="resource-event-time resource-detail-connections" style="padding:20px 30px; margin:20px 0;">
+			{ifset $event_alert}<img src="/images/clock-alert.png" style="float:right;" title="{_"The event is upcoming."}"/>
+			{elseifset $event_ahead}<img src="/images/clock-ahead.png" style="float:right;" title="{_"The event is in the future."}"/>
+			{else}<img src="/images/clock.png" style="float:right;" title="{_"The event is over."}"/>{/if}
+			<h2>{_"Event Details"}</h2>
+			<table>
+			<tr>
+			{if $data['event_timestamp']==$data['event_timestamp_end']}
+			<td><h3>{_"Time:"}</h3></td><td>{$start_formatted}</td>
+			{else}
+			<td><h3>{_"Start:"}</h3></td><td>{$start_formatted}</td>
+			</tr><tr>
+			<td><h3>{_"End:"}</h3></td><td>{$end_formatted}</td>
+			{/if}
+			</tr>
+			{if isset($data['event_allday']) && $data['event_allday']}
+			<tr>
+			<td colspan="2"><h3>{_"All-day event"}</h3></td>
+			</tr>
+			{/if}
+			{if isset($data['event_alert']) && $data['event_alert']}
+			<tr>
+			<td><h3>{_"Alarm:"}</h3></td><td>{$event_alert_times[$data['event_alert']]}</td>
+			</tr>
+			{/if}
+			</table>
+		</div>
+		
 		<div class="resource-text-event">
 			<h2>{_('Information')}</h2>
 			{!$data['event_description']|htmlpurify}
 		</div>
-			{* date_default_timezone_set($ ... ) *}
-			{? $date_formatted = date(_('l, j F Y, g:ia T'), strtotime($data['event_timestamp']))}
 
-		<div class="time-event">
-			{if strtotime($data['event_timestamp'])-$data['event_alert'] < time()}
-			<h3>{_"Time:"} <span style="background-color:#f05a28; padding:3px; border-radius:3px; box-shadow:1px 1px 2px #999;">{$date_formatted}</span></h3>
-			{else}
-			<h3>{_"Time:"} <span style="background-color:#eae9e3; padding:3px; border-radius:3px; box-shadow:1px 1px 2px #999;">{$date_formatted}</span></h3>
-			{/if}
-		</div>
 		{/if}
 		{if $data['resource_type'] == 7}
 			<div class="report-text">
@@ -432,5 +456,25 @@
 		{_"Comments are only visible when you are signed in."}
 	{/if}
 	</div>
+<script>
+	$(document).ready(function() {
+		CKEDITOR.replace( 'message_text', {
+			height: '200px',
+			width: '740px',
+			filebrowserUploadUrl: '/?do=upload',
+			filebrowserBrowseUrl: '/widget/browse/',
+			allowedContent: 'p blockquote strong em; a[!href]; del ins; ul ol li; img(left,right)[!src,alt,width,height]',
+			toolbarGroups: [
+				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+				{ name: 'links'},
+				{ name: 'insert'},
+				{ name: 'styles'},
+				{ name: 'colors'}
+			],
+			extraPlugins: 'smiley'
+		});
+	});
+</script>
 </div>
 {/block}

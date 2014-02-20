@@ -2,6 +2,7 @@
 include_once("GrabzItCookie.class.php");
 include_once("GrabzItStatus.class.php");
 include_once("GrabzItWaterMark.class.php");
+include_once("GrabzItException.class.php");
 
 class GrabzItClient
 {
@@ -13,6 +14,7 @@ class GrabzItClient
 	private $signaturePartOne;
 	private $signaturePartTwo;
 	private $request;
+	private $connectionTimeout = 600;
 
 	public function __construct($applicationKey, $applicationSecret)
 	{
@@ -20,6 +22,11 @@ class GrabzItClient
 		$this->applicationSecret = $applicationSecret;
 	}
 
+	public function SetTimeout($timeout)
+	{
+		$this->connectionTimeout = $timeout;
+	}
+	
 	public function SetApplicationKey($applicationKey)
 	{
 		$this->applicationKey = $applicationKey;
@@ -52,14 +59,16 @@ class GrabzItClient
 	format - The format the screenshot should be in: bmp8, bmp16, bmp24, bmp, gif, jpg, png
 	delay - The number of milliseconds to wait before taking the screenshot
 	targetElement - The id of the only HTML element in the web page to turn into a screenshot
-	requestMobileVersion - Request a mobile version of the target website if possible
+	requestAs - Request screenshot in different forms: Standard Browser = 0, Mobile Browser = 1, Search Engine = 2 and Fallback Browser = 3
 	customWaterMarkId - add a custom watermark to the image
+	quality - The quality of the image where 0 is poor and 100 excellent. The default is -1 which uses the recommended quality for the specified image format
+	country - Request the screenshot from different countries: Default = "", UK = "UK", US = "US"
 	*/
-	public function SetImageOptions($url, $customId = null, $browserWidth = null, $browserHeight = null, $width = null, $height = null, $format = null, $delay = null, $targetElement = null, $requestMobileVersion = false, $customWaterMarkId = null)
+	public function SetImageOptions($url, $customId = null, $browserWidth = null, $browserHeight = null, $width = null, $height = null, $format = null, $delay = null, $targetElement = null, $requestAs = 0, $customWaterMarkId = null, $quality = -1, $country = null)
 	{
-		$this->request = GrabzItClient::WebServicesBaseURL . "takepicture.ashx?key=" .urlencode($this->applicationKey)."&url=".urlencode($url)."&width=".$width."&height=".$height."&format=".$format."&bwidth=".$browserWidth."&bheight=".$browserHeight."&customid=".urlencode($customId)."&delay=".$delay."&target=".urlencode($targetElement)."&customwatermarkid=".urlencode($customWaterMarkId)."&requestmobileversion=".intval($requestMobileVersion)."&callback=";
+		$this->request = GrabzItClient::WebServicesBaseURL . "takepicture.ashx?key=" .urlencode($this->applicationKey)."&url=".urlencode($url)."&width=".$width."&height=".$height."&format=".$format."&bwidth=".$browserWidth."&bheight=".$browserHeight."&customid=".urlencode($customId)."&delay=".$delay."&target=".urlencode($targetElement)."&customwatermarkid=".urlencode($customWaterMarkId)."&requestmobileversion=".intval($requestAs)."&country=".urlencode($country)."&quality=".$quality."&callback=";
 		$this->signaturePartOne = $this->applicationSecret."|".$url."|";
-		$this->signaturePartTwo = "|".$format."|".$height."|".$width."|".$browserHeight."|".$browserWidth."|".$customId."|".$delay."|".$targetElement."|".$customWaterMarkId."|".intval($requestMobileVersion);
+		$this->signaturePartTwo = "|".$format."|".$height."|".$width."|".$browserHeight."|".$browserWidth."|".$customId."|".$delay."|".$targetElement."|".$customWaterMarkId."|".intval($requestAs)."|".$country."|".$quality;
 	}
 
 	/*
@@ -71,13 +80,14 @@ class GrabzItClient
 	includeHeaderNames - If true header names will be included in the table
 	includeAllTables - If true all table on the web page will be extracted with each table appearing in a seperate spreadsheet sheet. Only available with the XLSX format.
 	targetElement - The id of the only HTML element in the web page that should be used to extract tables from
-	requestMobileVersion - Request a mobile version of the target website if possible
+	requestAs - Request screenshot in different forms: Standard Browser = 0, Mobile Browser = 1, Search Engine = 2 and Fallback Browser = 3
+	country - Request the screenshot from different countries: Default = "", UK = "UK", US = "US"
 	*/
-	public function SetTableOptions($url, $customId = null, $tableNumberToInclude = 1, $format = 'csv', $includeHeaderNames = true, $includeAllTables = false, $targetElement = null, $requestMobileVersion = false)
+	public function SetTableOptions($url, $customId = null, $tableNumberToInclude = 1, $format = 'csv', $includeHeaderNames = true, $includeAllTables = false, $targetElement = null, $requestAs = 0, $country = null)
 	{
-		$this->request = GrabzItClient::WebServicesBaseURL . "taketable.ashx?key=" .urlencode($this->applicationKey)."&url=".urlencode($url)."&includeAllTables=".intval($includeAllTables)."&includeHeaderNames=".intval($includeHeaderNames) ."&format=".$format."&tableToInclude=".$tableNumberToInclude."&customid=".urlencode($customId)."&target=".urlencode($targetElement)."&requestmobileversion=".intval($requestMobileVersion)."&callback=";
+		$this->request = GrabzItClient::WebServicesBaseURL . "taketable.ashx?key=" .urlencode($this->applicationKey)."&url=".urlencode($url)."&includeAllTables=".intval($includeAllTables)."&includeHeaderNames=".intval($includeHeaderNames) ."&format=".$format."&tableToInclude=".$tableNumberToInclude."&customid=".urlencode($customId)."&target=".urlencode($targetElement)."&requestmobileversion=".intval($requestAs)."&country=".urlencode($country)."&callback=";
 		$this->signaturePartOne = $this->applicationSecret."|".$url."|";
-		$this->signaturePartTwo = "|".$customId."|".$tableNumberToInclude ."|".intval($includeAllTables)."|".intval($includeHeaderNames)."|".$targetElement."|".$format."|".intval($requestMobileVersion);
+		$this->signaturePartTwo = "|".$customId."|".$tableNumberToInclude ."|".intval($includeAllTables)."|".intval($includeHeaderNames)."|".$targetElement."|".$format."|".intval($requestAs)."|".$country;
 	}
 
 	/*
@@ -86,7 +96,7 @@ class GrabzItClient
 	url - The URL that the should be converted into a pdf
 	customId - A custom identifier that you can pass through to the webservice. This will be returned with the callback URL you have specified.
 	includeBackground - If true the background of the web page should be included in the screenshot
-	pagesize - The page size of the PDF to be returned: 'A3', 'A4', 'A5', 'B3', 'B4', 'B5'.
+	pagesize - The page size of the PDF to be returned: 'A3', 'A4', 'A5', 'B3', 'B4', 'B5', 'Letter'.
 	orientation - The orientation of the PDF to be returned: 'Landscape' or 'Portrait'
 	includeLinks - True if links should be included in the PDF
 	includeOutline - True if the PDF outline should be included
@@ -97,18 +107,20 @@ class GrabzItClient
 	marginBottom - The margin that should appear at the bottom of the PDF document page
 	marginRight - The margin that should appear at the right of the PDF document
 	delay - The number of milliseconds to wait before taking the screenshot
-	requestMobileVersion - Request a mobile version of the target website if possible
-	customWaterMarkId - add a custom watermark to each page of the PDF document
+	requestAs - Request screenshot in different forms: Standard Browser = 0, Mobile Browser = 1, Search Engine = 2 and Fallback Browser = 3
+	customWaterMarkId - add a custom watermark to the image
+	quality - The quality of the PDF where 0 is poor and 100 excellent. The default is -1 which uses the recommended quality
+	country - Request the screenshot from different countries: Default = "", UK = "UK", US = "US"
 	*/
-	public function SetPDFOptions($url, $customId = null, $includeBackground = true, $pagesize = 'A4', $orientation = 'Portrait', $includeLinks = true, $includeOutline = false, $title = null, $coverURL = null, $marginTop = 10, $marginLeft = 10, $marginBottom = 10, $marginRight = 10, $delay = null, $requestMobileVersion = false, $customWaterMarkId = null)
+	public function SetPDFOptions($url, $customId = null, $includeBackground = true, $pagesize = 'A4', $orientation = 'Portrait', $includeLinks = true, $includeOutline = false, $title = null, $coverURL = null, $marginTop = 10, $marginLeft = 10, $marginBottom = 10, $marginRight = 10, $delay = null, $requestAs = 0, $customWaterMarkId = null, $quality = -1, $country = null)
 	{
 		$pagesize = strtoupper($pagesize);
 		$orientation = ucfirst($orientation);
 
-		$this->request = GrabzItClient::WebServicesBaseURL . "takepdf.ashx?key=" .urlencode($this->applicationKey)."&url=".urlencode($url)."&background=".intval($includeBackground) ."&pagesize=".$pagesize."&orientation=".$orientation."&customid=".urlencode($customId)."&customwatermarkid=".urlencode($customWaterMarkId)."&includelinks=".intval($includeLinks)."&includeoutline=".intval($includeOutline)."&title=".urlencode($title)."&coverurl=".urlencode($coverURL)."&mleft=".$marginLeft."&mright=".$marginRight."&mtop=".$marginTop."&mbottom=".$marginBottom."&delay=".$delay."&requestmobileversion=".intval($requestMobileVersion)."&callback=";
+		$this->request = GrabzItClient::WebServicesBaseURL . "takepdf.ashx?key=" .urlencode($this->applicationKey)."&url=".urlencode($url)."&background=".intval($includeBackground) ."&pagesize=".$pagesize."&orientation=".$orientation."&customid=".urlencode($customId)."&customwatermarkid=".urlencode($customWaterMarkId)."&includelinks=".intval($includeLinks)."&includeoutline=".intval($includeOutline)."&title=".urlencode($title)."&coverurl=".urlencode($coverURL)."&mleft=".$marginLeft."&mright=".$marginRight."&mtop=".$marginTop."&mbottom=".$marginBottom."&delay=".$delay."&requestmobileversion=".intval($requestAs)."&country=".urlencode($country)."&quality=".$quality."&callback=";
 
 		$this->signaturePartOne = $this->applicationSecret."|".$url."|";
-		$this->signaturePartTwo = "|".$customId ."|".intval($includeBackground) ."|".$pagesize ."|".$orientation."|".$customWaterMarkId."|".intval($includeLinks)."|".intval($includeOutline)."|".$title."|".$coverURL."|".$marginTop."|".$marginLeft."|".$marginBottom."|".$marginRight."|".$delay."|".intval($requestMobileVersion);
+		$this->signaturePartTwo = "|".$customId ."|".intval($includeBackground) ."|".$pagesize ."|".$orientation."|".$customWaterMarkId."|".intval($includeLinks)."|".intval($includeOutline)."|".$title."|".$coverURL."|".$marginTop."|".$marginLeft."|".$marginBottom."|".$marginRight."|".$delay."|".intval($requestAs)."|".$country."|".$quality;
 	}
 
 	/*
@@ -120,25 +132,35 @@ class GrabzItClient
 	{
 		if (empty($this->signaturePartOne) && empty($this->signaturePartTwo) && empty($this->request))
 		{
-			throw new Exception("No screenshot parameters have been set.");
+			throw new GrabzItException("No screenshot parameters have been set.", GrabzItException::PARAMETER_MISSING_PARAMETERS);
 		}
+		
 		$sig =  md5($this->signaturePartOne.$callBackURL.$this->signaturePartTwo);
-		$this->request .= urlencode($callBackURL)."&sig=".$sig;
-		$obj = $this->getResultObject($this->Get($this->request));
+		$currentRequest = $this->request;
+		
+		$currentRequest .= urlencode($callBackURL)."&sig=".$sig;
+		$obj = $this->getResultObject($this->Get($currentRequest));
 
 		return $obj->ID;
 	}
 
 	/*
-	This function attempts to Save the result synchronously to a file.
+	Calls the GrabzIt web service to take the screenshot and saves it to the target path provided. if no target path is provided
+	it returns the screenshot byte data.
 
 	WARNING this method is synchronous so will cause a application to pause while the result is processed.
 
-	This function returns the true if it is successful otherwise it throws an exception.
+	This function returns the true if it is successful saved to a file, or if it is not saving to a file byte data is returned,
+	otherwise the method throws an exception.
 	*/
-	public function SaveTo($saveToFile)
+	public function SaveTo($saveToFile = '')
 	{
 		$id = $this->Save();
+
+		if (empty($id))
+		{
+			return false;
+		}
 
 		//Wait for it to be ready.
 		while(true)
@@ -147,7 +169,7 @@ class GrabzItClient
 
 			if (!$status->Cached && !$status->Processing)
 			{
-				throw new Exception("The screenshot did not complete with the error: " . $status->Message);
+				throw new GrabzItException("The screenshot did not complete with the error: " . $status->Message, GrabzItException::RENDERING_ERROR);
 				break;
 			}
 			else if ($status->Cached)
@@ -155,9 +177,15 @@ class GrabzItClient
 				$result = $this->GetResult($id);
 				if (!$result)
 				{
-					throw new Exception("The screenshot image could not be found on GrabzIt.");
+					throw new GrabzItException("The screenshot could not be found on GrabzIt.", GrabzItException::RENDERING_MISSING_SCREENSHOT);
 					break;
 				}
+				
+				if (empty($saveToFile))
+				{
+					return $result;
+				}				
+				
 				file_put_contents($saveToFile, $result);
 				break;
 			}
@@ -177,6 +205,11 @@ class GrabzItClient
 	*/
 	public function GetStatus($id)
 	{
+		if (empty($id))
+		{
+			return null;
+		}
+
 		$result = $this->Get(GrabzItClient::WebServicesBaseURL . "getstatus.ashx?id=" . $id);
 
 		$obj = simplexml_load_string($result);
@@ -298,7 +331,7 @@ class GrabzItClient
 	{
 		if (!file_exists($path))
 		{
-			throw new Exception("File: " . $path . " does not exist");
+			throw new GrabzItException("File: " . $path . " does not exist", GrabzItException::FILE_NON_EXISTANT_PATH);
 		}
 		$sig =  md5($this->applicationSecret."|".$identifier."|".((int)$xpos)."|".((int)$ypos));
 
@@ -341,8 +374,8 @@ class GrabzItClient
 
 		$context  = stream_context_create($opts);
 
-        $response = @file_get_contents(GrabzItClient::WebServicesBaseURL . 'addwatermark.ashx', false, $context);
-        $this->checkResponseHeader($http_response_header);
+		$response = @file_get_contents(GrabzItClient::WebServicesBaseURL . 'addwatermark.ashx', false, $context);
+		$this->checkResponseHeader($http_response_header);
 		return $this->isSuccessful($response);
 	}
 
@@ -363,13 +396,35 @@ class GrabzItClient
 	}
 
 	/*
-	Get your custom watermarks.
+	Get a particular custom watermark.
 
-	identifier - The identifier of a particular custom watermark you want to view
+    identifier - The identifier of a particular custom watermark you want to view
+
+    This function returns a GrabzItWaterMark
+    */
+	public function GetWaterMark($identifier)
+	{
+		$watermarks[] = _getWaterMarks($identifier);
+
+		if ($watermarks != null && count($watermarks) == 1)
+		{
+			return $watermarks[0];
+		}
+
+		return null;
+	}
+
+	/*
+	Get your custom watermarks.
 
 	This function returns an array of GrabzItWaterMark
 	*/
-	public function GetWaterMarks($identifier = null)
+	public function GetWaterMarks()
+	{
+		return _getWaterMarks();
+	}
+
+	private function _getWaterMarks($identifier = null)
 	{
 		$sig =  md5($this->applicationSecret."|".$identifier );
 
@@ -387,7 +442,7 @@ class GrabzItClient
 			$grabzItWaterMark->YPosition = (string)$waterMark->YPosition;
 			$grabzItWaterMark->Format = (string)$waterMark->Format;
 
-			$result[] = $grabzItWaterMark ;
+			$result[] = $grabzItWaterMark;
 		}
 
 		return $result;
@@ -431,7 +486,7 @@ class GrabzItClient
 
 		if (!empty($obj->Message))
 		{
-			throw new Exception($obj->Message);
+			throw new GrabzItException($obj->Message, $obj->Code);
 		}
 
 		return $obj;
@@ -441,23 +496,24 @@ class GrabzItClient
 	{
 		if (ini_get('allow_url_fopen'))
 		{
-			$response = @file_get_contents($url);
+			$timeout = array('http' => array('timeout' => $this->connectionTimeout));
+			$context = stream_context_create($timeout);
+			$response = @file_get_contents($url, false, $context);
+			
 			$this->checkResponseHeader($http_response_header);
-
 			return $response;
 		}
 		else
 		{
 			$ch = curl_init();
-			$timeout = 5;
 			curl_setopt($ch,CURLOPT_URL,$url);
 			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-			curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
+			curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$this->connectionTimeout);
 			$data = curl_exec($ch);
 			$httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 			if($httpCode == 403)
 			{
-				throw new Exception('Potential DDOS Attack Detected. Please wait for your service to resume shortly. Also please slow the rate of requests you are sending to GrabzIt to ensure this does not happen in the future.');
+				throw new GrabzItException('Potential DDOS Attack Detected. Please wait for your service to resume shortly. Also please slow the rate of requests you are sending to GrabzIt to ensure this does not happen in the future.', GrabzItException::NETWORK_DDOS_ATTACK);
 			}
 			curl_close($ch);
 			return $data;
@@ -466,11 +522,15 @@ class GrabzItClient
 
 	private function checkResponseHeader($header)
 	{
-		list($version,$httpCode,$msg) = explode(' ',$header[0], 3);
-		if ($httpCode == 403)
-		{
-			throw new Exception('Potential DDOS Attack Detected. Please wait for your service to resume shortly. Also please slow the rate of requests you are sending to GrabzIt to ensure this does not happen in the future.');
-		}
+	    list($version,$httpCode,$msg) = explode(' ',$header[0], 3);
+	    if ($httpCode == 403)
+	    {
+		 throw new GrabzItException('Potential DDOS Attack Detected. Please wait for your service to resume shortly. Also please slow the rate of requests you are sending to GrabzIt to ensure this does not happen in the future.', GrabzItException::NETWORK_DDOS_ATTACK);
+	    }
+	    else if ($httpCode >= 400)
+	    {
+		 throw new GrabzItException("A network error occured when connecting to the GrabzIt servers.", GrabzItException::NETWORK_GENERAL_ERROR);
+	    }
 	}
 }
 ?>

@@ -15,6 +15,12 @@
 class ResourceMemberListerControl extends ListerControl {
 	protected $resource = null;
 	protected $resource_id = null;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($parent,$name,$resource_id,$options) {
 		$this->resource = Resource::create($resource_id);	
       $this->resource_id = $resource_id;
@@ -23,10 +29,22 @@ class ResourceMemberListerControl extends ListerControl {
 		$this->setRefreshPath("Resource:edit",array('resource_id'=>$this->resource_id));
    }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function render() {
 		$this->renderFilter();
 		$this->renderBody();
    }
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderFilter() {
 		parent::renderFilter();
 		$template = $this->template;
@@ -34,6 +52,12 @@ class ResourceMemberListerControl extends ListerControl {
       $template->render();
 
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function renderBody() {
 		parent::renderBody();
 		$template = $this->template;
@@ -41,6 +65,12 @@ class ResourceMemberListerControl extends ListerControl {
       $template->render();
 
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function createComponentListItem($data_row)
     {
 		$params = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -60,6 +90,12 @@ class ResourceMemberListerControl extends ListerControl {
         $form->setDefaults(array('member_id'=>$data_row['member_id'],'member_type'=>$data_row['member_type'],'resource_user_group_access_level'=>$data_row['resource_user_group_access_level'],'resource_user_group_status'=>$data_row['resource_user_group_status']));
         return $form;
     }
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
     public function adminUserFormSubmitted(NAppForm $form)
     {
         $values = $form->getValues();
@@ -74,6 +110,12 @@ class ResourceMemberListerControl extends ListerControl {
 			}
         $this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
     }
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function createComponentFilter() {
 		$form = new NAppForm($this,"filter");
 		$form->addText('name','Name');
@@ -96,6 +138,12 @@ class ResourceMemberListerControl extends ListerControl {
 		$form->setDefaults($this->getFilterArray());
 		return $form;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function filterFormSubmitted(NAppForm $form)
     {
        	$values = $form->getValues();
@@ -106,11 +154,22 @@ class ResourceMemberListerControl extends ListerControl {
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
     }
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getDataCount($filter) {
 		$data = $this->resource->getAllMembers($filter);
 		return count($data);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageData($filter) {
 		if(!isset($filter['page'])) {
          $filter['page'] = 1;

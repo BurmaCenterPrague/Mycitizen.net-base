@@ -145,25 +145,26 @@
 <script>
 	$(document).ready(function(){
 		$('blockquote').css({ "cursor":"pointer"});
-		
 		$('[id^=reply_]').click(function(){
 			var id = parseInt($(this).attr('id').substr(-5,5));
-			var editor = tinymce.editors[0];
-			var content = editor.getContent();
+			var elements = document.getElementsByName( 'message_text' );
+			var instance_name = elements[0].getAttribute( 'id' );
 			var quote = $('[id$='+id+'_text]').html();
 			quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
-			var author_name = $('[id$='+id+'_author]').html();
+			var author_name = $('[id$='+id+'_author]').html().trim();
 			var author_id = $('[id$='+id+'_author]').attr('rel');
 			var date = $('[id$='+id+'_date]').html();
 			var quote_shortened = quote.substr(0,300);
 			if (quote_shortened != quote ) { quote_shortened += '...'; }
-			var reply = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
+			$('#frmmessageform-friend_id').val(author_id);
+			var reply = '<br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
 			content = reply;
-			editor.setContent(content);
+			//editor.setContent(content);
+			CKEDITOR.instances[instance_name].insertHtml(content);
 			$('html, body').animate({
-				scrollTop: $("#chat_top_anchor").offset().top
+				scrollTop: $("#message_top_anchor").offset().top
 			}, 2000);
-			editor.focus();
+			CKEDITOR.instances[instance_name].focus();
 		});
 	
 		$('blockquote').click(function(){

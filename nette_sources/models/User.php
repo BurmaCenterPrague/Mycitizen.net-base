@@ -20,12 +20,23 @@ class User extends BaseModel implements IIdentity
 	
 	private $user_data;
 	private $numeric_id;
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function create($user_id = null)
 	{
 		return new User($user_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
@@ -45,14 +56,24 @@ class User extends BaseModel implements IIdentity
 		}
 		return true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setUserData($data)
 	{
 		foreach ($data as $key => $value) {
 			$this->user_data[$key] = $value;
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getUserData()
 	{
 		$data = $this->user_data;
@@ -70,18 +91,33 @@ class User extends BaseModel implements IIdentity
 		}
 		return $data;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getAvatar()
 	{
 		$portrait = dibi::fetchSingle("SELECT `user_portrait` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		return $portrait;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeAvatar()
 	{
 		dibi::query("UPDATE `user` SET `user_portrait` = NULL WHERE `user_id` = %i", $this->numeric_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function userHasIcon()
 	{
 		$result = dibi::fetchSingle("SELECT `user_icon` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -91,24 +127,46 @@ class User extends BaseModel implements IIdentity
 		return false;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `user_icon` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		return $portrait;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getBigIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `user_largeicon` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		return $portrait;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeIcons()
 	{
 		dibi::query("UPDATE `user` SET `user_icon` = NULL WHERE `user_id` = %i", $this->numeric_id);
 		dibi::query("UPDATE `user` SET `user_largeicon` = NULL WHERE `user_id` = %i", $this->numeric_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isActive()
 	{
 		$result = dibi::fetchSingle("SELECT `user_status` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -119,7 +177,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isConfirmed()
 	{
 		$result = dibi::fetchSingle("SELECT `user_registration_confirmed` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -130,7 +193,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function save()
 	{
 		try {
@@ -152,12 +220,24 @@ class User extends BaseModel implements IIdentity
 		dibi::commit();
 		return true;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function delete($user_id)
 	{
 		dibi::query("DELETE FROM `user` WHERE `user_id` = %i", $user_id);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function encodePassword($password)
 	{
 		if (strlen($password)>128) return false;
@@ -170,7 +250,12 @@ class User extends BaseModel implements IIdentity
 
 //		return sha1($password);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getUserId()
 	{
 		return $this->numeric_id;
@@ -179,18 +264,34 @@ class User extends BaseModel implements IIdentity
 	/**
 	*	required by Nette
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getRoles()
 	{
 		return array(
 			'customer'
 		);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getVisibilityLevel()
 	{
 		return $this->user_data['user_visibility_level'];
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getAccessLevel()
 	{
 		$result = dibi::fetchSingle("SELECT `user_access_level` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -200,6 +301,12 @@ class User extends BaseModel implements IIdentity
 		return 0;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAccessLevelFromLogin($login)
 	{
 		$result = dibi::fetchSingle("SELECT `user_access_level` FROM `user` WHERE `user_login` = %s", $login);
@@ -208,7 +315,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return 0;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function insertTag($tag_id)
 	{
 		$registered_tags = $this->getTags();
@@ -216,7 +328,12 @@ class User extends BaseModel implements IIdentity
 			dibi::query('INSERT INTO `user_tag` (`tag_id`,`user_id`) VALUES (%i,%i)', $tag_id, $this->numeric_id);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function removeTag($tag_id)
 	{
 		$registered_tags = $this->getTags();
@@ -224,7 +341,12 @@ class User extends BaseModel implements IIdentity
 			dibi::query('DELETE FROM `user_tag` WHERE `tag_id` = %i AND `user_id` = %i', $tag_id, $this->numeric_id);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getTags()
 	{
 		$result = dibi::fetchAll("SELECT ut.`tag_id`,t.`tag_name` FROM `user_tag` ut LEFT JOIN `tag` t ON (t.`tag_id` = ut.`tag_id`) WHERE `user_id` = %i ORDER BY t.`tag_name` ASC", $this->numeric_id);
@@ -240,6 +362,12 @@ class User extends BaseModel implements IIdentity
 	/**
 	*		Groups tags according to their parent and sorts them by parent, then child
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function groupSortTags($tags) {
 	
 		uasort($tags, function($a,$b){
@@ -280,7 +408,13 @@ class User extends BaseModel implements IIdentity
 		
 		return $tags;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return string
+	 */
 	public static function generateHash()
 	{
 		$length = 8;
@@ -296,7 +430,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return $pass;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function sendConfirmationEmail()
 	{
 		$hash  = $this->user_data['user_hash'];
@@ -314,7 +453,13 @@ class User extends BaseModel implements IIdentity
 		
 		return mail($email, '=?UTF-8?B?' . base64_encode(_t('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getEmailOwner($email)
 	{
 		$result = dibi::fetchSingle("SELECT `user_id` FROM `user` WHERE `user_email` = %s", $email);
@@ -323,7 +468,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return null;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function firstLogin()
 	{
 		$result = dibi::fetchSingle("SELECT `user_first_login` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -332,12 +482,22 @@ class User extends BaseModel implements IIdentity
 		}
 		return true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function registerFirstLogin()
 	{
 		$result = dibi::query("UPDATE `user` SET `user_first_login` = '1' WHERE `user_id` = %i", $this->numeric_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function sendLostpasswordEmail()
 	{
 		$hash = self::generateHash();
@@ -356,7 +516,13 @@ class User extends BaseModel implements IIdentity
 		mail($email, '=?UTF-8?B?' . base64_encode(_t('Password change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function finishPasswordchange($user_id, $control_key, $password)
 	{
 		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_id` = %i AND `user_hash` = %s", $user_id, $control_key);
@@ -367,12 +533,23 @@ class User extends BaseModel implements IIdentity
 		return false;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function changePassword($user_id, $password)
 	{
 		return dibi::query("UPDATE `user` SET `user_password` = %s WHERE `user_id` = %i", self::encodePassword($password), $user_id);
 
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function sendEmailchangeEmail()
 	{
 		$hash = self::generateHash();
@@ -391,8 +568,13 @@ class User extends BaseModel implements IIdentity
 		mail($email, '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
 	}
-	
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function finishEmailchange($user_id, $control_key)
 	{
 		$result = dibi::fetchSingle("SELECT `user_email_new` FROM `user` WHERE `user_id` = %i AND `user_hash` = %s", $user_id, $control_key);
@@ -403,12 +585,24 @@ class User extends BaseModel implements IIdentity
 		return false;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function finishEmailchangeAdmin($user_id, $user_email)
 	{
 		dibi::query("UPDATE `user` SET `user_email` = %s WHERE `user_id` = %i", $user_email, $user_id);
 		return true;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function finishRegistration($user_id, $control_key)
 	{
 		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_id` = %i AND `user_registration_confirmed` = '0' AND `user_hash` = %s", $user_id, $control_key);
@@ -418,12 +612,23 @@ class User extends BaseModel implements IIdentity
 		}
 		return false;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getType()
 	{
 		return 1;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function friendshipIsRegistered($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT `friend_id` FROM `user_friend` WHERE `user_id` = %i AND `friend_id` = %i", $this->numeric_id, $user_id);
@@ -433,7 +638,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function friendsStatus($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT `user_friend_status` FROM `user_friend` WHERE (`user_id` = %i AND `friend_id` = %i) ", $this->numeric_id, $user_id);
@@ -443,6 +653,12 @@ class User extends BaseModel implements IIdentity
 		return 0;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function reverseFriendsStatus($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT `user_friend_status` FROM `user_friend` WHERE (`user_id` = %i AND `friend_id` = %i) ", $user_id, $this->numeric_id);
@@ -459,6 +675,12 @@ class User extends BaseModel implements IIdentity
 	*	2:	accepted
 	*	3:	rejected/blocked
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function updateFriend($user_id, $data)
 	{
 		try {
@@ -511,6 +733,12 @@ class User extends BaseModel implements IIdentity
 	*	2:	accepted
 	*	3:	rejected/blocked
 	*/	
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function removeFriend($user_id)
 	{
 		try {
@@ -547,7 +775,12 @@ class User extends BaseModel implements IIdentity
 		}
 		dibi::commit();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getGroups()
 	{
 		$groups = dibi::fetchAll("SELECT `group_id` FROM `group_user` WHERE `user_id` = %i", $this->numeric_id);
@@ -560,7 +793,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return $result;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getFriends()
 	{
 		$friends = dibi::fetchAll("SELECT `user_friend`.`friend_id`,`user`.`user_login` FROM `user_friend` LEFT JOIN `user` ON (`user`.`user_id` = `user_friend`.`friend_id`) WHERE `user_friend`.`user_id` = %i AND `user_friend`.`user_friend_status` = '2' AND EXISTS (SELECT f.`user_id` FROM `user_friend` f WHERE f.`user_id` = `user_friend`.`friend_id` AND f.`friend_id` = `user_friend`.`user_id` AND f.`user_friend_status` = '2')", $this->numeric_id);
@@ -572,12 +810,23 @@ class User extends BaseModel implements IIdentity
 		return $result;
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function incrementVisitor()
 	{
 		$result = dibi::query("UPDATE `user` SET `user_viewed` = user_viewed+1 WHERE `user_id` = %i", $this->numeric_id);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getFullName($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT CONCAT(`user_name`,' ',`user_surname`) FROM `user` WHERE `user_id` = %i", $user_id);
@@ -586,7 +835,13 @@ class User extends BaseModel implements IIdentity
 		}
 		return trim($result);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getUserLogin($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_id` = %i", $user_id);
@@ -596,6 +851,12 @@ class User extends BaseModel implements IIdentity
 		return trim($result);
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getOwnerIdsFromLogin($user_login)
 	{
 		$users = dibi::fetchAll("SELECT `user_id` FROM `user` WHERE `user_login` LIKE %~like~", $user_login);
@@ -609,8 +870,13 @@ class User extends BaseModel implements IIdentity
 		}
 		return $result;
 	}
-	
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getTopUsers($count = 10)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -631,6 +897,12 @@ class User extends BaseModel implements IIdentity
 		return $result;
 		
 	}
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function loginExists($login)
 	{
 		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_login` = %s", $login);
@@ -640,7 +912,13 @@ class User extends BaseModel implements IIdentity
 		return true;
 		
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function emailExists($email)
 	{
 		$result = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_email` = %s", $email);
@@ -650,12 +928,23 @@ class User extends BaseModel implements IIdentity
 		return true;
 		
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function userloginFromEmail($email)
 	{
 		return dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_email` = %s", $email);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function hasPosition()
 	{
 		$result = dibi::fetchSingle("SELECT `user_id` FROM `user` WHERE `user_id` = %i AND `user_position_x` IS NOT NULL AND `user_position_y` IS NOT NULL", $this->numeric_id);
@@ -665,6 +954,12 @@ class User extends BaseModel implements IIdentity
 		return false;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getPosition()
 	{
 		$result = dibi::fetchAll("SELECT  `user_position_x`, `user_position_y` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -672,7 +967,12 @@ class User extends BaseModel implements IIdentity
 			$data[] = $row->toArray();
 		return $data[0];
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function bann()
 	{
 		if (Auth::MODERATOR <= Auth::isAuthorized(1, $this->numeric_id)) {
@@ -681,31 +981,55 @@ class User extends BaseModel implements IIdentity
 			dibi::query("UPDATE `group_user` SET `group_user_status` = '0' WHERE `user_id` = %i", $this->numeric_id);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function revokeCreationRights()
 	{
 		if (Auth::MODERATOR <= Auth::isAuthorized(1, $this->numeric_id)) {
 			dibi::query("UPDATE `user` SET `user_creation_rights` = '0' WHERE `user_id` = %i", $this->numeric_id);
 		}
 	}
-	
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getLastActivity()
 	{
 		$result = dibi::fetchSingle("SELECT `user_last_activity` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		return $result;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setLastActivity()
 	{
 		dibi::query("UPDATE `user` SET `user_last_activity` = NOW() WHERE `user_id` = %i", $this->numeric_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setRegistrationDate()
 	{
 		dibi::query("UPDATE `user` SET `user_registration` = NOW() WHERE `user_id` = %i", $this->numeric_id);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function hasRightsToCreate()
 	{
 		$time         = Settings::getVariable("object_creation_min_time");
@@ -718,7 +1042,12 @@ class User extends BaseModel implements IIdentity
 		}
 		return false;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function thatsMe() {
 		$logged_user = NEnvironment::getUser()->getIdentity();
 		
@@ -728,6 +1057,12 @@ class User extends BaseModel implements IIdentity
 			return false;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getImage($user_id,$size='img',$title=null) {
 	
 		$width=20;
@@ -753,7 +1088,13 @@ class User extends BaseModel implements IIdentity
 		return $image;
 
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function saveImage($id) {
 	
 		$object = User::create($id);
@@ -789,6 +1130,12 @@ class User extends BaseModel implements IIdentity
 		
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function getLanguage()
 	{
 		$result = dibi::fetchSingle("SELECT `user_language` FROM `user` WHERE `user_id` = %i ", $this->numeric_id);
@@ -798,6 +1145,12 @@ class User extends BaseModel implements IIdentity
 		return 0;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getUserLanguage($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT `user_language` FROM `user` WHERE `user_id` = %i ", $user_id);
@@ -806,7 +1159,13 @@ class User extends BaseModel implements IIdentity
 		}
 		return 0;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAllUsersForCron()
 	{
 		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
@@ -821,26 +1180,49 @@ class User extends BaseModel implements IIdentity
 		return $result_array;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function setUserCronSent($user_id)
 	{
 		dibi::query("UPDATE `user` SET `user_last_notification` = %i WHERE `user_id` = %i", time(), $user_id);
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getUnreadMessages($user_id)
 	{
-		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`  LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND (`resource`.`resource_type` = 1 OR `resource`.`resource_type` = 9) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0",$user_id,$user_id);
+		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`  LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND (`resource`.`resource_type` = 1 OR `resource`.`resource_type` = 9 OR `resource`.`resource_type` = 10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0",$user_id,$user_id);
 		if (isset($count)) {
 			return $count;
 		} else {
 			return 0;
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getNotificationSetting()
 	{
 		return dibi::fetchSingle("SELECT `user_send_notifications` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function setNotificationSetting($value)
 	{
 		dibi::query("UPDATE `user` SET `user_send_notifications` = %i WHERE `user_id` = %i", $value, $this->numeric_id);

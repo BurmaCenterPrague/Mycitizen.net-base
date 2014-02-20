@@ -14,6 +14,12 @@
 
 
 class UserAuthenticator extends BaseModel implements IAuthenticator {
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
     public function authenticate(array $credentials) {
         $username = $credentials['username'];
         $password = $credentials['password'];

@@ -17,6 +17,12 @@ final class UserPresenter extends BasePresenter
 	protected $user;
 	protected $user_id;
 	protected $control_key;
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function startup()
 	{
 		parent::startup();
@@ -25,6 +31,12 @@ final class UserPresenter extends BasePresenter
 	/**
 	*		Prepare data for display in User Default and Detail template
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function actionDefault($user_id = null)
 	{
 		$image_type = null;
@@ -32,7 +44,7 @@ final class UserPresenter extends BasePresenter
 
 				
 		if (!is_null($user_id)) {
-			$this->template->load_js_css_tinymce = true;
+			$this->template->load_js_css_editor = true;
 			$this->setView('detail');
 			$this->user = User::create($user_id);
 			$d          = $this->user->getUserData();
@@ -106,6 +118,12 @@ final class UserPresenter extends BasePresenter
 
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function actionRegister()
 	{
 		if (Settings::getVariable('sign_up_disabled')) {
@@ -120,6 +138,14 @@ final class UserPresenter extends BasePresenter
 	}
 
 
+/**
+ *	Finish up registration, processing the confirmation link
+ *
+ *	@param int $user_id
+ *	@param string $control_key Unique hash sent with confirmation link
+ *	@param string $device 'mobile' (or detected automatically) for display without web layout
+ *	@return void
+*/
 	public function actionConfirm($user_id, $control_key, $device = NULL)
 	{
 		if ($device == NULL) {
@@ -132,6 +158,10 @@ final class UserPresenter extends BasePresenter
 
 		if (User::finishRegistration($user_id, $control_key)) {
 		
+			// update registration date for correct determination of creation rights
+			$user = User::create($user_id);
+			$user->setRegistrationDate();
+			
 			if (isset($device) && $device=="mobile") {
 				echo _t("The registration has been successful. You can now sign in.");
 				
@@ -158,7 +188,12 @@ final class UserPresenter extends BasePresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionEmailchange($user_id, $control_key, $device=NULL)
 	{
 		if ($device == NULL) {
@@ -191,7 +226,12 @@ final class UserPresenter extends BasePresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function emailchangeAdmin($user_id, $user_email, $device=NULL)
 	{
 		if ($device == NULL) {
@@ -224,7 +264,12 @@ final class UserPresenter extends BasePresenter
 			}
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionMessages()
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -236,9 +281,14 @@ final class UserPresenter extends BasePresenter
 		if (count($friends) < 1) {
 			$this->template->nofriends = true;
 		}
-		$this->template->load_js_css_tinymce = true;
+		$this->template->load_js_css_editor = true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionEdit($user_id = null)
 	{
 		$this->template->load_js_css_jcrop = true;
@@ -332,7 +382,12 @@ final class UserPresenter extends BasePresenter
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionLogin()
 	{
 		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -355,7 +410,12 @@ final class UserPresenter extends BasePresenter
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionLogout()
 	{
 		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -372,17 +432,32 @@ final class UserPresenter extends BasePresenter
 		
 		$this->redirect('Homepage:default', array('language' => $language));
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionLostpassword()
 	{
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionChangelostpassword($user_id, $control_key)
 	{
 		$this->user_id     = $user_id;
 		$this->control_key = $control_key;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentLoginform()
 	{
 		$form = new NAppForm($this, 'loginform');
@@ -399,6 +474,11 @@ final class UserPresenter extends BasePresenter
 		return $form;
 	}
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentNotificationsform()
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -416,7 +496,12 @@ final class UserPresenter extends BasePresenter
 		$form->setDefaults(array('user_send_notifications' => $notification_setting));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function notificationsformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -429,7 +514,12 @@ final class UserPresenter extends BasePresenter
 		$user->setNotificationSetting($values['user_send_notifications']);
 		$this->redirect("this");
 	}
-		
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChangelostpasswordform()
 	{
 		$form = new NAppForm($this, 'changelostpasswordform');
@@ -444,6 +534,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function changelostpasswordformSubmitted(NAppForm $form)
 	{
 
@@ -458,7 +554,12 @@ final class UserPresenter extends BasePresenter
 			$this->redirect('Homepage:default');
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChangepasswordform()
 	{
 		$query = NEnvironment::getHttpRequest();
@@ -476,7 +577,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function changepasswordformSubmitted(NAppForm $form)
 	{
 
@@ -489,7 +595,12 @@ final class UserPresenter extends BasePresenter
 			$this->redirect('User:edit', $values['user_id']);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentReportform()
 	{
 		$types = array(
@@ -509,7 +620,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMapedit($name)
 	{
 		if (!isset($this->user)) {
@@ -533,7 +649,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function reportformSubmitted(NAppForm $form)
 	{
 		if (!empty($this->user)) {
@@ -568,7 +689,12 @@ final class UserPresenter extends BasePresenter
 			$this->flashMessage(_t("Your report has been received."));
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentLostpasswordform()
 	{
 		$form = new NAppForm($this, 'lostpasswordform');
@@ -582,7 +708,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function lostpasswordformSubmitted(NAppForm $form)
 	{
 
@@ -596,7 +727,12 @@ final class UserPresenter extends BasePresenter
 			$this->flashMessage(_t("This email is not registered in our system!"), 'error');
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function loginformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -641,7 +777,11 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 
-	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentRegisterform()
 	{
 		$form = new NAppForm($this, 'registerform');
@@ -665,6 +805,11 @@ final class UserPresenter extends BasePresenter
 	}
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function registerformSubmitted(NAppForm $form)
 	{
 
@@ -746,6 +891,7 @@ final class UserPresenter extends BasePresenter
 		
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$values['user_language'] = $session->language;
+		if (!$values['user_language']) $values['user_language'] = 1;
 
 		$new_user->setUserData($values);
 		$new_user->save();
@@ -761,7 +907,11 @@ final class UserPresenter extends BasePresenter
 		$this->redirect('Homepage:default');
 	}
 
-
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentSecurityquestionform()
 	{
 		$question = Settings::getVariable('signup_question');
@@ -781,7 +931,11 @@ final class UserPresenter extends BasePresenter
 		return $form;	
 	}
 
-	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function securityquestionformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -807,7 +961,11 @@ final class UserPresenter extends BasePresenter
 		$this->facebook(true);
 	}
 
-
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentTagform()
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -823,12 +981,17 @@ final class UserPresenter extends BasePresenter
 		}
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChatform()
 	{
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', '');
-		$form['message_text']->getControlPrototype()->class('tinymce-small');
+		$form['message_text']->getControlPrototype()->class('ckeditor-big');
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
 		
@@ -840,7 +1003,12 @@ final class UserPresenter extends BasePresenter
 		$this->template->message = true;
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function chatformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -869,7 +1037,12 @@ final class UserPresenter extends BasePresenter
 			'user_id' => $this->user->getUserId()
 		));
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentUpdateform()
 	{
 		$visibility = array(
@@ -933,7 +1106,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function updateformSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -996,7 +1174,12 @@ final class UserPresenter extends BasePresenter
 			$this->redirect("this");
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleUserAdministration($user_id, $values)
 	{
 		$user = User::create($user_id);
@@ -1005,7 +1188,12 @@ final class UserPresenter extends BasePresenter
 		$user->save();
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDefaultusergrouplister($name)
 	{
 		$options = array(
@@ -1030,7 +1218,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDefaultuserresourcelister($name)
 	{
 		$options = array(
@@ -1055,7 +1248,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDetailusergrouplister($name)
 	{
 		$options = array(
@@ -1083,7 +1281,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDetailuserresourcelister($name)
 	{
 		$options = array(
@@ -1145,7 +1348,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);		
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentFriendlister($name)
 	{
 		$user    = NEnvironment::getUser()->getIdentity();
@@ -1156,7 +1364,7 @@ final class UserPresenter extends BasePresenter
 			),
 			'template_body' => 'ListerControlMain_users.phtml',
 			'filter' => array(
-				'user_id' => $this->user->getUserId(), // $user->getUserId()
+				'user_id' => $this->user->getUserId(),
 			),
 			'refresh_path' => 'User:default',
 			'template_variables' => array(
@@ -1168,7 +1376,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleRemoveAvatar($user_id = null)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -1196,7 +1409,12 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->redirect("this");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleInsertTag($tag_id, $user_id = null)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -1218,7 +1436,12 @@ final class UserPresenter extends BasePresenter
 		$this->template->user_tags = $this->user->groupSortTags($user->getTags());
 		$this->invalidateControl('tagHandle');
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleRemoveTag($tag_id, $user_id = null)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -1242,6 +1465,12 @@ final class UserPresenter extends BasePresenter
 	/**
 	*	Removing messages with friendship requests
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleRemoveMessage($message_id,$user_id)
 	{
 		$resource = Resource::create($message_id);
@@ -1252,6 +1481,12 @@ final class UserPresenter extends BasePresenter
 		$this->terminate();	
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleDefaultPage($object_type, $object_id)
 	{
 		$this->user_id                = $object_id;
@@ -1272,7 +1507,12 @@ final class UserPresenter extends BasePresenter
 		
 		$this->redirect("this");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMap($name)
 	{
 		$data    = array(
@@ -1289,7 +1529,12 @@ final class UserPresenter extends BasePresenter
 		));
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleUserFriendInsert($friend_id)
 	{
 		if (empty($friend_id)) {
@@ -1310,7 +1555,12 @@ final class UserPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleUserFriendRemove($friend_id)
 	{
 		if (empty($friend_id)) {
@@ -1380,7 +1630,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMessageform()
 	{
 		$user    = NEnvironment::getUser()->getIdentity();
@@ -1388,7 +1643,7 @@ final class UserPresenter extends BasePresenter
 		$form    = new NAppForm($this, 'messageform');
 		$form->addSelect('friend_id', _t('To:'), $friends);
 		$form->addTextarea('message_text', '');
-		$form['message_text']->getControlPrototype()->class('tinymce-small');
+		$form['message_text']->getControlPrototype()->class('ckeditor-big');
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
 		
@@ -1399,7 +1654,12 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function messageformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -1472,8 +1732,6 @@ final class UserPresenter extends BasePresenter
 		);
 
 		$session = NEnvironment::getSession()->getNamespace($name);
-		
-		
 		if (!isset($session['filterdata']['trash']))
 			if (is_array($session->filterdata)) {
 				$session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
@@ -1484,7 +1742,12 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentUseradministrator()
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -1531,7 +1794,12 @@ final class UserPresenter extends BasePresenter
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminUserFormSubmitted(NAppForm $form)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -1562,6 +1830,12 @@ final class UserPresenter extends BasePresenter
 	/**
 	*	click on move-to-trash icon in message list
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleMoveToTrash($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1580,6 +1854,12 @@ final class UserPresenter extends BasePresenter
 	/**
 	*	click on restore-from-trash icon in message list
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleMoveFromTrash($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1595,7 +1875,9 @@ final class UserPresenter extends BasePresenter
 	
 	/**
 	*		Marks message as read
-	*/
+ *	@param
+ *	@return
+*/
 	public function handleMarkRead($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1613,6 +1895,12 @@ final class UserPresenter extends BasePresenter
 	/**
 	*		Marks message as unread
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleMarkUnread($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1627,8 +1915,12 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->terminate();
 	}
-	
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isAccessible()
 	{
 		if ($this->getAction() == "default") {
@@ -1659,6 +1951,11 @@ final class UserPresenter extends BasePresenter
 	}
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleCrop() {
 
 		$query = NEnvironment::getHttpRequest();
@@ -1718,6 +2015,11 @@ final class UserPresenter extends BasePresenter
 	}
 
 
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='userlister';
@@ -1744,6 +2046,12 @@ final class UserPresenter extends BasePresenter
   *		Checks if user is authenticated via Facebook API
   *
   */
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
   public function facebook($captcha = false) {
   
 		$facebook_app_id = NEnvironment::getVariable("FACEBOOK_APP_ID");
@@ -1906,6 +2214,12 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function lookup_address($string) {
  
 	   $string = str_replace (" ", "+", urlencode($string));

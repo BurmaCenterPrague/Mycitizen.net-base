@@ -93,7 +93,11 @@
 						{elseif $default_data['object_data']['resource_visibility_level'] == 2}
 							<b class="icon-registered" title="{_"only visible to registered users"}"></b>
 						{else}
-							<b class="icon-person" title="{_"only visible to friends"}"></b>
+							{ifset $iamowner}
+							<b class="icon-person" title="{_"only visible to you"}"></b>
+							{else}
+							<b class="icon-person" title="{_"only visible to subscribers"}"></b>
+							{/if}
 						{/if}
 
 					<div class="resource-name">
@@ -106,6 +110,27 @@
         		<div class="resource-description">
         			{$default_data['object_data']['resource_description']}
         		</div>
+        		<div class="resource-event-time"  style="padding:20px 30px; margin:20px 0;">
+					{ifset $event_alert}<img src="/images/clock-alert.png" style="float:right;" title="{_"The event is upcoming."}"/>
+					{elseifset $event_ahead}<img src="/images/clock-ahead.png" style="float:right;" title="{_"The event is in the future."}"/>
+					{else}<img src="/images/clock.png" style="float:right;" title="{_"The event is over."}"/>{/if}
+					<table>
+					<tr>
+					{if !isset($default_data['object_data']['event_timestamp_end']) || $default_data['object_data']['event_timestamp']==$default_data['object_data']['event_timestamp_end']}
+					<td><h4>{_"Time:"}</h4></td><td>{$start_formatted}</td>
+					{else}
+					<td><h4>{_"Start:"}</h4></td><td>{$start_formatted}</td>
+					</tr><tr>
+					<td><h4>{_"End:"}</h4></td><td>{$end_formatted}</td>
+					{/if}
+					</tr>
+					{if isset($default_data['object_data']['event_allday']) && $default_data['object_data']['event_allday']}
+					<tr>
+					<td colspan="2"><h4>{_"All-day event"}</h4></td>
+					</tr>
+					{/if}
+					</table>
+				</div>
 
 				{ifset $default_data['object_data']['logged_user_member']}
 					{if $default_data['object_data']['logged_user_member'] == 0 && $default_data['object_data']['resource_visibility_level'] != 3}

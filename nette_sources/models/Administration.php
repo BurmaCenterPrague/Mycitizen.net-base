@@ -21,6 +21,13 @@ class Administration extends BaseModel
 		return $result;
 	}
 
+
+	/**
+	 *	retrieves selected information for the statistics in the admin back end
+	 *
+	 *	@param void
+	 *	@return array containing the data
+	 */
 	public static function getStatistics() {
 
 		// users
@@ -57,11 +64,24 @@ class Administration extends BaseModel
 	
 	}
 
+
+	/**
+	 *	Deletes users from the database who never confirmed their registration and who registered min. a defined time ago
+	 *	
+	 *	@param int $months Period before which users who are now still inactive had registered 
+	 *	@return int Number of affected rows
+	 */
 	public static function clearUsers($months) {
 		if ($months < 1) $months = 1;
 		return dibi::query("DELETE FROM `user` WHERE `user_registration_confirmed` = 0 AND `user_status` = 0 AND  `user_registration` < NOW() - INTERVAL %i MONTH", $months);
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAllUsers($filter)
 	{
 		$limit    = null;
@@ -119,7 +139,13 @@ class Administration extends BaseModel
 		}
 		return $users;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAllGroups($filter)
 	{
 		$limit    = null;
@@ -175,7 +201,13 @@ class Administration extends BaseModel
 		}
 		return $groups;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAllResources($filter)
 	{
 		$limit    = null;
@@ -219,7 +251,13 @@ class Administration extends BaseModel
 		}
 		return $groups;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getAllTags($filter)
 	{
 		$limit      = null;
@@ -254,7 +292,13 @@ class Administration extends BaseModel
 		}
 		return $tags;
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function getData($types, $filter, $counter_mode = false)
 	{
 		$user                = NEnvironment::getUser()->getIdentity();
@@ -463,36 +507,24 @@ class Administration extends BaseModel
 
 			}
 		}
-		
-		
+
+/*		
+		if (isset($filter['owner_not']) && $filter['owner_not'] != 'null') {
+			foreach ($types as $object) {
+				$filter_o[$object][] = array(
+					'`'.$object.'.'.$object . '_id` != %i', $filter['owner_not']
+				);
+			}
+		}
+*/
+
 		if (isset($filter['status']) && $filter['status'] != 'null') {
 			foreach ($types as $object) {
 				$filter_o[$object][$object . '_status'] = $filter['status'];
 			}
 		}
 
-		// hack
-		if (isset($filter['trash']) && $filter['trash'] == 2) {
-			$logged_user = NEnvironment::getUser()->getIdentity();
-			if (isset($logged_user)) {
-				$logged_user_id = $logged_user->getUserId();
-				$count_unread = User::getUnreadMessages($logged_user_id);
-				if ($count_unread == 0) $filter['trash'] = 0;
-				unset($logged_user);
-			}
-		} elseif (isset($filter['trash']) && $filter['trash'] == 'null') {
-			$logged_user = NEnvironment::getUser()->getIdentity();
-			if (isset($logged_user)) {
-				$logged_user_id = $logged_user->getUserId();
-				$count_unread = User::getUnreadMessages($logged_user_id);
-				if ($count_unread > 0) $filter['trash'] = 2;
-				unset($logged_user);
-			}
-		}
-
-				
 		if (isset($filter['trash']) && $filter['trash'] != 'null') {
-
 			foreach ($types as $object) {
 				if ($object == "resource") {
 					if (!empty($user)) {
@@ -510,7 +542,7 @@ class Administration extends BaseModel
         	foreach($types as $object) {
 				if($object == "resource") {
 					if(!empty($user)) {
-            			$filter_o[$object]['opened.resource_opened_by_user'] = $filter['trash'];
+            			$filter_o[$object]['opened.resource_opened_by_user'] = $filter['opened'];
 					}
 				}
          	}
@@ -586,8 +618,8 @@ class Administration extends BaseModel
 				$pairing_operator = 'AND';
 			}
 		}
-		$language = "'1','2'";
-####### why 1,2???? default setup with 2 languages?
+		
+		$language = "'".implode("','",Language::getIds())."'";
 		if (isset($filter['language']) && $filter['language'] != "") {
 			$language = "";
 			if ($filter['language'] == 0) {

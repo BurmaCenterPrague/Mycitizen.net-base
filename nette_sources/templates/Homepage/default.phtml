@@ -10,6 +10,8 @@
  *
  * @package mycitizen.net
  */
+ 
+$homepage = true;
 ?>
 {block title}Homepage{/block}
 {block content}
@@ -75,30 +77,154 @@
 {ifset $logged}{* Users who are logged in see "own" items. *}
 <div class="cleaner"></div>
 <div class="wrapper-home">
-	<div class="home-connections">
-		<h3>{_"My Connections"}</h3>
-	</div>
-	<div class="top-users">
-		<h2>{_"My Friends"}</h2>
-			{control homepagefriendlister:body}
-		<div class="discover_new_users">
-			<a href="{link User:default}">{_"Discover new users"}</a>
+
+<div id="tabs" style="display:none;">
+	<ul id="tab_headers" style="display:none;">
+		<li><a href="#connections">{_"My Connections"}</a></li>
+		<li><a href="#recommendations">{_"My Recommendations"}</a></li>
+		<li><a href="#activity">{_"My Activity"}</a></li>
+		<li id="tab_events"><a href="#events">{_"My Events"}</a></li>
+	</ul>
+	<div id="connections">
+		<div class="top-users">
+			<h2>{_"My Friends"}</h2>
+				{control homepagefriendlister:body}
+			<div class="discover_new_users">
+				<a href="{link User:default}">{_"Discover new users"}</a>
+			</div>
+		</div>
+		<div class="top-groups">
+			<h2>{_"My Groups"}</h2>
+				{control homepagegrouplister:body}
+			<div class="discover_new_groups">
+				<a href="{link Group:default}">{_"Discover new groups"}</a>
+			</div>
+		</div>
+		<div class="top-resources">
+			<h2>{_"My Resources"}</h2>
+				{control homepageresourcelister:body}
+			<div class="discover_new_resources">
+				<a href="{link Resource:default}">{_"Discover new resources"}</a>
+			</div>
 		</div>
 	</div>
-	<div class="top-groups">
-		<h2>{_"My Groups"}</h2>
-			{control homepagegrouplister:body}
-		<div class="discover_new_groups">
-			<a href="{link Group:default}">{_"Discover new groups"}</a>
+
+	<div id="recommendations">
+	<h3>{_"The following items could be interesting for you:"}</h3>
+		<div class="top-users">
+			<h2>{_"Recommended Users"}</h2>
+				{control homepagerecommendeduserlister:body}
+			<div class="discover_new_users">
+				<a href="{link User:default}">{_"Discover new users"}</a>
+			</div>
+		</div>
+		<div class="top-groups">
+			<h2>{_"Recommended Groups"}</h2>
+				{control homepagerecommendedgrouplister:body}
+			<div class="discover_new_groups">
+				<a href="{link Group:default}">{_"Discover new groups"}</a>
+			</div>
+		</div>
+		<div class="top-resources">
+			<h2>{_"Recommended Resources"}</h2>
+				{control homepagerecommendedresourcelister:body}
+			<div class="discover_new_resources">
+				<a href="{link Resource:default}">{_"Discover new resources"}</a>
+			</div>
+		</div>
+		<div class="cleaner"></div>
+		<p>{_"You see only item that you are not connected to."} {_"If these recommendations are not precise, you could try to find better tags to describe your interests. You can change your tags on your profile page."}</p>
+	</div>
+
+	<div id="activity">
+	<div id="activity_box_home" class="activity-box">
+		<div id="load-more-home-1">
 		</div>
 	</div>
-	<div class="top-resources">
-		<h2>{_"My Resources"}</h2>
-			{control homepageresourcelister:body}
-		<div class="discover_new_resources">
-			<a href="{link Resource:default}">{_"Discover new resources"}</a>
-		</div>
+	<script>
+		$(document).ready(function(){
+			loadActivity("#load-more-home-1", 2);
+		});
+	</script>
 	</div>
+
+	<div id="events">
+		<div class="calendar-info" style="padding:1em;">
+			<p><span style="background-color:#E13C20; padding:2px 5px; margin:5px; display:inline;"></span> {_"own events"}</p>
+			<p><span style="background-color:#4680B3; padding:2px 5px; margin:5px; display:inline;"></span> {_"subscribed events"}</p>
+		</div>
+		<div id='calendar'></div>
+	</div>
+<script>
+	$(document).ready(function() {
+		$('#calendar').fullCalendar({
+			contentHeight: 600,
+			firstDay:1,
+			ignoreTimezone: false,
+			header: {
+				left:   'title',
+				center: '',
+				right:  'today agendaDay,agendaWeek,month prev,next'
+			},
+			events: '/?do=getevents',
+		    eventRender: function(event, element) {
+        		element.qtip({
+            		content: event.description
+		      	});
+		    },
+       		dayClick: function(date, allDay, jsEvent, view) {
+				if (confirm({_"Create a new event?"})) {
+					if (allDay) {
+						window.location = "/resource/create?date="+encodeURIComponent(date)+"&all_day=1"
+					} else {
+						window.location = "/resource/create?date="+encodeURIComponent(date)
+					}
+				}
+			},
+			eventDrop: function(event,dayDelta,minuteDelta,allDay,revertFunc, jsEvent, ui, view) {
+				if (view.name != 'agendaWeek' && view.name != 'agendaDay') allDay=null;
+				if (!$.post("/?do=changeevent&changed=start&resource_id=" +event.id+"&day_delta="+dayDelta+"&minute_delta="+minuteDelta+"&allday="+allDay)) revertFunc();
+			},
+			eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
+				if (!$.post("/?do=changeevent&changed=end&resource_id=" +event.id+"&day_delta="+dayDelta+"&minute_delta="+minuteDelta)) revertFunc();
+			},
+			buttonText: {
+				today:	{_"today"},
+				month:	{_"month"},
+				week:	{_"week"},
+				day:	{_"day"}
+			},
+			monthNames: [{_"January"}, {_"February"}, {_"March"}, {_"April"}, {_"May"}, {_"June"}, {_"July"},
+ {_"August"}, {_"September"}, {_"October"}, {_"November"}, {_"December"}],
+			monthNamesShort: [{_"Jan"}, {_"Feb"}, {_"Mar"}, {_"Apr"}, {_"May"}, {_"Jun"}, {_"Jul"}, {_"Aug"}, {_"Sep"}, {_"Oct"}, {_"Nov"}, {_"Dec"}],
+			dayNames: [{_"Sunday"}, {_"Monday"}, {_"Tuesday"}, {_"Wednesday"},
+ {_"Thursday"}, {_"Friday"}, {_"Saturday"}],
+			dayNamesShort: [{_"Sun"}, {_"Mon"}, {_"Tue"}, {_"Wed"}, {_"Thu"}, {_"Fri"}, {_"Sat"}],
+  		});
+	});
+</script>
+	<div class="cleaner"></div>
+</div>
+<script>
+	$(document).ready(function() {
+
+		$("#tab_headers").fadeIn(1200);
+				
+		$("#tabs").fadeIn(800).tabs({
+			activate: function(event, ui) {
+				if (ui.newTab.attr('id') == 'tab_events') {
+					$('#calendar').fullCalendar( 'render' );
+				}
+		        var newp = ui.newPanel.hide().attr('id');
+        	    var oldp = ui.oldPanel.attr('id');
+		        $('#' + oldp).fadeOut(800);
+        		$('#' + newp).fadeIn(800);
+
+			}
+		});
+
+	});
+</script>
 </div>
 {else}{* Users who are not logged in see "top" items. *}
 <div class="wrapper-home-B">

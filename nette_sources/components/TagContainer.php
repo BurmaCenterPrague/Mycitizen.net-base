@@ -15,13 +15,24 @@
 class TagContainer extends NFormContainer {
 	protected $defaultComponent = "none";
     protected $id = 0;	
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function __construct($id,$defaultComponent = "none") {
 		parent::__construct();
 		$this->monitor('NForm');
 		$this->id = $id;
 		$this->defaultComponent = $defaultComponent;	
 	}
-	
+
+	 /**
+	  *	@todo ### Description
+	  *	@param
+	  *	@return
+	  */
 	 protected function attached($obj) {
      	parent::attached($obj);
 

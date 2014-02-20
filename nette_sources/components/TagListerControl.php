@@ -22,7 +22,12 @@ class TagListerControl extends NControl
 	protected $refresh_path = "Homepage:default";
 	protected $refresh_path_params = array();
 	protected $template_source = "ListerControl.phtml";
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function __construct($parent, $name, $itemsPerPage = null)
 	{
 		parent::__construct($parent, $name);
@@ -39,13 +44,23 @@ class TagListerControl extends NControl
 		
 		$this->setRefreshPath("Administration:tags");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function render()
 	{
 		$this->renderFilter();
 		$this->renderBody();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderFilter()
 	{
 		$template = $this->template;
@@ -62,7 +77,12 @@ class TagListerControl extends NControl
 		$template->render();
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function renderBody()
 ##### needed?
 	{
@@ -124,7 +144,12 @@ class TagListerControl extends NControl
 		$template->render();
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentListItem($data_row)
 	{
 		$params   = NEnvironment::getHttpRequest()->getQuery("lister-page");
@@ -147,7 +172,12 @@ class TagListerControl extends NControl
 		));
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function adminUserFormSubmitted(NAppForm $form)
 	{
 		$values = $form->getValues();
@@ -165,7 +195,12 @@ class TagListerControl extends NControl
 		unset($values['tag_id']);
 		$this->getPresenter()->redirect("Administration:tags");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentFilter()
 	{
 		$form = new NAppForm($this, "filter");
@@ -180,7 +215,12 @@ class TagListerControl extends NControl
 		$form->setDefaults($this->getFilterArray());
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function filterFormSubmitted(NAppForm $form)
 	{
 		$values     = $form->getValues();
@@ -194,13 +234,23 @@ class TagListerControl extends NControl
 		}
 		$this->getPresenter()->redirect("Administration:tags");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getDataCount($filter)
 	{
 		$data = Administration::getAllTags($filter);
 		return count($data);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageData($filter)
 	{
 		if (!isset($filter['page'])) {
@@ -212,17 +262,32 @@ class TagListerControl extends NControl
 		$data            = Administration::getAllTags($filter);
 		return $data;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setItemsCount($count)
 	{
 		$this->itemscount = $count;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setItemsPerPage($count)
 	{
 		$this->itemsperpage = $count;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getMaxPage()
 	{
 		$maxpage = (int) ($this->itemscount / $this->itemsperpage);
@@ -231,7 +296,12 @@ class TagListerControl extends NControl
 		}
 		return $maxpage;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setCurrentPage($page)
 	{
 		$maxpage = $this->getMaxPage();
@@ -243,13 +313,23 @@ class TagListerControl extends NControl
 		}
 		$this->currentpage = $page;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPageFirstIndex($page)
 	{
 		$itemsonpage = $this->itemsperpage;
 		return $itemsonpage * ($page - 1);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function generateList()
 	{
 		$this->data = $this->getPageData($this->getFilterArray());
@@ -259,13 +339,23 @@ class TagListerControl extends NControl
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setFilterArray($filter)
 	{
 		$session             = NEnvironment::getSession()->getNamespace($this->name);
 		$session->filterdata = $filter;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getFilterArray()
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -275,7 +365,12 @@ class TagListerControl extends NControl
 		$filter = $session->filterdata;
 		return $filter;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleChangePage($page)
 	{
 		$filter = $this->getFilterArray();
@@ -286,7 +381,12 @@ class TagListerControl extends NControl
 		$this->invalidateControl('list_pager');
 		$this->getPresenter()->redirect("Administration:tags");
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function pageToLimit($page)
 	{
 		if (!empty($page)) {
@@ -301,7 +401,12 @@ class TagListerControl extends NControl
 			'count' => $this->itemsperpage
 		);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setRefreshPath($path, $params = array())
 	{
 		$this->refresh_path        = $path;

@@ -13,7 +13,6 @@
 ?>
 
 <a href="#flash_messages" class="messages-fancybox"></a>
-
 <div style="display:none">
 <div id="flash_messages">
 <div style="width:90%;height:80%;margin:auto;">
@@ -55,7 +54,7 @@ $(document).ready(function() {
 		afterLoad: function(){
 			$(".fancybox-skin").css({ "background-color":"#FFF", "opacity":"0.95", "border-radius":"15px"}); //#FFFFD2
 			$(".feedback-list-error").css({ "color":"#D00"});
-   			setTimeout( function() { $.fancybox.close(); },{? echo (3*count($presenter->template->flashes)+2)*1000});
+   			setTimeout( function() { $.fancybox.close(); },{? echo ($flash_message_time*count($presenter->template->flashes)+2)*1000});
   		}
 	});
 	

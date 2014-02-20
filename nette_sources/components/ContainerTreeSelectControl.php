@@ -21,7 +21,12 @@ class ContainerTreeSelectControl extends NFormControl
 	protected $selected_value = null;
 	protected $tag_names = null;
 	protected $identifier = null;
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function __construct($caption = NULL, $identifier = NULL)
 	{
 		parent::__construct($caption);
@@ -32,7 +37,12 @@ class ContainerTreeSelectControl extends NFormControl
 		$this->identifier   = $identifier;
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getControl()
 	{
 		//Set up template
@@ -85,13 +95,23 @@ class ContainerTreeSelectControl extends NFormControl
 		return $output;
 		return null;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function setValue($value)
 	{
 		$this->selected_value = $this->getPathString($value);
 		parent::setValue($value);
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getPathString($tag_id)
 	{
 		if (isset($this->tag_names[$tag_id]['tag_name'])) {
@@ -100,7 +120,12 @@ class ContainerTreeSelectControl extends NFormControl
 			return '';
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getFirstLevelContainerId()
 	{
 		return $this->tree_object->getMasterRootId();

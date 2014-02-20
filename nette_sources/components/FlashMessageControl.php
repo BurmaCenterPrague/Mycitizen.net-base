@@ -15,8 +15,16 @@
 
 class FlashMessageControl extends NControl {
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
   public function render() {
 		$this->template->setFile(dirname(__FILE__) . '/FlashMessageControl.phtml');
+    	$this->template->flash_message_time = (int) NEnvironment::getVariable("FLASH_MESSAGE_TIME");
+    	if ($this->template->flash_message_time<1) $this->template->flash_message_time = 3;
     	$this->template->render();
   }
 

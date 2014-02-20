@@ -16,7 +16,12 @@ final class ResourcePresenter extends BasePresenter
 {
 	protected $resource;
 	protected $grabzIt;
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function startup()
 	{
 		parent::startup();
@@ -32,14 +37,19 @@ final class ResourcePresenter extends BasePresenter
 		
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionDefault($resource_id = null)
 	{
-	$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
+		$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
 
 		if (!is_null($resource_id)) {
 			$this->setView('detail');
-			$this->template->load_js_css_tinymce = true;
+			$this->template->load_js_css_editor = true;
 			$this->resource = Resource::create($resource_id);
 			$d              = $this->resource->getResourceData();
 			if (empty($d)) {
@@ -145,7 +155,39 @@ final class ResourcePresenter extends BasePresenter
 			$image = $resource_object->getScreenshot();
 			if (!empty($image)) $this->template->screenshot = $image;
 			
-			$this->template->default_data = $data;
+			### ??? $data set?
+			$this->template->default_data = $data; 
+
+			/* date_default_timezone_set($ ... ) */
+			if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
+				$this->template->start_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp']));
+				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp_end']));
+			} else {
+				$this->template->start_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp']));
+				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp_end']));			
+			}			
+
+			// event icon
+			if (strtotime($data['object_data']['event_timestamp'])-$data['object_data']['event_alert'] > time()) {
+				$this->template->event_ahead = true;
+			} else {
+				if (isset($data['object_data']['event_timestamp_end']) && $data['object_data']['event_timestamp_end']) {
+					if (strtotime($data['object_data']['event_timestamp_end']) > time()) $this->template->event_alert = true;
+				} elseif (strtotime($data['object_data']['event_timestamp']) > time()) $this->template->event_alert = true;
+			}
+
+			$this->template->event_alert_times = array(
+				0 => _t('no alert'),
+				60 => '1 min',
+				300 => '5 min',
+				600 => '10 min',
+				900 => '15 min',
+				1800 => '30 min',
+				3600 => '1 h',
+				3600*12 => '12 h',
+				3600*24 => '24 h',
+				3600*24*7 => _t('1 week')
+			);
 		}
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!empty($user)) {
@@ -155,7 +197,9 @@ final class ResourcePresenter extends BasePresenter
 		if (isset($data) && isset($data['object_data']['resource_language'])) {
 			$languages = Language::getArray();
 			$this->template->object_language = $languages[$data['object_data']['resource_language']];
-			
+		}
+		
+		if (isset($data)) {	
 			$resource_name = array(
 				1=>'1',
 				2=>'event',
@@ -187,28 +231,71 @@ final class ResourcePresenter extends BasePresenter
 				'media_bambuser'=>_t('live-video on Bambuser')
 				);
 			$this->template->resource_type_label  = $data['object_data']['resource_type']==5 ? $resource_type_labels[$data['object_data']['media_type']] : $resource_type_labels[$data['object_data']['resource_type']];
+
+			/* date_default_timezone_set($ ... ) */
+			if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
+				$this->template->start_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp']));
+				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp_end']));
+			} else {
+				$this->template->start_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp']));
+				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp_end']));			
+			}
 			
+			// event icon
+			if (strtotime($data['object_data']['event_timestamp'])-$data['object_data']['event_alert'] > time()) {
+				$this->template->event_ahead = true;
+			} else {
+				if (isset($data['object_data']['event_timestamp_end']) && $data['object_data']['event_timestamp_end']) {
+					if (strtotime($data['object_data']['event_timestamp_end']) > time()) $this->template->event_alert = true;
+				} elseif (strtotime($data['object_data']['event_timestamp']) > time()) $this->template->event_alert = true;
+			}
+
+			$this->template->event_alert_times = array(
+				0 => _t('no alert'),
+				60 => '1 min',
+				300 => '5 min',
+				600 => '10 min',
+				900 => '15 min',
+				1800 => '30 min',
+				3600 => '1 h',
+				3600*12 => '12 h',
+				3600*24 => '24 h',
+				3600*24*7 => _t('1 week')
+			);
 		}
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionCreate()
 	{
+		// all users can create resources, but without sufficient permissions they must be private!
+/*
 		$user = NEnvironment::getUser()->getIdentity();
+		
 		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
 			$this->flashMessage(_t("You have no permission to create resources."), 'error');
 			$this->redirect("Resource:default");
 		}
+*/
 		$resource = Resource::create();
 
-		$this->template->load_js_css_tinymce = true;
+		$this->template->load_js_css_editor = true;
 		$this->template->load_js_css_datetimepicker = true;
 		$this->template->load_js_css_tree = true;
 		
 		$this->resource = $resource;
-		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function actionEdit($resource_id = null)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -224,7 +311,7 @@ final class ResourcePresenter extends BasePresenter
 				}
 				
 				$this->template->resource_id = $resource_id;
-				$form                        = $this['updateform'];
+				$form = $this['updateform'];
 
 //				$form ->setOption('container', NHtml::el('fieldset')->style("display:inline"));
 				
@@ -246,16 +333,21 @@ final class ResourcePresenter extends BasePresenter
 		}
 		
 		$this->template->resource_id = $resource->getResourceId();
-		$this->template->load_js_css_tinymce = true;
+		$this->template->load_js_css_editor = true;
 		$this->template->load_js_css_datetimepicker = true;
 		$this->template->load_js_css_tree = true;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentChatform()
 	{
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', '');
-		$form['message_text']->getControlPrototype()->class('tinymce-small');
+		$form['message_text']->getControlPrototype()->class('ckeditor-small');
 		$form->addSubmit('send', _t('Post'));
 		$form->addProtection(_t('Error submitting form.'));
 		
@@ -319,6 +411,7 @@ final class ResourcePresenter extends BasePresenter
 	/**
 	*	Receiving and processing return values to subscribe group(s)
 	*	@param string|array $values['group_id']
+	*	@return
 	*/
 	public function subscriberesourceformSubmitted(NAppForm $form)
 	{
@@ -354,8 +447,10 @@ final class ResourcePresenter extends BasePresenter
 	}
 
 	/**
-	*	Doing the actual subscription for subscriberesourceformSubmitted().
-	*/
+	 *	Doing the actual subscription for subscriberesourceformSubmitted().
+	 *	@param
+	 *	@return
+	 */
 	private function subscribeGroup($group_id) {
 	
 		if (empty($group_id) || $group_id<1) {
@@ -398,7 +493,11 @@ final class ResourcePresenter extends BasePresenter
 
 	}
 
-	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function chatformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -428,7 +527,12 @@ final class ResourcePresenter extends BasePresenter
 		
 		### set last activity
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentTagform()
 	{
 		$resource_id = $this->resource->getResourceId();
@@ -437,7 +541,12 @@ final class ResourcePresenter extends BasePresenter
 		return $form;
 		
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMemberlister($name)
 	{
 		$resource_id = $this->resource->getResourceId();
@@ -461,16 +570,37 @@ final class ResourcePresenter extends BasePresenter
 		$control     = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentUpdateform()
 	{
-		$visibility = array(
+		$query = NEnvironment::getHttpRequest();
+		$date = $query->getQuery("date");
+		$all_day = $query->getQuery("all_day");
+
+		$user = NEnvironment::getUser()->getIdentity();
+		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
+			$this->flashMessage(_t("Your permissions only allow to create private resources."));
+			$visibility = array(
+						3 => 'private event'
+					);
+		} else {
+			$visibility = array(
 						1 => 'world',
 						2 => 'registered',
 						3 => 'subscribers'
-					); // Visibility::getArray();
+					);
+		}
 		$language      = Language::getArray();
-		$resource_type = Resource::getTypeArray();
+		if ($date) {
+			$resource_type = array(2 => 'event');
+		} else {
+			$resource_type = Resource::getTypeArray();
+		}
 		if (!empty($this->resource)) {
 			$resource_data = $this->resource->getResourceData();
 			$resource_id   = $this->resource->getResourceId();
@@ -478,7 +608,8 @@ final class ResourcePresenter extends BasePresenter
 		$form = new NAppForm($this, 'updateform');
 		$form->addGroup();
 		$form->addText('resource_name', _t('Name:'))->addRule(NForm::FILLED, _t('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the resource.'))->id("help-name"));
-		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
+//		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
+		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
 		$form->addSelect('resource_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
 		$form->addSelect('resource_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Select a language of this resource.'))->id("help-name"));
 		
@@ -493,14 +624,17 @@ final class ResourcePresenter extends BasePresenter
 		
 		
 		//different resource fields according to type
+/*
+// no editing of messages here!
 		if (!empty($resource_id) && $resource_data['resource_type'] == 1) {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_message"));
 		} else {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_message")->style("display:none"));
 		}
+
 		$form->addTextArea('message_text', _t('Message:'), 100, 10);
-		$form['message_text']->getControlPrototype()->class('tinymce-small');
-	
+		$form['message_text']->getControlPrototype()->class('ckeditor-small');
+*/	
 		//event
 		if (!empty($resource_id) && $resource_data['resource_type'] == 2) {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_event"));
@@ -508,12 +642,17 @@ final class ResourcePresenter extends BasePresenter
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_event")->style("display:none"));
 		}
 		$form->addTextArea('event_description', _t('Event description:'), 50, 10);
-		$form['event_description']->getControlPrototype()->class('tinymce');
+		$form['event_description']->getControlPrototype()->class('ckeditor-big');
 		$form->addText('event_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
+		$form->addCheckbox('event_allday', _t('All day event'));
+		$form->setDefaults(array('event_allday' => $all_day));
 		$form->addText('event_timestamp', _t('Event time:'));
-		
+		$form->setDefaults(array('event_timestamp' => $date));
+		$form->addCheckbox('event_end', _t('Different end time'));
+		$form->addText('event_timestamp_end', _t('Event end time:'));
+				
 		$event_alert_times = array(
-			0 => 'no alert',
+			0 => _t('no alert'),
 			60 => '1 min',
 			300 => '5 min',
 			600 => '10 min',
@@ -522,9 +661,11 @@ final class ResourcePresenter extends BasePresenter
 			3600 => '1 h',
 			3600*12 => '12 h',
 			3600*24 => '24 h',
-			3600*24*7 => '1 week'
+			3600*24*7 => _t('1 week')
 		);
-		$form->addSelect('event_alert', _t('Notify members:'), $event_alert_times);
+		$form->addSelect('event_alert', _t('Alarm:'), $event_alert_times);
+		$form->addHidden('preset_time', $date);
+		if ($date) $form->setDefaults(array('resource_visibility_level' => 3));
 
 		//organization
 		if (!empty($resource_id) && $resource_data['resource_type'] == 3) {
@@ -533,7 +674,7 @@ final class ResourcePresenter extends BasePresenter
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_organization")->style("display:none"));
 		}
 		$form->addTextArea('organization_information', _t('Information:'), 50, 10);
-		$form['organization_information']->getControlPrototype()->class('tinymce');
+		$form['organization_information']->getControlPrototype()->class('ckeditor-big');
 		$form->addText('organization_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		
 		//text information
@@ -543,7 +684,7 @@ final class ResourcePresenter extends BasePresenter
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_information")->style("display:none"));
 		}
 		$form->addTextArea('text_information', _t('Text:'), 50, 10);
-		$form['text_information']->getControlPrototype()->class('tinymce');
+		$form['text_information']->getControlPrototype()->class('ckeditor-big');
 		$form->addText('text_information_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		
 		//other (external link)
@@ -593,26 +734,49 @@ final class ResourcePresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function updateformSubmitted(NAppForm $form)
 	{
 		$user          = NEnvironment::getUser()->getIdentity();
 		$values        = $form->getValues();
+
+		if (strtotime($values['event_timestamp']) > strtotime($values['event_timestamp_end'])) $values['event_timestamp_end'] = $values['event_timestamp'];
+		
+		if ($values['event_allday']) {
+			$values['event_timestamp'] = date("r", strtotime("midnight", strtotime($values['event_timestamp'])));
+			$values['event_timestamp_end'] = date("r", strtotime("tomorrow midnight -1 minute", strtotime($values['event_timestamp_end'])));
+		}
+		
+		$resource_type = (isset($values['resource_type'])) ? $values['resource_type'] : $values['resource_type_exists'];
+		
+		switch ($resource_type) {
+			case 2: $values['organization_url']=''; $values['text_information_url']=''; $values['other_url']=''; break; //event
+			case 3: $values['event_url']=''; $values['text_information_url']=''; $values['other_url']=''; break; // organization
+			case 4: $values['organization_url']=''; $values['event_url']=''; $values['other_url']=''; break; // text
+			case 6: $values['organization_url']=''; $values['text_information_url']=''; $values['event_url']=''; break; // website
+		}
+
 		$resource_data = array(
-			'message_text' => $values['message_text'],
 			'event_description' => $values['event_description'],
 			'organization_information' => $values['organization_information'],
 			'text_information' => $values['text_information'],
 			'media_type' => $values['media_type'],
 			'media_link' => $values['media_link'],
 			'event_url' => $values['event_url'],
+			'event_allday' => $values['event_allday'],
 			'event_timestamp' => $values['event_timestamp'],
+			'event_timestamp_end' => $values['event_timestamp_end'],
 			'event_alert' => $values['event_alert'],
 			'organization_url' => $values['organization_url'],
 			'text_information_url' => $values['text_information_url'],
 			'other_url' => $values['other_url']
-		); 
-		$data          = array(
+		);
+		$data = array(
 			'resource_name' => $values['resource_name'],
 			'resource_visibility_level' => $values['resource_visibility_level'],
 			'resource_language' => $values['resource_language'],
@@ -621,9 +785,10 @@ final class ResourcePresenter extends BasePresenter
 		);
 		if (isset($form['register']) && $form['register']->isSubmittedBy()) {
 			if (Auth::MODERATOR > $user->getAccessLevel()) {
-				if (!$user->hasRightsToCreate()) {
-					$this->flashMessage(_t("You have no permission to create resources."), 'error');
-					$this->redirect("Resource:default");
+				if (!$user->hasRightsToCreate() && $data['resource_visibility_level']!=3) {
+					$this->flashMessage(_t("You have no permission to create public resources."), 'error');
+					$data['resource_visibility_level']=3;
+//					$this->redirect("Resource:default");
 				}
 			}
 			$data['resource_type']   = $values['resource_type'];
@@ -647,8 +812,6 @@ final class ResourcePresenter extends BasePresenter
 			Activity::addActivity(Activity::RESOURCE_UPDATED, $resource_id, 3);
 		}
 		
-		$resource_type = (isset($values['resource_type'])) ? $values['resource_type'] : $values['resource_type_exists'];
-		
 		// create screenshot
 		switch ($resource_type) {
 			case 2: if (isset($values['event_url']) && !empty($values['event_url'])) $url = $values['event_url']; break;
@@ -668,18 +831,19 @@ final class ResourcePresenter extends BasePresenter
 		}
 
 		if (isset($direct_url) && !empty($direct_url)) {
+			// for all URLs that don't need a callback but where the resource is already avalible
 			$this->saveDirectScreenshot($resource_id,$direct_url);
 			$this->flashMessage(_t("Screenshot processing"));
 		} elseif (isset($url) && !empty($url) && isset($this->grabzIt)) {
+			// Grabz.it needs some time to process the screenshot
 			$headers = @get_headers($url);
-
 			if(!$headers || strpos($headers[0], '404 Not Found')!==false) {
 				$this->flashMessage(_t("URL doesn't seem to exist"),'error');
 			} else {
 				// delete previous versions
 				// We keep screenshots up to 1 day old, assuming that usually the views of websites don't change fundamentally during that time.
 				$files = glob(WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-*.jpg');
-				if ( is_array ( $files ) ) {
+				if ( is_array ( $files ) && count($files) ) {
 					foreach($files as $file) {
 						if (time() - filemtime($file) > 3600*24) {
 							unlink($file);
@@ -687,21 +851,27 @@ final class ResourcePresenter extends BasePresenter
 					}
 				}
 
-				$md5 = md5($url);
-				$this->grabzIt->SetImageOptions($url,$md5);
-							
+				$md5 = md5($url);							
+				$ssl = NEnvironment::getVariable("GRABZIT_HTTPS");
 				$s = &$_SERVER;
-				$ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true:false;
+				// $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true:false;
 				$host = isset($s['HTTP_X_FORWARDED_HOST']) ? $s['HTTP_X_FORWARDED_HOST'] : isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME'];
 				$callback = 'http'. (($ssl) ? 's' : '').'://'. $host. "/?do=savescreenshot&resource_id=". $resource_id. "&md5=". $md5;
-			
 				// check existence of screenshot to avoid unneccessary API calls
 				$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
 				if (!file_exists($filepath)) {
-					if ($this->grabzIt->Save($callback)) {
-						$this->flashMessage(_t("Screenshot processing"));
+					try
+					{
+						$this->grabzIt->SetImageOptions($url,$md5);
+						if ($this->grabzIt->Save($callback)) {
+							$this->flashMessage(_t("Screenshot processing."));
+						}
 					}
-				}
+					catch(GrabzItException $e)
+					{
+						$this->flashMessage(_t("Error processing screenshot."), "error");
+					}
+				} else $this->flashMessage(_t("Screenshot already exists."));
 			}
 					
 		}
@@ -711,10 +881,13 @@ final class ResourcePresenter extends BasePresenter
 			$event_time = strtotime($values['event_timestamp']);
 			if ($event_time + 3600 > time()) { // back-schedule max 60 mins.
 				// get all subscribers
-				$data = $this->resource->getAllMembers(array('enabled'=>1));
-				foreach ($data as $member) {
+				$members = $this->resource->getAllMembers(array('enabled'=>1));
+				if (count($members)) foreach ($members as $member) {
 					StaticModel::addCron($event_time - $values['event_alert'], $member['member_type'], $member['member_id'], $values['resource_name']."\r\n\n".$values['resource_description'], 3, $resource_id);
 				}
+			} else {
+				// event has been changed with time in the past: don't send alerts
+				StaticModel::removeCron(0, 0, 3, $resource_id);
 			}
 		}
 
@@ -722,7 +895,12 @@ final class ResourcePresenter extends BasePresenter
 			'resource_id' => $resource_id
 		));
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function saveDirectScreenshot($resource_id = null, $url = null) {
 		$md5 = md5($url);
 		$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
@@ -731,7 +909,12 @@ final class ResourcePresenter extends BasePresenter
 			file_put_contents($filepath, $image);
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleResourceAdministration($resource_id, $values)
 	{
 		$resource = Resource::create($resource_id);
@@ -741,7 +924,11 @@ final class ResourcePresenter extends BasePresenter
 		$this->terminate();
 	}
 
-	
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDefaultresourcememberlister($name)
 	{	
 		$options = array(
@@ -765,7 +952,12 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDefaultresourcegrouplister($name)
 	{
 		
@@ -791,6 +983,11 @@ final class ResourcePresenter extends BasePresenter
 		return $control;
 	}
 
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDetailresourcememberlister($name)
 	{
 		
@@ -818,7 +1015,12 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentDetailresourcegrouplister($name)
 	{
 		
@@ -882,7 +1084,12 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleInsertTag($resource_id, $tag_id)
 	{
 		$this->resource = Resource::create($resource_id);
@@ -897,6 +1104,12 @@ final class ResourcePresenter extends BasePresenter
 			}
 		}
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleRemoveTag($resource_id, $tag_id)
 	{
 		$this->resource = Resource::create($resource_id);
@@ -910,6 +1123,12 @@ final class ResourcePresenter extends BasePresenter
 			}
 		}
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleDefaultPage($object_type, $object_id)
 	{
 		$this->resource               = Resource::create($object_id);
@@ -931,7 +1150,12 @@ final class ResourcePresenter extends BasePresenter
 		
 		//$this->presenter->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleUserResourceInsert($user_id, $resource_id)
 	{
 		if (empty($resource_id) || empty($user_id)) {
@@ -962,7 +1186,12 @@ final class ResourcePresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function handleUserResourceRemove($user_id, $resource_id)
 	{
 		if (empty($resource_id) || empty($user_id)) {
@@ -1019,7 +1248,12 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMap($name)
 	{
 		$data    = array(
@@ -1036,6 +1270,12 @@ final class ResourcePresenter extends BasePresenter
 		));
 		return $control;
 	}
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentMapedit($name)
 	{
 		$data    = array(
@@ -1053,7 +1293,12 @@ final class ResourcePresenter extends BasePresenter
 		));
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function createComponentResourceadministrator($data_row)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -1075,6 +1320,12 @@ final class ResourcePresenter extends BasePresenter
 		));
 		return $form;
 	}
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function adminResourceFormSubmitted(NAppForm $form)
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -1093,7 +1344,12 @@ final class ResourcePresenter extends BasePresenter
 			$this->redirect("Resource:default");
 		}
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	protected function createComponentReportform()
 	{
 		$types = array(
@@ -1113,7 +1369,12 @@ final class ResourcePresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function reportformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -1179,7 +1440,12 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function isAccessible()
 	{
 		if ($this->getAction() == "default") {
@@ -1188,6 +1454,12 @@ final class ResourcePresenter extends BasePresenter
 		return false;
 	}
 
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleSearchTag($tag_id)
 	{
 		$filter = new ExternalFilter($this,'defaultresourceresourcelister');
@@ -1211,6 +1483,12 @@ final class ResourcePresenter extends BasePresenter
 	/**
 	*	For the moderation of chat messages
 	*/
+
+/**
+ *	@todo ### Description
+ *	@param
+ *	@return
+*/
 	public function handleRemoveMessage($message_id,$resource_id)
 	{
 		//if (Auth::MODERATOR<=Auth::isAuthorized($object_type,$object_id)) $this->terminate();
