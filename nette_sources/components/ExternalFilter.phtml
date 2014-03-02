@@ -108,7 +108,7 @@
 			{foreach $control['filter']['tags']->getControls() as $key2=>$ctrl2}
 				{if $key2 == 'all'}
 			<div class="all-tags">
-				<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _($ctrl2->label)}</div>{$ctrl2->control}
+				<div style="width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline;"><b class="icon-tag"></b>{? echo _t($ctrl2->label)}</div>{$ctrl2->control}
 			</div>		
       		<div class="tag-columns">
 				{else}
@@ -148,7 +148,7 @@
 	{/if}
 	{ifset $include_map}
 	<div class="filter-map" style="float:right;width:300px;">
-		<h3>{_"Restrict your search to a location"}	<img src="/images/help.png" class="help-icon" title="{_"Click inside the map to set the center. Click a second time to set the search radius."}"/></h3>
+		<h3>{_"Restrict your search to a location"}	<img src="{$baseUri}/images/help.png" class="help-icon" title="{_"Click inside the map to set the center. Click a second time to set the search radius."}"/></h3>
 		<div id="mapdiv" class="map-filter" style="display:none;">
 			{$control['filter']['mapfilter']->control}
 		</div>

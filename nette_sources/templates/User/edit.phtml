@@ -17,10 +17,12 @@
 	{control updateform error}
 	{control updateform begin}
 	<div class="back"><a href="{plink User:default, $user_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
-			
-<div style="padding-bottom:10px;">
+<div class="edit-primary">
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+	<h2>{_"Basic Information"}</h2>
+{/if}
 {if isset($img_src) && $img_src!=null}
-	<div class="user-edit-image">
+	<div class="user-edit-image{if !isset($image_too_large) && !isset($image_props_wrong)} edit-image-small{/if}">
 		<h3>{_"Edit your avatar"}</h3>
 		<div class="images">
 			<div class="image-full"><img src="data:{$mime_type};base64,{$img_src}" id="crop"/></div>
@@ -42,16 +44,7 @@
 		</div>
 	</div>
 {/if}
-
 {if !isset($image_too_large) && !isset($image_props_wrong)}
-	<div class="user-edit-map">
-		<h3>{_"Edit your location"}</h3>
-    	{control mapedit}
-	</div>
-{/if}
-<div class="cleaner"></div>
-</div>
-
 	<div class="edit-wrapper">
 	<table>
 		<tbody>
@@ -81,10 +74,28 @@
 
 	{control updateform end}
 	</div>
+<div class="cleaner"></div>
+</div>
+{/if}
 
-	<div class="user-edit-tagform">
+<div class="edit-secondary">
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+	<h2>{_"Additional Information"}</h2>
+{/if}
+<table class="edit-secondary-table">
+<tr>
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+	<td class="edit-secondary-table-td">
+	<div class="user-edit-map">
+		<h3>{_"Edit your location"}</h3>
+    	{control mapedit}
+	</div>
+	</td>
+{/if}
+
+	<td class="edit-secondary-table-td">
 		{if !isset($image_too_large) && !isset($image_props_wrong)}
-		<h3>{_"Add or remove tags"} <img src="/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="margin-bottom:-8px;"/></h3>
+		<h3>{_"Add or remove tags"}</h3><img src="{$baseUri}/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="float:right;"/>
 		{/if}
 	   {control tagform begin}
 		{snippet tagHandle}
@@ -114,14 +125,14 @@
 			{!$control['tagform']['add_tag']->control}
 		{/if}
 		{control tagform end}
-
 <script>
 	$(document).ready(function(){
 		$('a#tag_select_button').addClass('button');
 	});
 </script>
-
-	</div>
+	</td>
+</tr>
+</table>
 	<div class="cleaner"></div>
 </div>
 {/block}

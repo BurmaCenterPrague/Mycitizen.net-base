@@ -18,7 +18,11 @@
 		$("#frmupdateform-event_timestamp").hide();
 		$("#frmupdateform-event_timestamp_end").hide();
 		var divToday1 = $("<span>").attr('id', 'today_1').html({_"now"}).addClass("button").css('margin', '2px');
+{ifset $initial_selection}
 		var divPreset = $("<span>").attr('id', 'preset').html({_"reset to initial selection"}).addClass("button").css('margin', '2px');
+{else}
+	var divPreset = '';
+{/if}
 	    var divDate1 = $("<div>").attr('id', 'date_1').css('width', '500px');
 		var divToday2 = $("<span>").attr('id', 'today_2').html({_"now"}).addClass("button").css('margin', '2px');
 	    var divDate2 = $("<div>").attr('id', 'date_2').css('width', '500px');
@@ -94,24 +98,24 @@
 		CKEDITOR.replace( 'organization_information', {
 			height: '300px',
 			width: '800px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
+			filebrowserUploadUrl: '{!$baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!$baseUri}widget/browse/',
 			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
 			extraPlugins: 'smiley'
 		});
 		CKEDITOR.replace( 'event_description', {
 			height: '300px',
 			width: '800px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
+			filebrowserUploadUrl: '{!$baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!$baseUri}widget/browse/',
 			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
 			extraPlugins: 'smiley'
 		});
 		CKEDITOR.replace( 'text_information', {
 			height: '300px',
 			width: '800px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
+			filebrowserUploadUrl: '{!$baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!$baseUri}widget/browse/',
 			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
 			extraPlugins: 'smiley'
 		});

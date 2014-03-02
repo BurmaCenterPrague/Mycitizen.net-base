@@ -26,226 +26,11 @@ final class WidgetPresenter extends BasePresenter
 		parent::startup();
 	}
 
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function actionPublicComponents($component_type, $object_type, $object_id)
-	{
-		$this->object_id = $object_id;
-		
-		switch ($object_type) {
-			case 1:
-				if ($component_type == 2) {
-					$this->template->type = "membergroups";
-				}
-				if ($component_type == 3) {
-					$this->template->type = "userresources";
-				}
-				break;
-			case 2:
-				if ($component_type == 1) {
-					$this->template->type = "groupmembers";
-				}
-				if ($component_type == 3) {
-					$this->template->type = "groupresources";
-				}
-				break;
-			case 3:
-				$this->template->type = "resourcemembers";
-				break;
-				
-		}
-		$this->template->object_id = $object_id;
-	}
+
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentGroupmembers($name)
-	{
-		$options = array(
-			'itemsPerPage' => 50,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_USER
-			),
-			'filter' => array(
-				'group_id' => $this->object_id
-			),
-			'refresh_path' => 'Widget:publicComponents',
-			'refresh_path_params' => array(
-				'object_type' => 2,
-				'object_id' => $this->object_id
-			)
-		);
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentUserresources($name)
-	{
-		$options = array(
-			'itemsPerPage' => 50,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_RESOURCE
-			),
-			'filter' => array(
-				'user_id' => $this->object_id
-			),
-			'refresh_path' => 'Widget:publicComponents',
-			'refresh_path_params' => array(
-				'component_type' => 3,
-				'object_type' => 1,
-				'object_id' => $this->object_id
-			)
-		);
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentGroupresources($name)
-	{
-		$options = array(
-			'itemsPerPage' => 50,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_RESOURCE
-			),
-			'filter' => array(
-				'group_id' => $this->object_id
-			),
-			'refresh_path' => 'Widget:publicComponents',
-			'refresh_path_params' => array(
-				'component_type' => 3,
-				'object_type' => 2,
-				'object_id' => $this->object_id
-			)
-		);
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentMembergroups($name)
-	{
-		$options = array(
-			'itemsPerPage' => 50,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_GROUP
-			),
-			'filter' => array(
-				'user_id' => $this->object_id
-			),
-			'refresh_path' => 'Widget:publicComponents',
-			'refresh_path_params' => array(
-				'component_type' => 1,
-				'object_type' => 1,
-				'object_id' => $this->object_id
-			)
-		);
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentResourcemembers($name)
-	{
-		$options = array(
-			'itemsPerPage' => 50,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_USER,
-				ListerControlMain::LISTER_TYPE_GROUP
-			),
-			'filter' => array(
-				'resource_id' => $this->object_id
-			),
-			'refresh_path' => 'Widget:publicComponents',
-			'refresh_path_params' => array(
-				'object_type' => 3,
-				'object_id' => $this->object_id
-			)
-		);
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function actionUserResource($resource_id = null)
-	{
-		if (empty($resource_id)) {
-			
-			$this->redirect('Homepage:default');
-		} else {
-			$this->object_id = $resource_id;
-			$user            = NEnvironment::getUser()->getIdentity();
-			$resource        = Resource::create($resource_id);
-			
-			if (!empty($resource)) {
-				$resource_id = $resource->getResourceId();
-				if (!empty($resource_id)) {
-					$access = Auth::isAuthorized(Auth::TYPE_RESOURCE, $resource_id);
-					if ($access < 2) {
-						$this->redirect("Homepage:default");
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function actionGroupResource($resource_id = null)
-	{
-		if (empty($resource_id)) {
-			
-			$this->redirect('Homepage:default');
-		} else {
-			$this->object_id = $resource_id;
-			$user            = NEnvironment::getUser()->getIdentity();
-			$resource        = Resource::create($resource_id);
-			
-			if (!empty($resource)) {
-				$resource_id = $resource->getResourceId();
-				if (!empty($resource_id)) {
-					$access = Auth::isAuthorized(Auth::TYPE_RESOURCE, $resource_id);
-					if ($access < 2) {
-						$this->redirect("Homepage:default");
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	@todo Prepares the window content for the group chat to be loaded with AJAX.
+	 *	@param string $name namespace
 	 *	@return
 	 */
 	protected function createComponentChatwidget($name)
@@ -316,5 +101,61 @@ final class WidgetPresenter extends BasePresenter
 		
 		return $control;
 	}
-	
+
+
+	/**
+	 *	@todo Prepares the window content for image browser (called by ckeditor).
+	 *	@param void
+	 *	@return
+	 */
+	public function actionBrowse()
+	{
+//		$this->template->URI = NEnvironment::getVariable("URI");
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+		$query = NEnvironment::getHttpRequest();
+		$CKEditorFuncNum = $query->getQuery("CKEditorFuncNum");
+		$this->template->CKEditorFuncNum = (int)$CKEditorFuncNum;
+		$user = NEnvironment::getUser()->getIdentity();
+		if ($user && $user->getAccessLevel() > 0) {
+			$user_id = $user->getUserId();
+		} else {
+			$this->flashMessage('Access denied. Did you sign in?');
+			$this->terminate();
+		}
+
+		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) {
+			$this->template->load_external_js_css = true;
+		}
+		$this->template->user_id = $user_id;
+		$this->template->user_name = User::getFullName($user_id);
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+
+		$allowed_extensions = array('jpg', 'jpeg', 'gif', 'png');
+		$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
+		$path = WWW_DIR.'/images/uploads/user-'.$user_id;
+
+		if(!file_exists($path) || !is_dir($path)) {
+			mkdir($path);
+		}
+
+		// retrieve files
+		$file_names = array_diff(scandir($path), array('.','..'));
+
+		$data = array();
+		if (count($file_names)) {
+			foreach ($file_names as $file_name) {
+				$file_path = $path.'/'.$file_name;
+				$image = NImage::fromFile($file_path);
+				$data[] = array(
+					'file_name' => $file_name,
+					'web_path' => NEnvironment::getVariable("URI") . '/images/uploads/user-'.$user_id.'/'.$file_name,
+					'width' => $image->width,
+					'height' => $image->height,
+					'img_b64' => base64_encode($image->resize(120, 100)->toString(IMAGETYPE_JPEG,90)) // no sharpen for CMYK
+				);
+			}
+		}
+		$this->template->data = $data;
+
+	}
 }

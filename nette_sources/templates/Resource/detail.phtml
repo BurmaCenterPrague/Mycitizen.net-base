@@ -207,46 +207,46 @@
 		{/if}
 		{if $data['resource_type'] == 2 && $data['event_url'] != ""}
 		<div class="resource-link">
-			{ifset $screenshot}<h2>{_('Screenshot')}</h2>{!$screenshot}{/if}
+			{ifset $screenshot}<h2>{_"Screenshot"}</h2>{!$screenshot}{/if}
 			<a href="{$data['event_url']}" target="_blank" class="button"><b class="icon-www"></b>{_"Go to resource"}</a>
 		</div>
 		{/if}
 		{if $data['resource_type'] == 3 && $data['organization_url'] != ""}
 		<div class="resource-link">
-			{ifset $screenshot}<h2>{_('Screenshot')}</h2>{!$screenshot}{/if}
+			{ifset $screenshot}<h2>{_"Screenshot"}</h2>{!$screenshot}{/if}
 			<a href="{$data['organization_url']}" target="_blank" class="button"><b class="icon-www"></b>{_"Go to resource"}</a>
 		</div>
 		{/if}
 		{if $data['resource_type'] == 4 && $data['text_information_url'] != ""}
 		<div class="resource-link">
-			{ifset $screenshot}<h2>{_('Screenshot')}</h2>{!$screenshot}{/if}
+			{ifset $screenshot}<h2>{_"Screenshot"}</h2>{!$screenshot}{/if}
 			<a href="{$data['text_information_url']}" target="_blank" class="button"><b class="icon-www"></b>{_"Go to resource"}</a>
 		</div>
 		{/if}
 		{if $data['resource_type'] == 6 && $data['other_url'] != ""}
 		<div class="resource-link">
-			{ifset $screenshot}<h2>{_('Screenshot')}</h2>{!$screenshot}{/if}
+			{ifset $screenshot}<h2>{_"Screenshot"}</h2>{!$screenshot}{/if}
 			<a href="{$data['other_url']}" target="_blank" class="button"><b class="icon-www"></b>{_"Go to resource"}</a>
 		</div>
 		{/if}
 		{if $data['resource_type'] == 4}
 		<div class="resource-text">
-			<h2>{_('Information')}</h2>
+			<h2>{_"Information"}</h2>
 			{!$data['text_information']|htmlpurify}
 		</div>
 		{/if}
 		{if $data['resource_type'] == 3}
 		<div class="resource-text">
-			<h2>{_('Information')}</h2>
+			<h2>{_"Information"}</h2>
 			{!$data['organization_information']|htmlpurify}
 		</div>
 		{/if}
 		{if $data['resource_type'] == 2}
 
 		<div class="resource-event-time resource-detail-connections" style="padding:20px 30px; margin:20px 0;">
-			{ifset $event_alert}<img src="/images/clock-alert.png" style="float:right;" title="{_"The event is upcoming."}"/>
-			{elseifset $event_ahead}<img src="/images/clock-ahead.png" style="float:right;" title="{_"The event is in the future."}"/>
-			{else}<img src="/images/clock.png" style="float:right;" title="{_"The event is over."}"/>{/if}
+			{ifset $event_alert}<img src="{$baseUri}/images/clock-alert.png" style="float:right;" title="{_"The event is upcoming."}"/>
+			{elseifset $event_ahead}<img src="{$baseUri}/images/clock-ahead.png" style="float:right;" title="{_"The event is in the future."}"/>
+			{else}<img src="{$baseUri}/images/clock.png" style="float:right;" title="{_"The event is over."}"/>{/if}
 			<h2>{_"Event Details"}</h2>
 			<table>
 			<tr>
@@ -272,7 +272,7 @@
 		</div>
 		
 		<div class="resource-text-event">
-			<h2>{_('Information')}</h2>
+			<h2>{_"Information"}</h2>
 			{!$data['event_description']|htmlpurify}
 		</div>
 
@@ -461,18 +461,17 @@
 		CKEDITOR.replace( 'message_text', {
 			height: '200px',
 			width: '740px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
-			allowedContent: 'p blockquote strong em; a[!href]; del ins; ul ol li; img(left,right)[!src,alt,width,height]',
+			filebrowserUploadUrl: '{!baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
 			toolbarGroups: [
 				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
 				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
 				{ name: 'links'},
-				{ name: 'insert'},
+				{ name: 'insert', groups: [ 'image', 'symbol', 'smiley']},
 				{ name: 'styles'},
 				{ name: 'colors'}
-			],
-			extraPlugins: 'smiley'
+			]
 		});
 	});
 </script>

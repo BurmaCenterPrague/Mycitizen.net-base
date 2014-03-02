@@ -32,6 +32,7 @@ class Activity extends BaseModel {
 	const RESOURCE_UNSUBSCRIBED = 17;
 	const LOGIN_FAILED = 18;
 	const FRIENDSHIP_REQUEST = 19;
+	const USER_PW_CHANGE = 20;
 	
 
 	/**

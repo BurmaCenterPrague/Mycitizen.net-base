@@ -32,12 +32,14 @@ class AddTagComponent extends NFormControl
 	public function __construct($container = "user", $container_id = null, $caption = NULL, $options = array())
 	{
 		parent::__construct($caption);
+		
 		$this->tag_names[0] = array(
 			'tag_id' => 0,
 			'tag_name' => 'without parent'
 		);
 		$this->container    = $container;
 		$this->container_id = $container_id;
+		
 	}
 	
 	
@@ -89,6 +91,24 @@ class AddTagComponent extends NFormControl
 		$this->template->active_node_path = $active_node_path;
 		
 		$this->template->selected_value = $this->getPathString($node_id);
+		
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$query = NEnvironment::getHttpRequest();
+		$lang = $query->getQuery("language");
+		if (isset($lang) && !empty($lang)) {
+			$flag = Language::getFlag($lang);
+			if (!empty($flag)) $language = $flag;
+			$session->language = $language;
+		}
+
+		if (empty($language)) $language = $session->language;
+		if (empty($language)) {
+			$session->language = 'en_US';
+			$language          = $session->language;
+		}
+
+		$this->template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		
 		//Get and return output from template
 		ob_start();
 		$template->render();

@@ -62,7 +62,7 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
-		$this->template->URI = NEnvironment::getVariable("URI");
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		$this->template->TOC_URL = NEnvironment::getVariable("TOC_URL");
 		$this->template->PP_URL = NEnvironment::getVariable("PP_URL");
 		$this->template->PIWIK_URL = NEnvironment::getVariable("PIWIK_URL");
@@ -125,7 +125,7 @@ abstract class BasePresenter extends NPresenter
 					$this->redirect("User:login");					
 				}
 			} else {
-			
+				// nothing
 			}
 			$user->getIdentity()->setLastActivity();
 			$this->template->logged   = true;
@@ -175,9 +175,15 @@ abstract class BasePresenter extends NPresenter
 	protected function registerHelpers()
 	{
 		$this->template->registerHelper('htmlpurify', function ($dirty_html) {
-			require_once LIBS_DIR.'/HTMLPurifier/HTMLPurifier.auto.php';
+			require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('Attr.EnableID', true);
+			$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
+			$config->set('HTML.Nofollow', true);
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+			$config->set('HTML.SafeIframe', true);
+			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
+			$config->set('Filter.YouTube', true);
 			$purifier = new HTMLPurifier($config);
 			return $purifier->purify($dirty_html);
 		});
@@ -381,99 +387,19 @@ abstract class BasePresenter extends NPresenter
 		
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Creates cached versions of images on the server.
+	 *	@param int $id
+	 *	@param int $type
+	 *	@param bool $redirect
 	 *	@return
-	 */
-	public function removeImage($id,$type) {
-		if ($type == 1 ) {
-			$object = User::create($id);
-		} elseif ($type == 2 ) {
-			$object = Group::create($id);
-		} else {
-			echo _t("Error deleting image from cache.");
-		}
+	*/
+	public function handleImage($id, $type, $redirect=true) {
+		$image = new Image($id,$type);
+		$result = $image->create_cache();
+		if ($result !== true) echo $result;
 
-		if (isset($object)) {
-			$sizes = array('img', 'icon', 'large_icon');
-		
-			foreach ( $sizes as $size) {
-				switch ($size) {
-					case 'img': $src = $object->getAvatar(); break;
-					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getBigIcon(); break;
-					default: $this->terminate(); break;
-				}
-
-				if (!empty($src)) {
-					$hash=md5($src);
-		
-					if ($type == 1 ) {
-						$link = WWW_DIR.'/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
-					} elseif ($type == 2 ) {
-						$link = WWW_DIR.'/images/cache/group/'.$id.'-'.$size.'-'.$hash.'.jpg';
-					} else $this->terminate();	
-
-					if(file_exists($link)) {
-						if (!unlink($link)) {
-							echo _t("Error deleting image from cache: ").$link;
-						}
-					}
-				}
-			}
-		}
-	}
-
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
-	public function handleImage($id,$type,$redirect=true) {
-	
-		if ($type == 1 ) {
-			$object = User::create($id);
-		} elseif ($type == 2 ) {
-			$object = Group::create($id);
-		} else {
-			$this->flashMessage(_t("Error recreating image."), 'error');
-		}
-		
-		if (isset($object)) {
-		
-			$sizes = array('img', 'icon', 'large_icon');
-		
-			foreach ( $sizes as $size) {
-		
-				switch ($size) {
-					case 'img': $src = $object->getAvatar(); break;
-					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getBigIcon(); break;
-				}
-	
-				if (!empty($src)) {
-					$hash=md5($src);
-		
-					if ($type == 1 ) {
-						$link = WWW_DIR.'/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
-					} elseif ($type == 2 ) {
-						$link = WWW_DIR.'/images/cache/group/'.$id.'-'.$size.'-'.$hash.'.jpg';
-					} else $this->terminate();			
-		
-					if(!file_exists($link)) {
-						$img_r = @imagecreatefromstring(base64_decode($src));
-						if (!imagejpeg($img_r, $link)) {
-							$this->flashMessage(_t("Error writing image: ").$link, 'error');
-						};
-					}
-				}
-
-			}
-
-		}
-		
 		if ($redirect) {
 			if ($type == 1 ) {
 				$this->redirect("User:default", $id);
@@ -494,15 +420,13 @@ abstract class BasePresenter extends NPresenter
 	}
 
 	/**
-	*	callback called by GrabzIt server to retrieve the thumbnail;
-	*	cannot be in ResourcePresenter.php because of permissions for visibility-restricted resources
-	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	 *	callback called by GrabzIt server to retrieve the thumbnail;
+	 *	(Cannot be in ResourcePresenter.php because of permissions for visibility-restricted resources.)
+	 *	@param string $id identifier of Grabz.it
+	 *	@param int $resource_id
+	 *	@param string $md5 own identifier
+	 *	@return void
+	 */
 	public function handleSaveScreenshot($id = null, $resource_id = null, $md5 = null) {
 		if (isset($id)) {
 			if (isset($md5) && isset($resource_id)) {
@@ -554,132 +478,18 @@ abstract class BasePresenter extends NPresenter
 			$this->terminate();
 		}
 
-		$sender_name = NEnvironment::getVariable("PROJECT_NAME");
-		$uri = NEnvironment::getVariable("URI");
-		
-		$options = 'From: '.$sender_name.' <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
-			
-		$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
-		
-		$result = dibi::fetchAll("SELECT `cron_id`, `time`, `recipient_type`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time` FROM `cron` WHERE `time` < %i AND `executed_time` = 0", time());
-		
-		foreach ($result as $task) {
-
-
-			switch ($task['recipient_type']) {
-		
-			case '1': // user
-				$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
-
-				switch ($task['object_type']) {
-					case 0: $link = $uri.'/user/messages/?language='.User::getUserLanguage($task['recipient_id']); break;
-					case 1: $link = $uri.'/user/?user_id='.$task['object_id']. '&language='.User::getUserLanguage($task['recipient_id']); break;
-					case 2: $link = $uri.'/group/?group_id='.$task['object_id']. '&language='.User::getUserLanguage($task['recipient_id']); break;
-					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='. User::getUserLanguage($task['recipient_id']); break;
-					default: $link = $uri.'&language='.User::getUserLanguage($task['recipient_id']); break;
-				}
-			
-				$mail_body = $task['text'];
-				$mail_body .= "\r\n\n"._t('Find more information at:')."\r\n";
-				$mail_body .= $link;
-				$mail_body .= "\r\nYours,\r\n".$sender_name."\r\n\r\n";
-			
-				if (mail($email, $mail_subject, $mail_body, $options)) {
-			
-					if (isset($verbose)) {
-						echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
-					}
-
-					dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
-				
-				} elseif (isset($verbose)) {
-					echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
-				}
-			break;
-			case '2': // group
-				// get all members
-				$group = Group::create($task['recipient_id']);
-				$group_name = Group::getName($task['recipient_id']);
-				$filter = array(
-						'enabled' => 1
-					);
-				$users_a = $group->getAllUsers($filter);
-
-				switch ($task['object_type']) {
-					case 0: $link = $uri.'/user/messages/?language='.Group::getGroupLanguage($task['recipient_id']); break;
-					case 1: $link = $uri.'/user/?user_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-					case 2: $link = $uri.'/group/?group_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-					default: $link = $uri.'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-				}
-
-				$mail_body = $task['text'];
-				$mail_body .= "\r\n\r\n".sprintf(_t('You receive this message as a member of the group "%s".'),$group_name);
-				$mail_body .= "\r\n\r\n"._t('Find more information at:')."\r\n";
-				$mail_body .= $link;
-				$mail_body .= "\r\n\r\nYours,\r\n\r\n".$sender_name."\r\n\r\n";
-
-				// send emails				
-				foreach ($users_a as $user_a) {
-				
-					$email = $user_a['user_email'];
-
-					if (mail($email, $mail_subject, $mail_body, $options)) {
-			
-						if (isset($verbose)) {
-							echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.' (member of group '.$group_name.')<br/>';
-						}
-
-						dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
-				
-					} elseif (isset($verbose)) {
-						echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.' (member of group '.$group_name.')<br/>';
-					}
-					
-				}
-								
-			break;
-			}
-			
-		}
-
-
-		if (isset($verbose)) {
-			echo 'Queuing notifications to be sent ...<br/>';
-		}
-
-		$users_a = User::getAllUsersForCron();
-		if (is_array($users_a)) {
-			foreach ($users_a as $user_a) {
-				if (User::getUnreadMessages($user_a['user_id'])) {
-					$email_text = sprintf(_t("Dear %s"), $user_a['user_login']). ",\n\n";
-					$email_text .= _t("You have unread messages!");
-//					$email_text .= "\n\n";
-//					$email_text .= "("._t("You can change your notification settings in your profile.").")";
-					StaticModel::addCron(time(), 1, $user_a['user_id'], $email_text, 0, 0);
-					User::setUserCronSent($user_a['user_id']);
-					if (isset($verbose)) {
-						echo 'User with id '.$user_a['user_id'].' will receive a notification about unread messages.<br/>';
-					}
-				}
-			}
-		}
-		
-		if (isset($verbose)) {
-			echo 'Done.<br/>';
-		}
+		$cron = new Cron;
+		$cron->verbose = $verbose;
+		$cron->run();
 		$this->terminate();
 	}
 
 	/**
-	*	processes scheduled tasks; sends email notifications;
-	*	needs to be called with /?do=cron&token=xyz
-	*	token is set in config.ini
-	* 	adding &verbose=1 will output some more info
-	 *	@param
-	 *	@return
+	*	uploads images to user's folder on the server, called by ckeditor
+	 *	@param void
+	 *	@return void
 	*/
-	public function handleUpload($token, $verbose = null) {
+	public function handleUpload() {
 		$user = NEnvironment::getUser();
 		if (!$user->isLoggedIn()) die('You are not logged in.');
 		
@@ -704,7 +514,7 @@ abstract class BasePresenter extends NPresenter
 		} else {
 			die('Did you sign in?');
 		}
-//var_dump(WWW_DIR . $path);die();
+
 		if(!file_exists(WWW_DIR . $path)) {
 			mkdir(WWW_DIR . $path);
 		}
@@ -722,25 +532,26 @@ abstract class BasePresenter extends NPresenter
 		} elseif (!is_uploaded_file($file_info->getTemporaryFile())) {
 			$message = 'ERROR: security check';
 		} else {
-			$url = sprintf( "%s/%s.%s", $path, $name, $ext);
+			$rel_url = sprintf( "%s/%s.%s", $path, $name, $ext);
 
 			// check if file exists
 			$appendix = 0;
-			while (file_exists( WWW_DIR . $url)) {
+			while (file_exists( WWW_DIR . $rel_url)) {
 				$appendix++;
-				$url = sprintf( "%s/%s-%s.%s", $path, $name, $appendix, $ext);
+				$rel_url = sprintf( "%s/%s-%s.%s", $path, $name, $appendix, $ext);
 			}
 
-			if (move_uploaded_file($file_info->getTemporaryFile(), WWW_DIR . $url)) {
+			if (move_uploaded_file($file_info->getTemporaryFile(), WWW_DIR . $rel_url)) {
 		
 				// resize
-				$image = NImage::fromFile(WWW_DIR . $url);
+				$image = NImage::fromFile(WWW_DIR . $rel_url);
 				$width = $image->width;
 				$height = $image->height;
 				if ($width > $max_width || $height > $max_height) {
 					$image->resize($max_width, $max_height);
-					$image->save(WWW_DIR . $url);
+					$image->save(WWW_DIR . $rel_url);
 				}
+				$url = NEnvironment::getVariable("URI") . $rel_url;
 				echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '$url', '$message');</script>";
 
 			} else {
@@ -751,6 +562,12 @@ abstract class BasePresenter extends NPresenter
 		die();
 	}
 
+	/**
+	*	deletes images in user's folder on the server, called from image browser
+	 *	@param string $file_name
+	 *	@param int $user_id
+	 *	@return void
+	*/
 	public function handleDeleteImage($file_name, $user_id) {
 		$user_env = NEnvironment::getUser();		
 		if (!$user_env->isLoggedIn()) die('You are not logged in.');
@@ -764,6 +581,352 @@ abstract class BasePresenter extends NPresenter
 
 		unlink($file_path);
 		echo "true";
+		die();
+	}
+	
+	/**
+	 *	Translates recent dates into "today" and "yesterday".
+	 *	@param int $timestamp Unix timestamp
+	 *	@return string
+	 */
+	private function relativeTime($timestamp) {
+	
+		if (date('Ymd') == date('Ymd', $timestamp)) {
+			return _t('Today');
+		}
+
+		if (date('Ymd', strtotime('yesterday')) == date('Ymd', $timestamp)) {
+			return _t('Yesterday');
+		}
+		
+		return date('j M Y', $timestamp);
+	}
+
+	/**
+	 *	Creates HTML output of recent activity
+	 *
+	 *	@param int $id describes time range: today, yesterday, week, month
+	 *	@return void
+	 */
+	public function handleActivity($id = 2) {
+		$user = NEnvironment::getUser()->getIdentity();
+		if (!isset($user)) $this->terminate();
+		
+		$user_id = $user->getUserId();
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Activity.stream");
+		$cache->clean();
+		$cache_key = $user_id.'-'.$id;
+		if ($cache->offsetExists($cache_key)) {
+			$output = $cache->offsetGet($cache_key);
+			echo $output;
+			$this->terminate();
+		}
+		
+		$header_time = '';		
+		$resource_name = array(
+				1=>'1',
+				2=>'event',
+				3=>'org',
+				4=>'doc',
+				6=>'website',
+				7=>'7',
+				8=>'8',
+				9=>'friendship',
+				'media_soundcloud'=>'audio',
+				'media_youtube'=>'video',
+				'media_vimeo'=>'video',
+				'media_bambuser'=>'live-video'
+				);
+		
+		$now = time();
+		// get timeframe from id
+		switch ($id) {
+			case 2: $header_time = _t("Today"); $from = strtotime('today midnight'); $to = null; break;
+			case 3: $header_time = _t("Yesterday"); $from = strtotime('yesterday midnight'); $to = strtotime('today midnight'); break;
+			case 4: $header_time = _t("Week"); $from = strtotime('7 days ago midnight'); $to = strtotime('yesterday midnight'); break;
+			default: $header_time = _t("Month"); $from = strtotime('1 month ago midnight'); $to = strtotime('7 days ago midnight'); break;
+		}
+
+		ob_start();
+		// for scrolling
+		echo '<div id="activity-scroll-target-'.$id.'"></div>';
+		
+		echo "<h3>".$header_time."</h3>";
+		
+
+		$activities = Activity::getActivities($user_id, $from, $to);
+		
+		if (isset($activities) && count($activities)) {
+
+			foreach ($activities as $activity) {
+			
+				switch ($activity['object_type']) {
+					case 1:
+						if (!empty($activity['affected_user_id']) && $activity['object_id'] == $user_id) $object_id = $activity['affected_user_id']; else $object_id = $activity['object_id'];
+						$object_link = NEnvironment::getVariable("URI").'/user/?user_id='.$object_id;
+						$object_icon = User::getImage($object_id, 'icon');
+						$object_name = User::getUserLogin($object_id);
+						$time = $this->relativeTime($activity['timestamp']);
+					break;
+					case 2:
+						$object_link = NEnvironment::getVariable("URI").'/group/?group_id='.$activity['object_id'];
+						$object_icon = Group::getImage($activity['object_id'], 'icon');
+						$object_name = Group::getName($activity['object_id']);
+						$time = $this->relativeTime($activity['timestamp']);
+					break;
+					case 3:
+						$object_link = NEnvironment::getVariable("URI").'/resource/?resource_id='.$activity['object_id'];
+						$object_icon = '<b class="icon-' . $resource_name[Resource::getResourceType($activity['object_id'])] . '"></b>';
+						$object_name = Resource::getName($activity['object_id']);;
+						$time = $this->relativeTime($activity['timestamp']);
+					break;
+				}
+			
+				switch ($activity['activity']) {
+					case Activity::USER_JOINED:
+						$description = _t('You signed up.');
+					break;
+					case Activity::FRIENDSHIP_REQUEST:
+						if ($activity['object_id'] != $user_id) {
+							$description = sprintf(_t('User %s requested your friendship.'),$object_name);
+						} else {
+							$description = sprintf(_t('You requested %s\'s friendship.'),$object_name);
+						}
+					break;
+					case Activity::FRIENDSHIP_YES:
+						if ($activity['object_id'] != $user_id) {
+							$description = sprintf(_t('User %s accepted your friendship.'),$object_name);
+						} else {
+							$description = sprintf(_t('You accepted %s\'s friendship.'),$object_name);
+						}
+					break;
+					case Activity::FRIENDSHIP_NO:
+						if ($activity['object_id'] != $user_id) {
+							$description = sprintf(_t('User %s rejected your friendship.'),$object_name);
+						} else {
+							$description = sprintf(_t('You rejected %s\'s friendship.'),$object_name);
+						}
+					break;
+					case Activity::FRIENDSHIP_END:
+						if ($activity['object_id'] != $user_id) {
+							$description = sprintf(_t('User %s canceled your friendship.'),$object_name);
+						} else {
+							$description = sprintf(_t('You canceled the friendship with %s.'),$object_name);
+						}
+					break;
+
+					case Activity::GROUP_JOINED: $description = _t('You joined the group.'); break;
+					case Activity::RESOURCE_SUBSCRIBED: $description = _t('You subscribed to the resource.'); break;
+					case Activity::GROUP_LEFT: $description = _t('You left the group.'); break;
+					case Activity::RESOURCE_UNSUBSCRIBED: $description = _t('You unsubscribed from the resource.'); break;
+					case Activity::GROUP_RESOURCE_ADDED: $description = _t('The group added a resource.'); break;
+					case Activity::GROUP_CHAT: $description = _t('A new chat message was posted in the group.'); break;
+					case Activity::RESOURCE_COMMENT: $description = _t('The resource has new comments.'); break;
+					case Activity::GROUP_CREATED: $description = _t('A new group was created.'); break;
+					case Activity::RESOURCE_CREATED: $description = _t('A new resource was created.'); break;
+					case Activity::USER_UPDATED: $description = _t('You updated your profile.'); break;
+					case Activity::GROUP_RESOURCE_REMOVED: $description = _t('The group unsubscribed from a resource.'); break;
+					case Activity::GROUP_UPDATED: $description = _t('The group was updated.'); break;
+					case Activity::RESOURCE_UPDATED: $description = _t('The resource was updated.'); break;
+					case Activity::LOGIN_FAILED: $description = _t('Somebody tried to login with your name and a wrong password.'); break;
+					case Activity::USER_PW_CHANGE: $description = _t('Your password was changed.'); break;
+					default: $description = 'Unspecified activity'; break;
+				}
+			
+				printf('<div class="activity-item" onclick="window.location=\'%s\'"><div class="activity-time"><h4>%s</h4></div><div class="activity-link"><h4><a href="%s">%s %s</a></h4></div><div class="activity-description"><h4>%s</h4></div></div>', $object_link, $time, $object_link, $object_icon, $object_name, $description);
+			}
+		} else {
+			echo '<div class="activity-item"><h4>'._t("Nothing to display").'</h4></div>';
+		}
+		
+		if ($id < 5) {
+			echo '
+	<div id="load-more-'.$id .'">
+		<p><a href="javascript:void(0);" id="load_more" class="button">'._t("load more...").'</a></p>
+	</div>';
+
+			$id_inc = $id +1;
+		
+			echo '
+	<script>
+		$("#load_more").click(function(){
+			loadActivity("#load-more-'.$id.'", '.$id_inc.');
+		});
+	</script>
+			';
+		}
+		$output = ob_get_contents();
+		ob_end_clean();
+		echo $output;
+		if ($id == 2) $time = time()+120; else $time = time()+3600;
+		$cache->save($cache_key, $output, array(NCache::EXPIRE => $time));
+		$this->terminate();
+	}
+
+
+	/**
+	 *	Echoes JSON-encoded array of events for the logged-in user
+	 *
+	 *	@param int $start UNIX timestamp for begin of time frame
+	 *	@param int $end UNIX timestamp for end of time frame
+	 *	@return void
+	 */
+	public function handleGetevents($start=null,$end=null) {
+		$user_env = NEnvironment::getUser();		
+		if (!$user_env->isLoggedIn()) die('You are not logged in.');
+		$user_id = $user_env->getIdentity()->getUserId();
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Calendar.events");
+		$cache->clean();
+		$cache_key = $user_id.'-'.$start.'-'.$end;
+		if ($cache->offsetExists($cache_key)) {
+			$array_feed_items = $cache->offsetGet($cache_key);
+			echo json_encode($array_feed_items);
+			die();
+		}
+
+		$filter = array('user_id'  => $user_id, 'type' => array(2));
+  		$events = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter);
+  		
+  		$array_feed_items = array();
+		foreach ($events as $event) {
+			$event_start = strtotime($event["resource_data"]['event_timestamp']);
+			$event_end = strtotime($event["resource_data"]['event_timestamp_end']);
+  			if (!isset($start) || ($event_start > $start && $event_end < $end)) {
+				$array_feed_item['id'] = $event['id'];
+				$array_feed_item['title'] = $event['name'];
+				
+				if (isset($event['resource_data']['event_allday']) && $event["resource_data"]['event_allday']) {
+					$array_feed_item['start'] = strtotime("midnight",$event_start);
+					$array_feed_item['end'] = $event_end;
+				} else {
+					$array_feed_item['start'] = $event_start;
+					$array_feed_item['end'] = $event_end;
+				}
+				
+				$array_feed_item['allDay'] = (bool) $event["resource_data"]['event_allday'];
+				
+				if ($user_id == $event['author']) {
+					$array_feed_item['color'] = '#E13C20';
+					$array_feed_item['textColor'] = '#fff';
+				} else {
+					$array_feed_item['color'] = '#4680B3';
+					$array_feed_item['textColor'] = '#fff';
+				}
+				
+				if ($event_start-$event['resource_data']['event_alert'] < time()) {
+					$array_feed_item['borderColor'] = '#000';
+				} else {
+					$array_feed_item['borderColor'] = $array_feed_item['color'];
+				}
+				$array_feed_item['url'] = NEnvironment::getVariable("URI") . '/resource/?resource_id=' . $event['id'];
+				if (Auth::MODERATOR <= Auth::isAuthorized(3, $event['id'])) {
+					$array_feed_item['editable'] = true;
+				}
+
+				if ( isset($event['resource_data']['event_allday']) && $event['resource_data']['event_allday']) {
+					$start_h_m = _t('All-day event');
+					$end_h_m = '';
+					$timezone = '';				
+				} else {
+					$start_h_m = date(_t('g:ia'),$event_start);
+					$timezone = date("e",$event_start);
+					if ($event["resource_data"]['event_timestamp'] != $event["resource_data"]['event_timestamp_end']) {
+						$end_h_m = date(_t('g:ia'),$event_end);
+					} else {
+						$end_h_m = '';
+					}
+				}
+				
+				$separator = ($end_h_m) ? "-" : "";
+				$class = array(1=>'world',2=>'registered',3=>'person');
+				$visibility_icon = '<b class="icon-'.$class[$event['visibility_level']].'"></b>';
+				$resource = Resource::create($event['id']);
+				if ($resource->hasPosition()) {
+					$location_icon = '<img src="{$baseUri}/images/icon-pin.png"/>';
+				} else {
+					$location_icon = '';
+				}
+				$array_feed_item['description'] = "<b>".$event['name']."</b><br/><i>".$start_h_m." ".$separator." ".$end_h_m." ".$timezone."</i><br/><br/>".$event['description'].'<br/><br/><span style="float:right">'.User::getImage($event['author'],'icon').$visibility_icon.$location_icon."</span>";
+				$array_feed_items[] = $array_feed_item;
+				unset($resource);
+			}
+		}
+		echo json_encode($array_feed_items);
+		$cache->save($cache_key, $array_feed_items, array(NCache::EXPIRE => time()+120));
+		die();
+	}
+
+	/**
+	 *	Handler for changes to events by drag and drop on FullCalendar (home page)
+	 *
+	 *	@param string $changed
+	 * 	@param int $resource_id
+	 *  @param int $day_delta
+	 *  @param int $minute_delte
+	 *  @param bool $allday
+	 *	@return void
+	 */
+	public function handleChangeevent($changed,$resource_id,$day_delta=0,$minute_delta=0,$allday=null) {
+		if (Auth::isAuthorized(3,$resource_id)<Auth::MODERATOR) die('You are not authorized.');
+		$resource = Resource::create($resource_id);
+		$resource_data = $resource->getResourceData();
+
+		if ($resource_data['resource_type']!=2) die('This is not an event.');
+		
+		switch ($changed) {
+			case 'start':
+				if (isset($allday)) {
+					if ($allday=='true') {
+						$resource_data['event_allday'] = 1;
+					} elseif ($allday=='false') {
+						$resource_data['event_allday'] = 0;
+					}
+				}
+				$timestamp = strtotime($resource_data['event_timestamp']);
+				$timestamp_end = strtotime($resource_data['event_timestamp_end']);
+				If ($timestamp_end == 0) $timestamp_end = strtotime($resource_data['event_timestamp']);
+				$string = sprintf("%s day %s minutes", $day_delta, $minute_delta);
+				$resource_data['event_timestamp'] = date("r",strtotime($string, $timestamp));
+				$resource_data['event_timestamp_end'] = date("r",strtotime($string, $timestamp_end));
+
+				// schedule alarm
+				if ($timestamp + 3600 > time()) { // back-schedule max 60 mins.
+					// get all subscribers
+					$members = $resource->getAllMembers(array('enabled'=>1));
+					if (count($members)) foreach ($members as $member) {
+						Cron::addCron($timestamp - $resource_data['event_alert'], $member['member_type'], $member['member_id'], $resource_data['resource_name']."\r\n\n".$resource_data['resource_description'], 3, $resource_id);
+					}
+				} else {
+					// event has been changed with time in the past: don't send alerts
+					Cron::removeCron(0, 0, 3, $resource_id);
+				}
+			break;
+			case 'end':
+				$timestamp_end = strtotime($resource_data['event_timestamp_end']);
+				If ($timestamp_end == 0) $timestamp_end = strtotime($resource_data['event_timestamp']);
+				$string = sprintf("%s day %s minutes", $day_delta, $minute_delta);
+				$resource_data['event_timestamp_end'] = date("r",strtotime($string, $timestamp_end));
+			break;
+			default:
+				die();
+			break;
+		}
+		$resource_data = array(
+			'event_description' => $resource_data['event_description'],
+			'event_url' => $resource_data['event_url'],
+			'event_allday' => $resource_data['event_allday'],
+			'event_timestamp' => $resource_data['event_timestamp'],
+			'event_timestamp_end' => $resource_data['event_timestamp_end'],
+			'event_alert' => $resource_data['event_alert']
+		);		
+		$data['resource_data'] = json_encode($resource_data);
+
+		$resource->setResourceData($data);
+		if ($resource->save()) echo "true";
 		die();
 	}
 }

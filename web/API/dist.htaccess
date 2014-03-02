@@ -1,0 +1,10 @@
+#Options +FollowSymlinks
+Header set Access-Control-Allow-Origin "*"
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+	RewriteBase /API
+	RewriteRule ^(.*)$ index\.php [L]
+</IfModule>
+
+#php_flag eaccelerator.enable 0
+#php_flag eaccelerator.optimizer 0

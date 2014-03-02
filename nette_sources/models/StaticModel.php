@@ -224,33 +224,6 @@ class StaticModel extends BaseModel {
       return $isValid;
    }
 
-	/**
-	*	schedules task for cron
-	*/
-	public static function addCron($time, $recipient_type, $recipient_id, $text, $object_type, $object_id) {
-	
-		// max. 1 upcoming task per object and user
-		self::removeCron($recipient_type, $recipient_id, $object_type, $object_id);
-				
-		$result = dibi::query('INSERT INTO `cron` (`time`, `recipient_type`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time`) VALUES (%i,%i,%i,%s,%i,%i,0)', $time, $recipient_type, $recipient_id, $text, $object_type, $object_id);
-
-		return $result;
-	}
-
-	
-	/**
-	*	deactivates all upcoming tasks in cron for given user and object
-	*/
-	public static function removeCron($recipient_type, $recipient_id, $object_type, $object_id) {
-	
-		if (!$recipient_type || !$recipient_id) {
-			// remove all crons for that object
-			dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `object_type` = %i AND `object_id` = %i AND `time` > %i", $object_type, $object_id, time());
-		} else {
-			dibi::query("UPDATE `cron` SET `executed_time` = '1' WHERE `recipient_type` = %i AND `recipient_id` = %i AND `object_type` = %i AND `object_id` = %i AND `time` > %i", $recipient_type, $recipient_id, $object_type, $object_id, time());
-		}
-				
-	}
 
 /** see class Settings
 	public static function getSetting($variable_name) {

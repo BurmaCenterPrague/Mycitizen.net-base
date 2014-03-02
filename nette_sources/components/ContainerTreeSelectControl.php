@@ -54,7 +54,7 @@ class ContainerTreeSelectControl extends NFormControl
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-		$template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$this->template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		
 		$template->registerFilter(new NLatteFilter);
 		$template->registerHelper('escape', 'NTemplateHelpers::escapeHtml');

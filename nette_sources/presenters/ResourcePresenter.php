@@ -46,7 +46,8 @@ final class ResourcePresenter extends BasePresenter
 	public function actionDefault($resource_id = null)
 	{
 		$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
-
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+		
 		if (!is_null($resource_id)) {
 			$this->setView('detail');
 			$this->template->load_js_css_editor = true;
@@ -282,8 +283,13 @@ final class ResourcePresenter extends BasePresenter
 			$this->redirect("Resource:default");
 		}
 */
+		$query = NEnvironment::getHttpRequest();
+		$date = $query->getQuery("date");
+		if (!empty($date)) $this->template->initial_selection = true;
+		
 		$resource = Resource::create();
 
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		$this->template->load_js_css_editor = true;
 		$this->template->load_js_css_datetimepicker = true;
 		$this->template->load_js_css_tree = true;
@@ -336,6 +342,7 @@ final class ResourcePresenter extends BasePresenter
 		$this->template->load_js_css_editor = true;
 		$this->template->load_js_css_datetimepicker = true;
 		$this->template->load_js_css_tree = true;
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 	}
 
 	/**
@@ -478,7 +485,7 @@ final class ResourcePresenter extends BasePresenter
 				$event_time = strtotime($data['event_timestamp']);
 				$resource_id = $this->resource->getResourceId();
 				if ($event_time + 600 > time()) { // remind of max 10 mins. back
-					StaticModel::addCron($event_time - $data['event_alert'], 2, $group_id, $data['resource_name']."\r\n\r\n".$data['resource_description'], 3, $resource_id);
+					Cron::addCron($event_time - $data['event_alert'], 2, $group_id, $data['resource_name']."\r\n\r\n".$data['resource_description'], 3, $resource_id);
 				}
 			}
 
@@ -607,13 +614,13 @@ final class ResourcePresenter extends BasePresenter
 		}
 		$form = new NAppForm($this, 'updateform');
 		$form->addGroup();
-		$form->addText('resource_name', _t('Name:'))->addRule(NForm::FILLED, _t('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the resource.'))->id("help-name"));
+		$form->addText('resource_name', _t('Name:'))->addRule(NForm::FILLED, _t('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the resource.'))->id("help-name"));
 //		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
 		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
-		$form->addSelect('resource_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
-		$form->addSelect('resource_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Select a language of this resource.'))->id("help-name"));
+		$form->addSelect('resource_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
+		$form->addSelect('resource_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Select a language of this resource.'))->id("help-name"));
 		
-		$form->addTextArea('resource_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this resource is about.'))->id("help-name"));
+		$form->addTextArea('resource_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this resource is about.'))->id("help-name"));
 		
 		if (isset($resource_data['resource_type'])) {
 			$form->addHidden('resource_type_exists');
@@ -708,7 +715,7 @@ final class ResourcePresenter extends BasePresenter
 			'media_bambuser' => 'Bambuser'
 		);
 		$form->addSelect('media_type', _t('Media type:'), $media_types);
-		$form->addText('media_link', _t('Media ID:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Please paste here the <u>underlined</u> part of the url for the media that you want to add:').'<br/>
+		$form->addText('media_link', _t('Media ID:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Please paste here the <u>underlined</u> part of the url for the media that you want to add:').'<br/>
 	<ul>
 		<li><b>YouTube:</b> https://www.youtube.com/watch?v=<u>xxxxx</u></li>
 		<li><b>Vimeo:</b> http://vimeo.com/<u>xxxxx</u></li>
@@ -883,11 +890,11 @@ final class ResourcePresenter extends BasePresenter
 				// get all subscribers
 				$members = $this->resource->getAllMembers(array('enabled'=>1));
 				if (count($members)) foreach ($members as $member) {
-					StaticModel::addCron($event_time - $values['event_alert'], $member['member_type'], $member['member_id'], $values['resource_name']."\r\n\n".$values['resource_description'], 3, $resource_id);
+					Cron::addCron($event_time - $values['event_alert'], $member['member_type'], $member['member_id'], $values['resource_name']."\r\n\n".$values['resource_description'], 3, $resource_id);
 				}
 			} else {
 				// event has been changed with time in the past: don't send alerts
-				StaticModel::removeCron(0, 0, 3, $resource_id);
+				Cron::removeCron(0, 0, 3, $resource_id);
 			}
 		}
 
@@ -1174,7 +1181,7 @@ final class ResourcePresenter extends BasePresenter
 						if ($data['resource_type'] == 2) {
 							$event_time = strtotime($data['event_timestamp']);
 							if ($event_time + 600 > time()) { // remind of max 10 mins. back
-								StaticModel::addCron($event_time - $data['event_alert'], 1, $user_id, $data['resource_name']."\r\n\n".$data['resource_description'], 3, $resource_id);
+								Cron::addCron($event_time - $data['event_alert'], 1, $user_id, $data['resource_name']."\r\n\n".$data['resource_description'], 3, $resource_id);
 							}
 						}
 					}
@@ -1205,7 +1212,7 @@ final class ResourcePresenter extends BasePresenter
 				$resource_id = $resource->getResourceId();
 				if (!empty($resource_id)) {
 					$resource->removeUser($user_id);
-					StaticModel::removeCron(1, $user_id, 3, $resource_id);
+					Cron::removeCron(1, $user_id, 3, $resource_id);
 					Activity::addActivity(Activity::RESOURCE_UNSUBSCRIBED, $resource_id, 3, $user_id);
 					print "true";
 				}

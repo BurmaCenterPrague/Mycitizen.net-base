@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.3.1 Beta : 10 Feb 2014
+0.4 Beta : 02 Mar 2014
 
 
 authors
@@ -24,11 +24,12 @@ logo:	[Kateřina Kropáčová](http://kanadruhou.cz)
 included packages
 -----------------
 - [CalendarPicker](http://roberto.open-lab.com/2010/04/06/ultra-light-jquery-calendar/) (modified) (MIT License)
-- [CKEditor](http://ckeditor.com/) 4.3.2 (GPL, LGPL and MPL Licenses)
+- [CKEditor](http://ckeditor.com/) 4.3.3 (GPL, LGPL and MPL Licenses)
 - [FullCalendar](http://arshaw.com/fullcalendar/) 1.6.4 (MIT License)
-- GettextExtractor 2.0 (modified) (New BSD License)
+- [GettextExtractor](https://github.com/karelklima/gettext-extractor) 2.0 (modified) New BSD License
+- [Gettext Translator](http://addons.nettephp.com/gettext-translator) 0.4 New BSD License
 - [GrabzIt API](http://grabz.it/api/php/) 2.0.9 (MIT License)
-- [HTML Purifier](http://htmlpurifier.org/) 4.5.0 (GNU Lesser General Public
+- [HTML Purifier](http://htmlpurifier.org/) 4.6.0 (GNU Lesser General Public
     License)
 - [jCrop](https://github.com/tapmodo/Jcrop) 0.9.12 (MIT License)
 - [jQuery](http://jquery.com/) 1.10.1 (MIT License)

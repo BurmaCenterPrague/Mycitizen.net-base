@@ -49,25 +49,6 @@
 		<td><b>{_"GD (images) supported"}</b></td><td>{if function_exists("ImageCreateTrueColor")}yes{else}<span style="color:#f00;">no</span>{/if}</td>
 	</tr>
 	<tr>
-		<td><b>{_"Gettext supported"}</b></td><td>{if function_exists("gettext")}yes{else}<span style="color:#f00;">no</span>{/if}</td>
-	</tr>
-	<tr>
-		<td><b>{_"Your current locale '%s' is supported", $language}</b></td><td>{? echo (setlocale(LC_ALL, $language) ? 'yes' : '<span style="color:#f00;">no</span>')}</td>
-	</tr>
-	<tr>
-		<td style="vertical-align:top;"><b>{_"Test locale"}</b></td><td>
-		{control testlocaleform begin}
-		{$control['testlocaleform']['locale']->control}
-		{$control['testlocaleform']['send']->control}
-		{control testlocaleform end}
-		</td>
-	</tr>
-	<tr class="tr-header">
-		<td colspan="2">
-			<h3>Software Information</h3>
-		</td>
-	</tr>
-	<tr>
 		<td><b>{_"Software version:"}</b></td><td> {$PROJECT_VERSION}</td>
 	</tr>
 {ifset $new_version}
@@ -92,7 +73,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td><a href="?do=import" class="button">{_"Import resources from a file"}</a></td><td><img src="/images/help.png" class="help-icon" title="
+		<td><a href="?do=import" class="button">{_"Import resources from a file"}</a></td><td><img src="{$baseUri}/images/help.png" class="help-icon" title="
 	Imports resources from a file that is named <b>resources.csv</b> and located in the web/files folder.
 	<br/>The data must be provided in tab-separated values, text in enclosing quotes. Lines that start with # will be skipped (use it for column lables and comments).
 	<br/><br/><b>Columns</b> (in this order)
@@ -105,12 +86,12 @@
 	"/></td>
 	</tr>
 	<tr>
-		<td><a href="?do=import&test_run=1" class="button">{_"Test the import in a dry run"}</a></td><td><img src="/images/help.png" class="help-icon" title="
+		<td><a href="?do=import&test_run=1" class="button">{_"Test the import in a dry run"}</a></td><td><img src="{$baseUri}/images/help.png" class="help-icon" title="
 	This will create a log file without effecting any changes.
 	"/></td>
 	</tr>
 	<tr>
-		<td><a href="?do=locales" class="button">{_"Update languages"}</a></td><td><img src="/images/help.png" class="help-icon" title="Compares the <b>locale</b> folder with languages in the database and updates the database.
+		<td><a href="?do=locales" class="button">{_"Update languages"}</a></td><td><img src="{$baseUri}/images/help.png" class="help-icon" title="Compares the <b>locale</b> folder with languages in the database and updates the database.
 		<br /><br /><b>Requirements:</b>
 		<ul>
 		<li>a messages.mo file in the LC_MESSAGES subfolder under the folder with the language code</li>
@@ -127,7 +108,7 @@
 	<tr>
 		<td><a href="?do=systemcheck"  class="button">{_"System check"}</a></td>
 		
-		<td><img src="/images/help.png" class="help-icon" title="Finds:<ul><li>groups and resources without owners.</li></ul>"/>
+		<td><img src="{$baseUri}/images/help.png" class="help-icon" title="Finds:<ul><li>groups and resources without owners.</li></ul>"/>
 		</td>
 	</tr>
 {ifset $problem}
@@ -156,7 +137,7 @@
 			<p><a href="?do=purgeusers&months=6"  class="button">{_"Over six months old"}</a></p>
 		</td>
 		
-		<td><img src="/images/help.png" class="help-icon" title="Removes users<ul><li>with unfinished registration, signed up over x months ago</li></ul>"/>
+		<td><img src="{$baseUri}/images/help.png" class="help-icon" title="Removes users<ul><li>with unfinished registration, signed up over x months ago</li></ul>"/>
 		</td>
 	</tr>
 

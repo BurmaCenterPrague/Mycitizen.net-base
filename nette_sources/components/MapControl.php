@@ -74,6 +74,7 @@ class MapControl extends NControl
 		}
 		$template->default_latitude  = Settings::getVariable('gps_default_latitude');
 		$template->default_longitude = Settings::getVariable('gps_default_longitude');
+		$template->baseUri = NEnvironment::getVariable("URI") . '/';
 		$template->render();
 		
 	}

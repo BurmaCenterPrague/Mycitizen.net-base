@@ -1,7 +1,13 @@
+<Files ~ "\.(htaccess|sql|ini|phtml|htpasswd)$">
+  order allow,deny
+  deny from all
+</Files>
+
 # disable directory listing
 Options -Indexes
 
 # rewrite to "web"
 RewriteEngine On
-RewriteCond  %{REQUEST_URI}% !^/?web
+RewriteCond  %{REQUEST_URI}% !^/?install.php
+RewriteCond  %{REQUEST_URI}% !^/?web/?$
 RewriteRule ^(.*)$ web/$1 [L]

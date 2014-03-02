@@ -17,7 +17,7 @@
    {snippet list_body}
 
 	{if isset($template_variables['map_used']) && $template_variables['map_used']}
-		<img src="/images/icon-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
+		<img src="{$baseUri}/images/icon-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
 	{/if}
 
     <div class="list-header-wrapper">
@@ -59,14 +59,14 @@
 			{? $id=$row['id']}
         	{? $color='transparent'}    
         	<div class="item{ifset $template_variables['selected_row']}{if $template_variables['selected_row'] == $row['id']} selected_row{/if}{/if}"{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}
-        	{if Auth::isAuthorized(1,$row['id'])>0}onClick="window.location = '/user/?user_id={$row['id']}'{/if}"
+        	{if Auth::isAuthorized(1,$row['id'])>0}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'{/if}"
 			{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *}  onClick="showObjectDetail({$row['type']},{$row['id']})"{/if}>
 						{var $fullname => User::getFullName($row['id'])}
 						<div class="icon_user" title="{$fullname}">
 							{? echo User::getImage($row['id'], 'icon')}
 						</div>
 
-				<div class="list-body-name" {if isset($template_variables['group_edit_member_lister']) || isset($template_variables['resource_edit_subscriber_lister'])}onClick="window.location = '/user/?user_id={$row['id']}'"{/if}>
+				<div class="list-body-name" {if isset($template_variables['group_edit_member_lister']) || isset($template_variables['resource_edit_subscriber_lister'])}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'"{/if}>
 					{ifset $template_variables['detail']}
 						{if $template_variables['detail'] == "ajax"}
             				<span title="{$fullname}">{$row['name']}</span>

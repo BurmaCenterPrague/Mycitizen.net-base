@@ -10,6 +10,8 @@
  *
  * @package mycitizen.net
  */
+ 
+$baseUri = NEnvironment::getVariable("URI") . '/';
 ?>
 <div class="lister-header">
 	<div class="filter-body-chat">
@@ -113,7 +115,7 @@
 			var name = $("#search_name").val();
 			$("#reload_button").attr("class", "icon-reload-disabled");
 			$.ajax({
-				url:"/widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
+				url:"{!$baseUri}widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
 				dataType:"html",
 				ifModified:false,
 				statusCode: {
@@ -145,7 +147,7 @@
 			var currentpage=$("#currentpage").val();
 			var name = $("#search_name").val();
 			$.ajax({
-				url:"/widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
+				url:"{!$baseUri}widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
 				dataType:"html",
 				ifModified:true,
 				statusCode: {

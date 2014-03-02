@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /signin/
+Disallow: /signup/
+Disallow: /user/lostpassword/
+Disallow: /browse/
+Disallow: /captcha/

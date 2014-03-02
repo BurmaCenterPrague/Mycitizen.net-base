@@ -40,7 +40,7 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` as user_portrait FROM `user` WHERE `user_id` = %i", $user_id); // user_largeicon` as user_portrait
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_hash`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` as user_portrait FROM `user` WHERE `user_id` = %i", $user_id); // user_largeicon` as user_portrait
 			if (sizeof($result) > 2) {
 				return false;
 				throw new Exception(_t("More than one user with the same id found."));
@@ -234,9 +234,9 @@ class User extends BaseModel implements IIdentity
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates a salted hash of a cleartext password
+	 *	@param string $password
+	 *	@return string
 	 */
 	public static function encodePassword($password)
 	{
@@ -244,11 +244,8 @@ class User extends BaseModel implements IIdentity
 
 		require(LIBS_DIR.'/Phpass/PasswordHash.php');
 		$hasher = new PasswordHash(8, false);
-		$hash = $hasher->HashPassword($password);
-
 		return $hasher->HashPassword($password);
 
-//		return sha1($password);
 	}
 
 	/**
@@ -458,7 +455,7 @@ class User extends BaseModel implements IIdentity
 	/**
 	 *	@todo ### Description
 	 *	@param
-	 *	@return
+	 *	@return object
 	 */
 	public static function getEmailOwner($email)
 	{
@@ -550,22 +547,27 @@ class User extends BaseModel implements IIdentity
 	 *	@param
 	 *	@return
 	 */
-	public function sendEmailchangeEmail()
+	public function sendEmailchangeEmail($email = null)
 	{
 		$hash = self::generateHash();
 		
 		$this->user_data['user_hash'] = $hash;
 		$this->save();
 		$name =  $this->user_data['user_login'];
-		$email = $this->user_data['user_email'];
+		if (!isset($email)) $email = $this->user_data['user_email'];
 		$id    = $this->numeric_id;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = Language::getId($session->language);
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 		$body  = sprintf(_t("Hello %s,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
-		
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
+		if ($email != $this->user_data['user_email']) {
+			$support_url = NEnvironment::getVariable("SUPPORT_URL");
+			$body  = sprintf(_t("Hello %s,\nSomebody has requested an email change on Mycitizen.net. The new email will be: %s\nIf you think that this is wrong, please contact the support at %s."), $name, $email, $support_url ) . "\n\n " . $link;
+			$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
+			mail($this->user_data['user_email'], '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
+		}
 		return $body;
 	}
 
@@ -599,9 +601,10 @@ class User extends BaseModel implements IIdentity
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Activate user and set registration as confirmed if email was confirmed through correct hash-.
+	 *	@param int $user_id
+	 *	@param string $control_key hash from field user_hash
+	 *	@return bool
 	 */
 	public static function finishRegistration($user_id, $control_key)
 	{
@@ -611,6 +614,17 @@ class User extends BaseModel implements IIdentity
 			return true;
 		}
 		return false;
+	}
+
+
+	/**
+	 *	Activate user and set registration as confirmed if email was supplied through external API.
+	 *	@param void
+	 *	@return int
+	 */
+	public function finishExternalRegistration()
+	{
+		return dibi::query("UPDATE `user` SET `user_status` = '1',`user_registration_confirmed` = '1' WHERE `user_id` = %i", $this->numeric_id);
 	}
 
 
@@ -675,12 +689,6 @@ class User extends BaseModel implements IIdentity
 	*	2:	accepted
 	*	3:	rejected/blocked
 	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function updateFriend($user_id, $data)
 	{
 		try {
@@ -1064,29 +1072,8 @@ class User extends BaseModel implements IIdentity
 	 *	@return
 	 */
 	public static function getImage($user_id,$size='img',$title=null) {
-	
-		$width=20;
-		
-		if (isset($title)) $title_tag =' title="'.$title.'"'; else $title_tag='';
-
-		// serving as image file
-		$user = User::create($user_id);
-		
-		switch ($size) {
-			case 'img': $src = $user->getAvatar(); $width=160; break;
-			case 'icon': $src = $user->getIcon(); $width=20; break;
-			case 'large_icon': $src = $user->getBigIcon(); $width=40; break;
-		}
-		
-		if (!empty($src) && (Auth::isAuthorized(1, $user_id)>0)) {
-			$hash=md5($src);
-			$link = '/images/cache/user/'.$user_id.'-'.$size.'-'.$hash.'.jpg';
-			$image = '<img src="'.$link.'" width="'.$width.'"'.$title_tag.'/>';
-		} else {
-			$image = '<img src="/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
-		}
-		return $image;
-
+		$image = new Image($user_id, 1);
+		return $image->toImg($size, $title);
 	}
 
 
@@ -1114,7 +1101,7 @@ class User extends BaseModel implements IIdentity
 				if (!empty($src)) {
 					$hash=md5($src);
 		
-					$link = WWW_DIR.'/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
+					$link = NEnvironment::getVariable("URI") . '/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
 		
 					if(!file_exists($link)) {
 						$img_r = @imagecreatefromstring(base64_decode($src));

@@ -29,13 +29,13 @@
 
 		{if file_exists(WWW_DIR."/images/captcha.jpg")}
 		<div class="login-box">
-			<img src="/images/captcha.jpg" alt="captcha" />
+			<img src="{$baseUri}/images/captcha.jpg" alt="captcha" />
 		</div>
 		{/if}
 		
 		{ifset $FB_LOGIN_URL}
 		<div class="login-box">
-			<a href="{$FB_LOGIN_URL}"><img src="/images/fb-sign-in.png" alt="{_"sign in with Facebook"}"/></a></td>
+			<a href="{$FB_LOGIN_URL}"><img src="{$baseUri}/images/fb-sign-in.png" alt="{_"sign in with Facebook"}"/></a></td>
 		</div>
 		{/if}
 

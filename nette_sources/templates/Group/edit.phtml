@@ -19,10 +19,12 @@
 
 {if !isset($image_too_large) && !isset($image_props_wrong)}
 	<div class="back"><a href="{plink Group:default, $group_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
+<div class="edit-primary">
+	<h2>{_"Basic Information"}</h2>
 {/if}
 
 {if isset($img_src) && $img_src!=null}
-	<div class="group-edit-image">
+	<div class="group-edit-image{if !isset($image_too_large) && !isset($image_props_wrong)} edit-image-small{/if}">
 		<h3>{_"Edit the group image"}</h3>
 		<div class="images">
 			<div class="image-full"><img src="data:{$mime_type};base64,{$img_src}" id="crop"/></div>
@@ -45,33 +47,38 @@
 {/if}
 
 {if !isset($image_too_large) && !isset($image_props_wrong)}
+	<div class="edit-wrapper" style="float:left;width:48%;">
+		{control updateform}			
+	</div>
+<div class="cleaner"></div>
+</div>
+{/if}
+
+
+{if !isset($image_too_large) && !isset($image_props_wrong)}
+<div class="edit-secondary">
+	<h2>{_"Additional Information"}</h2>
+	<h4>{_"Below you can add details: Describe the topics of this group by one or more tags. If your group is located in a particular town, you can mark it on a map. These information will help other users to find your group."}</h4>
+
+<table class="edit-secondary-table">
+<tr>
 {ifset $group_id}
+<td class="edit-secondary-table-td">
 	<div class="group-edit-map">
 		<h3>{_"Edit the location"}</h3>
 		{control mapedit}
 	</div>
-{/if}
-{/if}
-
-{if !isset($image_too_large) && !isset($image_props_wrong)}
-	<div class="edit-wrapper" style="float:left">
-		{control updateform}			
-	</div>
+</td>
 {/if}
 
-<div class="cleaner"></div>
-
-{if !isset($image_too_large) && !isset($image_props_wrong)}
-	<h4>{_"Below you can add details: Describe the topics of this group by one or more tags. If your group is located in a particular town, you can mark it on a map. These information will help other users to find your group."}</h4>
-	
-	<div class="group-edit-tagform">
-		<h3>{_"Add or remove tags"} <img src="/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="margin-bottom:-8px;"/></h3>
-	{/if}
+<td class="edit-secondary-table-td">
+		<h3>{_"Add or remove tags"}</h3><img src="{$baseUri}/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="float:right;"/>
+{/if}
 	   {control tagform begin}
 	
 		{snippet tagHandle}
+{if !isset($image_too_large) && !isset($image_props_wrong)}
 		{ifset $group_id}
-		{if !isset($image_too_large) && !isset($image_props_wrong)}
 			<table id="rule_tail_container" class="newSelect">
 			{ifset $group_tags}
 			{foreach $group_tags as $key=>$tag_name}
@@ -80,7 +87,7 @@
 					{foreach $tag_name->getPath() as $tag}
 						<span>{? echo _t_tags($tag)}</span>
 					{if !$iterator->isLast()}
-						<div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div>
+						<div class="tag-inner"></div>
 					{/if}
 					{/foreach}
 					</td>
@@ -91,25 +98,28 @@
 			</table>
 		{!$control['tagform']['add_tag']->control}
 		{/if}
-		{/if}
+{/if}
 		{/snippet}
 		{control tagform end}
-
-	</div>
-	
 {if !isset($image_too_large) && !isset($image_props_wrong)}
+</td>
+</tr>
 {ifset $group_id}
-	<div class="group-edit-membersform">
+<tr>
+	<td class="edit-secondary-table-td">
 		<h3>{_"Manage members of this group"}</h3>
 		{control groupmemberlister}
-	</div>
-
-	<div class="group-edit-resources">
+	</td>
+	<td class="edit-secondary-table-td">
 		<h3>{_"Manage subscribed resources"}</h3>
 		{control unsubscriberesourceform}		
-	</div>
+	</td>
+</tr>
 {/if}
-{/if}
+</table>
 	<div class="cleaner"></div>
+</div>
+{/if}
+
 </div>
 {/block}

@@ -18,7 +18,11 @@
 		$("#frmupdateform-event_timestamp").hide();
 		$("#frmupdateform-event_timestamp_end").hide();
 		var divToday1 = $("<span>").attr('id', 'today_1').html({_"now"}).addClass("button").css('margin', '2px');
+{ifset $initial_selection}
 		var divPreset = $("<span>").attr('id', 'preset').html({_"reset to initial selection"}).addClass("button").css('margin', '2px');
+{else}
+	var divPreset = '';
+{/if}
 	    var divDate1 = $("<div>").attr('id', 'date_1').css('width', '500px');
 		var divToday2 = $("<span>").attr('id', 'today_2').html({_"now"}).addClass("button").css('margin', '2px');
 	    var divDate2 = $("<div>").attr('id', 'date_2').css('width', '500px');
@@ -90,38 +94,41 @@
 <div class="resource_edit_updateform">
 
 	<div class="back"><a href="{plink Resource:default, $resource_id}" title="{_'cancel and return'}"><b class="icon-cancel"></b></a></div>
-
+<div class="edit-primary">
+	<h2>{_"Basic Information"}</h2>
 	
-		<div class="edit-wrapper" style="display:inline;width:60%;">
 		{control updateform error}
 	{control updateform}
 
 <script>
-{* set style directly in ResourcePresenter.php ! *}
+{* @todo set style directly in ResourcePresenter.php ! *}
 	$(document).ready(function(){
 		$('#frm-updateform').css({'display':'inline'});
 	});
 </script>
+	
+	<div class="cleaner"></div>
+</div>
 
+<div class="edit-secondary">
+	<h2>{_"Additional Information"}</h2>
+	<h3>{_'Below you can add details: Describe the topics of this resource by one or more tags. These information will help other users to find your resource.'}</h3>
 
-
-
-		{ifset $resource_id}
+<table class="edit-secondary-table">
+<tr>
+	{ifset $resource_id}
+	<td class="edit-secondary-table-td">
 		<div class="resource-edit-map" style="display:inline;">
 			<h4>{_'Edit the location'}</h4>
 			{control mapedit}
 		</div>
-		{/if}
-	
-		<div class="cleaner"></div>
-	
-		<h3>{_'Below you can add details: Describe the topics of this resource by one or more tags. These information will help other users to find your resource.'}</h3>
-		<div class="resource-edit-tagform">
-		<h3>{_'Add or remove tags'} </h3>
-		<p><img src="/images/help.png" class="help-icon" title="{_'Add the tags one by one.'}" style="margin-bottom:-8px;"/></p>
+	</td>
+	{/if}
+
+	<td class="edit-secondary-table-td">
+		<h3>{_'Add or remove tags'}</h3><img src="{$baseUri}/images/help.png" class="help-icon" title="{_"Add the tags one by one."}" style="float:right;"/>
 
 	   {control tagform begin}
-	
 		{snippet tagHandle}
 		{ifset $resource_id}
 			<table id="rule_tail_container" class="newSelect">
@@ -145,27 +152,26 @@
 		{/if}
 	   {/snippet}
 		{control tagform end}
-
+	</td>
+	
 <script>
 	$(document).ready(function(){
 		$('a#tag_select_button').addClass('button');
 	});
 </script>
-
-		</div>
-		
+</tr>
+<tr>	
 {ifset $resource_id}
-	<div class="group-edit-membersform">
+	<td class="edit-secondary-table-td">
 		<h3>{_'Manage subscribers of this resource'}</h3>
 		{control resourcesubscriberlister}
-	</div>
-
+	</td>
 {/if}
 {ifset $screenshot_url}
-	<div class="group-edit-screenshot" style="width:33%;float:left;">
+	<td class="edit-secondary-table-td">
 	<h3>{_('Screenshot')}</h3>
 	{ifset $screenshot}{!$screenshot}{/if}
-	</div>
+	</td>
 {ifset $screenshot}	
 <script>
 	$(document).ready(function(){
@@ -193,36 +199,30 @@
 </script>
 {/if}
 {/if}
-
-		</div>
-
+</tr>
+</table>
 	<div class="cleaner"></div>
-	
+</div>
+
 <script>
 	$(document).ready(function() {
 		CKEDITOR.replace( 'organization_information', {
 			height: '300px',
 			width: '800px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
-			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
-			extraPlugins: 'smiley,justify'
+			filebrowserUploadUrl: '{!$baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!$baseUri}widget/browse/',
 		});
 		CKEDITOR.replace( 'event_description', {
 			height: '300px',
 			width: '800px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
-			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
-			extraPlugins: 'smiley,justify'
+			filebrowserUploadUrl: '{!$baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!$baseUri}widget/browse/',
 		});
 		CKEDITOR.replace( 'text_information', {
 			height: '300px',
 			width: '800px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
-			allowedContent: 'h2 h3 h4 p blockquote strong em; a[!href]; img(left,right)[!src,alt,width,height]; table tr th td caption; del ins; ul ol li;',
-			extraPlugins: 'smiley,justify'
+			filebrowserUploadUrl: '{!$baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!$baseUri}widget/browse/',
 		});
 		
 		if ($("#frmupdateform-event_allday").prop('checked')) {

@@ -15,6 +15,8 @@
 /**
  *	Replacement for native gettext library and helper for GettextTranslator class.
  *	Supports any language code.
+ *	@param string|array $message
+ *	$return string 
  */
 function _t($message) {
 	global $t;
@@ -40,6 +42,8 @@ function _t($message) {
 
 /**
  *	Same as _t() but strings come from tags.mo (if file exists)
+ *	@param string|array $message
+ *	$return string
  */
 function _t_tags($message) {
 	global $td;

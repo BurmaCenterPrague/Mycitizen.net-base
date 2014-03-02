@@ -612,11 +612,11 @@ class Group extends BaseModel {
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function setMember($user_id) {
 	
 		$group_id = $this->numeric_id;
@@ -633,71 +633,16 @@ class Group extends BaseModel {
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Calls toImg() from Image class. (as static class)
+	 *	@param int $group_id
+	 *	@param string $size
+	 *	@param string $title
+	 *	@return string
 	 */
-	public static function getImage($group_id,$size,$title=null) {
-	
-		$width=20;
-		if (isset($title)) $title_tag =' title="'.$title.'"'; else $title_tag='';
-
-		// serving as image file
-		$group = new Group($group_id,$size);
-		switch ($size) {
-			case 'img': $src = $group->getAvatar(); $width=160; break;
-			case 'icon': $src = $group->getIcon(); $width=20; break;
-			case 'large_icon': $src = $group->getBigIcon(); $width=40; break;
-		}
-		
-		if (!empty($src) && (Auth::isAuthorized(2, $group_id)>0)) {
-			$hash=md5($src);
-			$link = '/images/cache/group/'.$group_id.'-'.$size.'-'.$hash.'.jpg';
-			$image = '<img src="'.$link.'" width="'.$width.'"'.$title_tag.'/>';
-		} else {
-			$image = '<img src="/images/group-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
-		}
-		return $image;
-
+	public static function getImage($group_id, $size, $title=null) {
+		$image = new Image($group_id, 2);
+		return $image->toImg($size, $title);
 	}
 
 
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public static function saveImage($id) {
-	
-		$object = Group::create($id);
-		
-		if (isset($object)) {
-		
-			$sizes = array('img', 'icon', 'large_icon');
-		
-			foreach ( $sizes as $size) {
-		
-				switch ($size) {
-					case 'img': $src = $object->getAvatar(); break;
-					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getBigIcon(); break;
-				}
-	
-				if (!empty($src)) {
-					$hash=md5($src);
-		
-					$link = WWW_DIR.'/images/cache/group/'.$id.'-'.$size.'-'.$hash.'.jpg';
-		
-					if(!file_exists($link)) {
-						$img_r = @imagecreatefromstring(base64_decode($src));
-						if (!imagejpeg($img_r, $link)) {
-							$this->flashMessage(_t("Error writing image: ").$link, 'error');
-						};
-					}
-				}
-
-			}
-
-		}
-	}
 }

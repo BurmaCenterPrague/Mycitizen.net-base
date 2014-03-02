@@ -110,10 +110,11 @@
         		<div class="resource-description">
         			{$default_data['object_data']['resource_description']}
         		</div>
+        		{if $default_data['object_data']['resource_type'] == 2}
         		<div class="resource-event-time"  style="padding:20px 30px; margin:20px 0;">
-					{ifset $event_alert}<img src="/images/clock-alert.png" style="float:right;" title="{_"The event is upcoming."}"/>
-					{elseifset $event_ahead}<img src="/images/clock-ahead.png" style="float:right;" title="{_"The event is in the future."}"/>
-					{else}<img src="/images/clock.png" style="float:right;" title="{_"The event is over."}"/>{/if}
+					{ifset $event_alert}<img src="{$baseUri}/images/clock-alert.png" style="float:right;" title="{_"The event is upcoming."}"/>
+					{elseifset $event_ahead}<img src="{$baseUri}/images/clock-ahead.png" style="float:right;" title="{_"The event is in the future."}"/>
+					{else}<img src="{$baseUri}/images/clock.png" style="float:right;" title="{_"The event is over."}"/>{/if}
 					<table>
 					<tr>
 					{if !isset($default_data['object_data']['event_timestamp_end']) || $default_data['object_data']['event_timestamp']==$default_data['object_data']['event_timestamp_end']}
@@ -131,6 +132,7 @@
 					{/if}
 					</table>
 				</div>
+				{/if}
 
 				{ifset $default_data['object_data']['logged_user_member']}
 					{if $default_data['object_data']['logged_user_member'] == 0 && $default_data['object_data']['resource_visibility_level'] != 3}

@@ -14,16 +14,17 @@
 final class AdministrationPresenter extends BasePresenter
 {
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function startup()
 	{
 		parent::startup();
 		
 //		if (class_exists('NDebug') && (NDebug::isEnabled())) { NDebug::enableProfiler(); }
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
@@ -122,11 +123,11 @@ final class AdministrationPresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function actionSettings()
 	{
 		$user   = NEnvironment::getUser()->getIdentity();
@@ -437,11 +438,11 @@ final class AdministrationPresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleDeleteReport($report_id) {
 
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()>1 && !empty($report_id)) {
@@ -560,6 +561,7 @@ final class AdministrationPresenter extends BasePresenter
 		$this->terminate();
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -594,49 +596,10 @@ final class AdministrationPresenter extends BasePresenter
 
 
 	/**
-	*	Checks the sub-folders in 'locale' and adds the codes to the database, if not yet present.
-	*
-	*
-	*/
-	protected function createComponentTestlocaleform() {
-		$form = new NAppForm($this, 'testlocaleform');
-		$form->addText('locale', _t('Language code'));
-		$form->addSubmit('send', _t('Test'));
-		$form->onSubmit[] = array(
-			$this,
-			'testlocaleformSubmitted'
-		);
-		return $form;
-	}
-
-	/**
-	 *	@todo ### Description
+	 *	Do the system check.
 	 *	@param
 	 *	@return
-	 */
-	public function testlocaleformSubmitted(NAppForm $form) {
-		$values = $form->getValues();
-		$locale = $values['locale'];
-		$result = (setlocale(LC_ALL, $locale) ? $locale.' is supported.' : $locale.' is not supported.');
-
-		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		setlocale(LC_ALL, $session->language);
-		
-		$this->flashMessage($result);
-	}
-	
-	
-	/**
-	*	Do the system check.
-	*
-	*
 	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function handleSystemCheck() {	
 	
 		$result = Administration::systemCheck();
@@ -659,18 +622,12 @@ final class AdministrationPresenter extends BasePresenter
 		
 	}
 	
-	
-	/**
-	*	Purge users.
-	*
-	*
-	*/
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	Purge inactive users.
+	 *	@param
+	 *	@return
+	*/
 	public function handlePurgeUsers($months) {	
 	
 		$number_cleared = Administration::clearUsers($months);
@@ -680,17 +637,12 @@ final class AdministrationPresenter extends BasePresenter
 		$this->redirect("Administration:setupmaintenance");
 	}
 	
-	/**
-	*	Checks the sub-folders in 'locale' and adds the codes to the database, if not yet present.
-	*
-	*
-	*/
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	Checks the sub-folders in 'locale' and adds the codes to the database, if not yet present.
+	 *	@param
+	 *	@return
+	*/
 	public function handleLocales() {
 		
 		$languages = Language::getAllCodes();
@@ -776,13 +728,9 @@ final class AdministrationPresenter extends BasePresenter
 	*	Events not yet fully supported.
 	*
 	*	You will find an error log with the name of the file and appended '.log'.
+	*	@param
+	*	@return
 	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function handleImport($test_run = null) {
 	
 		$user = NEnvironment::getUser()->getIdentity();

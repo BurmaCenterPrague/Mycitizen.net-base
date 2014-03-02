@@ -215,11 +215,10 @@
 		{/if}
 		{control useradministrator end}
 		{/if}
-		<div style="text-align: center"><a href="/?do=image&id={$default_data['object_data']["user_id"]}&type=1" class="button">{_"regenerate image"}</a></div>
+		<div style="text-align: center"><a href="{!$baseUri}?do=image&id={$default_data['object_data']["user_id"]}&type=1" class="button">{_"regenerate image"}</a></div>
 	{/if}
 	</div>
 	{/if}
-		
 </div>
 
 <div class="detail-right">
@@ -285,8 +284,7 @@
 			</div>
 	<script>
 		$(document).ready(function() {
-			if ($('#frmfilter-trash-0').is(':checked')) $('#empty-trash').hide();
-			if ($('#frmfilter-trash-1').is(':checked')) $('#empty-trash').hide();
+			if ($('.trash-radio:not([value=1])').is(':checked')) $('#empty-trash').hide();
 		});
 	</script>
 		</div>
@@ -299,18 +297,17 @@
 		CKEDITOR.replace( 'message_text', {
 			height: '200px',
 			width: '740px',
-			filebrowserUploadUrl: '/?do=upload',
-			filebrowserBrowseUrl: '/widget/browse/',
-			allowedContent: 'p strong em; a[!href]; del ins; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]',
+			filebrowserUploadUrl: '{!baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
 			toolbarGroups: [
 				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
 				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
 				{ name: 'links'},
-				{ name: 'insert'},
+				{ name: 'insert', groups: [ 'image', 'symbol', 'smiley']},
 				{ name: 'styles'},
 				{ name: 'colors'}
-			],
-			extraPlugins: 'smiley'
+			]
 		});
 
 

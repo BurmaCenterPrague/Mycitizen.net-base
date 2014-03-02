@@ -61,9 +61,11 @@
 {ifset $load_fullcalendar}
 	{ifset $load_external_js_css}
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/gcal.js"></script>
 		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />		
 	{else}
 		<script type="text/javascript" src="{$baseUri}js/fullcalendar.min.js"></script>
+		<script type="text/javascript" src="{$baseUri}js/gcal.js"></script>
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/fullcalendar.css" />		
 	{/if}
 {/if}
@@ -123,14 +125,14 @@
 	
 	function reloadMessages() {
 		$.ajax({
-				url:"/?do=reloadStatusBar",
+				url:"{!$baseUri}?do=reloadStatusBar",
 				dataType:"html"
 			}).done(function(payload){
 				$("#messages").html(payload);
 				
 		});
 		$.ajax({
-				url:"/?do=reloadTitle",
+				url:"{!$baseUri}?do=reloadTitle",
 				dataType:"html"
 			}).done(function(payload){
 				$(document).attr("title", payload+{$PROJECT_NAME}+" | {include #title}");
@@ -167,15 +169,16 @@
 	});
 	
 	function loadActivity(where, id) {
-		$(where).fadeOut('fast',function(){
-			$(this).load("/?do=activity&id="+id,function(){
-				$(this).fadeIn();
+		$(where).animate({ opacity:0},function() {
+			$(this).load("{!$baseUri}?do=activity&id="+id,function() {
+				$(this).animate({ opacity:1});
 				$('.fancybox-inner').animate({
 					scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
 				}, 2000);
 			});
 		});
-	}	
+	}
+	
 </script>
 <title>{$PROJECT_NAME} | {include #title}</title>
 </head>
@@ -261,7 +264,7 @@ $(function() {
 	});
 </script>
 			<div class="logo">
-				<h1><a href="{link Homepage:default}"><img src="/images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
+				<h1><a href="{link Homepage:default}"><img src="{$baseUri}/images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
 			</div>
 			<div class="language">
 				<form>
@@ -293,19 +296,19 @@ $(function() {
 			{include $footer}
 
 			<div class="rules-and-conditions">
-			{? $terms_link = '<a href='.$TOC_URL.' target="_blank">'._("Terms of Use").'</a>'}
-			{? $pp_link = '<a href='.$PP_URL.' target="_blank">'._("Privacy policy").'</a>'}
+			{? $terms_link = '<a href='.$TOC_URL.' target="_blank">'._t("Terms of Use").'</a>'}
+			{? $pp_link = '<a href='.$PP_URL.' target="_blank">'._t("Privacy policy").'</a>'}
 				{!_"By using this platform you accept our %s and our %s.", $terms_link, $pp_link}
 			</div>			
 			<div class="software-info">
 				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
 				<div class="cleaner"></div>
 				<h4>Stay Connected</h4>
-				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
-				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="{$baseUri}/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="{$baseUri}/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
 			</div>
 			<div class="sponsor-credits">
-				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
+				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="{$baseUri}/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
 			</div>
 			<div class="cleaner"></div>
 		</div> <!-- footer -->

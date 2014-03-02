@@ -64,7 +64,7 @@ $homepage = true;
 	<h4>{_"There are unread reports."}<h4>
 	{/if}
 	{ifset $incomplete_profile}
-	<h4>{_"Now is the best time to complete your profile. You can enter your name, your location and tags for your interests."}</h4><p><a href="{link User:edit, $my_id}" class="button">{_"Click here to continue."}</a></p>
+	<h4>{_"Now is the best time to complete your profile. You can enter your name, your location and tags for your interests."}</h4><p><a href="{link User:edit, $my_id}" class="button">{_"Click here to continue"}</a></p>
 	{/if}
 </div>
 {else}
@@ -76,7 +76,7 @@ $homepage = true;
 
 {ifset $logged}{* Users who are logged in see "own" items. *}
 <div class="cleaner"></div>
-<div class="wrapper-home">
+
 
 <div id="tabs" style="display:none;">
 	<ul id="tab_headers" style="display:none;">
@@ -85,6 +85,7 @@ $homepage = true;
 		<li><a href="#activity">{_"My Activity"}</a></li>
 		<li id="tab_events"><a href="#events">{_"My Events"}</a></li>
 	</ul>
+<div class="wrapper-home">
 	<div id="connections">
 		<div class="top-users">
 			<h2>{_"My Friends"}</h2>
@@ -110,6 +111,8 @@ $homepage = true;
 	</div>
 
 	<div id="recommendations">
+		<img src="{$baseUri}/images/help.png" class="help-icon" title="{_"You see only item that you are not connected to."} {_"If these recommendations are not precise, you could try to find better tags to describe your interests. You can change your tags on your profile page."}" style="margin-bottom:-8px; float:right;"/>
+
 	<h3>{_"The following items could be interesting for you:"}</h3>
 		<div class="top-users">
 			<h2>{_"Recommended Users"}</h2>
@@ -133,7 +136,6 @@ $homepage = true;
 			</div>
 		</div>
 		<div class="cleaner"></div>
-		<p>{_"You see only item that you are not connected to."} {_"If these recommendations are not precise, you could try to find better tags to describe your interests. You can change your tags on your profile page."}</p>
 	</div>
 
 	<div id="activity">
@@ -166,11 +168,14 @@ $homepage = true;
 				center: '',
 				right:  'today agendaDay,agendaWeek,month prev,next'
 			},
-			events: '/?do=getevents',
+			eventSources: [
+			"/?do=getevents"{ifset $xml_events}{foreach $xml_events as $xml_event}{? $xml_event_data = explode(",", $xml_event)},
+			{ url:"{!$xml_event_data[0]}", {if !empty($xml_event_data[1])}backgroundColor: "{!$xml_event_data[1]}", {/if}className:'google-event'}{/foreach}{/if}],
 		    eventRender: function(event, element) {
         		element.qtip({
             		content: event.description
 		      	});
+	  		{ifset $xml_events}$('.google-event').attr('target','_blank');{/if}
 		    },
        		dayClick: function(date, allDay, jsEvent, view) {
 				if (confirm({_"Create a new event?"})) {
@@ -205,6 +210,7 @@ $homepage = true;
 </script>
 	<div class="cleaner"></div>
 </div>
+</div>
 <script>
 	$(document).ready(function() {
 
@@ -215,17 +221,13 @@ $homepage = true;
 				if (ui.newTab.attr('id') == 'tab_events') {
 					$('#calendar').fullCalendar( 'render' );
 				}
-		        var newp = ui.newPanel.hide().attr('id');
-        	    var oldp = ui.oldPanel.attr('id');
-		        $('#' + oldp).fadeOut(800);
-        		$('#' + newp).fadeIn(800);
-
-			}
+			},
+			hide: 800,
+			show: 800
 		});
 
 	});
 </script>
-</div>
 {else}{* Users who are not logged in see "top" items. *}
 <div class="wrapper-home-B">
 	<div class="homepage_default_users">

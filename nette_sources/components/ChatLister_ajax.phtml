@@ -195,7 +195,7 @@
 		setTimeout( function(){
 			reply=confirm({_"Do you really want to delete this message?"});
 			if (reply==true) {
-				$.post("?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
+				$.post("{!$baseUri}?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
 					$('#totrash-'+id).slideUp();
 					$('#chat_message_'+id).slideUp('normal');
 			} else {
@@ -207,3 +207,4 @@
 
 </script>
 
+<div class="cleaner"></div>

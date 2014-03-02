@@ -1,7 +1,7 @@
 <?php
 // about this version
-define('PROJECT_VERSION', '0.3');
-define('PROJECT_DATE', '20131231');
+define('PROJECT_VERSION', '0.4');
+define('PROJECT_DATE', '20140302');
 
 session_set_cookie_params(1209600);
 
@@ -13,7 +13,7 @@ $application = NEnvironment::getApplication();
 
 if (NEnvironment::getConfig('debug')->showErrors) {
 	NDebug::enable(NDebug::DEVELOPMENT);
-	NDebug::enableProfiler();
+//	NDebug::enableProfiler();
 	$application->catchExceptions = false;
 } else {
 	$application->catchExceptions = true;
@@ -54,22 +54,31 @@ if (NEnvironment::getConfig('variable')->SECURED == 1) {
 	$flag_all = NULL;
 }
 
-$router[] = new NRoute('index.php', array(
+$rewrite_base = NEnvironment::getConfig('variable')->RewriteBase;
+if (substr($rewrite_base, 0, 1) == '/') $rewrite_base = substr($rewrite_base, 1);
+if ($rewrite_base != '') $rewrite_base .= '/';
+
+$router[] = new NRoute($rewrite_base . 'index.php', array(
 	'presenter' => 'Homepage',
 	'action' => 'default',
 ), NRoute::ONE_WAY);
 
-$router[] = new NRoute('signin/', array(
+$router[] = new NRoute($rewrite_base . 'signin/', array(
     'presenter' => 'User',
     'action' => 'login',
     ),$flag);
 
-$router[] = new NRoute('signup/', array(
+$router[] = new NRoute($rewrite_base . 'signup/', array(
     'presenter' => 'User',
     'action' => 'register',
     ),$flag);
 
-$router[] = new NRoute('<presenter>/<action>/', array(
+$router[] = new NRoute($rewrite_base . 'browse/', array(
+    'presenter' => 'Widget',
+    'action' => 'browse',
+    ),$flag_all);
+
+$router[] = new NRoute($rewrite_base . '<presenter>/<action>/', array(
     'presenter' => 'Homepage',
     'action' => 'default',
     ),$flag_all);

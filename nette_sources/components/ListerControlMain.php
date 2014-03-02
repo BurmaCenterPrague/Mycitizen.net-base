@@ -90,7 +90,6 @@ class ListerControlMain extends NControl
 				$this->setFilterArray($filter);
 			}
 		}
-//		var_dump($options);die();
 		$this->generateList();
 		$this->registerHelpers();
 	}
@@ -109,7 +108,10 @@ class ListerControlMain extends NControl
 			$config->set('Attr.EnableID', true);
 			$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
 			$config->set('HTML.Nofollow', true);
-			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],lang,dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th');
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+			$config->set('HTML.SafeIframe', true);
+			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
+			$config->set('Filter.YouTube', true);
 			$purifier = new HTMLPurifier($config);
 			return $purifier->purify($dirty_html);
 		});
@@ -263,6 +265,7 @@ class ListerControlMain extends NControl
 		$template->max_page    = $this->getMaxPage();
 		$template->lister_type = $this->lister_type;
 		$template->active_filter = $this->activeFilter();
+		$template->baseUri = NEnvironment::getVariable("URI") . '/';
 		
 		$template->render();
 		
@@ -380,9 +383,10 @@ class ListerControlMain extends NControl
 
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$this->name);
+		$dont_cache = array('messagelisteruser','chatwidget');
 		$cache->clean();
 		$cache_key = md5(json_encode($filter));
-		if ($this->name != 'messagelisteruser' && $cache->offsetExists($cache_key)) { // $this->name != 'messagelisteruser'
+		if (!in_array($this->name, $dont_cache) && $cache->offsetExists($cache_key)) {
 			$this->data = $cache->offsetGet($cache_key);
 		} else {
 			$this->data = $this->getPageData($filter);
@@ -400,13 +404,16 @@ class ListerControlMain extends NControl
 				}
 			}
 
-			// if this is a list of recommended items: remove those where user is already connected
+			// if this is a list of recommended items: remove those where user is already connected, including oneself
 			if (isset($filter['exclude_connections_user_id'])) {
+				foreach ($this->data as $key => $data_row) {
+					if ($data_row['type_name'] == "user" && $data_row['id'] == $filter['exclude_connections_user_id']) unset($this->data[$key]);
+				}
 				$filter_connections = array_merge($filter, array('user_id' => $filter['exclude_connections_user_id']));
 				$data_connections = $this->getPageData($filter_connections);
 				$this->data = array_diff($this->data, $data_connections);
 			}
-			$cache->save($cache_key, $this->data, array(NCache::EXPIRE => time()+120));
+			if (!in_array($this->name, $dont_cache)) $cache->save($cache_key, $this->data, array(NCache::EXPIRE => time()+120));
 		}
 		
 		foreach ($this->data as $key => $data_row) {

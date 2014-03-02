@@ -40,7 +40,8 @@ final class GroupPresenter extends BasePresenter
 		if ($query->getQuery("do")=='invitation') return;
 		
 		$this->template->load_js_css_editor = true;
-	
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+		
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!is_null($group_id)) {
 			$this->setView('detail');
@@ -289,7 +290,7 @@ final class GroupPresenter extends BasePresenter
 	public function chatformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
-		
+
 		$values                  = $form->getValues();
 		$resource                = Resource::create();
 		$data                    = array();
@@ -549,14 +550,14 @@ final class GroupPresenter extends BasePresenter
 			$group_id   = $this->group->getGroupId();
 		}
 		$form = new NAppForm($this, 'updateform');
-		$form->addText('group_name', _t('Name:'))->addRule(NForm::FILLED, _t('Group name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the group.'))->id("help-name"));
-		$form->addSelect('group_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
-		$form->addSelect('group_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Select a language that will be used in this group for communication.'))->id("help-name"));
-		$form->addTextArea('group_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this group is about.'))->id("help-name"));
-		$form->addFile('group_avatar', _t('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","1500x1500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'),"512kB"), 512 * 1024);
+		$form->addText('group_name', _t('Name:'))->addRule(NForm::FILLED, _t('Group name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the group.'))->id("help-name"));
+		$form->addSelect('group_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
+		$form->addSelect('group_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Select a language that will be used in this group for communication.'))->id("help-name"));
+		$form->addTextArea('group_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this group is about.'))->id("help-name"));
+		$form->addFile('group_avatar', _t('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","1500x1500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'),"2MB"), 2 * 1024 * 1024);
 		
 		if ($group_data['group_visibility_level'] == 3) {
-			$form->addText('group_hash', _t('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getHttpRequest()->uri->scriptPath . 'images/help.png')->class('help-icon')->title(_t('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _t("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
+			$form->addText('group_hash', _t('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _t("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
 		}
 		
 		if (empty($group_id)) {
@@ -1068,7 +1069,7 @@ final class GroupPresenter extends BasePresenter
 		$URI = NEnvironment::getVariable("URI");
 		foreach ($users_a as $user_a) {
 			if ($values['notification_type'] == 'email') {
-				StaticModel::addCron(time() + 60, 1, $user_a['user_id'], sprintf(_t('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
+				Cron::addCron(time() + 60, 1, $user_a['user_id'], sprintf(_t('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
 			} else {
 				$resource                          = Resource::create();
 				$data                              = array();
@@ -1224,7 +1225,7 @@ final class GroupPresenter extends BasePresenter
 			$resource->removeGroup($group_id);
 			
 			// remove cron
-			StaticModel::removeCron(2, $group_id, 3, $resource_id);
+			Cron::removeCron(2, $group_id, 3, $resource_id);
 			
 			Activity::addActivity(Activity::GROUP_RESOURCE_REMOVED, $group_id, 2);
 			
@@ -1254,7 +1255,8 @@ final class GroupPresenter extends BasePresenter
 			$this->terminate();
 		}
 		if (!empty($group)) {
-			BasePresenter::removeImage($group_id,2);
+			$image = new Image($group_id,2);
+			$image->remove_cache();
 			$group->removeAvatar();
 			$group->removeIcons();
 		}
@@ -1276,7 +1278,7 @@ final class GroupPresenter extends BasePresenter
 		$h = $query->getQuery("h");
 		$group_id = $query->getQuery("group_id");
 
-
+		
 		if ($group_id == 0 || Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
 			
 			$this->flashMessage(_t("You are not allowed to edit this group."), 'error');
@@ -1284,46 +1286,17 @@ final class GroupPresenter extends BasePresenter
 		}
 				
 		// remove from cache
-		BasePresenter::removeImage($group_id,2);
-
-		$group = new Group($group_id);
-
-		if (!empty($group)) {
-
-			$data = base64_decode($group->getAvatar());
-		
-			if (isset($data)) {
-		
-				// target sizes
-				$avatar_w = 160;
-				$avatar_h = 200;
-				$large_icon_w = 40;
-				$large_icon_h = 50;
-				$icon_w = 20;
-				$icon_h = 25;
-
-				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
-				$large_icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
-				$icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->sharpen()->toString(IMAGETYPE_JPEG,90));
-				
-				$values = array (
-					'group_portrait' => $avatar,
-					'group_largeicon' => $large_icon,
-					'group_icon' => $icon,
-					);
-				
-				$group->setGroupData($values);
-				$group->save();
-				
-			}
-		}
-		
-		// save to cache
-		Group::saveImage($group_id);
+		$image = new Image($group_id,2);
+		$result = $image->remove_cache();
+		if ($result !== true) $this->flashMessage($result, 'error');
+		$image->crop($x, $y, $w, $h);
+		$result = $image->create_cache();
+		if ($result !== true) $this->flashMessage($result, 'error');
 		$this->flashMessage(_t("Finished cropping and resizing."));
+		Activity::addActivity(Activity::GROUP_UPDATED, $group_id, 2);
+
 		$this->redirect("Group:edit",$group_id);
-		
-		$this->redirect("Group:edit",$group_id);
+
 	}
 
 

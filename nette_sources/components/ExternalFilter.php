@@ -123,6 +123,8 @@ class ExternalFilter extends NControl
 		$template->name = $this->name;
 		$this['filter']->setDefaults($this->getFilterArray());
 		$template->refresh_path = $this->refresh_path;
+		$template->baseUri = NEnvironment::getVariable("URI") . '/';
+
 
 		if ($this->hide_filter) {
 			$template->hide_filter = true;

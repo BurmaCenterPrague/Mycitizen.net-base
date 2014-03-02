@@ -125,12 +125,12 @@
 				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
 {ifset $wanttoshowname}
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="/user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
 					{/if}
 {else}
 					{$user_data['user_login']}
@@ -259,7 +259,7 @@
 				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
 					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="/user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="{!$baseUri}user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
@@ -376,7 +376,7 @@
 		setTimeout( function(){
 			reply=confirm({_"Do you really want to delete this message?"});
 			if (reply==true) {
-				$.post("?message_id="+id+"&resource_id="+resource_id+"&do=removeMessage");
+				$.post("{!$baseUri}?message_id="+id+"&resource_id="+resource_id+"&do=removeMessage");
 					$('#totrash-'+id).hide();
 					$('#chat_message_'+id).slideUp('normal');
 			} else {
@@ -390,7 +390,7 @@
 <script>
 	function removeMessageNow(id) {
 		var user_id={$recipient_id};
-		$.post("?message_id="+id+"&user_id="+user_id+"&do=removeMessage");
+		$.post("{!$baseUri}?message_id="+id+"&user_id="+user_id+"&do=removeMessage");
 		$('#totrash-'+id).hide();
 		$('#chat_message_'+id).slideUp('normal');
 	}

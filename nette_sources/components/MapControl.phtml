@@ -16,7 +16,7 @@
 *	Displays the map to show the location of items
 */
 ?>
-<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
+<script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
 <script>
 var map = null;
 var mapcenter = new google.maps.LatLng({$default_latitude},{$default_longitude});
@@ -39,7 +39,7 @@ function findme() {
 			
 			mycenter = new google.maps.LatLng(lat,lng);
 			map.setCenter(new google.maps.LatLng(lat,lng));
-			var url = '/images/blue-pin.png';
+			var url = '{!$baseUri}/images/blue-pin.png';
 			var icon = new google.maps.MarkerImage(url,
 			// This marker is 20 pixels wide by 32 pixels tall.
 			new google.maps.Size(25, 35),
@@ -391,19 +391,19 @@ $(document).ready(function() {
 
 {if $type == "edit"}
 <a href="javascript:void(0);" onClick="clearMap();"><b class="icon-clear" title="{_"clear map"}"></b></a>
-<img src="/images/help.png" class="help-icon" title="{_"Click inside the map to set the location. If the location is already set, you first need to clear the map: <b class='icon-clear'></b>."}" style="margin-bottom:-8px;"/>
+<img src="{$baseUri}/images/help.png" class="help-icon" title="{_"Click inside the map to set the location. If the location is already set, you first need to clear the map: <b class='icon-clear'></b>."}" style="margin-bottom:-8px;"/>
 {/if}
 
 
 
 <table class="map-legend" onmouseover="$('.zoom').show()" onmouseout="$('.zoom').hide()" style="width:100%;">
 <tr id="own_location" style="display:none;cursor:pointer;">
-	<td onclick="map.setCenter(mycenter); active_center = 0;" style="width:20px;" title="{_"Show the location where you are right now."}"><img src="/images/blue-pin.png"/></td>
+	<td onclick="map.setCenter(mycenter); active_center = 0;" style="width:20px;" title="{_"Show the location where you are right now."}"><img src="{$baseUri}/images/blue-pin.png"/></td>
 	<td onclick="map.setCenter(mycenter); active_center = 0"><span class="button" title="{_"Show the location where you are right now."}">{_"My Location"}</span></td>
 	<td class="zoom" style="display:none;"><span class="button" onclick="map.setCenter(mycenter); zoomIn(); active_center = 0" title="{_"zoom in"}">+</span><span class="button" onclick="map.setCenter(mycenter); zoomOut(); active_center = 0" title="{_"zoom out"}">-</span></td>
 </tr>
 <tr id="item_location" style="display:none;cursor:pointer;">
-	<td onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);}" title="{_"Show the location of this %s.", $item_location_label}"><img src="/images/red-pin.png"/></td>
+	<td onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);}" title="{_"Show the location of this %s.", $item_location_label}"><img src="{$baseUri}/images/red-pin.png"/></td>
 	<td onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);}"><span class="button" title="{_"Show the location of this %s.", $item_location_label}">{$item_location_label}</span></td>
 	<td class="zoom" style="display:none;"><span class="button" onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);} zoomIn();" title="{_"zoom in"}">+</span><span class="button" onclick="if (circle_center != null) { map.setCenter(circle_center.position);active_center = 1;} else { map.setCenter(itemPosition);} zoomOut();" title="{_"zoom out"}">-</span></td>
 </tr>
