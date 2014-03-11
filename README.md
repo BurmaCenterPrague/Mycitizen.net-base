@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.4 Beta : 02 Mar 2014
+0.4.1 Beta : 11 Mar 2014
 
 
 authors
