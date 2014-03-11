@@ -87,7 +87,6 @@ if (isset($_POST) && count($_POST)) {
 		$key = str_replace("database_","database.",$key);
 		$key = str_replace("php_date_","php.date.",$key);
 		if ($value == '' && $key != 'RewriteBase') {
-		var_dump($value);
 			$problem_key = $key;
 			$step = 'form_error';
 			break;

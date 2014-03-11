@@ -863,7 +863,8 @@ final class ResourcePresenter extends BasePresenter
 				$s = &$_SERVER;
 				// $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true:false;
 				$host = isset($s['HTTP_X_FORWARDED_HOST']) ? $s['HTTP_X_FORWARDED_HOST'] : isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME'];
-				$callback = 'http'. (($ssl) ? 's' : '').'://'. $host. "/?do=savescreenshot&resource_id=". $resource_id. "&md5=". $md5;
+				// $callback = 'http'. (($ssl) ? 's' : '').'://'. $host. "/?do=savescreenshot&resource_id=". $resource_id. "&md5=". $md5;
+				$callback = NEnvironment::getVariable("URI") . "/?do=savescreenshot&resource_id=". $resource_id. "&md5=". $md5;
 				// check existence of screenshot to avoid unneccessary API calls
 				$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
 				if (!file_exists($filepath)) {

@@ -808,11 +808,11 @@ class Resource extends BaseModel {
 				
 		if (!empty($url)) {
 			$md5 = md5($url);
-			$link = NEnvironment::getVariable("URI") . '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';
+			$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';
 			$filepath = WWW_DIR.$link;
 			
 			if (file_exists($filepath)) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.$link.'" style="width:250px;border:solid 1px #ccc;" '.$title_tag.'/></a></div>';
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;" '.$title_tag.'/></a></div>';
 			} elseif ($placeholder) {
 				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;" '.$title_tag.'/></a></div>';
 			}

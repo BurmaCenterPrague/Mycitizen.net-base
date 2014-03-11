@@ -14,9 +14,13 @@
 {block title}{_"Groups"}{/block}
 @{block #content}
 <div class="group_default_main">
-
     <div class="group_default_filter"> 
 		<div class="filter-body filter-body-{control grouplister:filterstatus}">
+			<div id="filter-help">
+				{_"Use the filter to narrow down the list of items"}
+				<span class="arrow-right"></span>
+			</div>
+
 			<a href="#filter_container" id="filter_box_a" class="filter-button-{control grouplister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control grouplister:filtercheck}</a>
 			<div id="filter_container" style="display:none;">
 				{control grouplister:filter}
@@ -25,6 +29,8 @@
 			$(document).ready(function(){
 				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
 					$('#frmfilter-reset').hide();
+				} else {
+					$('#filter-help').hide();
 				}
 			});
 			</script>
@@ -125,7 +131,7 @@
 				{/if}
 			</div> <!-- group_default_info -->
 			{else}
-				<h3><div class="arrow-left" style="width=0;height:0;border-right:5px solid #d0ccc3;border-top:5px solid transparent; border-bottom:5px solid transparent;display:inline-block;margin-right:5px;"></div>{_"Select a group for more details."}</h3>
+				<h3><div class="arrow-left"></div>{_"Select a group for more details."}</h3>
 			{/if}
          
 			<div class="group_default_users">

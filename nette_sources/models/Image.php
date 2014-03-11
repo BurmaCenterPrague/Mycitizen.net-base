@@ -103,7 +103,7 @@ class Image extends BaseModel
 	
 				if (!empty($src)) {
 					$hash=md5($src);
-					$link = NEnvironment::getVariable("URI") . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
+					$link = WWW_DIR . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
 		
 					if(!file_exists($link)) {
 						$img_r = @imagecreatefromstring(base64_decode($src));

@@ -92,10 +92,12 @@
 	
 		{$data['user_description']}
 
+		{ifset $object_language}
 		<div class="user-detail-language">	
 			<h3>{_"Language"}:</h3>
 			{$object_language}
 		</div>
+		{/if}
 
 		<div class="user-detail-tags">
 			<h3>{_"Interests"}</h3>

@@ -109,7 +109,7 @@ final class UserPresenter extends BasePresenter
 		
 		if (isset($data)) {
 			$languages = Language::getArray();
-			$this->template->object_language = $languages[$data['object_data']['user_language']];
+			if (isset($languages[$data['object_data']['user_language']])) $this->template->object_language = $languages[$data['object_data']['user_language']];
 		}
 
 	}

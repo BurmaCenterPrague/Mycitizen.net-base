@@ -1083,7 +1083,7 @@ class User extends BaseModel implements IIdentity
 	 *	@return
 	 */
 	public static function saveImage($id) {
-	
+##### needed? ##### 
 		$object = User::create($id);
 		
 		if (isset($object)) {
@@ -1101,7 +1101,7 @@ class User extends BaseModel implements IIdentity
 				if (!empty($src)) {
 					$hash=md5($src);
 		
-					$link = NEnvironment::getVariable("URI") . '/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
+					$link = WWW_DIR . '/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
 		
 					if(!file_exists($link)) {
 						$img_r = @imagecreatefromstring(base64_decode($src));
