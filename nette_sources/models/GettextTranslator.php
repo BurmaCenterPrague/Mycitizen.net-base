@@ -54,12 +54,6 @@ class GettextTranslator extends NObject implements ITranslator
     * @param  int    count (positive number)
     * @return string
     */
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
    public function translate($message, $count = 1)
    {
       $message = (string) $message;

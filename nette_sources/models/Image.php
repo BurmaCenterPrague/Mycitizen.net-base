@@ -37,39 +37,20 @@ class Image extends BaseModel
 	 */
 	public function remove_cache() {
 		if ($this->type == 1 ) {
-			$object = User::create($this->id);
 			$name = 'user';
 		} elseif ($this->type == 2 ) {
-			$object = Group::create($this->id);
 			$name = 'group';
 		} else {
-			return _t("Error recreating image.");
+			return _t("Error deleting image from cache.");
 		}
 
-		if (isset($object)) {
-			$sizes = array('img', 'icon', 'large_icon');
-		
-			foreach ( $sizes as $size) {
-				switch ($size) {
-					case 'img': $src = $object->getAvatar(); break;
-					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getBigIcon(); break;
-					default: $this->terminate(); break;
-				}
-
-				if (!empty($src)) {
-					$hash=md5($src);
-					$link = NEnvironment::getVariable("URI") . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
-
-					if(file_exists($link)) {
-						if (!unlink($link)) {
-							return _t("Error deleting image from cache: ").$link;
-						}
-					}
-				}
+		$files = glob(WWW_DIR . '/images/cache/'.$name.'/'.$this->id.'-*.jpg');
+		if (is_array($files)) {
+			foreach ($files as $file) {
+				unlink($file);
 			}
-			return true;
 		}
+		return true;
 	}
 
 
@@ -192,7 +173,17 @@ class Image extends BaseModel
 		if (!empty($src) && (Auth::isAuthorized($this->type, $this->id)>0)) {
 			$hash=md5($src);
 			$link = NEnvironment::getVariable("URI") . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
-			$image = '<img src="'.$link.'" width="'.$width.'"'.$title_tag.'/>';
+			if (file_exists(WWW_DIR . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg')) {
+				$image = '<img src="'.$link.'" width="'.$width.'"'.$title_tag.'/>';
+			} else {
+				$data = base64_decode($src);
+				$avatar_w = 160;
+				$avatar_h = 200;
+				$avatar = base64_encode(NImage::fromString($data)->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
+				$f = finfo_open();
+				$mime_type = finfo_buffer($f, base64_decode($src), FILEINFO_MIME_TYPE);
+				$image = '<img src="data:'.$mime_type.';base64,'.$avatar.'"/>';
+			}
 		} else {
 			// default image
 			$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';

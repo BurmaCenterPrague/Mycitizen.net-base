@@ -45,6 +45,9 @@ class StaticModel extends BaseModel {
 	 *	@return
 	 */
 	public static function sendSystemMessage($message_type, $from, $to, $message = null, $object_type = null, $object_id = null) {
+		
+		$send_email = false;
+		
 		$sender = User::create($from);
 		if(!empty($sender)) {
 			$sender_data = $sender->getUserData();
@@ -58,59 +61,65 @@ class StaticModel extends BaseModel {
 			return false;
 		}
 		
+		// remember language
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language_prev = $session->language;
+
+		$language = Language::getFlag($recipient_data['user_language']);
+		if (empty($language)) {
+			$language = 'en_US';
+		}
+		_t_set($language);
+		
 		$name = $recipient->getUserLogin($recipient->getUserId());
 		
 		$data = array();
 
 		switch($message_type) {
-// no emails, because user will have unread emails in mailbox
-/*
 			case self::SYSTEM_MESSAGE_FRIENDSHIPOFFER:
 				$message_subject = sprintf(_t("User %s requested your friendship."), $sender_data['user_login']);
 				$message_text = _t("Friendship request");
 				$email_text = $message_subject;
 				$data['resource_type'] = 10;
-				Activity::addActivity(Activity::FRIENDSHIP_REQUEST, $from, 1, $to);
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPACCEPTED:
 				$message_subject = sprintf(_t("User %s accepted your friendship."), $sender_data['user_login']);
             	$message_text = _t("Friendship accepted");
             	$email_text = $message_subject;
             	$data['resource_type'] = 9;
-            	Activity::addActivity(Activity::FRIENDSHIP_YES, $from, 1, $to);
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPREJECTED:
 				$message_subject = sprintf(_t("User %s rejected your friendship."), $sender_data['user_login']);
 	            $message_text = _t("Friendship request rejected");
 	            $email_text = $message_subject;
 	            $data['resource_type'] = 9;
-	            Activity::addActivity(Activity::FRIENDSHIP_NO, $from, 1, $to);
 				break;
 			case self::SYSTEM_MESSAGE_FRIENDSHIPTRERMINATED:
 				$message_subject = sprintf(_t("User %s canceled your friendship."), $sender_data['user_login']);
 	            $message_text = _t("Friendship canceled");
 	            $email_text = $message_subject;
 	            $data['resource_type'] = 9;
-	            Activity::addActivity(Activity::FRIENDSHIP_END, $from, 1, $to);
 				break;
-*/
 			case self::SYSTEM_MESSAGE_WARNING_USER:
 				$message_subject = _t("System message: You've received a warning.");
 	            $message_text = $message;
 	            $email_text = $message_subject."\n\r".$message_text;
 	            $data['resource_type'] = 9;
+	            $send_email = true;
 				break;
 			case self::SYSTEM_MESSAGE_WARNING_GROUP:
 				$message_subject = _t("System message: You've received a warning about your group.");
 				$message_text = $message;
 				$email_text = $message_subject."\n\r".$message_text;
 				$data['resource_type'] = 9;
+	            $send_email = true;
          	  	break;
 			case self::SYSTEM_MESSAGE_WARNING_RESOURCE:
 				$message_subject = _t("System message:  You've received a warning about your resource.");
          		$message_text = $message;
          		$email_text = $message_subject."\n\r".$message_text;
          		$data['resource_type'] = 9;
+	            $send_email = true;
 	            break;
 			default:
 				return false;
@@ -134,13 +143,17 @@ class StaticModel extends BaseModel {
 			}
 		}
 		
-		$email_text = sprintf(_t("Dear %s"), $name).",\n\r\n\r".$email_text;
+		if ($send_email) {
+			$email_text = sprintf(_t("Dear %s"), $name).",\n\r\n\r".$email_text;
+			self::addCron(time()+60, 1, $to, $email_text, $object_type, $object_id);
+		}
 		
-		self::addCron(time()+60, 1, $to, $email_text, $object_type, $object_id);
-
     	$resource->updateUser($recipient->getUserId(),array('resource_user_group_access_level'=>1));
 
+		// return to previous language
+		_t_set($language_prev);
 	}
+
 
 	/**
 	*	Compatibility with API_Base which receives from the mobile application only the email address.

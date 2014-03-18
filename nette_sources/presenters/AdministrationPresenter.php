@@ -656,6 +656,26 @@ final class AdministrationPresenter extends BasePresenter
 			if (is_dir(LOCALE_DIR.'/'.$dir)) {
         		if (in_array($dir,$languages)) {
         			$result = 'Already installed.';
+					if (!$information=@file_get_contents(LOCALE_DIR.'/'.$dir.'/'.'LC_MESSAGES/language.txt')) {
+						$result .= ' We need a file language.txt in the LC_MESSAGES folder containing the name and the ISO 639-3 code!';
+						$error = 'error';
+					} else {
+				
+						if (!@file_get_contents(WWW_DIR.'/files/'.$dir.'/footer.phtml') || !@file_get_contents(WWW_DIR.'/files/'.$dir.'/intro.phtml')) {
+							$result .= ' We need files footer.phtml and intro.phtml in the '.WWW_DIR.'/files/'.$dir.' folder!';
+							$error = 'error';
+						} else {
+							$information_a = explode("\n", $information);
+							$name = trim($information_a[0]);
+							$code = trim($information_a[1]);
+							if (Language::updateCode($dir, $code, $name)!==false) {
+								$result .= ' Updated "'.$name.'" with code "'.$code.'".';
+							} else {
+								$result .= ' Database error: '.$result;
+								$error = 'error';
+							}
+						}
+					}
         		} else {
         			$result = 'It seems to be new.';
         			$dirs_inside = scandir(LOCALE_DIR.'/'.$dir);

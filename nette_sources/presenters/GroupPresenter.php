@@ -223,6 +223,9 @@ final class GroupPresenter extends BasePresenter
 		
 			$size_x = imagesx($img_r);
 			$size_y = imagesy($img_r);
+			$this->template->factor = 1;
+			$this->template->min_size_x = 120;
+			$this->template->min_size_y = 150;
 	
 			if ($size_x == 0 || $size_y == 0) {
 			
@@ -244,6 +247,17 @@ final class GroupPresenter extends BasePresenter
 				$this->template->image_too_large = true;
 				$this->flashMessage(_t("Your image still needs to be resized before you can continue!"));
 				$group->removeIcons();
+				
+				// check if image is too large to be cropped on screen
+				$max_x = 600;
+				$max_y = 600;
+				if ($size_x > $max_x || $size_y > $max_y) {
+					$factor = ($size_x / $max_x > $size_y / $max_y ) ? $size_x / $max_x : $size_y / $max_y;
+					$this->template->factor = $factor;
+					$this->template->min_size_x = round(120 / $factor);
+					$this->template->min_size_y = round(150 / $factor);
+					$this->template->img_src = base64_encode(NImage::fromString(base64_decode($data))->resize($max_x, $max_y)->toString(IMAGETYPE_JPEG,80));
+				}
 			
 			} elseif (abs(round($size_x/$size_y*500/4)-100) > 10) {
 			// more than 10% deviation from ideal ratio
@@ -265,8 +279,10 @@ final class GroupPresenter extends BasePresenter
 	 *	@param
 	 *	@return
 	 */
+/*
 	protected function createComponentChatform()
 	{
+#### needed?
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', ''); // circumvented by TinyMCE ->addRule(NForm::FILLED, _t('Please enter some text.'));
 		$form['message_text']->getControlPrototype()->class('ckeditor');
@@ -281,14 +297,17 @@ final class GroupPresenter extends BasePresenter
 		
 		return $form;
 	}
+*/
 
 	/**
 	 *	@todo ### Description
 	 *	@param
 	 *	@return
 	 */
+/*
 	public function chatformSubmitted(NAppForm $form)
 	{
+#### needed?
 		$user = NEnvironment::getUser()->getIdentity();
 
 		$values                  = $form->getValues();
@@ -319,6 +338,7 @@ final class GroupPresenter extends BasePresenter
 		));
 		
 	}
+*/
 
 	/**
 	 *	@todo ### Description
@@ -554,7 +574,7 @@ final class GroupPresenter extends BasePresenter
 		$form->addSelect('group_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Make the group visible to everyone (world), only users of this website (registered) or to members of this group (members).'))->id("help-name"));
 		$form->addSelect('group_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Select a language that will be used in this group for communication.'))->id("help-name"));
 		$form->addTextArea('group_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this group is about.'))->id("help-name"));
-		$form->addFile('group_avatar', _t('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","1500x1500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'),"2MB"), 2 * 1024 * 1024);
+		$form->addFile('group_avatar', _t('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","2500x2500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'),"2MB"), 2 * 1024 * 1024);
 		
 		if ($group_data['group_visibility_level'] == 3) {
 			$form->addText('group_hash', _t('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _t("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
@@ -618,8 +638,8 @@ final class GroupPresenter extends BasePresenter
 		
 			$size= getimagesize($values['group_avatar']->getTemporaryFile());
 			
-			if ($size[0]>1500 || $size[1]>1500) {
-				$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
+			if ($size[0]>2500 || $size[1]>2500) {
+				$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "2500x2500"),'error');
 			} elseif ($size[0]<80 || $size[1]<100) {
 				$this->flashMessage(sprintf(_t("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 			} else {
@@ -1270,13 +1290,16 @@ final class GroupPresenter extends BasePresenter
  *	@return
 */
 	public function handleCrop() {
-		$query = NEnvironment::getHttpRequest();
-
-		$x = $query->getQuery("x");
-		$y = $query->getQuery("y");
-		$w = $query->getQuery("w");
-		$h = $query->getQuery("h");
-		$group_id = $query->getQuery("group_id");
+		$request = NEnvironment::getHttpRequest();
+		$factor = $request->getQuery("factor");
+		if ($factor < 1) {
+			$factor = 1;
+		}
+		$x = $request->getQuery("x") * $factor;
+		$y = $request->getQuery("y") * $factor;
+		$w = $request->getQuery("w") * $factor;
+		$h = $request->getQuery("h") * $factor;
+		$group_id = $request->getQuery("group_id");
 
 		
 		if ($group_id == 0 || Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
@@ -1396,11 +1419,11 @@ final class GroupPresenter extends BasePresenter
 	*	For the moderation of chat messages
 	*/
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleRemoveMessage($message_id,$group_id)
 	{
 		//if (Auth::MODERATOR<=Auth::isAuthorized($object_type,$object_id)) $this->terminate();
@@ -1414,6 +1437,46 @@ final class GroupPresenter extends BasePresenter
 
 		
 		$this->terminate();	
+	}
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
+	public function handleSubmitGroupChat($message_text = '',$group_id)
+	{
+
+		$user = NEnvironment::getUser()->getIdentity();
+		$group = new Group($group_id);
+		
+		if ($group_id == 0 || !$group->isMember($user->getUserId())) {
+			die("false");
+		}
+		
+		$resource                = Resource::create();
+		$data                    = array();
+		$data['resource_author'] = $user->getUserId();
+		$data['resource_type']   = 8;
+		$data['resource_data']   = json_encode(array(
+			'message_text' => $message_text
+		));
+		$resource->setResourceData($data);
+		$resource->save();
+		
+		$group->setLastActivity();
+		
+		Activity::addActivity(Activity::GROUP_CHAT, $group_id, 2);
+		
+		$resource->updateUser($user->getUserId(), array(
+			'resource_user_group_access_level' => 1
+		));
+		$resource->updateGroup($group_id, array(
+			'resource_user_group_access_level' => 1
+		));
+
+		die("true");
 	}
 	
 }

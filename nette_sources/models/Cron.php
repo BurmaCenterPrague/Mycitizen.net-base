@@ -27,14 +27,16 @@ class Cron extends BaseModel
 	 */
 	public function run() {
 	
+		// remember language
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language_prev = $session->language;
+
 		$this->setCronTime();
 		$sender_name = NEnvironment::getVariable("PROJECT_NAME");
 		$uri = NEnvironment::getVariable("URI");
 		
 		$options = 'From: '.$sender_name.' <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 			
-		$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
-		
 		$result = dibi::fetchAll("SELECT `cron_id`, `time`, `recipient_type`, `recipient_id`, `text`, `object_type`, `object_id`, `executed_time` FROM `cron` WHERE `time` < %i AND `executed_time` = 0", time());
 		
 		foreach ($result as $task) {
@@ -45,28 +47,54 @@ class Cron extends BaseModel
 				$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
 
 				switch ($task['object_type']) {
-					case 0: $link = $uri.'/user/messages/?language='.User::getUserLanguage($task['recipient_id']); break;
-					case 1: $link = $uri.'/user/?user_id='.$task['object_id']. '&language='.User::getUserLanguage($task['recipient_id']); break;
-					case 2: $link = $uri.'/group/?group_id='.$task['object_id']. '&language='.User::getUserLanguage($task['recipient_id']); break;
-					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='. User::getUserLanguage($task['recipient_id']); break;
-					default: $link = $uri.'&language='.User::getUserLanguage($task['recipient_id']); break;
+					case 0:
+						$language_id = User::getUserLanguage($task['recipient_id']);
+						$link = $uri.'/user/messages/?language='.$language_id;
+					break;
+					case 1:
+						$language_id = User::getUserLanguage($task['recipient_id']);
+						$link = $uri.'/user/?user_id='.$task['object_id']. '&language='.$language_id;
+					break;
+					case 2:
+						$language_id = User::getUserLanguage($task['recipient_id']);
+						$link = $uri.'/group/?group_id='.$task['object_id']. '&language='.$language_id;
+					break;
+					case 3:
+						$language_id = User::getUserLanguage($task['recipient_id']);
+						$link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='.$language_id;
+					break;
+					default:
+						$language_id = User::getUserLanguage($task['recipient_id']);
+						$link = $uri.'&language='.$language_id;
+					break;
 				}
 			
+				$language = Language::getFlag($language_id);
+				if (empty($language)) {
+					$language = 'en_US';
+				}
+				_t_set($language);
+
+				$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
+
 				$mail_body = $task['text'];
 				$mail_body .= "\r\n\n"._t('Find more information at:')."\r\n";
 				$mail_body .= $link;
-				$mail_body .= "\r\nYours,\r\n".$sender_name."\r\n\r\n";
+				$mail_body .= "\r\n\r\n".$sender_name."\r\n\r\n";
 			
 				if (mail($email, $mail_subject, $mail_body, $options)) {
 			
 					if (isset($this->verbose)) {
 						echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
 					}
-
 					dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
 				
-				} elseif (isset($this->verbose)) {
-					echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
+					} else {
+					
+					if (isset($this->verbose)) {
+						echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
+					}
+					dibi::query("UPDATE `cron` SET `executed_time` = 2 WHERE `cron_id` = %i", $task['cron_id']);
 				}
 			break;
 			case '2': // group
@@ -79,13 +107,36 @@ class Cron extends BaseModel
 				$users_a = $group->getAllUsers($filter);
 
 				switch ($task['object_type']) {
-					case 0: $link = $uri.'/user/messages/?language='.Group::getGroupLanguage($task['recipient_id']); break;
-					case 1: $link = $uri.'/user/?user_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-					case 2: $link = $uri.'/group/?group_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-					case 3: $link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='.Group::getGroupLanguage($task['recipient_id']); break;
-					default: $link = $uri.'&language='.Group::getGroupLanguage($task['recipient_id']); break;
+					case 0:
+						$language_id = Group::getGroupLanguage($task['recipient_id']);
+						$link = $uri.'/user/messages/?language='.$language_id;
+					break;
+					case 1:
+						$language_id = Group::getGroupLanguage($task['recipient_id']);
+						$link = $uri.'/user/?user_id='.$task['object_id'].'&language='.$language_id;
+					break;
+					case 2:
+						$language_id = Group::getGroupLanguage($task['recipient_id']);
+						$link = $uri.'/group/?group_id='.$task['object_id'].'&language='.$language_id;
+					break;
+					case 3:
+						$language_id = Group::getGroupLanguage($task['recipient_id']);
+						$link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='.$language_id;
+					break;
+					default:
+						$language_id = Group::getGroupLanguage($task['recipient_id']);
+						$link = $uri.'&language='.$language_id;
+					break;
 				}
 
+				$language = Language::getFlag($language_id);
+				if (empty($language)) {
+					$language = 'en_US';
+				}
+				_t_set($language);
+				
+				$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
+		
 				$mail_body = $task['text'];
 				$mail_body .= "\r\n\r\n".sprintf(_t('You receive this message as a member of the group "%s".'),$group_name);
 				$mail_body .= "\r\n\r\n"._t('Find more information at:')."\r\n";
@@ -125,11 +176,14 @@ class Cron extends BaseModel
 		if (is_array($users_a)) {
 			foreach ($users_a as $user_a) {
 				if (User::getUnreadMessages($user_a['user_id'])) {
-					$email_text = sprintf(_t("Dear %s"), $user_a['user_login']). ",\n\n";
+					$language = Language::getFlag($user_a['user_language']);
+					if (empty($language)) {
+						$language = 'en_US';
+					}
+					_t_set($language);
+					$email_text = _t("Dear %s", $user_a['user_login']). ",\n\n";
 					$email_text .= _t("You have unread messages!");
-//					$email_text .= "\n\n";
-//					$email_text .= "("._t("You can change your notification settings in your profile.").")";
-					StaticModel::addCron(time(), 1, $user_a['user_id'], $email_text, 0, 0);
+					Cron::addCron(time(), 1, $user_a['user_id'], $email_text, 0, 0);
 					User::setUserCronSent($user_a['user_id']);
 					if (isset($this->verbose)) {
 						echo 'User with id '.$user_a['user_id'].' will receive a notification about unread messages.<br/>';
@@ -137,6 +191,9 @@ class Cron extends BaseModel
 				}
 			}
 		}
+		
+		// return to previous language
+		_t_set($language_prev);
 		
 		if (isset($this->verbose)) {
 			echo 'Done.<br/>';

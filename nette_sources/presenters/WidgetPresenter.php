@@ -27,7 +27,6 @@ final class WidgetPresenter extends BasePresenter
 	}
 
 
-
 	/**
 	 *	@todo Prepares the window content for the group chat to be loaded with AJAX.
 	 *	@param string $name namespace
@@ -35,16 +34,19 @@ final class WidgetPresenter extends BasePresenter
 	 */
 	protected function createComponentChatwidget($name)
 	{
-		$query = NEnvironment::getHttpRequest();
-		$group_id = $query->getQuery('group_id');
+		$request = NEnvironment::getHttpRequest();
+		$last_modified_header = $request->getHeader('if-modified-since');
+		$group_id = $request->getQuery('group_id');
+		$page = $request->getQuery('page');
+		$owner_name = $request->getQuery('owner');
+
+
 		$group = Group::create($group_id);
 		
 		$user = NEnvironment::getUser()->getIdentity();
 		$user_id = $user->getUserId();
 		$user_data = $user->getUserData();
 		
-		$page = $query->getQuery('page');
-		$owner_name = $query->getQuery('owner');
 		if (!empty($owner_name)) {
 			$owner_ids = User::getOwnerIdsFromLogin($owner_name);
 		} else {
@@ -52,7 +54,7 @@ final class WidgetPresenter extends BasePresenter
 		}
 		
 		$options = array(
-                        'itemsPerPage'=>30,
+                        'itemsPerPage'=>20,
                         'lister_type'=>array(ListerControlMain::LISTER_TYPE_RESOURCE),
                         'filter' => array(
                         		'type' => 8,
@@ -88,17 +90,163 @@ final class WidgetPresenter extends BasePresenter
 		$row=reset($data);
 		$res = Resource::Create($row['id']);
 		$r_data = $res->getResourceData();
+		$httpResponse = NEnvironment::getHttpResponse();
 		if (isset($r_data)) {
 			$date=(array)$r_data['resource_creation_date'];
 			date_default_timezone_set($date['timezone']);
 			$timestamp=strtotime($date['date']);
-		} else {
-			$timestamp=0;
+			$date_formatted = gmstrftime('%a, %d %b %Y %T %Z',$timestamp);
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
 		}
-		$date_formatted = gmstrftime('%A %d-%b-%y %T %Z',$timestamp);
-		$httpResponse = NEnvironment::getHttpResponse();
-		$httpResponse->setHeader('Last-Modified', $date_formatted);
+
+		if (isset($timestamp) && $timestamp <= strtotime($last_modified_header)) {
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+			$httpResponse->setHeader('Cache-Control', 'no-cache');
+			die();
+		}
+
+		$httpResponse->setHeader('Cache-Control', 'no-cache');
+
+		return $control;
+	}
+
+
+	/**
+	 *	@todo Prepares the window content for the PM chat on /user/messages/ to be loaded with AJAX.
+	 *	@param string $name namespace
+	 *	@return
+	 */
+	protected function createComponentPmwidget($name)
+	{
+		$request = NEnvironment::getHttpRequest();
+		$last_modified_header = $request->getHeader('if-modified-since');
+		$user_id = $request->getQuery('user_id');
+		$owner_name = $request->getQuery('owner');
+		$page = $request->getQuery('page');
+		$trash = $request->getQuery('trash');
+
+		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 		
+		if (!empty($owner_name)) {
+			$owner_ids = User::getOwnerIdsFromLogin($owner_name);
+			$owner_ids_with_logged = $owner_ids;
+			$owner_ids_with_logged[] = $logged_user_id;
+		} else {
+			$owner_ids = null;
+			$owner_ids_with_logged = null;
+		}
+		
+		$options = array(
+			'itemsPerPage' => 20,
+			'lister_type' => array(
+				ListerControlMain::LISTER_TYPE_RESOURCE
+			),
+			'template_body' => 'PMLister_ajax.phtml',
+			'refresh_path'=>'User:messages',
+			'filter' => array(
+				'page' => $page,
+				'owner' => $owner_ids_with_logged
+			),
+			'template_variables' => array(
+				'trash_enabled' => true,
+				'mark_read_enabled' => true,
+                'reply_enabled'=>true,
+				'messages' => true,
+				'message_lister' => true,
+				'hide_apply' => true,
+				'hide_reset' => true,
+				'logged_user_id' => $logged_user_id
+			),
+			'refresh_path' => 'User:messages'
+		);
+		
+		
+		if ($user_id == NULL ) {
+			if ($owner_ids != NULL) {
+				$options['filter']['all_members_only'] = array(
+						array(
+							'type' => 1,
+							'id' => NEnvironment::getUser()->getIdentity()->getUserId()
+						),
+						array(
+							'type' => 1,
+							'id' => $owner_ids
+						)
+					);
+			} else {
+				$options['filter']['all_members_only'] = array(
+						array(
+							'type' => 1,
+							'id' => NEnvironment::getUser()->getIdentity()->getUserId()
+						)
+					);			
+			}
+			$options['filter']['type'] = array(
+					1, // private messages
+					9, // system messages
+					10 // friendship requests
+				);
+		} else {
+			// User detail page
+			$options['filter']['all_members_only'] = array(
+					array(
+						'type' => 1,
+						'id' => NEnvironment::getUser()->getIdentity()->getUserId()
+					),
+					array(
+						'type' => 1,
+						'id' => $user_id
+					)
+				);
+			$options['filter']['type'] = array(
+					1, // private messages
+					10 // friendship requests
+				);
+		}
+
+		$session = NEnvironment::getSession()->getNamespace($name);
+		
+		if ($trash == NULL) {
+			if (!isset($session['filterdata']['trash'])) {
+				if (is_array($session->filterdata)) {
+					$session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
+				} else {
+					$session->filterdata = array('trash' => 2);
+				}
+			}
+		} else {
+			if (is_array($session->filterdata)) {
+				$session->filterdata = array_merge($session->filterdata, array('trash' => $trash));
+			} else {
+				$session->filterdata = array('trash' => $trash);
+			}
+		}
+		
+		$control = new ListerControlMain($this, $name, $options);
+			
+		
+		// retrieve time of most recent post for http header
+		$data = $control->getPageData($control->getFilterArray($options['filter']));
+		$row = reset($data);
+		$res = Resource::Create($row['id']);
+		$r_data = $res->getResourceData();
+		$httpResponse = NEnvironment::getHttpResponse();
+		if (isset($r_data)) {
+			$date=(array)$r_data['resource_creation_date'];
+			date_default_timezone_set($date['timezone']);
+			$timestamp = strtotime($date['date']);
+			$date_formatted = gmstrftime('%a, %d %b %Y %T %Z',$timestamp);
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+		}
+		
+		if (isset($timestamp) && $timestamp <= strtotime($last_modified_header)) {
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+			$httpResponse->setHeader('Cache-Control', 'no-cache');
+			die();
+		}
+
+		$httpResponse->setHeader('Cache-Control', 'no-cache');
+
 		return $control;
 	}
 
@@ -110,7 +258,6 @@ final class WidgetPresenter extends BasePresenter
 	 */
 	public function actionBrowse()
 	{
-//		$this->template->URI = NEnvironment::getVariable("URI");
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		$query = NEnvironment::getHttpRequest();
 		$CKEditorFuncNum = $query->getQuery("CKEditorFuncNum");

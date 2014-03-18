@@ -76,6 +76,7 @@
 					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
 					{/if}
 					{!$r_data['message_text']|htmlpurify}
+					<div class="cleaner"></div>
 				{else}
 					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
 				{/if}
@@ -89,6 +90,7 @@
 {else}
 	<h3>{_"Nothing to display"}</h3>
 {/if}
+<div class="cleaner"></div>
  {/snippet}
 </div>
 
@@ -139,34 +141,38 @@
 			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
 	   {/if}
 	</div>
-   {/snippet}
-</div>
 
 <script>
 	$(document).ready(function(){
-		$('blockquote').css({ "cursor":"pointer"});
+
 		$('[id^=reply_]').click(function(){
-			var id = parseInt($(this).attr('id').substr(-5,5));
-			var elements = document.getElementsByName( 'message_text' );
-			var instance_name = elements[0].getAttribute( 'id' );
-			var quote = $('[id$='+id+'_text]').html();
-			quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
-			var author_name = $('[id$='+id+'_author]').html().trim();
-			var author_id = $('[id$='+id+'_author]').attr('rel');
-			var date = $('[id$='+id+'_date]').html();
-			var quote_shortened = quote.substr(0,300);
-			if (quote_shortened != quote ) { quote_shortened += '...'; }
-			$('#frmmessageform-friend_id').val(author_id);
-			var reply = '<br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
-			content = reply;
-			//editor.setContent(content);
-			CKEDITOR.instances[instance_name].insertHtml(content);
-			$('html, body').animate({
-				scrollTop: $("#message_top_anchor").offset().top
-			}, 2000);
-			CKEDITOR.instances[instance_name].focus();
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				var elements = document.getElementsByName( 'message_text' );
+				var instance_name = elements[0].getAttribute( 'id' );
+				var quote = $('[id$='+id+'_text]').html();
+				quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
+				var author_name = $('[id$='+id+'_author]').html().trim();
+				var author_id = $('[id$='+id+'_author]').attr('rel');
+				var date = $('[id$='+id+'_date]').html();
+				var quote_shortened = quote.substr(0,300);
+				if (quote_shortened != quote ) { quote_shortened += '...'; }
+				$('#frmmessageform-friend_id').val(author_id);
+				var content = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote>';
+				var s = CKEDITOR.instances[instance_name].getSelection();
+				var selected_ranges = s.getRanges(); // save selected range
+				CKEDITOR.instances[instance_name].insertHtml(content);
+				$('html, body').animate({
+					scrollTop: $("#message_top_anchor").offset().top
+				}, 2000);
+				CKEDITOR.instances[instance_name].focus();
+				s.selectRanges(selected_ranges); // restore it
+				markRead(id);
+				$('#markread-'+id).hide();
+				$('#markunread-'+id).show();
 		});
-	
+
+		$('blockquote').css({ "cursor":"pointer"});
+			
 		$('blockquote').click(function(){
 			var id = parseInt($(this).attr('id').substr(-5,5));
 			$('html, body').animate({
@@ -191,11 +197,10 @@
 
 	function removeMessage(id) {
 		$('#chat_message_'+id).css({'background-color':'#E30'});
-		var group_id={$template_variables['group_id']};
 		setTimeout( function(){
 			reply=confirm({_"Do you really want to delete this message?"});
 			if (reply==true) {
-				$.post("{!$baseUri}?message_id="+id+"&group_id="+group_id+"&do=removeMessage");
+				$.post("{!$baseUri}group/?message_id="+id+"&group_id={!$template_variables['group_id']}&do=removeMessage");
 					$('#totrash-'+id).slideUp();
 					$('#chat_message_'+id).slideUp('normal');
 			} else {
@@ -206,5 +211,5 @@
 	}
 
 </script>
-
-<div class="cleaner"></div>
+   {/snippet}
+</div>

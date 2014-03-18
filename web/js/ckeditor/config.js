@@ -34,6 +34,12 @@ CKEDITOR.editorConfig = function( config ) {
 	config.format_tags = 'p;h2;h3;pre';
 
 	// Make dialogs simpler.
-	config.removeDialogTabs = 'image:advanced;link:advanced';
+	// config.removeDialogTabs = 'image:advanced;link:advanced';
 	
 };
+
+CKEDITOR.on('dialogDefinition', function ( ev ){
+   if(ev.data.name == 'link'){
+      ev.data.definition.getContents('target').get('linkTargetType')['default']='_blank';
+   }
+});

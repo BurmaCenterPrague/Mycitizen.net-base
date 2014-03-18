@@ -257,15 +257,23 @@
 		{ifset $default_data}
 		{ifset $default_data['object_data']['logged_user_member']}
 		{if $default_data['object_data']['logged_user_member'] == 1}
-			{control chatform}
+			{*control chatform *}
+			<table>
+			<tr><td>
+			<textarea placeholder="{_"Type your text here."}" id="message_text" name="message_text"></textarea>
+			</td></tr>
+			<tr><td style="padding: 20px 10px 30px;">
+			<a href="javascript:void(0);" class="button" id="chat_submit" style="font-size:1.3em; margin:2em 0px;">Send</a>
+			</td></tr>
+			</table>
 <script>
 	$(document).ready(function() {
 		CKEDITOR.replace( 'message_text', {
 			height: '200px',
-			width: '740px',
+			width: '700px',
 			filebrowserUploadUrl: '{!baseUri}?do=upload',
 			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
-			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
 			toolbarGroups: [
 				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
 				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
@@ -276,13 +284,21 @@
 			]
 		});
 		
-		$('#frmchatform-send').click(function(){
-			var instance_name = 'frmchatform-message_text';
+		
+		$('#chat_submit').click(function(){
+			var instance_name = 'message_text';
 			var editorContent = CKEDITOR.instances[instance_name].getData();
 			editorContent = $.trim(editorContent);
 			if (editorContent == '' || editorContent == null) {
 				alert({_'Please enter some text.'});
 				return false;
+			} else {
+				CKEDITOR.instances[instance_name].updateElement();
+				var serialized = $("#message_text").serialize();
+				$.post('{!$baseUri}group/?do=submitgroupchat&group_id={!$default_data["object_data"]["group_id"]}', serialized, function(result) {
+					CKEDITOR.instances[instance_name].setData('');
+            		reloadChatIfModified();
+        		}, "json");
 			}
 		});
 	});
@@ -291,7 +307,7 @@
 		{ifset $default_data['object_data']['group_id']}
 		<input type="hidden" id="group_id" value="{$default_data['object_data']['group_id']}" />
 		{/if}
-			
+			<div id="message_top_anchor"></div>
 			{control chatlistergroup}
 		{else}
 			<p>{_"The chat is only visible to group members."}</p>

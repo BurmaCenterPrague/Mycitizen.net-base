@@ -221,6 +221,13 @@ function warning(object_type,object_id,warning_type) {
    }
 }
 
+function removeMessageNow(id) {
+	$.post("?message_id="+id+"&do=removeMessage");
+	$('#totrash-'+id).hide();
+	$('#chat_message_'+id).slideUp('normal');
+}
+
+
 /* http://www.quirksmode.org */
 function createCookie(name,value,days) {
 	if (days) {

@@ -397,8 +397,10 @@ abstract class BasePresenter extends NPresenter
 	*/
 	public function handleImage($id, $type, $redirect=true) {
 		$image = new Image($id,$type);
+		$result = $image->remove_cache();
+		if ($result !== true) $this->flashMessage($result,'error');
 		$result = $image->create_cache();
-		if ($result !== true) echo $result;
+		if ($result !== true) $this->flashMessage($result,'error');
 
 		if ($redirect) {
 			if ($type == 1 ) {
@@ -408,6 +410,7 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 	}
+
 
 	/**
 	 *	@todo ### Description

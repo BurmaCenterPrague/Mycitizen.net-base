@@ -316,6 +316,7 @@ class ListerControlMain extends NControl
 		if ($this->itemscount % $this->itemsperpage != 0) {
 			$maxpage++;
 		}
+//		var_dump($this->itemsperpage);die();
 		return $maxpage;
 	}
 
@@ -383,7 +384,7 @@ class ListerControlMain extends NControl
 
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$this->name);
-		$dont_cache = array('messagelisteruser','chatwidget');
+		$dont_cache = array('chatwidget','pmwidget', 'chatlistergroup');
 		$cache->clean();
 		$cache_key = md5(json_encode($filter));
 		if (!in_array($this->name, $dont_cache) && $cache->offsetExists($cache_key)) {

@@ -1,0 +1,419 @@
+<?php
+/**
+ * mycitizen.net - Social networking for civil society
+ *
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+
+?>
+<div class="lister-body">
+   {snippet list_body}
+
+<div id="empty-trash">
+	{control emptytrashform}
+</div>
+
+
+{if !empty($data)}
+	{foreach $data as $row}
+    {var $res => Resource::Create($row['id'])}
+    {? $id=$row['id']}
+
+	{var r_data => $res->getResourceData()}
+	{var r_author => User::create($r_data['resource_author'])->getUserData()}
+	{* ? $icon = User::getImage($r_data['resource_author'],'icon') *}
+
+		{? $all_recipient_data = $res->getAllMembers(array('resource_id'=>$id))}
+		{? $recipient_data = $all_recipient_data[0]}
+		{? $recipient_id = $recipient_data['member_id']}
+		{? $recipient_full_name = User::getFullName($recipient_id)}
+		{if $res->getOwner()->getUserId() == $user_id}
+			{? $own_message=true}
+		{else}
+			{? $own_message=false}
+		{/if}
+		{* ? $need_js_reply = true *}
+		{? $user_data = $res->getOwner()->getUserData()}
+		{? $sender_id = $res->getOwner()->getUserId()}
+		
+	{? $date=(array)$r_data['resource_creation_date']}
+	{? date_default_timezone_set($date['timezone'])}
+	{? $date_formatted = strftime('%e.%m.%Y %H:%M:%S',strtotime($date['date']))}
+
+			<div class="chat-item{if $r_data['resource_type']==9} system-message{/if}" id="chat_message_{$id}">
+
+		{if (!(isset($template_variables['logged_user_id']) && $sender_id == $template_variables['logged_user_id'])) || $r_data['resource_type'] == 9}
+		<table>
+			<tr>
+				<td>
+				</td>
+				<td>
+			<div class="chat-header 
+				{ifset $user_id}
+					{if ($r_data['resource_type'] == 1 || $r_data['resource_type'] == 8)}
+						{if $own_message}
+							sent-by-me
+						{/if}
+					{/if}
+				{/if}">
+			
+				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
+					{ifset $template_variables['trash_enabled']}
+						<div class="move-to-trash">
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+						</div>
+
+						<div class="restore-from-trash">
+							<a id="fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#fromtrash-{$id}').hide();$('#totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+						</div>
+
+						<script>
+							$(document).ready(function(){
+							{if $res->inTrash()}
+								$("#totrash-{$id}").hide();
+							{else}
+								$("#fromtrash-{$id}").hide();
+							{/if}
+							});
+						</script>
+					{/if}
+
+					{ifset $template_variables['mark_read_enabled']}
+						<div class="read-status">
+							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+						</div>
+			
+						<script>
+							$(document).ready(function(){
+							{if $res->isOpened()}
+								$("#markread-{$id}").hide();
+							{else}
+								$("#markunread-{$id}").hide();
+							{/if}
+							{if $own_message}
+								$("#markunread-{$id}").hide();
+							{/if}
+							});
+						</script>
+					{/if}
+
+				{if isset($own_message) && !$own_message && isset($template_variables['reply_enabled']) && $res->getOwner()->isActive() && $r_data['resource_type'] != 9}
+				<div class="chat-reply">
+					<a href="javascript:void(0);" id="reply_0000{$id}" class="button">{_"reply"}</a>
+				</div>
+				{/if}
+			</div> <!-- .chat-header -->
+				</td>
+			</tr>
+			<tr>
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
+				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
+				<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
+					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
+				</div><br/>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
+{ifset $wanttoshowname}
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
+					{/if}
+{else}
+					{$user_data['user_login']}
+{/if}
+				</div>
+
+				{elseif $r_data['resource_type'] == 9 || $r_data['resource_type'] == 10}
+				<div style="padding:5px;">
+					<b class="icon-warning" title="system message"></b>
+				</div>
+				<div class="chat-author" style="display:none;">
+					system
+				</div>
+				{/if}
+				</td>
+				<td style="max-width:630px;">
+			<div id="{$id}_text" class="chat-text balloon-right" style="{if $r_data['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
+			{if $r_data['resource_type']!=9}
+			<div class="arrow"></div>
+			{/if}
+				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
+					{if !$res->getOwner()->isActive()}
+				<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
+					{/if}
+					{if $r_data['resource_type'] == 9}
+				<p>{!$r_data['message_text']|htmlpurify}</p>
+					{elseif $r_data['resource_type'] == 10}
+				<p>{!$r_data['message_text']|htmlpurify}</p>
+				<p>
+					<a href="javascript:void(0);" onClick="markRead({$id}); removeMessageNow({$id}); userInsert_Friend({$sender_id},'');" class="button">{_"Accept friendship request"}</a>
+					<a href="javascript:void(0);" onClick="markRead({$id}); removeMessageNow({$id}); userRemove_Friend({$sender_id},'');" class="button">{_"Reject friendship request"}</a>
+				</p>
+					{else}
+				{!$r_data['message_text']|htmlpurify}
+				<div class="cleaner"></div>
+					{/if}
+				{else}
+					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
+				{/if}
+			</div>
+				</td>
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
+				{if ($r_data['resource_type'] == 1 || $r_data['resource_type'] == 8) && isset($template_variables['logged_user_id']) && $template_variables['logged_user_id']}
+					<div class="chat-avatar avatar-right" style="padding:5px;">
+						{? echo User::getImage($template_variables['logged_user_id'], 'icon')}
+					</div>
+				{/if}
+				</td>
+			</tr>
+		</table>
+		{else}
+		<table>
+			<tr>
+				<td>
+				</td>
+				<td>
+			<div class="chat-header 
+				{ifset $user_id}
+					{if ($r_data['resource_type'] == 1 || $r_data['resource_type'] == 8)}
+						{if $own_message}
+							sent-by-me
+						{/if}
+					{/if}
+				{/if}">
+			
+				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>					
+					{ifset $template_variables['trash_enabled']}
+						<div class="move-to-trash">
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
+						</div>
+
+						<div class="restore-from-trash">
+							<a id="fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#fromtrash-{$id}').hide();$('#totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+						</div>
+
+						<script>
+							$(document).ready(function(){
+							{if $res->inTrash()}
+								$("#totrash-{$id}").hide();
+							{else}
+								$("#fromtrash-{$id}").hide();
+							{/if}
+							});
+						</script>
+					{/if}
+
+					{ifset $template_variables['mark_read_enabled']}
+						<div class="read-status">
+							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+						</div>
+			
+						<script>
+							$(document).ready(function(){
+							{if $res->isOpened()}
+								$("#markread-{$id}").hide();
+							{else}
+								$("#markunread-{$id}").hide();
+							{/if}
+							{if $own_message}
+								$("#markunread-{$id}").hide();
+							{/if}
+							});
+						</script>
+					{/if}
+
+				{if isset($own_message) && !$own_message && isset($template_variables['reply_enabled']) && $res->getOwner()->isActive() && $r_data['resource_type'] != 9}
+				<div class="chat-reply">
+					<a href="javascript:void(0);" id="reply_0000{$id}" class="button">{_"reply"}</a>
+				</div>
+				{/if}
+			</div> <!-- .chat-header -->
+				</td>
+				<td>
+				</td>
+			</tr>
+			<tr>
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
+				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
+					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
+				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="{!$baseUri}user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
+					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
+				</div><br/>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
+					{$recipient_data['member_name']}
+				</div>
+					{/if}
+				{else}
+				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
+					{? echo User::getImage($recipient_id, 'icon')}
+				</div>
+				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
+					{$recipient_data['member_name']}
+				</div>
+				{/if}
+				</td>
+				<td style="max-width:630px;">
+			<div id="{$id}_text" class="chat-text balloon-left" style="{if $own_message}background-color:#F7F7F7;{/if}{if $r_data['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
+				{if $r_data['resource_type'] == 1 || $r_data['resource_type'] == 8}
+					<div class="arrow"></div>
+				{/if}
+				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
+					{if !$res->getOwner()->isActive()}
+					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
+					{/if}
+					{if $r_data['resource_type'] == 9}
+					<p>{!$r_data['message_text']|htmlpurify}</p>
+					{else}
+					{!$r_data['message_text']|htmlpurify}
+					<div class="cleaner"></div>
+					{/if}
+				{else}
+					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
+				{/if}
+			</div>
+				</td>
+				<td style="vertical-align:top; padding-top:7px; width:80px;">
+				{if $r_data['resource_type'] == 1 || $r_data['resource_type'] == 8}
+					<div class="chat-avatar avatar-right">
+						{? echo User::getImage($sender_id, 'icon')}
+					</div>
+				{/if}
+				</td>	
+			</tr>
+		</table>
+			{/if}
+
+			</div>
+    {/foreach}
+{else}
+	<h3>{_"Nothing to display"}</h3>
+{/if}
+<div class="cleaner"></div>
+ {/snippet}
+</div>
+
+<div class="lister-footer">
+	{snippet list_pager}
+	{ifset $currentpage}
+		<input type="hidden" id="currentpage" value="{$currentpage}" />
+	{else}
+		<input type="hidden" id="currentpage" value="1" />
+	{/if}
+	{ifset $trash}
+		<input type="hidden" id="trash" value="{$trash}" />
+	{else}
+		<input type="hidden" id="trash" value="0" />
+	{/if}
+
+	<div class="pager">
+	   {if $max_page > 1}
+			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+	   {/if}
+   
+	   {if $max_page > 5}
+	   {if $currentpage > 4}
+			<a href="javascript:changePage({$currentpage - 1})" class="pager-minus"><</a>
+	   {/if}
+	   {/if}
+   
+	   {if $max_page > 2}
+	   {if $max_page < 6}
+	   {for $i = 2; $i <= $max_page-1; $i++}
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	   {/for}   
+	   {else}
+	   {if $currentpage <= 4}
+	   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+	   {for $i = 2; $i <= $end; $i++}
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	   {/for}
+	   {else}
+	   {? if ($currentpage+3 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+	   {for $i = $currentpage-2; $i <= $end; $i++}
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+	   {/for}
+	   {/if}
+	   {/if}
+	   {/if}
+
+	   {if $max_page > 5}
+	   {if ($currentpage + 3) < $max_page}
+			<a href="javascript:changePage({$currentpage + 1})" class="pager-plus">></a>
+	   {/if}
+	   {/if}
+   
+	   {if $max_page > 1}
+			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+	   {/if}
+	</div>
+   {/snippet}
+</div>
+
+<script>
+		$(document).ready(function(){
+
+			if ($('.trash-radio:not([value=1])').is(':checked')) $('#empty-trash').hide();
+
+			$('[id^=reply_]').click(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				var elements = document.getElementsByName( 'message_text' );
+				var instance_name = elements[0].getAttribute( 'id' );
+				var quote = $('[id$='+id+'_text]').html();
+				quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
+				var author_name = $('[id$='+id+'_author]').html().trim();
+				var author_id = $('[id$='+id+'_author]').attr('rel');
+				var date = $('[id$='+id+'_date]').html();
+				var quote_shortened = quote.substr(0,300);
+				if (quote_shortened != quote ) { quote_shortened += '...'; }
+				$('#frmmessageform-friend_id').val(author_id);
+				var content = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote>';
+				var s = CKEDITOR.instances[instance_name].getSelection();
+				var selected_ranges = s.getRanges(); // save selected range
+				CKEDITOR.instances[instance_name].insertHtml(content);
+				$('html, body').animate({
+					scrollTop: $("#message_top_anchor").offset().top
+				}, 2000);
+				CKEDITOR.instances[instance_name].focus();
+				s.selectRanges(selected_ranges); // restore it
+				markRead(id);
+				$('#markread-'+id).hide();
+				$('#markunread-'+id).show();
+			});
+
+			$('blockquote').css({ "cursor":"pointer"});
+		
+			$('blockquote').click(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				$('html, body').animate({
+					scrollTop: $("#chat_message_"+id).offset().top
+				}, 'normal');
+			});
+		
+			$('blockquote').mouseover(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				$("#chat_message_"+id).css({ "border-left":"solid 4px #E08E1B", "padding-left":"20px"}); 
+				if ($("#chat_message_"+id).css("border-left")) {
+					$(this).css('cursor','pointer');
+				};
+			});
+
+			$('blockquote').mouseout(function(){
+				var id = parseInt($(this).attr('id').substr(-5,5));
+				$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0"});
+			});
+		
+			$('.trash-radio').click(function(){
+				var trash = $(this).val();
+				$('#trash').val(trash);
+				reloadChat();
+			});
+		});
+
+</script>

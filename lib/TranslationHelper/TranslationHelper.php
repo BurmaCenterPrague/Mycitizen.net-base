@@ -11,6 +11,22 @@
  * @package mycitizen.net
  */
 
+/**
+ *	Replacement for native gettext library and helper for GettextTranslator class.
+ *	Supports any language code.
+ *	@param string|array $message
+ *	$return string 
+ */
+function _t_set($language) {
+	global $t;
+	if (empty($language)) {
+		$language = 'en_US';
+	}
+	$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+	$session->language = $language;
+	$t = new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language);
+	return $t->locale;
+}
 
 /**
  *	Replacement for native gettext library and helper for GettextTranslator class.
@@ -20,7 +36,6 @@
  */
 function _t($message) {
 	global $t;
-	$message = (string) $message;
 	if (!isset($t)) {
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = $session->language;
@@ -31,13 +46,7 @@ function _t($message) {
 		$t = new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language);
 	}
 	$args = func_get_args();
-      if (count($args) > 1) {
-         array_shift($args);
-         $message = vsprintf($message, $args);
-      } else {
-      	$message = $args[0];
-      }
-	return $t->translate($message);
+	return call_user_func_array(array($t,"translate"),$args);
 }
 
 /**
@@ -47,7 +56,6 @@ function _t($message) {
  */
 function _t_tags($message) {
 	global $td;
-	$message = (string) $message;
 	$args = func_get_args();
 	$domain = 'tags';
 	if (!isset($td)) {
@@ -64,11 +72,5 @@ function _t_tags($message) {
 		}
 	}
 
-      if (count($args) > 1) {
-         array_shift($args);
-         $message = vsprintf($message, $args);
-      } else {
-      	$message = $args[0];
-      }
-	return $td->translate($message);
+	return call_user_func_array(array($td,"translate"),$args);
 }

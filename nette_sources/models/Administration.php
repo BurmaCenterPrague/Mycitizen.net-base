@@ -392,7 +392,12 @@ class Administration extends BaseModel
 				}
 				if (isset($filter['all_members_only'])) {
 					foreach ($filter['all_members_only'] as $key => $member) {
-						$sql_resource .= " INNER JOIN `resource_user_group` member" . $key . " ON (member$key.`resource_id` = `resource`.`resource_id` AND member$key.`member_type` = '" . $member['type'] . "' AND member$key.`member_id` = '" . $member['id'] . "')";
+						if (is_array($member['id'])) {
+							$ids_s = '(' . implode(',', $member['id']) . ')';
+							$sql_resource .= " INNER JOIN `resource_user_group` member" . $key . " ON (member$key.`resource_id` = `resource`.`resource_id` AND member$key.`member_type` = '" . $member['type'] . "' AND member$key.`member_id` IN " . $ids_s . ")";
+						} else {
+							$sql_resource .= " INNER JOIN `resource_user_group` member" . $key . " ON (member$key.`resource_id` = `resource`.`resource_id` AND member$key.`member_type` = '" . $member['type'] . "' AND member$key.`member_id` = '" . $member['id'] . "')";
+						}
 					}
 				}
 				

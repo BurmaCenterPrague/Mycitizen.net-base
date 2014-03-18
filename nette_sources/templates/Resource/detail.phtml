@@ -403,7 +403,7 @@
 		<h3>{_"Search Comments"}</h3>
 		<div class="filter-body-chat">
 			<div class="filter-block">
-				<input type="text" class="text" name="name" id="search_name" value="" onkeyup="textChanged();" placeholder="{_"Filter by name"}"/>
+				<input type="text" class="text" name="name" id="search_name" value="" onkeyup="textChanged();" placeholder="{_"Filter by name"}" autocomplete="off"/>
 				<a href="javascript:void(0);" id="clear_button" class="button" name="clear" >{_"Clear"}</a>
 			</div>
 		</div>
@@ -411,10 +411,25 @@
 		
 	<script>
 		$(document).ready(function() {
-
 			$('#clear_button').click(function(){
 				$('#search_name').val('');
 				showAll();
+			});
+			
+			CKEDITOR.replace( 'message_text', {
+				height: '200px',
+				width: '740px',
+				filebrowserUploadUrl: '{!baseUri}?do=upload',
+				filebrowserBrowseUrl: '{!baseUri}widget/browse/',
+				allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
+				toolbarGroups: [
+					{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+					{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+					{ name: 'links'},
+					{ name: 'insert', groups: [ 'image', 'symbol', 'smiley']},
+					{ name: 'styles'},
+					{ name: 'colors'}
+				]
 			});
 		});
 		
@@ -456,24 +471,5 @@
 		{_"Comments are only visible when you are signed in."}
 	{/if}
 	</div>
-<script>
-	$(document).ready(function() {
-		CKEDITOR.replace( 'message_text', {
-			height: '200px',
-			width: '740px',
-			filebrowserUploadUrl: '{!baseUri}?do=upload',
-			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
-			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
-			toolbarGroups: [
-				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
-				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
-				{ name: 'links'},
-				{ name: 'insert', groups: [ 'image', 'symbol', 'smiley']},
-				{ name: 'styles'},
-				{ name: 'colors'}
-			]
-		});
-	});
-</script>
 </div>
 {/block}

@@ -81,15 +81,6 @@
 <script src="{$baseUri}js/jquery.Jcrop.min.js"></script>
 {/if}
 <script>
-    jQuery(function($) {
-        $('#crop').Jcrop({
-        	minSize: [120,150],
-        	aspectRatio: 4/5,
-        	onChange: enableCrop,
-			onSelect: enableCrop
-        });
-    });
-    
     function enableCrop(c) {
     	$('#x').val(c.x);
 		$('#y').val(c.y);
@@ -102,11 +93,9 @@
     	var y = $('#y').val();
     	var w = $('#w').val();
     	var h = $('#h').val();
-    	
+    	var factor = $('#factor').val();
     	if (w==0 || h==0) { alert({_"Please select first a part of the image."}); return false };
-	
-		window.location=this.location+'&do=crop&x='+x+'&y='+y+'&w='+w+'&h='+h;
-		
+		window.location=this.location+'&do=crop&x='+x+'&y='+y+'&w='+w+'&h='+h+'&factor='+factor;	
     }
 </script>
 {/if}
@@ -156,6 +145,22 @@
 
 	});
 
+
+	$(document).ready(function() {
+		$(".tags-fancybox").fancybox({
+			closeBtn : true,
+			leftRatio: 0.15,
+			topRatio: 0,
+			maxWidth: 500,
+			helpers : {
+				overlay : {
+					css: {'background' : 'rgba(200, 200, 200, .5)'}
+				},
+				title : null
+			},
+		});
+	});
+	
 	$(document).ready(function() {
 		$(".fancybox").fancybox({
 			closeBtn : true,
@@ -231,19 +236,19 @@ $(function() {
 	});
 });
 </script>
-					<div id="activity_box" class="activity-box" style="display:none;">
-						<h2>{_"Recent Activity"}</h2>
-						<div id="load-more-1">
-						</div>
+				<div id="activity_box" class="activity-box" style="display:none;">
+					<h2>{_"Recent Activity"}</h2>
+					<div id="load-more-1">
 					</div>
-				{else}
-					<div>
-						<a href="{link User:login}" class="button" >{_"Sign in"}</a>
-						<a href="{link User:register}" class="button" >{_"Sign up"}</a>
-					</div>
-				{/if}
-
 				</div>
+			{else}
+				<div>
+					<a href="{link User:login}" class="button" >{_"Sign in"}</a>
+					<a href="{link User:register}" class="button" >{_"Sign up"}</a>
+				</div>
+			{/if}
+
+			</div>
 
 			</div> <!-- header -->
 <script>

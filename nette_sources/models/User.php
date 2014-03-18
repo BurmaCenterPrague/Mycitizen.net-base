@@ -703,7 +703,7 @@ class User extends BaseModel implements IIdentity
 				$data['user_id']            = $user_id;
 				$data['user_friend_status'] = 0;
 				dibi::query('INSERT INTO `user_friend`', $data);
-//				StaticModel::sendSystemMessage(2, $this->numeric_id, $user_id);
+				StaticModel::sendSystemMessage(2, $this->numeric_id, $user_id);
 				Activity::addActivity(Activity::FRIENDSHIP_REQUEST, $this->numeric_id, 1, $user_id);
 			} else {
 			
@@ -717,7 +717,7 @@ class User extends BaseModel implements IIdentity
 					$data['user_friend_status'] = 2;
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $user_id, $this->numeric_id);
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $this->numeric_id, $user_id);
-//					StaticModel::sendSystemMessage(3, $this->numeric_id, $user_id);
+					StaticModel::sendSystemMessage(3, $this->numeric_id, $user_id);
 					Activity::addActivity(Activity::FRIENDSHIP_YES, $this->numeric_id, 1, $user_id);
 					break;
 				case 3:	// other person has rejected/blocked
@@ -761,7 +761,7 @@ class User extends BaseModel implements IIdentity
 					$data['user_friend_status'] = 3;
 					dibi::query('UPDATE `user_friend` SET ', $data, 'WHERE `friend_id` = %i AND `user_id` = %i', $user_id, $this->numeric_id);
 					Activity::addActivity(Activity::FRIENDSHIP_NO, $this->numeric_id, 1, $user_id);
-//					StaticModel::sendSystemMessage(4, $this->numeric_id, $user_id);
+					StaticModel::sendSystemMessage(4, $this->numeric_id, $user_id);
 					break;
 				case 2: // friendship exists -> terminate
 					$data['user_friend_status'] = 3;
@@ -1082,6 +1082,7 @@ class User extends BaseModel implements IIdentity
 	 *	@param
 	 *	@return
 	 */
+/*
 	public static function saveImage($id) {
 ##### needed? ##### 
 		$object = User::create($id);
@@ -1116,7 +1117,7 @@ class User extends BaseModel implements IIdentity
 		}
 		
 	}
-
+*/
 
 /**
  *	@todo ### Description
@@ -1155,7 +1156,7 @@ class User extends BaseModel implements IIdentity
 	 */
 	public static function getAllUsersForCron()
 	{
-		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
+		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email`, `user_language` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
 		if (sizeof($result) < 1) {
 			return false;
 			throw new Exception(_t("Specified user not found."));

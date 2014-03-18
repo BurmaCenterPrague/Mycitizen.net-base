@@ -316,7 +316,7 @@ final class UserPresenter extends BasePresenter
 		$size_y = 0;
 
 		if(!empty($data) && $data) {
-			$f = finfo_open();	
+			$f = finfo_open();
 
 			$image_type = finfo_buffer($f, base64_decode($data), FILEINFO_MIME_TYPE);
 		
@@ -326,6 +326,9 @@ final class UserPresenter extends BasePresenter
 		
 			$size_x = imagesx($img_r);
 			$size_y = imagesy($img_r);
+			$this->template->factor = 1;
+			$this->template->min_size_x = 120;
+			$this->template->min_size_y = 150;
 
 			if ($size_x == 0 || $size_y == 0) {
 			
@@ -348,6 +351,17 @@ final class UserPresenter extends BasePresenter
 				$this->template->image_too_large = true;
 				$this->flashMessage(_t("Your image still needs to be resized before you can continue!"));
 				$user->removeIcons();
+				
+				// check if image is too large to be cropped on screen
+				$max_x = 600;
+				$max_y = 600;
+				if ($size_x > $max_x || $size_y > $max_y) {
+					$factor = ($size_x / $max_x > $size_y / $max_y ) ? $size_x / $max_x : $size_y / $max_y;
+					$this->template->factor = $factor;
+					$this->template->min_size_x = round(120 / $factor);
+					$this->template->min_size_y = round(150 / $factor);
+					$this->template->img_src = base64_encode(NImage::fromString(base64_decode($data))->resize($max_x, $max_y)->toString(IMAGETYPE_JPEG,80));
+				}
 			
 			} elseif (abs(round($size_x/$size_y*500/4)-100) > 10) {
 			// more than 10% deviation from ideal ratio
@@ -365,6 +379,7 @@ final class UserPresenter extends BasePresenter
 		}
 		
 	}
+
 
 	/**
 	 *	Prepares sign in (log in) page.
@@ -403,6 +418,7 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 
+
 	/**
 	 *	Prepares sign our (log out) page
 	 *	@param void
@@ -424,6 +440,7 @@ final class UserPresenter extends BasePresenter
 		
 		$this->redirect('Homepage:default', array('language' => $language));
 	}
+
 
 	/**
 	 *	Prepares password recovery page.
@@ -583,7 +600,6 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function changepasswordformSubmitted(NAppForm $form)
 	{
-
 		$values = $form->getValues();
 		if (User::changePassword($values['user_id'], $values['user_password'])) {
 			Activity::addActivity(Activity::USER_PW_CHANGE, $values['user_id'], 1);
@@ -683,7 +699,6 @@ final class UserPresenter extends BasePresenter
 			$resource                = Resource::Create();
 			$resource->setResourceData($data);
 			$resource->save();
-			//$resource->updateUser($user->getUserId(),array('resource_user_group_access_level'=>1));
 			$resource_id = $resource->getResourceId();
 			$this->flashMessage(_t("Your report has been received."));
 		}
@@ -726,6 +741,7 @@ final class UserPresenter extends BasePresenter
 			$this->flashMessage(_t("This email is not registered in our system!"), 'error');
 		}
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -775,6 +791,7 @@ final class UserPresenter extends BasePresenter
 			$this->flashMessage($e->getMessage(), 'error');
 		}
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -889,7 +906,7 @@ final class UserPresenter extends BasePresenter
 		$values['user_hash'] = $hash;
 		
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		$values['user_language'] = $session->language;
+		$values['user_language'] = Language::getId($session->language);
 		if (!$values['user_language']) $values['user_language'] = 1;
 
 		$new_user->setUserData($values);
@@ -905,6 +922,7 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->redirect('Homepage:default');
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -997,11 +1015,11 @@ final class UserPresenter extends BasePresenter
 	 *	@param
 	 *	@return
 	 */
-	protected function createComponentChatform()
+/*	protected function createComponentChatform()
 	{
 		$form = new NAppForm($this, 'chatform');
 		$form->addTextarea('message_text', '');
-		$form['message_text']->getControlPrototype()->class('ckeditor-big');
+//		$form['message_text']->getControlPrototype()->class('ckeditor-big');
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
 		
@@ -1013,12 +1031,14 @@ final class UserPresenter extends BasePresenter
 		$this->template->message = true;
 		return $form;
 	}
+*/
 
 	/**
 	 *	@todo ### Description
 	 *	@param
 	 *	@return
 	 */
+/*
 	public function chatformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
@@ -1047,6 +1067,8 @@ final class UserPresenter extends BasePresenter
 			'user_id' => $this->user->getUserId()
 		));
 	}
+*/
+
 
 	/**
 	 *	@todo ### Description
@@ -1088,7 +1110,7 @@ final class UserPresenter extends BasePresenter
 		$form->addSelect('user_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('The main language you want to use. You will still be able to see other languages.'))->id("help-name"));
 		$form->addTextArea('user_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Write some lines about your life, your work and your interests.'))->id("help-name"));
 		$form->addText('user_url', _t('Homepage:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Your website, blog or Facebook profile.'))->id("help-name"))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
-		$form->addFile('user_avatar', _t('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your name. Here you can upload your avatar (min. %s, max. %s). In the next step you can crop it.'),"120x150px","1500x1500px") )->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'), "2MB"), 2 * 1024 * 1024);
+		$form->addFile('user_avatar', _t('Upload Avatar:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your name. Here you can upload your avatar (min. %s, max. %s). In the next step you can crop it.'),"120x150px","2500x2500px") )->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'), "2MB"), 2 * 1024 * 1024);
 		
 		$form->addProtection(_t('Error submitting form.'));
 		 
@@ -1116,6 +1138,7 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1167,8 +1190,8 @@ final class UserPresenter extends BasePresenter
 			
 				$size= getimagesize($values['user_avatar']->getTemporaryFile());
 				
-				if ($size[0]>1500 || $size[1]>1500) {
-					$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "1500x1500"),'error');
+				if ($size[0]>2500 || $size[1]>2500) {
+					$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "2500x2500"),'error');
 				} elseif ($size[0]<80 || $size[1]<100) {
 					$this->flashMessage(sprintf(_t("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 				} else {
@@ -1185,6 +1208,7 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1198,6 +1222,7 @@ final class UserPresenter extends BasePresenter
 		$user->save();
 		$this->terminate();
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1229,6 +1254,7 @@ final class UserPresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1258,6 +1284,7 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1292,6 +1319,7 @@ final class UserPresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1324,10 +1352,11 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
-	*	Default page, left column
-	**/
+	 *	Default page, left column
+	 */
 	protected function createComponentUserlister($name)
 	{
 		$session      = NEnvironment::getSession()->getNamespace($this->name);
@@ -1359,6 +1388,7 @@ final class UserPresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1386,6 +1416,7 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1422,6 +1453,7 @@ final class UserPresenter extends BasePresenter
 		$this->redirect("this");
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1449,6 +1481,7 @@ final class UserPresenter extends BasePresenter
 		$this->invalidateControl('tagHandle');
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1474,20 +1507,21 @@ final class UserPresenter extends BasePresenter
 		$this->invalidateControl('tagHandle');
 	}
 
-	/**
-	*	Removing messages with friendship requests
-	*/
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
-	public function handleRemoveMessage($message_id,$user_id)
+	/**
+	 *	Removing messages with friendship requests
+	 *	@param
+	 *	@return
+	 */
+	public function handleRemoveMessage($message_id)
 	{
+		$user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
-			$resource->remove_message(1, $user_id);
+			$resource->remove_message($user_id);
+			echo "true";
+		} else {
+			echo "false";
 		}
 
 		$this->terminate();	
@@ -1655,7 +1689,7 @@ final class UserPresenter extends BasePresenter
 		$form    = new NAppForm($this, 'messageform');
 		$form->addSelect('friend_id', _t('To:'), $friends);
 		$form->addTextarea('message_text', '');
-		$form['message_text']->getControlPrototype()->class('ckeditor-big');
+//		$form['message_text']->getControlPrototype()->class('ckeditor-big');
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
 		
@@ -1707,6 +1741,7 @@ final class UserPresenter extends BasePresenter
 	/**
 	*	page for messages /user/messages/
 	*/
+/*
 	protected function createComponentMessagelisteruser($name)
 	{
 		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
@@ -1754,7 +1789,7 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-
+*/
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1970,17 +2005,20 @@ final class UserPresenter extends BasePresenter
 */
 	public function handleCrop() {
 
-		$query = NEnvironment::getHttpRequest();
+		$request = NEnvironment::getHttpRequest();
 
-		$x = $query->getQuery("x");
-		$y = $query->getQuery("y");
-		$w = $query->getQuery("w");
-		$h = $query->getQuery("h");
-		$user_id = $query->getQuery("user_id");
+		$factor = $request->getQuery("factor");
+		if ($factor < 1) {
+			$factor = 1;
+		}
+		$x = $request->getQuery("x") * $factor;
+		$y = $request->getQuery("y") * $factor;
+		$w = $request->getQuery("w") * $factor;
+		$h = $request->getQuery("h") * $factor;
+		$user_id = $request->getQuery("user_id");
 
 
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
-			
 			$this->flashMessage(_t("You are not allowed to edit this user."), 'error');
 			$this->redirect("User:default",$user_id);
 		}
@@ -2057,4 +2095,44 @@ final class UserPresenter extends BasePresenter
  
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
+	public function handleSubmitPMChat($message_text = '', $recipient_id)
+	{
+		
+		$logged_user = NEnvironment::getUser()->getIdentity();
+		
+		if ($recipient_id == 0 || !$logged_user->friendshipIsRegistered($recipient_id)) {
+			die("false");
+		}
+
+		$resource                          = Resource::create();
+		$data                              = array();
+		$data['resource_author']           = $logged_user->getUserId();
+		$data['resource_type']             = 1;
+		$data['resource_visibility_level'] = 3;
+		$data['resource_name'] = '<PM>';
+		$data['resource_data']             = json_encode(array(
+			'message_text' => $message_text
+		));
+		$resource->setResourceData($data);
+		$resource->save();
+		$resource->updateUser($recipient_id, array(
+			'resource_user_group_access_level' => 1
+		));
+		
+		$resource->updateUser($logged_user->getUserId(), array(
+			'resource_user_group_access_level' => 1,
+			'resource_opened_by_user' => 1
+		));
+		$this->redirect("User:default", array(
+			'user_id' => $recipient_id
+		));
+		
+		die("true");
+	}
 }

@@ -733,11 +733,12 @@ class Resource extends BaseModel {
  *	@param
  *	@return
 */
-	public function remove_message($type, $object_id) {
-      if(Auth::MODERATOR <= Auth::isAuthorized($type,$object_id)) {
-         dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
-         $this->cleanCache('messagelisteruser');
-      }
+	public function remove_message($user_id) {
+		$result = dibi::fetchSingle("SELECT `resource_user_group_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_type` = 1 AND `member_id` = %i", $this->numeric_id, $user_id);
+		if ($result) {
+			dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
+			$this->cleanCache('messagelisteruser');
+		}
    }
 
 

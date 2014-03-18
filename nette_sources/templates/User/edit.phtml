@@ -40,6 +40,7 @@
 			<input type="hidden" id="y" name="y" />
 			<input type="hidden" id="w" name="w" />
 			<input type="hidden" id="h" name="h" />
+			<input type="hidden" id="factor" value="{$factor}" />
 			<a href="javascript:void(0);" id="crop_button" onClick="doCrop(); return false;" class="button" />crop and resize</a>
 		</div>
 	</div>
@@ -78,8 +79,8 @@
 </div>
 {/if}
 
-<div class="edit-secondary">
 {if !isset($image_too_large) && !isset($image_props_wrong)}
+<div class="edit-secondary">
 	<h2>{_"Additional Information"}</h2>
 {/if}
 <table class="edit-secondary-table">
@@ -133,6 +134,18 @@
 	</td>
 </tr>
 </table>
+{if !isset($image_too_large) && !isset($image_props_wrong)}
 	<div class="cleaner"></div>
 </div>
+{/if}
+<script>
+    jQuery(function($) {
+        $('#crop').Jcrop({
+        	minSize: [{!$min_size_x},{!$min_size_y}],
+        	aspectRatio: 4/5,
+        	onChange: enableCrop,
+			onSelect: enableCrop
+        });
+    });
+</script>
 {/block}

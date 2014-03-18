@@ -492,9 +492,11 @@ class ExternalFilter extends NControl
 				unset($session->filterdata['status']);
 				unset($session->filterdata['type']);
 			} else {
-				foreach ($filter as $key => $value) {
-					if (in_array($key, $session->filterdata)) {
-						unset($session->filterdata[$key]);
+				if ($session->filterdata !== NULL) {
+					foreach ($filter as $key => $value) {
+						if (in_array($key, $session->filterdata)) {
+							unset($session->filterdata[$key]);
+						}
 					}
 				}
 			}

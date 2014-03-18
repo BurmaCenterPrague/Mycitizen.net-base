@@ -12,7 +12,7 @@
  */
 ?>
 <div>
-  <a class="fancybox button" href="#tag_select_div">{_'add new tag'}</a>
+  <a class="tags-fancybox button" href="#tag_select_div">{_'add new tag'}</a>
   <input id="tag_select_hidden" type="hidden" name="{$name}" value="{$control->getValue()}" />
 </div>
 
@@ -22,6 +22,7 @@
     $("div.tree a").on('click', function(){ 
       $(".active").removeClass("active");
       $(this).addClass("active");
+      addNewTag_User({$container_id},document.getElementById('tag_select_hidden').value);
     });
   });
 </script>
@@ -32,7 +33,7 @@
     
     <div class="first_level">
       <h2 class="h2-line">{_'Select a tag'}</h2>
-      <p>{_'Select a tag that describes one of your interests and click add.'}</p>
+      <p>{_'Select a tag that describes one of your interests.'}</p>
     </div>
     <div class="tree" style="padding: 20px 50px;float:left;">
 		<span class="folder-main ">&nbsp;</span>
@@ -65,9 +66,5 @@
       </ul>
       
     </div>  
-
-	 <div class="confirm">
-	   <a href="#" class="button-blue button" style="float: right;"onclick="addNewTag_User({$container_id},document.getElementById('tag_select_hidden').value);$.fancybox.close();return false;">{_'Add'}</a>
-	 </div>
   </div>
 </div>

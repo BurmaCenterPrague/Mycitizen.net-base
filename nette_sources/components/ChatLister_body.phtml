@@ -16,7 +16,7 @@ $baseUri = NEnvironment::getVariable("URI") . '/';
 <div class="lister-header">
 	<div class="filter-body-chat">
 		<div class="filter-block">
-			<input type="text" class="text" name="name" id="search_name" value="{ifset $value}{$value}{/if}" placeholder="{_"Filter by name"}" title="{_"Show only messages by senders with matching names.<ul><li>Type to search only on this page.</li><li>Type and press enter to search on all pages.</li></ul>"}"/>
+			<input type="text" class="text" name="name" id="search_name" value="{ifset $value}{$value}{/if}" placeholder="{_"Filter by name"}" title="{_"Show only messages by senders with matching names.<ul><li>Type to search only on this page.</li><li>Type and press enter to search on all pages.</li></ul>"}" autocomplete="off"/>
 			<a href="javascript:void(0);" id="clear_button" class="button" name="clear" title="{_"Reset the search.<ul><li>The first click resets the search on this page.</li><li>The second click resets the search on all pages. </li></ul>"}">{_"Clear"}</a>
 		</div>
 	</div>
@@ -26,179 +26,195 @@ $baseUri = NEnvironment::getVariable("URI") . '/';
 		<label for="auto_reload" title="{_"Automatically reload in regular intervals if something new has been posted."}">{_"auto reload"}</label><input id="auto_reload" type="checkbox" checked value="1"  title="{_"Automatically reload in regular intervals if something new has been posted."}" />
 	</div>
 
-	<script type="text/javascript">
-		$(document).ready(function() {
+<script>
+	var text = '';
+	var search = '';
+	var interval;
+	var modifiedDate;
+	var searchedOnServer = false;
+
+	$(document).ready(function() {
 
 		$("#search_name").keyup(function(event){
 			if(event.keyCode == 13){
 				// submit as search
 				reloadChat();
-    		} else {
-    			// search on page only
-    			textChanged();
-    		}
-		});
-		
-		
-		
-			$('#reload_button').click(function(){
-			   reloadChat();
-			});
-			
-			$('#clear_button').click(function(){
-				var name = $('#search_name').val();
-				if (name == '') {
-					reloadChat();
-				} else {
-					$('#search_name').val('');
-					showAll();
-				}
-			});
-		});
-
-		var text='';
-		var search='';
-		
-		function textChanged() {
-			search = $('#search_name').val();
-			
-			if (search == text) {
-				return false;
-			}
-			search = search.trim();
-			filter();
-			text = search;
-		};
-		
-		$.extend($.expr[":"], {
-			"containsNC": function(elem, i, match, array) {
-				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
-			}
-		});
-
-		function showAll() {
-			$('.chat-author').parent().parent().parent().slideDown('slow');
-		}
-		
-		function filter() {
-			if (search.length<text.length) {
-				$('.chat-author').parent().parent().parent().slideDown();
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('normal');
-			}
-			else if (search!='') {
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('fast');
-			}
-		}
-
-		$(document).ready(function() {
-			setInterval("chatTimer()",30*1000);
-		});
-		
-		function chatTimer() {
-			if ($("#auto_reload").prop("checked")) {
-				reloadChatIfModified();
+				searchedOnServer = true;
 			} else {
-				return false;
+				// search on page only
+				textChanged();
 			}
-		}
-
-		function changePage(page) {
-			var groupId = $("#group_id").val();
-			$("#reload_button").attr("class", "icon-reload-disabled");
-			var url="&chatlistergroup-page="+page+"&do=chatlistergroup-changePage";
-			window.location=this.location+url;
-		}
+		});
+	
+		$('#reload_button').click(function(){
+		   reloadChat();
+		});
 		
-		function reloadChat() {
-			var groupId = $("#group_id").val();
-			var currentpage = $("#currentpage").val();
-			var name = $("#search_name").val();
-			$("#reload_button").attr("class", "icon-reload-disabled");
-			$.ajax({
-				url:"{!$baseUri}widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
-				dataType:"html",
-				ifModified:false,
-				statusCode: {
-					301: function(){
-						$("#chat_container").html("Error loading chat.");
-					}
-				},
-				success:function(payload,status,hdr){
-					if (payload.indexOf('{"redirect":')>-1){
-						$("#chat_container").html({_"Error loading chat. Are you logged in?"});
-						return false;
-					}
-					
-					$("#chat_container").animate({ opacity:0},function(){
-						$("#chat_container").html(payload);
-						$("#chat_container").css("height",function(){
-					        return $(this).height();
-						});
-						$("#chat_container").animate({ opacity:1},function(){
-							$("#reload_button").attr("class", "icon-reload");
-						});
-					});
-				},
-			});
-		}
+		$('#clear_button').click(function(){
+			$('#search_name').val('');
+			if (searchedOnServer) {
+				searchedOnServer = false;
+				reloadChat();
+			} else {
+				showAll();
+			}
+		});
+	});
+	
+	function textChanged() {
+		search = $('#search_name').val();
 		
-		function reloadChatIfModified() {
-			var groupId=$("#group_id").val();
-			var currentpage=$("#currentpage").val();
-			var name = $("#search_name").val();
-			$.ajax({
-				url:"{!$baseUri}widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
-				dataType:"html",
-				ifModified:true,
-				statusCode: {
-					301: function(){
-						$("#chat_container").html("Error loading chat.");
-					}
-				},
-				success:function(payload,status,hdr){
-					if(status=="notmodified"){
-						return false;
-					}
-					if (payload.indexOf('{"redirect":')>-1){
-						$("#chat_container").html({_"Error loading chat. Are you logged in?"});
-						return false;
-					}
-					$("#reload_button").attr("class", "icon-reload-disabled");
+		if (search == text) {
+			return false;
+		}
+		search = search.trim();
+		filter();
+		text = search;
+	};
+	
+	$.extend($.expr[":"], {
+		"containsNC": function(elem, i, match, array) {
+			return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+		}
+	});
 
-					if (payload.indexOf('{"redirect":')>-1){
-						$("#chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
-						return false;
-					}
+	function showAll() {
+		$('.chat-author').parent().parent().parent().slideDown('slow');
+	}
+	
+	function filter() {
+		if (search.length<text.length) {
+			$('.chat-author').parent().parent().parent().slideDown();
+			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('normal');
+		}
+		else if (search!='') {
+			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp('fast');
+		}
+	}
+
+	$(document).ready(function() {
+		interval = setInterval("chatTimer()",30*1000);
+	});
+	
+	function chatTimer() {
+		if ($("#auto_reload").prop("checked")) {
+			reloadChatIfModified();
+		} else {
+			return false;
+		}
+	}
+
+	function changePage(page) {
+		$("#reload_button").attr("class", "icon-reload-disabled");
+		$("#reload_button").attr("class", "icon-reload-disabled");
+		$("#currentpage").val(page);
+		reloadChat();
+		$('html, body').animate({
+			scrollTop: $("#chat_container").offset().top
+		}, 2000);
+	}
+	
+	function reloadChat() {
+		var groupId = $("#group_id").val();
+		var currentpage = $("#currentpage").val();
+		var name = $("#search_name").val();
+		$("#reload_button").attr("class", "icon-reload-disabled");
+		$.ajax({
+			url:"{!$baseUri}widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
+			dataType:"html",
+			ifModified:false,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				modifiedDate = hdr.getResponseHeader('Last-Modified');
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+				$("#chat_container").animate({ opacity:0},function(){
+					$("#chat_container").html(payload);
 					$("#chat_container").animate({ opacity:1},function(){
 						$("#reload_button").attr("class", "icon-reload");
-						$("#chat_container").html(payload).promise().done(function(){});
-						$("#chat_container").css("height",function(){
-					        return $(this).height();
-						});
-						$("#chat_container").animate({ opacity:1});
 					});
+				});
+				clearInterval(interval);
+				interval = setInterval("chatTimer()",30*1000);
+			},
+		});
+	}
+	
+	function reloadChatIfModified() {
+		var groupId=$("#group_id").val();
+		var currentpage=$("#currentpage").val();
+		var name = $("#search_name").val();
+		$.ajax({
+			url:"{!$baseUri}widget/chat/?group_id="+groupId+"&page="+currentpage+"&owner="+name,
+			dataType:"html",
+			ifModified:true,
+			headers: {
+					Pragma: "no-cache"
 				},
-			});
-		}
-	</script>
+			statusCode: {
+				301: function(){
+					$("#chat_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				if(status=="notmodified"){
+					return false;
+				}
+		
+				// for cloudflare: check change of date
+				var newModifiedDate = hdr.getResponseHeader('Last-Modified');
+				if (modifiedDate == newModifiedDate) {
+					return false;
+				} else {
+					modifiedDate = newModifiedDate;
+				}
+
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+				$("#reload_button").attr("class", "icon-reload-disabled");
+
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+				$("#chat_container").animate({ opacity:0},function(){
+					$("#chat_container").html(payload);
+					$("#reload_button").attr("class", "icon-reload");
+					$("#chat_container").animate({ opacity:1});
+				});
+				clearInterval(interval);
+				interval = setInterval("chatTimer()",30*1000);
+			},
+		});
+	}
+</script>
 
 </div>
 
 <div id="chat_container">
-<div class="lister-body">
-	{snippet list_body}
-	{/snippet}
 	{_"Loading chat.."}
 	{ifset $currentpage}
 		<input type="hidden" id="currentpage" value="{$currentpage}" />
 	{else}
 		<input type="hidden" id="currentpage" value="1" />
 	{/if}
-</div>
 
-<div class="lister-footer">
 	<script>
-		reloadChatIfModified();
+		reloadChat();
 	</script>
-</div>
+
 </div>

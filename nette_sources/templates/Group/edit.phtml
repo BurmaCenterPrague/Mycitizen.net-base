@@ -41,6 +41,7 @@
 			<input type="hidden" id="y" name="y" />
 			<input type="hidden" id="w" name="w" />
 			<input type="hidden" id="h" name="h" />
+			<input type="hidden" id="factor" value="{$factor}" />
 			<a href="javascript:void(0);" id="crop_button" onClick="doCrop(); return false;" class="button" />crop and resize</a>
 		</div>
 	</div>
@@ -122,4 +123,14 @@
 {/if}
 
 </div>
+<script>
+    jQuery(function($) {
+        $('#crop').Jcrop({
+        	minSize: [{!$min_size_x},{!$min_size_y}],
+        	aspectRatio: 4/5,
+        	onChange: enableCrop,
+			onSelect: enableCrop
+        });
+    });
+</script>
 {/block}

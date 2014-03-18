@@ -113,6 +113,17 @@ class Language extends BaseModel {
 	 *	@param
 	 *	@return
 	 */
+	public static function updateCode($flag, $code, $name) {
+		$result = dibi::query("UPDATE `language` SET `language_code` = %s, `language_name` = %s WHERE `language_flag` = %s ", $code, $name, $flag);
+		return $result;
+	}
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public static function removeCode($code) {
 		$result = dibi::query("DELETE FROM `language` WHERE `language_flag` = %s", $code);
 		return $result;

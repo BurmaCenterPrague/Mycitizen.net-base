@@ -30,10 +30,10 @@
 		{ifset $nofriends}
 		{else}
 		<div class="message-text">
-			{$control['messageform']['message_text']->control}
+			<textarea placeholder="{_"Type your text here."}" id="message_text" name="message_text"></textarea>
 		</div>
-		<div class="message-send">
-		 	{$control['messageform']['send']->control}
+		<div class="message-send" style="padding: 20px 10px 30px;">
+		 	<a href="javascript:void(0);" class="button" id="chat_submit" style="font-size:1.3em; margin:2em 0px;">Send</a>
 		</div>
 		{/if}
 	</div>
@@ -43,138 +43,223 @@
 	<div class="detail-right-bottom">
 		<h2>{_"Your messages"}</h2>
 		<div class="filter-block">
-			<input type="text" class="text" name="name" id="search_name" value="" onkeyup="textChanged();" placeholder="{_"Filter by name"}"/>
+			<input type="text" class="text" name="name" id="search_name" value="{ifset $value}{$value}{/if}" placeholder="{_"Filter by name"}" title="{_"Show only messages by senders with matching names.<ul><li>Type to search only on this page.</li><li>Type and press enter to search on all pages.</li></ul>"}" autocomplete="off"/>
 			<a href="javascript:void(0);" id="clear_button" class="button" name="clear" >{_"Clear"}</a>
 		</div>
 		<div class="reload-messages" style="float:right;">
-			<b onclick="javascript:location.reload();" class="icon-reload" title="{_"Reload"}" style="cursor:pointer;"></b>
 			<a href="#settings_container" id="settings_box" title="{_"Notification Settings"}"><b class="icon-setting"></b></a>
 		</div>
 
-			<div id="settings_container" style="display:none;">
-				<h2>{_"Notification Settings"}</h2>
-				{control notificationsform}
-			</div>
-			<script type="text/javascript">
-			$(function() {
-				$("#settings_box").fancybox({
-					minWidth : 400,
-					minHeight : 200,
-					closeBtn : true,
-					helpers : {
-						overlay : {
-							css: {'background' : 'rgba(200, 200, 200, .5)'}
-						},
-						title : null
-					},
-				});
-			});
-			</script>
-	
-		<div class="user-messages">
-			{control messagelisteruser}
+		<div id="settings_container" style="display:none;">
+			<h2>{_"Notification Settings"}</h2>
+			{control notificationsform}
 		</div>
-	</div>
-
-	<script>
-		$(document).ready(function() {
-			if ($('.trash-radio:not([value=1])').is(':checked')) $('#empty-trash').hide();
-
-			$('#clear_button').click(function(){
-				$('#search_name').val('');
-				showAll();
+		<script type="text/javascript">
+		$(function() {
+			$("#settings_box").fancybox({
+				minWidth : 400,
+				minHeight : 200,
+				closeBtn : true,
+				helpers : {
+					overlay : {
+						css: {'background' : 'rgba(200, 200, 200, .5)'}
+					},
+					title : null
+				},
 			});
 		});
-		
-		var text='';
-		var search='';
-		
-		function textChanged() {
-			search = $('#search_name').val();
-			if (search == text) {
-				return false;
-			}
-			search = search.trim();
-			filter();
-			text = search;
-		}
-		
-		$.extend($.expr[":"], {
-			"containsNC": function(elem, i, match, array) {
-				return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
-			}
-		});
+		</script>
+	
+		<div class="reload-chat">
+			<b id="reload_button" class="icon-reload" style="cursor:pointer;"  title="{_"Reload the chat."}"></b>
+			<label for="auto_reload" title="{_"Automatically reload in regular intervals if something new has been posted."}">{_"auto reload"}</label><input id="auto_reload" type="checkbox" checked value="1"  title="{_"Automatically reload in regular intervals if something new has been posted."}" />
+		</div>
 
-		function showAll() {
-			$('.chat-author').parent().parent().parent().slideDown(600);
-		}
-		
-		function filter() {
-			if (search.length<text.length) {
-				$('.chat-author').parent().parent().parent().slideDown(600);
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
-			}
-			else if (search!='') {
-				$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
-			}
-		}
+		<div class="user-messages">
 
-	</script>
-
-	<script>
-		$(document).ready(function(){
-			$('[id^=reply_]').click(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				var elements = document.getElementsByName( 'message_text' );
-				var instance_name = elements[0].getAttribute( 'id' );
-				var quote = $('[id$='+id+'_text]').html();
-				quote = quote.replace(/(<([^>]+[^(blockquote)])>)/ig,"");
-				var author_name = $('[id$='+id+'_author]').html().trim();
-				var author_id = $('[id$='+id+'_author]').attr('rel');
-				var date = $('[id$='+id+'_date]').html();
-				var quote_shortened = quote.substr(0,300);
-				if (quote_shortened != quote ) { quote_shortened += '...'; }
-				$('#frmmessageform-friend_id').val(author_id);
-				var reply = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote><br/>';
-				content = reply;
-				//editor.setContent(content);
-				CKEDITOR.instances[instance_name].insertHtml(content);
-				$('html, body').animate({
-					scrollTop: $("#message_top_anchor").offset().top
-				}, 2000);
-				CKEDITOR.instances[instance_name].focus();
-			});
-		
-			$('blockquote').click(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				$('html, body').animate({
-					scrollTop: $("#chat_message_"+id).offset().top
-				}, 'normal');
-			});
-		
-			$('blockquote').mouseover(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				$("#chat_message_"+id).css({ "border-left":"solid 4px #E08E1B", "padding-left":"20px"}); 
-				if ($("#chat_message_"+id).css("border-left")) {
-					$(this).css('cursor','pointer');
-				};
-			});
-
-			$('blockquote').mouseout(function(){
-				var id = parseInt($(this).attr('id').substr(-5,5));
-				$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0"});
-			});
-		
-		});
-	</script>
 <script>
+	var text = '';
+	var search = '';
+	var interval;
+	var modifiedDate;
+	var searchedOnServer = false;
+	
+	$(document).ready(function() {
+	
+		$("#search_name").keyup(function(event){
+			if(event.keyCode == 13){
+				// submit as search
+				reloadChat();
+				searchedOnServer = true;
+			} else {
+				// search on page only
+				textChanged();
+			}
+		});
+		
+		$('#reload_button').click(function(){
+		   reloadChat();
+		});
+		
+		$('#clear_button').click(function(){
+			$('#search_name').val('');
+			if (searchedOnServer) {
+				searchedOnServer = false;
+				reloadChat();
+			} else {
+				showAll();
+			}
+		});
+	});
+
+	
+	function textChanged() {
+		search = $('#search_name').val();
+		if (search == text) {
+			return false;
+		}
+		search = search.trim();
+		filter();
+		text = search;
+	}
+	
+	$.extend($.expr[":"], {
+		"containsNC": function(elem, i, match, array) {
+			return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+		}
+	});
+
+	function showAll() {
+		$('.chat-author').parent().parent().parent().slideDown(600);
+	}
+	
+	function filter() {
+		if (search.length<text.length) {
+			$('.chat-author').parent().parent().parent().slideDown(600);
+			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
+		}
+		else if (search!='') {
+			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
+		}
+	}
+
+	$(document).ready(function() {
+		interval = setInterval("chatTimer()",30*1000);
+	});
+	
+	function chatTimer() {
+		if ($("#auto_reload").prop("checked")) {
+			reloadChatIfModified();
+		} else {
+			return false;
+		}
+	}
+
+	function changePage(page) {
+		$("#reload_button").attr("class", "icon-reload-disabled");
+		$("#currentpage").val(page);
+		reloadChat();
+		$('html, body').animate({
+			scrollTop: $("#chat_container").offset().top
+		}, 2000);
+	}
+	
+	function reloadChat() {
+		var currentpage = $("#currentpage").val();
+		var name = $("#search_name").val();
+		var trash = $("#trash").val();
+		$("#reload_button").attr("class", "icon-reload-disabled");
+		$.ajax({
+			url:"{!$baseUri}widget/privatemessages/?page="+currentpage+"&owner="+name+"&trash="+trash,
+			dataType:"html",
+			ifModified:false,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				modifiedDate = hdr.getResponseHeader('Last-Modified');
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+				$("#chat_container").animate({ opacity:0},function(){
+					$("#chat_container").html(payload);
+					$("#chat_container").animate({ opacity:1},function(){
+						$("#reload_button").attr("class", "icon-reload");
+					});
+				});
+				clearInterval(interval);
+				interval = setInterval("chatTimer()",30*1000);
+			},
+		});
+	}
+	
+	function reloadChatIfModified() {
+		var currentpage=$("#currentpage").val();
+		var name = $("#search_name").val();
+		var trash = $("#trash").val();
+		$.ajax({
+			url:"{!$baseUri}widget/privatemessages/?page="+currentpage+"&owner="+name+"&trash="+trash,
+			dataType:"html",
+			ifModified:true,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				if(status=="notmodified"){
+					return false;
+				}
+				
+				// for cloudflare: check change of date
+				var newModifiedDate = hdr.getResponseHeader('Last-Modified');
+				if (modifiedDate == newModifiedDate) {
+					return false;
+				} else {
+					modifiedDate = newModifiedDate;
+				}
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+				$("#reload_button").attr("class", "icon-reload-disabled");
+
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+
+				$("#chat_container").animate({ opacity:0},function(){
+					$("#chat_container").html(payload);
+					$("#reload_button").attr("class", "icon-reload");
+					$("#chat_container").animate({ opacity:1});
+				});
+				clearInterval(interval);
+				interval = setInterval("chatTimer()",30*1000);
+			},
+		});
+	}
+{if !isset($nofriends)}
 	$(document).ready(function() {
 		CKEDITOR.replace( 'message_text', {
 			height: '200px',
-			width: '740px',
+			width: '700px',
 			filebrowserUploadUrl: '{!baseUri}?do=upload',
 			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
-			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
 			toolbarGroups: [
 				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
 				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
@@ -184,8 +269,49 @@
 				{ name: 'colors'}
 			]
 		});
+		
+		$('#chat_submit').click(function(){
+			var instance_name = 'message_text';
+			var editorContent = CKEDITOR.instances[instance_name].getData();
+			editorContent = $.trim(editorContent);
+			if (editorContent == '' || editorContent == null) {
+				alert({_'Please enter some text.'});
+				return false;
+			} else {
+				CKEDITOR.instances[instance_name].updateElement();
+				var serialized = $("#message_text").serialize();
+				var recipient_id = $('#frmmessageform-friend_id option:selected').val();
+				$.post('{!$baseUri}user/messages/?do=submitpmchat&recipient_id='+recipient_id, serialized, function(result) {
+					CKEDITOR.instances[instance_name].setData('');
+					reloadChatIfModified();
+				}, "json");
+			}
+		});
 	});
+{/if}
 </script>
+
+<div id="chat_container">
+
+	{_"Loading chat.."}
+	{ifset $currentpage}
+		<input type="hidden" id="currentpage" value="{$currentpage}" />
+	{else}
+		<input type="hidden" id="currentpage" value="1" />
+	{/if}
+	{ifset $trash}
+		<input type="hidden" id="trash" value="{$trash}" />
+	{else}
+		<input type="hidden" id="trash" value="0" />
+	{/if}
+
+	<script>
+		reloadChat();
+	</script>
+
+</div>
+
+		</div>
+	</div>
 </div>
 {/block}
-
