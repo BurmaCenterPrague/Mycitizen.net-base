@@ -1,0 +1,50 @@
+<?php
+/**
+ * mycitizen.net - Social networking for civil society
+ *
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>{_"Security Question"}</title>
+
+{ifset $load_external_js_css}
+	<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+	<link href='//fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+{else}
+	<script type="text/javascript" src="{$baseUri}js/jquery-1.10.2.min.js"></script>
+	<link href='{$baseUri}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
+{/if}
+	<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
+</head>
+<body>
+			<div class="messages">
+				{control messages}
+			</div>
+			
+	<div id="layout" style="padding-top:100px;">
+<div class="login-box">
+	<h2>{_"Please answer the security question"}</h2>
+	{control securityquestionform}
+</div>
+
+{if file_exists(WWW_DIR."/images/captcha.jpg")}
+<div class="login-box">
+	<img src="{$baseUri}/images/captcha.jpg" alt="captcha" />
+</div>
+{/if}
+
+
+	</div>
+</body>
+</html>

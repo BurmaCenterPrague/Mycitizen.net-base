@@ -439,16 +439,50 @@ class User extends BaseModel implements IIdentity
 		$email = $this->user_data['user_email'];
 		$name = $this->user_data['user_login'];
 		$language = $this->user_data['user_language'];
-		$id    = $this->numeric_id;
-//		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-//		if (isset($language)) $language = $session->language; else $language = 1;
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
-//		$link  = "http://" . URI . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash;
+		$id = $this->numeric_id;
+		
+		$answer = Settings::getVariable('signup_answer');
+		if ($answer) {
+			$link  = NEnvironment::getVariable("URI") . "/widget/mobilecaptcha/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;		
+		} else {
+//			$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+			$link  = NEnvironment::getVariable("URI") . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+		}
 		$body  = sprintf(_t("Hello %s,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
 		
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		
 		return mail($email, '=?UTF-8?B?' . base64_encode(_t('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
+	}
+
+
+	/**
+	 *	checks if user has properly filled the captcha during registration
+	 *	@param void
+	 *	@return boolean
+	 */
+	public function getCaptchaOk()
+	{
+		$result = dibi::fetchSingle("SELECT `user_captcha_ok` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
+		if ($result == 1) {
+			return true;
+		}
+		return false;	
+	}
+
+
+	/**
+	 *	sets captcha status
+	 *	@param boolean
+	 *	@return boolean
+	 */
+	public function setCaptchaOk($new_status)
+	{
+		$new_status_int = $new_status ? 1 : 0;
+		
+		$result = dibi::query("UPDATE `user` SET `user_captcha_ok` = %i  WHERE `user_id` = %i", $new_status_int, $this->numeric_id);
+
+		return $result;	
 	}
 
 
@@ -506,7 +540,9 @@ class User extends BaseModel implements IIdentity
 		$id    = $this->numeric_id;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = Language::getId($session->language);
-		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+
+		$link  = NEnvironment::getVariable("URI") . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+		
 		$body  = sprintf(_t("Hello %s,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
 		
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
@@ -1012,6 +1048,33 @@ class User extends BaseModel implements IIdentity
 		$result = dibi::fetchSingle("SELECT `user_last_activity` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		return $result;
 	}
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public static function getRelativeLastActivity($user_id, $format = '')
+	{
+		$result = dibi::fetchSingle("SELECT `user_last_activity` FROM `user` WHERE `user_id` = %i", $user_id);
+		$timestamp = strtotime($result);
+		$online = false;
+		if ($timestamp !== false) {
+			if (abs($timestamp - time()) < 60 ) {
+				$result = _t("now online");
+				$online = true;
+			} elseif (abs($timestamp - time()) < 60*5) {
+				$result = _t("Last seen less than 5 mins ago.");
+			} elseif (abs($timestamp - time()) < 60*10) {
+				$result = _t("Last seen less than 10 mins ago.");
+			} else {
+				$result = _t("Last seen:")." ".date($format, $timestamp);
+			}
+		}
+		return array('last_seen' => $result, 'online' => $online);
+	}
+	
+	
 
 	/**
 	 *	@todo ### Description

@@ -27,7 +27,43 @@ final class UserPresenter extends BasePresenter
 	{
 		parent::startup();
 	}
-	
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public function isAccessible()
+	{
+		if ($this->getAction() == "default") {
+			return true;
+		}
+		if ($this->getAction() == "login") {
+			return true;
+		}
+		if ($this->getAction() == "register") {
+			return true;
+		}
+		if ($this->getAction() == "confirm") {
+			return true;
+		}
+		if ($this->getAction() == "lostpassword") {
+			return true;
+		}
+		if ($this->getAction() == "changepassword") {
+			return true;
+		}
+		if ($this->getAction() == "changelostpassword") {
+			return true;
+		}
+		if ($this->getAction() == "captcha") {
+			return true;
+		}
+		return false;
+	}
+
+
 	/**
 	 *	Prepares data for display in User Default and Detail template
 	 *	@param int $user_id
@@ -54,6 +90,8 @@ final class UserPresenter extends BasePresenter
 			}
 			
 			$this->template->last_activity = $this->user->getLastActivity();
+			$this->template->format_date = _t("j.n.Y");
+//			$this->template->last_activity_status = User::getRelativeLastActivity($user_id);
 			
 			$this->visit(1, $user_id);
 			$this->template->user_id = $user_id;
@@ -148,6 +186,19 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function actionConfirm($user_id, $control_key, $device = NULL)
 	{
+		$user = NEnvironment::getUser();
+		if ($user->isLoggedIn()) {
+			$user->logout();
+			NEnvironment::getSession()->destroy();
+		}
+		
+		$user = User::create($user_id);
+			
+		$question = Settings::getVariable('signup_question');
+		if ($question && $user->getCaptchaOk() == false) {
+			$this->redirect("Widget:mobilecaptcha", array('control_key' => $control_key, 'user_id' => $user_id));
+		}
+
 		if ($device == NULL) {
 			// detecting mobile devices
 			require_once LIBS_DIR.'/Mobile-Detect/Mobile_Detect.php';
@@ -159,20 +210,15 @@ final class UserPresenter extends BasePresenter
 		if (User::finishRegistration($user_id, $control_key)) {
 		
 			// update registration date for correct determination of creation rights
-			$user = User::create($user_id);
 			$user->setRegistrationDate();
 			
 			if (isset($device) && $device=="mobile") {
 				echo _t("The registration has been successful. You can now sign in.");
-				
 				Activity::addActivity(Activity::USER_JOINED, $user_id, 1);
-				
 				$this->terminate();
 			} else {
 				$this->flashMessage(_t("The registration has been successful. You can now sign in."));
-			
 				Activity::addActivity(Activity::USER_JOINED, $user_id, 1);
-
 				$this->redirect("User:login", array('registration' => 'form'));
 			}
 		} else {
@@ -265,6 +311,7 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->template->load_js_css_editor = true;
 	}
+
 
 	/**
 	 *	Prepares the page to edit a user profile. If $user_id is null, the currently logged in user will be used.
@@ -472,12 +519,18 @@ final class UserPresenter extends BasePresenter
 	 */
 	protected function createComponentLoginform()
 	{
+	
+		$request = NEnvironment::getHttpRequest();
+		$redirect = $request->getQuery("redirect");
+		
+		
 		$form = new NAppForm($this, 'loginform');
 		$form->addText('user_login', _t('Username:'));
 		$form->addPassword('user_password', _t('Password:'));
 		$form->addCheckbox('remember_me', _t('Remember me'));
 		$form->addSubmit('signin', _t('Sign in'));
 		$form->addProtection(_t('Error submitting form.'));
+		$form->addHidden('redirect', $redirect);
 		$form->onSubmit[] = array(
 			$this,
 			'loginformSubmitted'
@@ -509,6 +562,7 @@ final class UserPresenter extends BasePresenter
 		$form->setDefaults(array('user_send_notifications' => $notification_setting));
 		return $form;
 	}
+
 
 	/**
 	 *	Handles submitted notification form.
@@ -784,6 +838,12 @@ final class UserPresenter extends BasePresenter
 				if (!empty($language_code)) {
 					$session->language = $language_code;
 				}
+				
+
+				if (!empty($values['redirect'])) {
+					header( "Location: ".NEnvironment::getVariable("URI") . urldecode($values['redirect']));
+					exit;
+				}
 				$this->redirect("Homepage:default");
 			}
 		}
@@ -830,21 +890,23 @@ final class UserPresenter extends BasePresenter
 	{
 
 		$values = $form->getValues();
-		$user   = NEnvironment::getUser();
 
 		if (Settings::getVariable('sign_up_disabled')) {
 			$this->flashMessage(_t("Sign up is disabled. Please try again later."), 'error');
 			$this->redirect("Homepage:default");
 		}
 
-		$answer = Settings::getVariable('signup_answer');// '43596';
+		$answer = Settings::getVariable('signup_answer');
 		
 		if ($answer) {
 			if ($answer != $values['text']) {
 				sleep(5);
 				$this->flashMessage(_t("You entered the wrong captcha."), 'error');
-				$user->logout();
+				NEnvironment::getUser()->logout();
 				$this->redirect('User:register');
+			} else {
+				$user = NEnvironment::getUser()->getIdentity();
+				$user->setCaptchaOk(true);
 			}
 		}
 		if (isset($values['text'])) unset($values['text']);
@@ -937,7 +999,6 @@ final class UserPresenter extends BasePresenter
 		}
 		$form = new NAppForm($this, 'securityquestionform');
 		$form->addText('text', _t($question))->addRule(NForm::FILLED, _t('Please enter the text!'));
-
 		$form->addSubmit('register', _t('Continue'));
 		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -975,6 +1036,9 @@ final class UserPresenter extends BasePresenter
 			$this->redirect('User:register');
 		}
 
+		$user = NEnvironment::getUser()->getIdentity();
+		$user->setCaptchaOk(true);
+
 		$fb = ExternalAuth::facebook(true);
 		if ( $fb === true) {
 			$session = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -988,6 +1052,7 @@ final class UserPresenter extends BasePresenter
 		}
 
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1381,7 +1446,8 @@ final class UserPresenter extends BasePresenter
 				'detail' => 'ajax',
 				'selected_row' => $selected_row,
 				'show_extended_columns' => true,
-				'user_group_resource_page' => true
+				'user_group_resource_page' => true,
+				'show_online_status' => true
 			)
 		);
 		$control = new ListerControlMain($this, $name, $options);		
@@ -1398,18 +1464,24 @@ final class UserPresenter extends BasePresenter
 	{
 		$user    = NEnvironment::getUser()->getIdentity();
 		$options = array(
-			'itemsPerPage' => 20,
+			'itemsPerPage' => 10,
 			'lister_type' => array(
 				ListerControlMain::LISTER_TYPE_USER
 			),
 			'template_body' => 'ListerControlMain_users.phtml',
 			'filter' => array(
 				'user_id' => $this->user->getUserId(),
+				'sort_by_activity' => true
 			),
 			'refresh_path' => 'User:default',
+			'refresh_path_params' => array(
+				'user_id' => $this->user->getUserId()
+			),
 			'template_variables' => array(
 				'connection_columns' => true,
 				'show_extended_columns' => true,
+				'show_last_activity' => true,
+				'format_date_time' => _t("j.n.Y")
 				)
 		);
 
@@ -1518,8 +1590,12 @@ final class UserPresenter extends BasePresenter
 		$user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
-			$resource->remove_message($user_id);
-			echo "true";
+			if ($resource->remove_message(1, $user_id)) {
+				echo "true";
+				$resource->cleanCache('messagelisteruser', $message_id);
+			} else {
+				echo "false";
+			}
 		} else {
 			echo "false";
 		}
@@ -1628,9 +1704,12 @@ final class UserPresenter extends BasePresenter
 		$this->terminate();
 	}
 	
+
+
 	/**
 	*	chat on User detail page
 	*/
+/*
 	protected function createComponentChatlisteruser($name)
 	{
 		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
@@ -1676,6 +1755,7 @@ final class UserPresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+*/
 
 	/**
 	 *	@todo ### Description
@@ -1738,58 +1818,7 @@ final class UserPresenter extends BasePresenter
 		$this->redirect("User:messages");
 	}
 	
-	/**
-	*	page for messages /user/messages/
-	*/
-/*
-	protected function createComponentMessagelisteruser($name)
-	{
-		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
-		
-		$options = array(
-			'itemsPerPage' => 50,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_RESOURCE
-			),
-			'template_body' => 'ListerControlMain_messages.phtml',
-			'filter' => array(
-				'type' => array(
-					1, // private messages
-					9, // system messages
-					10 // friendship requests
-				),
-				'all_members_only' => array(
-					array(
-						'type' => 1,
-						'id' => NEnvironment::getUser()->getIdentity()->getUserId()
-					)
-				)
-			),
-			'template_variables' => array(
-				'trash_enabled' => true,
-				'mark_read_enabled' => true,
-                'reply_enabled'=>true,
-				'messages' => true,
-				'message_lister' => true,
-				'hide_apply' => true,
-				'hide_reset' => true,
-				'logged_user_id' => $logged_user_id
-			),
-			'refresh_path' => 'User:messages'
-		);
 
-		$session = NEnvironment::getSession()->getNamespace($name);
-		if (!isset($session['filterdata']['trash']))
-			if (is_array($session->filterdata)) {
-				$session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
-			} else {
-				$session->filterdata = array('trash' => 2);
-			}
-		
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-*/
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1876,10 +1905,6 @@ final class UserPresenter extends BasePresenter
 	
 	/**
 	*	click on move-to-trash icon in message list
-	*/
-
-/**
- *	@todo ### Description
  *	@param
  *	@return
 */
@@ -1892,6 +1917,7 @@ final class UserPresenter extends BasePresenter
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					Resource::moveToTrash($resource_id);
+					$resource->cleanCache('messagelisteruser', $resource_id);
 				}
 			}
 		}
@@ -1900,10 +1926,6 @@ final class UserPresenter extends BasePresenter
 	
 	/**
 	*	click on restore-from-trash icon in message list
-	*/
-
-/**
- *	@todo ### Description
  *	@param
  *	@return
 */
@@ -1915,16 +1937,17 @@ final class UserPresenter extends BasePresenter
 		if (!empty($resource)) {
 			if ($resource->userIsRegistered($user->getUserId())) {
 				Resource::moveFromTrash($resource_id);
+				$resource->cleanCache('messagelisteruser', $resource_id);
 			}
 		}
 		$this->terminate();
 	}
 	
 	/**
-	*		Marks message as read
- *	@param
- *	@return
-*/
+	*	Marks message as read
+	 *	@param
+	 *	@return
+	 */
 	public function handleMarkRead($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1933,6 +1956,7 @@ final class UserPresenter extends BasePresenter
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					$resource->setOpened($user->getUserId(),$resource_id);
+					$resource->cleanCache('messagelisteruser', $resource_id);
 				}
 			}
 		}
@@ -1940,14 +1964,10 @@ final class UserPresenter extends BasePresenter
 	}
 	
 	/**
-	*		Marks message as unread
-	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	 *	Marks message as unread
+	 *	@param
+	 *	@return
+	 */
 	public function handleMarkUnread($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1958,43 +1978,10 @@ final class UserPresenter extends BasePresenter
 		if (!empty($resource)) {
 			if ($resource->userIsRegistered($user->getUserId())) {
 				$resource->setUnopened($user->getUserId(),$resource_id);
+				$resource->cleanCache('messagelisteruser', $resource_id);
 			}
 		}
 		$this->terminate();
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function isAccessible()
-	{
-		if ($this->getAction() == "default") {
-			return true;
-		}
-		if ($this->getAction() == "login") {
-			return true;
-		}
-		if ($this->getAction() == "register") {
-			return true;
-		}
-		if ($this->getAction() == "confirm") {
-			return true;
-		}
-		if ($this->getAction() == "lostpassword") {
-			return true;
-		}
-		if ($this->getAction() == "changepassword") {
-			return true;
-		}
-		if ($this->getAction() == "changelostpassword") {
-			return true;
-		}
-		if ($this->getAction() == "captcha") {
-			return true;
-		}
-		return false;
 	}
 
 

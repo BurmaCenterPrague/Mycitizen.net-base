@@ -58,6 +58,7 @@ final class GroupPresenter extends BasePresenter
 			}
 			
 			$this->template->last_activity = $this->group->getLastActivity();
+			$this->template->format_date = _t("j.n.Y");
 			
 			$this->visit(2, $group_id);
 			
@@ -371,7 +372,8 @@ final class GroupPresenter extends BasePresenter
 				'show_extended_columns' => true,
 				'connection_columns' => true,
                 'hide_filter'=>false,
-                'membership_detail'=>true
+                'membership_detail'=>true,
+				'show_online_status' => true
 			),
 			'refresh_path' => 'Group:default'
 		);
@@ -435,7 +437,8 @@ final class GroupPresenter extends BasePresenter
 				'connection_columns' => true,
                 'hide_filter'=> true,
                 'membership_detail'=> true,
-                'detail_connections' => true 
+                'detail_connections' => true,
+				'show_online_status' => true 
 			),
 			'refresh_path' => 'Group:default',
 			'refresh_path_params' => array(
@@ -470,7 +473,8 @@ final class GroupPresenter extends BasePresenter
 				'show_extended_columns' => true,
                 'hide_filter'=>true,
 				'connection_columns' => true,
-                'detail_connections' => true 
+                'detail_connections' => true ,
+				'show_online_status' => true
 			),
 			'refresh_path' => 'Group:default',
 			'refresh_path_params' => array(
@@ -506,7 +510,8 @@ final class GroupPresenter extends BasePresenter
 			),
 			'template_body' => 'ListerControlMain_users.phtml',
 			'filter' => array(
-				'group_id' => $group_id
+				'group_id' => $group_id,
+				
 			),
 			'refresh_path' => 'Group:edit',
 			'refresh_path_params' => array(
@@ -514,7 +519,8 @@ final class GroupPresenter extends BasePresenter
 			),
 			'template_variables' => array(
 				'administration' => true,
-                'hide_filter'=>true
+                'hide_filter'=>true,
+				'show_online_status' => true
 			)
 		);
 		$control = new ListerControlMain($this, $name, $options);
@@ -778,6 +784,9 @@ final class GroupPresenter extends BasePresenter
 						$group->updateUser($user_id, array());
 					}
 					Activity::addActivity(Activity::GROUP_JOINED, $group_id, 2, $user_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage, "Lister.detailgroupuserlister");
+					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
 				}
 			}
@@ -806,6 +815,9 @@ final class GroupPresenter extends BasePresenter
 					//insert here
 					$group->removeUser($user_id);
 					Activity::addActivity(Activity::GROUP_LEFT, $group_id, 2, $user_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage, "Lister.detailgroupuserlister");
+					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
 				}
 			}
@@ -1432,7 +1444,14 @@ final class GroupPresenter extends BasePresenter
 
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
-			$resource->remove_message(2, $group_id);
+			if ($resource->remove_message(2, $group_id)) {
+				echo "true";
+				$resource->cleanCache('chatwidget');
+			} else {
+				echo "false";
+			}
+		} else {
+			echo "false";
 		}
 
 		

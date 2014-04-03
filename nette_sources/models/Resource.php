@@ -493,6 +493,15 @@ class Resource extends BaseModel {
 	 *	@return
 	 */
 	public static function getTypeArray() {
+	$types = array(
+		2 => _t('event'),
+		3 => _t('organization'),
+		4 => _t('text information'),
+		5 => _t('video/audio'),
+		6 => _t('other')
+		);
+
+/*
       $result = dibi::fetchAll("SELECT * FROM `resource_type` WHERE `resource_type_group` = 1");
       $languages = array();
       foreach($result as $row) {
@@ -500,7 +509,9 @@ class Resource extends BaseModel {
          $languages[$data['resource_type_id']] = $data['resource_type_name'];
       }
       return $languages;
-   }
+*/
+		return $types;
+	}
 
 
 /**
@@ -733,12 +744,14 @@ class Resource extends BaseModel {
  *	@param
  *	@return
 */
-	public function remove_message($user_id) {
-		$result = dibi::fetchSingle("SELECT `resource_user_group_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_type` = 1 AND `member_id` = %i", $this->numeric_id, $user_id);
+	public function remove_message($object_type, $object_id) {
+		$result = dibi::fetchSingle("SELECT `resource_user_group_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_type` = %i AND `member_id` = %i", $this->numeric_id, $object_type, $object_id);
 		if ($result) {
 			dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
-			$this->cleanCache('messagelisteruser');
+			dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = 0 WHERE `resource_id` = %i AND `member_type` = %i AND `member_id` = %i", $this->numeric_id, $object_type, $object_id);
+			return true;
 		}
+		return false;
    }
 
 
@@ -822,7 +835,7 @@ class Resource extends BaseModel {
 		return $image;
 	}
 
-	private function cleanCache($name)
+	private function cleanCache($name, $resource_id = null)
 	{
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$name);

@@ -167,12 +167,14 @@ final class HomepagePresenter extends BasePresenter
 			),
 			'template_body' => 'ListerControlMain_users.phtml',
 			'filter' => array(
-				'user_id' => $user->getUserId()
+				'user_id' => $user->getUserId(),
+				'sort_by_activity' => true
 			),
 			'refresh_path' => 'Homepage:default',
 			'template_variables' => array(
 				'front_page' => true,
-				'your_connections' => true
+				'your_connections' => true,
+				'show_online_status' => true
 			)
 		);
 		$control = new ListerControlMain($this, $name, $options);
@@ -195,7 +197,8 @@ final class HomepagePresenter extends BasePresenter
 			),
 			'template_body' => 'ListerControlMain_groups.phtml',
 			'filter' => array(
-				'user_id' => $user->getUserId()
+				'user_id' => $user->getUserId(),
+				'sort_by_activity' => true
 			),
 			'refresh_path' => 'Homepage:default',
 			'template_variables' => array(
@@ -223,7 +226,8 @@ final class HomepagePresenter extends BasePresenter
 			),
 			'template_body' => 'ListerControlMain_resources.phtml',
 			'filter' => array(
-				'user_id' => $user->getUserId()
+				'user_id' => $user->getUserId(),
+				'sort_by_activity' => true
 			),
 			'refresh_path' => 'Homepage:default',
 			'template_variables' => array(
@@ -244,11 +248,17 @@ final class HomepagePresenter extends BasePresenter
 	protected function createComponentHomepagerecommendeduserlister($name)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
-		$filter = $this->suggestFilter();
+		$filter = $this->suggestFilter(1);
 		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
 		if ($number < 5) {
-			$filter = $this->suggestFilter(false);
-			$map_used = false;
+			$filter = $this->suggestFilter(10);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+			if ($number < 5) {
+				$filter = $this->suggestFilter(0);
+				$map_used = false;
+			} else {
+				$map_used = true;
+			}
 		} else {
 			$map_used = true;
 		}
@@ -279,14 +289,21 @@ final class HomepagePresenter extends BasePresenter
 	protected function createComponentHomepagerecommendedgrouplister($name)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
-		$filter = $this->suggestFilter();
-		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_GROUP), $filter, true);
+		$filter = $this->suggestFilter(1);
+		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
 		if ($number < 5) {
-			$filter = $this->suggestFilter(false);
-			$map_used = false;
+			$filter = $this->suggestFilter(10);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+			if ($number < 5) {
+				$filter = $this->suggestFilter(0);
+				$map_used = false;
+			} else {
+				$map_used = true;
+			}
 		} else {
 			$map_used = true;
 		}
+
 		
 		$options = array(
 			'itemsPerPage' => 15,
@@ -314,14 +331,21 @@ final class HomepagePresenter extends BasePresenter
 	protected function createComponentHomepagerecommendedresourcelister($name)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
-		$filter = $this->suggestFilter();
-		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
+		$filter = $this->suggestFilter(1);
+		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
 		if ($number < 5) {
-			$filter = $this->suggestFilter(false);
-			$map_used = false;
+			$filter = $this->suggestFilter(10);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+			if ($number < 5) {
+				$filter = $this->suggestFilter(0);
+				$map_used = false;
+			} else {
+				$map_used = true;
+			}
 		} else {
 			$map_used = true;
 		}
+
 		
 		$options = array(
 			'itemsPerPage' => 15,
@@ -344,10 +368,10 @@ final class HomepagePresenter extends BasePresenter
 	/**
 	 *	Sets the filter for retrieving the items according to user's own settings.
 	 *
-	 *	@param bool @restrict_around_own_location Include location on map if available
+	 *	@param bool @radius_multiplicator Include location on map if available
 	 *	@return array filter values
 	 */
-	private function suggestFilter($restrict_around_own_location = true) {
+	private function suggestFilter($radius_multiplicator = 1) {
 
 		$user = NEnvironment::getUser()->getIdentity();
 		$user_id = $user->getUserId();
@@ -373,7 +397,7 @@ final class HomepagePresenter extends BasePresenter
 			$defaults['tags']['all'] = 1;
 		}
 		
-		if (!empty($user) && $user->hasPosition() && $restrict_around_own_location) {
+		if (!empty($user) && $user->hasPosition() && $radius_multiplicator > 0) {
 			
 			$position = $user->getPosition();
 
@@ -389,7 +413,7 @@ final class HomepagePresenter extends BasePresenter
 			$defaults['mapfilter']['radius'] = array(
 				'lat' => $r_x,
 				'lng' => $r_y,
-				'length' => $this->haversineGreatCircleDistance($position['user_position_x'], $position['user_position_y'],$r_x,$r_y)
+				'length' => $this->haversineGreatCircleDistance($position['user_position_x'], $position['user_position_y'],$r_x,$r_y) * $radius_multiplicator
 				);			
 		} else {
 			$defaults['mapfilter']	= NULL;

@@ -45,20 +45,20 @@ abstract class BasePresenter extends NPresenter
 		$this->template->language_name = Language::getLanguageName($language_id);
 		$this->template->language_code = Language::getLanguageCode($language_id);
 
-		$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";		
-		$this->template->footer = WWW_DIR."/files/".$language."/footer.phtml";
+		if (file_exists(WWW_DIR."/files/".$language."/intro.phtml")) {
+			$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";
+		} else {
+			$this->template->intro = '';
+		}
 		
-		define('LOCALE_DIR', WWW_DIR . '/../locale');
+		if (file_exists(WWW_DIR."/files/".$language."/footer.phtml")) {
+			$this->template->footer = WWW_DIR."/files/".$language."/footer.phtml";
+		} else {
+			$this->template->footer = '';
+		}
+		
 		setlocale(LC_ALL, $language);
 
-/*
-		// for gettext
-		$domain = "messages";
-		bindtextdomain($domain, LOCALE_DIR );
-		textdomain($domain);
-		bind_textdomain_codeset($domain, 'UTF-8');
-		textdomain($domain);
-*/	
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
@@ -133,7 +133,7 @@ abstract class BasePresenter extends NPresenter
 			$this->template->username = $userdata['user_login'];
 			$this->template->my_id	= $user->getIdentity()->getUserId();
 			$this->template->fullname = trim($userdata['user_name'].' '.$userdata['user_surname']);
-			$this->template->image = User::getImage($this->template->my_id,'icon',$this->template->username);
+			$this->template->image = User::getImage($this->template->my_id,'icon'); // don't use 2nd param because tooltip interferes with mouseover to keep drawer open
 
 			$user_o = User::create($this->template->my_id);
 			$number_tags = count($user_o->getTags());
@@ -160,8 +160,12 @@ abstract class BasePresenter extends NPresenter
 			
 		} else {
 			if (!$this->isAccessible()) {
-			
-				$this->redirect("User:login");
+				$this->flashMessage("Please sign in first.");
+				$redirect = urlencode($_SERVER['REQUEST_URI']);
+				if (preg_match('/^\/(signin)|(signup)|(user\/logout)\//i', $redirect) === true) {
+					$redirect = '';
+				}
+				$this->redirect("User:login", array("redirect" => $redirect));
 			}
 		}
 		$this->registerHelpers();
@@ -501,7 +505,7 @@ abstract class BasePresenter extends NPresenter
 		$path = '/images/uploads';
 		$max_size = 3000000;
 		$max_width = 800;
-		$max_height = 600;
+		$max_height = 2500;
 
 		$query = NEnvironment::getHttpRequest();
 		$file_info = $query->getFile('upload');
@@ -930,6 +934,29 @@ abstract class BasePresenter extends NPresenter
 
 		$resource->setResourceData($data);
 		if ($resource->save()) echo "true";
+		die();
+	}
+
+	public function handleOnlineStatus($object_type, $object_id, $show_date = 1) {
+		
+		if (Auth::USER <= Auth::isAuthorized($object_type, $object_id)) {
+			switch ($object_type) {
+			case 1:
+				$format_date_time = _t("j.n.Y");
+				$last_activity = User::getRelativeLastActivity($object_id, $format_date_time);
+		
+				if ($last_activity['online']) {
+					echo '<span style="color:#0A0;font-size:2em;margin-top:-4px;" title="'._t("now online").'">&#149</span>';
+				} else {
+					if ($show_date) {
+						echo '<span style="top:5px;position:relative;display:none;" id="activity_'.$object_id.'">'.$last_activity['last_seen'].'</span>';
+					} else {
+						echo ' ';
+					}
+				}
+			break;
+			}
+		}
 		die();
 	}
 }

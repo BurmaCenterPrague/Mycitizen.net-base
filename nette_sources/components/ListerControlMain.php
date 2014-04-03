@@ -177,7 +177,7 @@ class ListerControlMain extends NControl
 		$filter = $this->getFilterArray();
 		if (isset($filter['name']) && strlen($filter['name']) > 0)
 			$active = true;
-		elseif (!empty($filter['type']) && !is_array($filter['type']) && $this->name == 'defaultresourceresourcelister')
+		elseif (!empty($filter['type']) && !is_array($filter['type']) && ($this->name == 'defaultresourceresourcelister') || ($this->name == 'homepageresourcelister'))
 			$active = true;
 		elseif (isset($filter['language']) && $filter['language'] > 0)
 			$active = true;
@@ -244,8 +244,8 @@ class ListerControlMain extends NControl
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-		$template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
-		
+		$template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
+
 		$template->setFile(dirname(__FILE__) . '/' . $this->template_body);
 		if ($this->getParent()->name !== $this->presenter->name) {
 			$template->name = $this->getParent()->name . "-" . $this->name;
@@ -414,7 +414,14 @@ class ListerControlMain extends NControl
 				$data_connections = $this->getPageData($filter_connections);
 				$this->data = array_diff($this->data, $data_connections);
 			}
-			if (!in_array($this->name, $dont_cache)) $cache->save($cache_key, $this->data, array(NCache::EXPIRE => time()+120));
+			if (!in_array($this->name, $dont_cache)) {
+				if (isset($filter["all_members_only"]) && $filter["all_members_only"]["type"] == 1) {
+					$settings = array(NCache::EXPIRE => time()+120, NCache::TAGS => array("userid/".$filter["all_members_only"]["type"]));
+				} else {
+					$settings = array(NCache::EXPIRE => time()+120);
+				}
+				$cache->save($cache_key, $this->data, $settings);
+			}
 		}
 		
 		foreach ($this->data as $key => $data_row) {

@@ -64,6 +64,7 @@ final class ResourcePresenter extends BasePresenter
 			}
 			
 			$this->template->last_activity = $this->resource->getLastActivity();
+			$this->template->format_date = _t("j.n.Y");
 			
 			$this->visit(3, $resource_id);
 			if ($this->resource->hasPosition()) {
@@ -275,14 +276,7 @@ final class ResourcePresenter extends BasePresenter
 	public function actionCreate()
 	{
 		// all users can create resources, but without sufficient permissions they must be private!
-/*
-		$user = NEnvironment::getUser()->getIdentity();
-		
-		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
-			$this->flashMessage(_t("You have no permission to create resources."), 'error');
-			$this->redirect("Resource:default");
-		}
-*/
+
 		$query = NEnvironment::getHttpRequest();
 		$date = $query->getQuery("date");
 		if (!empty($date)) $this->template->initial_selection = true;
@@ -323,6 +317,8 @@ final class ResourcePresenter extends BasePresenter
 				
 				if (!empty($resource_id) && $user->getAccessLevel()<2) {
 					$form['resource_type']->setDisabled();
+				} else {
+					$form->setDefaults(array('resource_type' => 6));
 				}
 				
 			}
@@ -568,7 +564,8 @@ final class ResourcePresenter extends BasePresenter
 			),
 			'refresh_path' => 'Resource:edit',
 			'template_variables' => array(
-				'administration' => true
+				'administration' => true,
+				'show_online_status' => true
 			),
 			'refresh_path_params' => array(
 				'resource_id' => $resource_id
@@ -593,18 +590,18 @@ final class ResourcePresenter extends BasePresenter
 		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
 			$this->flashMessage(_t("Your permissions only allow to create private resources."));
 			$visibility = array(
-						3 => 'private event'
+						3 => _t('private event')
 					);
 		} else {
 			$visibility = array(
-						1 => 'world',
-						2 => 'registered',
-						3 => 'subscribers'
+						1 => _t('world'),
+						2 => _t('registered'),
+						3 => _t('subscribers')
 					);
 		}
 		$language      = Language::getArray();
 		if ($date) {
-			$resource_type = array(2 => 'event');
+			$resource_type = array(2 => _t('event'));
 		} else {
 			$resource_type = Resource::getTypeArray();
 		}
@@ -615,13 +612,13 @@ final class ResourcePresenter extends BasePresenter
 		$form = new NAppForm($this, 'updateform');
 		$form->addGroup();
 		$form->addText('resource_name', _t('Name:'))->addRule(NForm::FILLED, _t('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the resource.'))->id("help-name"));
-//		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 1)->toggle("type_message")->endCondition()->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
 		$form->addSelect('resource_type', _t('Resource type:'), $resource_type)->addCondition(NForm::EQUAL, 2)->toggle("type_event")->endCondition()->addCondition(NForm::EQUAL, 3)->toggle("type_organization")->endCondition()->addCondition(NForm::EQUAL, 4)->toggle("type_information")->endCondition()->addCondition(NForm::EQUAL, 5)->toggle("type_media")->endCondition()->addCondition(NForm::EQUAL, 6)->toggle("type_other");
 		$form->addSelect('resource_visibility_level', _t('Visibility:'), $visibility)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Make the resource visible to everyone (world), only users of this website (registered) or to subscribers of this resource (subscribers).'))->id("help-name"));
 		$form->addSelect('resource_language', _t('Language:'), $language)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Select a language of this resource.'))->id("help-name"));
 		
 		$form->addTextArea('resource_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this resource is about.'))->id("help-name"));
 		
+		$form->setDefaults(array('resource_type' => 6));
 		if (isset($resource_data['resource_type'])) {
 			$form->addHidden('resource_type_exists');
 			$form->setDefaults(array(
@@ -631,17 +628,6 @@ final class ResourcePresenter extends BasePresenter
 		
 		
 		//different resource fields according to type
-/*
-// no editing of messages here!
-		if (!empty($resource_id) && $resource_data['resource_type'] == 1) {
-			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_message"));
-		} else {
-			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_message")->style("display:none"));
-		}
-
-		$form->addTextArea('message_text', _t('Message:'), 100, 10);
-		$form['message_text']->getControlPrototype()->class('ckeditor-small');
-*/	
 		//event
 		if (!empty($resource_id) && $resource_data['resource_type'] == 2) {
 			$form->addGroup()->setOption('container', NHtml::el('fieldset')->id("type_event"));
@@ -827,7 +813,7 @@ final class ResourcePresenter extends BasePresenter
 			case 6: if (isset($values['other_url']) && !empty($values['other_url'])) $url = $values['other_url']; break;
 			case 5: if (isset($values['media_link']) && !empty($values['media_link'])) {
 						switch ($values['media_type']) {
-							case 'media_soundcloud':  $url = 'http://soundcloud.com/'.$values['media_link']; break;
+							case 'media_soundcloud':  $url = ''; break;
 							case 'media_youtube': $direct_url = 'https://img.youtube.com/vi/'.$values['media_link'].'/1.jpg'; break;
 							case 'media_vimeo': $tmp = unserialize(@file_get_contents("http://vimeo.com/api/v2/video/".$values['media_link'].".php")); $direct_url = $tmp[0]['thumbnail_medium']; break;
 							case 'media_bambuser': break;
@@ -947,7 +933,8 @@ final class ResourcePresenter extends BasePresenter
 			'template_body' => 'ListerControlMain_users.phtml',
 			'template_variables' => array(
 				'show_extended_columns' => true,
-				'connection_columns' => true
+				'connection_columns' => true,
+				'show_online_status' => true
 			),
 			'refresh_path' => 'Resource:default'
 		);
@@ -1007,7 +994,8 @@ final class ResourcePresenter extends BasePresenter
 			'template_body' => 'ListerControlMain_users.phtml',
 			'template_variables' => array(
 				'show_extended_columns' => true,
-				'connection_columns' => true
+				'connection_columns' => true,
+				'show_online_status' => true
 			),
 			'refresh_path' => 'Resource:default',
 			'refresh_path_params' => array(
@@ -1187,6 +1175,9 @@ final class ResourcePresenter extends BasePresenter
 						}
 					}
 					Activity::addActivity(Activity::RESOURCE_SUBSCRIBED, $resource_id, 3, $user_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage, "Lister.defaultresourcememberlister");
+					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
 				}
 			}
@@ -1215,6 +1206,9 @@ final class ResourcePresenter extends BasePresenter
 					$resource->removeUser($user_id);
 					Cron::removeCron(1, $user_id, 3, $resource_id);
 					Activity::addActivity(Activity::RESOURCE_UNSUBSCRIBED, $resource_id, 3, $user_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage, "Lister.defaultresourcememberlister");
+					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
 				}
 			}

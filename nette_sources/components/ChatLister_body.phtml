@@ -110,7 +110,7 @@ $baseUri = NEnvironment::getVariable("URI") . '/';
 		$("#currentpage").val(page);
 		reloadChat();
 		$('html, body').animate({
-			scrollTop: $("#chat_container").offset().top
+			scrollTop: $("#message_list_anchor").offset().top
 		}, 2000);
 	}
 	

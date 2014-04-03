@@ -11,13 +11,20 @@
  * @package mycitizen.net
  */
 ?>
+
 <div class="lister-header">
 </div>
 <div class="lister-body">
    {snippet list_body}
 
+		{ifset $template_variables['format_date_time']}
+			{var $format_date_time => $template_variables['format_date_time']}
+		{else}
+			{var $format_date_time => "j.n.Y"}
+		{/if}
+		
 	{if isset($template_variables['map_used']) && $template_variables['map_used']}
-		<img src="{$baseUri}/images/icon-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
+		<img src="{$baseUri}images/red-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
 	{/if}
 
     <div class="list-header-wrapper">
@@ -52,18 +59,24 @@
 	
 	{foreach $data as $row}
 	{? $number_displayed++}
-
-    {if $number_displayed==1 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+	
+	{var $fullname => User::getFullName($row['id'])}
+	{if empty($fullname)}
+	{var $fullname => $row['name']}
+	{/if}
+	
+	{var $avatar => User::getImage($row['id'], 'icon')}
+	
+    {if $number_displayed==1 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) && !isset($template_variables["recommendations"])}
     	<div class="list-body-top-wrapper">
     {/if}
-			{? $id=$row['id']}
         	{? $color='transparent'}    
         	<div class="item{ifset $template_variables['selected_row']}{if $template_variables['selected_row'] == $row['id']} selected_row{/if}{/if}"{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}
-        	{if Auth::isAuthorized(1,$row['id'])>0}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'{/if}"
-			{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *}  onClick="showObjectDetail({$row['type']},{$row['id']})"{/if}>
-						{var $fullname => User::getFullName($row['id'])}
+        	{if Auth::isAuthorized(1,$row['id']) > Auth::UNAUTHORIZED}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'{/if}"
+			{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *}  onClick="showObjectDetail({$row['type']},{$row['id']})"{/if} {ifset $template_variables['friends']}onmouseover="$('#activity_{$row['id']}').show();" onmouseout="$('#activity_{$row['id']}').hide();"{/if}>
+
 						<div class="icon_user" title="{$fullname}">
-							{? echo User::getImage($row['id'], 'icon')}
+							{!$avatar}
 						</div>
 
 				<div class="list-body-name" {if isset($template_variables['group_edit_member_lister']) || isset($template_variables['resource_edit_subscriber_lister'])}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'"{/if}>
@@ -72,14 +85,20 @@
             				<span title="{$fullname}">{$row['name']}</span>
 						{/if}
 					{else}
-						{var $fullname => User::getFullName($row['id'])}
-        		       	{if Auth::isAuthorized(1,$row['id'])>0}
+        		       	{if Auth::isAuthorized(1,$row['id']) > Auth::UNAUTHORIZED}
 	               			<span title="{$fullname}">{$row['name']}</span>               	
         				{else}
         	       			<em>{_"Hidden user"}</em>
         	       		{/if}
 					{/if}
+					{ifset $template_variables['show_online_status']}
+							<div class="online-status-small" object_type="1" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;"></div>
+					{/if}
 				</div>
+
+			{ifset $template_variables['show_last_activity']}
+				<div class="online-status" object_type="1" object_id="{$row['id']}"></div>
+			{/if}
 
 		{ifset $template_variables['your_connections']} {* For home page (my connections) *}
 		{? $user=User::create($row['id']); $access_level=$user->getAccessLevel()}
@@ -93,9 +112,7 @@
 				</div>
 			{/if}
 		{/if}
-				
-
-
+			
 				 	{ifset $template_variables['administration']}
 						{ifset $template_variables['persistent_filter']['group_id']}
 				 		{if Auth::ADMINISTRATOR == Auth::isAuthorized(2,$template_variables['persistent_filter']['group_id'])}
@@ -211,11 +228,11 @@
 					{/if}
 				{/if}
 			</div>
-    {if $number_displayed==3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    {if $number_displayed==3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) && !isset($template_variables["recommendations"]) }
     	</div>
     {/if}
     {/foreach}
-    {if $number_displayed<3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    {if $number_displayed<3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"])  && !isset($template_variables["recommendations"]) }
     	</div>
     {/if}
 	
@@ -242,7 +259,7 @@
 {/if}
 
 
-{if isset($template_variables['detail']) || isset($template_variables['your_connections']) || isset($template_variables['membership_detail']) || isset($template_variables['connection_columns'])}
+{if isset($template_variables['detail']) || isset($template_variables['your_connections']) || isset($template_variables['membership_detail']) || isset($template_variables['connection_columns']) || isset($template_variables['recommendations'])}
 <div class="pager">
    {if $max_page > 1}
    		<a href="{link changePage, page => 1}" class="pager-start{if $currentpage == 1} active{/if}">1</a>

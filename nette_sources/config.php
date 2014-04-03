@@ -8,7 +8,8 @@ define('APP_DIR', WWW_DIR . '/../nette_sources');
 // absolute filesystem path to the libraries
 define('LIBS_DIR', WWW_DIR . '/../lib');
 define('TEMP_DIR', WWW_DIR . '/../nette_sources/temp');
-define('EMAIL_DIR', TEMP_DIR . '/../templates/Emails');
+define('LOCALE_DIR', WWW_DIR . '/../locale');
+
 
 require_once dirname(__FILE__) . '/../lib/Nette/loader.php';
 // Step 2: Configure environment
@@ -27,6 +28,8 @@ dibi::connect(array(
     'database' => NEnvironment::getConfig('database')->database,
     'charset'  => 'utf8',
 ));
+
+require_once(LIBS_DIR.'/TranslationHelper/TranslationHelper.php');
 
 // Step 3: Configure application
 // 3a) get and setup a front controller

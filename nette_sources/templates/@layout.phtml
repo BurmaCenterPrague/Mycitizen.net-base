@@ -20,7 +20,7 @@
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.css" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
 	
 {ifset $load_js_css_tree}
@@ -110,6 +110,8 @@
 	
 	$(document).ready(function() {
 		setInterval("reloadMessages()",60*1000);
+		setInterval("onlineStatus()",65*1000);
+		onlineStatus();
 	});
 	
 	function reloadMessages() {
@@ -128,6 +130,32 @@
 				
 		});
 	}
+	
+	function onlineStatus() {
+		$(".online-status").each(function(){
+			var $status = $(this);
+			var object_type = $status.attr("object_type");
+			var object_id = $status.attr("object_id");
+			$.ajax({
+				url:"{!$baseUri}?do=onlineStatus&object_type="+object_type+"&object_id="+object_id,
+				dataType:"html"
+			}).done(function(payload){
+				$status.html(payload);
+			});
+		});
+
+		$(".online-status-small").each(function(){
+			var $status = $(this);
+			var object_type = $status.attr("object_type");
+			var object_id = $status.attr("object_id");
+			$.ajax({
+				url:"{!$baseUri}?do=onlineStatus&object_type="+object_type+"&object_id="+object_id+"&show_date=0",
+				dataType:"html"
+			}).done(function(payload){
+				$status.html(payload);
+			});
+		});
+	}
 {/if}
 
 	$(document).ready(function(){
@@ -142,6 +170,7 @@
 		        at: {$tooltip_position}, // at the bottom right of...
 			}
 		});
+
 
 	});
 
@@ -265,6 +294,7 @@ $(function() {
         		$(this).slideUp("normal", function() { //slide up
          		});
      		});
+     		$(this).clearQueue();
 		});
 	});
 </script>

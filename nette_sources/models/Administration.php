@@ -318,13 +318,13 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql_user = "SELECT COUNT(`user`.`user_id`) as count FROM `user`";
 				} else {
-					$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`user`.`user_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`user`.`user_status` as status, `user_viewed` as viewed, `user_largeicon` as avatar, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
+					$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`user`.`user_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`user`.`user_status` as status, `user_viewed` as viewed, `user_largeicon` as avatar, `user_last_activity` as last_activity, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
 				}
 				if (isset($filter['user_id'])) {
 					if ($counter_mode) {
 						$sql_user = "SELECT COUNT(`user`.`user_id`) as count FROM `user`";
 					} else {
-						$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`user_friend`.`user_friend_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`user_friend`.`user_friend_status` as status, `user_viewed` as viewed, `user_largeicon` as avatar, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
+						$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`user_friend`.`user_friend_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`user_friend`.`user_friend_status` as status, `user_viewed` as viewed, `user_largeicon` as avatar, `user_last_activity` as last_activity, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
 					}
 					$sql_user .= " INNER JOIN `user_friend` ON (`user_friend`.`friend_id` = `user`.`user_id` AND `user_friend`.`user_id` = '" . $filter['user_id'] . "' AND `user_friend`.`user_friend_status` = '2')";
 				}
@@ -333,7 +333,7 @@ class Administration extends BaseModel
 						$sql_user = "SELECT COUNT(`user`.`user_id`) as count FROM `user`";
 					} else {
 						
-						$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`group_user`.`group_user_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`group_user`.`group_user_status` as status, `user_viewed` as viewed, `user_largeicon` as avatar, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
+						$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`group_user`.`group_user_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`group_user`.`group_user_status` as status, `user_viewed` as viewed, `user_largeicon` as avatar, `user_last_activity` as last_activity, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
 					}
 					$sql_user .= " INNER JOIN `group_user` ON (`group_user`.`user_id` = `user`.`user_id` AND `group_user`.`group_id` = '" . $filter['group_id'] . "')";
 				}
@@ -342,7 +342,7 @@ class Administration extends BaseModel
 						$sql_user = "SELECT COUNT(`user`.`user_id`) as count FROM `user`";
 					} else {
 						
-						$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`resource_user_group`.`resource_user_group_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`user_viewed` as viewed, `user_largeicon` as avatar, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
+						$sql_user = "SELECT '" . User::getType() . "' as type,'user' as type_name,`user`.`user_id` as id,`user`.`user_login` as name,`resource_user_group`.`resource_user_group_access_level` as access_level,`user`.`user_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`user_viewed` as viewed, `user_largeicon` as avatar, `user_last_activity` as last_activity, (SELECT COUNT(`friend_id`) FROM `user_friend` uu WHERE uu.`user_id` = `user`.`user_id` AND uu.`user_friend_status` = '2') as links FROM `user`";
 					}
 					$sql_user .= " INNER JOIN `resource_user_group` ON (`resource_user_group`.`member_id` = `user`.`user_id` AND `resource_user_group`.`member_type` = '1' AND `resource_user_group`.`resource_id` = '" . $filter['resource_id'] . "')";
 					
@@ -355,7 +355,7 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql_group = "SELECT COUNT(`group`.`group_id`) as count FROM `group`";
 				} else {
-					$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`group`.`group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`group`.`group_status` as status,`group_viewed` as viewed, `group_icon` as icon, `group_largeicon` as avatar, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
+					$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`group`.`group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`group`.`group_status` as status,`group_viewed` as viewed, `group_icon` as icon, `group_largeicon` as avatar, `group_last_activity` as last_activity, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
 				}
 				if (isset($filter['user_id'])) {
 					$sql_group .= " INNER JOIN `group_user` ON (`group_user`.`group_id` = `group`.`group_id` AND `group_user`.`user_id` = '" . $filter['user_id'] . "')";
@@ -366,7 +366,7 @@ class Administration extends BaseModel
 					if ($counter_mode) {
 						$sql_group = "SELECT COUNT(`group`.`group_id`) as count FROM `group`";
 					} else {
-						$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`resource_user_group`.`resource_user_group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`group_viewed` as viewed, `group_icon` as icon, `group_largeicon` as avatar, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
+						$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`resource_user_group`.`resource_user_group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`group_viewed` as viewed, `group_icon` as icon, `group_largeicon` as avatar, `group_last_activity` as last_activity, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
 					}
 					$sql_group .= " INNER JOIN `resource_user_group` ON (`resource_user_group`.`member_id` = `group`.`group_id` AND `resource_user_group`.`member_type` = '2' AND `resource_user_group`.`resource_id` = '" . $filter['resource_id'] . "')";
 				}	
@@ -382,7 +382,7 @@ class Administration extends BaseModel
 				if(!empty($user)) {
 					$trash = ",opened.`resource_trash` as trashed,`resource`.`resource_author` as author,`resource`.`resource_type` as message_type";
 				}
-				$sql_resource = "SELECT '".Resource::getType()."' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,`resource`.`resource_description` as description,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, `resource_type` as type, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1' AND ru.`resource_user_group_status` = '1') as links,`resource_data`".$trash." FROM `resource`";
+				$sql_resource = "SELECT '".Resource::getType()."' as type,'resource' as type_name,`resource`.`resource_id` as id,`resource`.`resource_name` as name,`resource`.`resource_description` as description,'0' as access_level,`resource`.`resource_visibility_level` as visibility_level,`resource`.`resource_status` as status,`resource_viewed` as viewed, `resource_type` as type, `resource_last_activity` as last_activity, (SELECT COUNT(`member_id`) FROM `resource_user_group` ru WHERE ru.`resource_id` = `resource`.`resource_id` AND ru.`member_type` = '1' AND ru.`resource_user_group_status` = '1') as links,`resource_data`".$trash." FROM `resource`";
 				}
 				if (!empty($user)) {
 					$sql_resource .= " LEFT JOIN `resource_user_group` opened ON (opened.`resource_id` = `resource`.`resource_id` AND opened.`member_type` = 1 AND opened.`member_id` = '" . $user->getUserId() . "')";
@@ -512,16 +512,6 @@ class Administration extends BaseModel
 
 			}
 		}
-
-/*		
-		if (isset($filter['owner_not']) && $filter['owner_not'] != 'null') {
-			foreach ($types as $object) {
-				$filter_o[$object][] = array(
-					'`'.$object.'.'.$object . '_id` != %i', $filter['owner_not']
-				);
-			}
-		}
-*/
 
 		if (isset($filter['status']) && $filter['status'] != 'null') {
 			foreach ($types as $object) {
@@ -665,7 +655,7 @@ class Administration extends BaseModel
 		}
 		
 		// for group chat
-		If (isset($filter['only_active'])) $status_level = "'1'";
+		if (isset($filter['only_active'])) $status_level = "'1'";
 		
 		//--------------------------
 		foreach ($types as $object) {
@@ -704,7 +694,11 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql .= " )";
 				} else {
-					$sql .= " GROUP BY `id` ORDER BY links DESC)";
+					If (isset($filter['sort_by_activity'])) {
+						$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
+					} else {
+						$sql .= " GROUP BY `id` ORDER BY links DESC)";
+					}
 				}	
 			}
 			
@@ -718,7 +712,11 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql .= " )";
 				} else {
-					$sql .= " GROUP BY `id` ORDER BY links DESC)";
+					If (isset($filter['sort_by_activity'])) {
+						$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
+					} else {
+						$sql .= " GROUP BY `id` ORDER BY links DESC)";
+					}
 				}	
 			}
 			
@@ -748,7 +746,11 @@ class Administration extends BaseModel
 						if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
 							$sql .= " GROUP BY `id` ORDER BY `resource`.`resource_creation_date` DESC)";
 						} else {
-							$sql .= " GROUP BY `id` ORDER BY links DESC, `resource`.`resource_creation_date` DESC,opened.`resource_opened_by_user` ASC)";
+							If (isset($filter['sort_by_activity'])) {
+								$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
+							} else {
+								$sql .= " GROUP BY `id` ORDER BY links DESC, `resource`.`resource_creation_date` DESC,opened.`resource_opened_by_user` ASC)";
+							}
 						}
 					}
 				} else {

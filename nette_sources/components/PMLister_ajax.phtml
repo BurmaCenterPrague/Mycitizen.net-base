@@ -376,12 +376,14 @@
 				var content = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote>';
 				var s = CKEDITOR.instances[instance_name].getSelection();
 				var selected_ranges = s.getRanges(); // save selected range
-				CKEDITOR.instances[instance_name].insertHtml(content);
-				$('html, body').animate({
-					scrollTop: $("#message_top_anchor").offset().top
-				}, 2000);
-				CKEDITOR.instances[instance_name].focus();
-				s.selectRanges(selected_ranges); // restore it
+				$('html,body').animate({
+					scrollTop: $("#chat_top_anchor").offset().top
+				}, 2000, function(){
+					CKEDITOR.instances[instance_name].insertHtml(content);
+					content = '';
+					CKEDITOR.instances[instance_name].focus();				
+					s.selectRanges(selected_ranges); // restore it
+				});
 				markRead(id);
 				$('#markread-'+id).hide();
 				$('#markunread-'+id).show();

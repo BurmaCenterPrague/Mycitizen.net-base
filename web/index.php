@@ -6,6 +6,7 @@ define('APP_DIR', WWW_DIR . '/../nette_sources');
 // absolute filesystem path to the libraries
 define('LIBS_DIR', WWW_DIR . '/../lib');
 define('TEMP_DIR', WWW_DIR . '/../nette_sources/temp');
+define('LOCALE_DIR', WWW_DIR . '/../locale');
 
 // define('EMAIL_DIR', TEMP_DIR . '/../templates/Emails');
 

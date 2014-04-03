@@ -349,7 +349,7 @@ padding-bottom: 10px;
 .list-body-name {
 	font-weight: bold;
 	margin-top: 6px;
-	width: 100px;
+	width: 160px;
     overflow: hidden;
     white-space: nowrap;
     float: left;
@@ -409,15 +409,15 @@ a[id^="tag_"]  {
 	right: 30px;
 }
 .wrapper .list-body-name  {
-	width: 260px;
+	width: 240px;
 }
 .wrapper .list-body-name div {
-	width: 260px;
-overflow: hidden;
-white-space: nowrap;
-text-overflow: ellipsis;
--o-text-overflow: ellipsis;
--ms-text-overflow: ellipsis;
+	width: 250px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	-o-text-overflow: ellipsis;
+	-ms-text-overflow: ellipsis;
 }
 /* wrapper 2. column */
 .user_default_resources,
@@ -982,7 +982,7 @@ box-shadow: 0 0 16px #8A8A8A;
 margin: 5px -23px;
 }
 div[class^="wrapper-home"] .list-body-name {
-width: 170px;
+width: 160px;
 }
 div[class^="wrapper-home"] .list-body-top-wrapper .list-body-name {
 width: 195px;
@@ -1573,7 +1573,7 @@ max-width:500px;
 .activity-box a { text-decoration:none;}
 .activity-item { background-color:#eae9e3; border-radius:10px; padding:5px 20px; margin:5px 0; min-height:30px; text-align:left;cursor:pointer;}
 .activity-time { display:inline-block; width:100px;}
-.activity-link { display:inline-block; width:300px;}
+.activity-link { display:inline-block; width:500px;}
 .activity-link a { color:#000;}
 .activity-link img { display:inline-block; vertical-align:middle; border: 4px solid #A9A295; width: 20px;}
 .activity-description { display:inline-block;}
@@ -1647,4 +1647,8 @@ max-width:500px;
 
 .reload-chat {
 	padding: 1em 0;
+}
+
+.group-subscriptions {
+	padding: 5px 0;
 }

@@ -38,7 +38,7 @@
 
 	{!$img}
 	
-	<h4>{_"Last activity: "}{$last_activity|date:'j.n.Y'}</h4>	
+	<h4>{_"Last activity: "}{$last_activity|date: $format_date}</h4>	
 	
 	<h2>	
 	{ifset $default_data}
@@ -90,12 +90,13 @@
 				{?$i=0}
 				 {foreach $group_tags as $key=>$tag_name}
 				<tr>
-					<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
+					<td>
+						<div class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;height:20px;">
 						{foreach $tag_name->getIdWithPath() as $tag}
 							{if $iterator->isLast()}
-						<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a>
+								<b class="icon-tag" onmouseover="$('#tag_{$i}').show(1000, function(){ $(this).clearQueue().animate({ opacity: 1}, 500)});" style="cursor:pointer;"></b><a href="?do=searchtag&tag_id={$tag['id']}">{? echo _t_tags($tag['name'])}</a>
 							{else}
-						<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+								<span id="tag_{$i}" class="tag-hidden" style="display:none;opacity:0;margin-right:3px;color:#f05a28;"><b class="icon-tag" onmouseover="$('#tag_{$i}').animate({ opacity: 0}, 500, function(){ $(this).clearQueue().hide(1000)});" style="cursor:pointer;"></b><a href="?do=searchtag&tag_id={$tag['id']}">{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
 							{/if}
 						{/foreach}
 						</div>
@@ -307,7 +308,7 @@
 		{ifset $default_data['object_data']['group_id']}
 		<input type="hidden" id="group_id" value="{$default_data['object_data']['group_id']}" />
 		{/if}
-			<div id="message_top_anchor"></div>
+			<div id="message_list_anchor"></div>
 			{control chatlistergroup}
 		{else}
 			<p>{_"The chat is only visible to group members."}</p>

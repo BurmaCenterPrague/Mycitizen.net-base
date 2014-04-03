@@ -101,7 +101,7 @@ final class AdministrationPresenter extends BasePresenter
 	 *	@return
 	 */
 	public function actionTags()
-	{	
+	{
 	}
 
 	/**
@@ -110,7 +110,7 @@ final class AdministrationPresenter extends BasePresenter
 	 *	@return
 	 */
 	public function actionTag()
-	{	
+	{
 	}
 
 	/**

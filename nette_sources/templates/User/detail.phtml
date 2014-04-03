@@ -42,7 +42,7 @@
 
 	{!$img}
 	
-	<h4>{_"Last activity:"} {$last_activity|date:'j.n.Y'}</h4>
+	<h4>{ifset $logged_user}{_"Last activity:"} {$last_activity|date: $format_date} <div class="online-status-small" object_type="1" object_id="{$default_data['object_data']["user_id"]}" style="display:inline;padding:3px 5px;"></div>{/if}</h4>
 	
 	<h2 class="user_login">
 	{ifset $default_data}
@@ -106,12 +106,13 @@
 				{?$i=0}
 				 {foreach $user_tags as $key=>$tag_name}
 					<tr>
-						<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
+						<td>
+							<div class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;height:20px;">
 							{foreach $tag_name->getIdWithPath() as $tag}
 								{if $iterator->isLast()}
-									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a>
+									<b class="icon-tag" onmouseover="$('#tag_{$i}').show(1000, function(){ $(this).clearQueue().animate({ opacity: 1}, 500)});" style="cursor:pointer;"></b><a href="?do=searchtag&tag_id={$tag['id']}">{? echo _t_tags($tag['name'])}</a>
 								{else}
-									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+									<span id="tag_{$i}" class="tag-hidden" style="display:none;opacity:0;margin-right:3px;color:#f05a28;"><b class="icon-tag" onmouseover="$('#tag_{$i}').animate({ opacity: 0}, 500, function(){ $(this).clearQueue().hide(1000)});" style="cursor:pointer;"></b><a href="?do=searchtag&tag_id={$tag['id']}">{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
 								{/if}
 							{/foreach}
 							</div>
@@ -247,10 +248,8 @@
 		 {/if}
 		 </div>
 		 <div class="cleaner"></div>
-	</div>
-
-{if Auth::ADMINISTRATOR == Auth::isAuthorized(1,$default_data['object_data']["user_id"])}
-	<div class="friends-list" style="padding-top:20px;">
+{if Auth::UNAUTHORIZED < Auth::isAuthorized(1,$default_data['object_data']["user_id"])}
+	<div class="friends-list" style="padding:20px; margin-top:10px; border-top: solid 1px #CCC;">
 		{ifset $thats_me}
 			<h2>{_"My friends"}</h2>
 		{else}
@@ -259,11 +258,13 @@
 		{control friendlister:body}
 	</div>
 {/if}
+		 <div class="cleaner"></div>
+	</div>
 
 {if !isset($thats_me)}
 	<div class="user-detail-pm">
 		<div class="user-detail-pm-send">
-			<div id="message_top_anchor"></div>
+			<div id="chat_top_anchor"></div>
 			{* Writing messages is possible for friend only. *}
 			<h2>{_"Send a private message to %s", $data['user_login']}</h2>
 			{if $default_data['object_data']['user_friend_relationship'] == 2 && $default_data['object_data']['friend_user_relationship'] == 2}
@@ -286,16 +287,6 @@
 		{ifset $logged_user}
 		<div class="user-detail-pm-read">
 			<h3>{_"My messages exchanged with %s", $data['user_login']}</h3>
-
-{ifset $needsearchformnamehere}
-<!--
-		<div class="filter-block">
-			<input type="text" class="text" name="name" id="search_name" value="{ifset $value}{$value}{/if}" placeholder="{_"Filter by name"}" title="{_"Show only messages by senders with matching names.<ul><li>Type to search only on this page.</li><li>Type and press enter to search on all pages.</li></ul>"}" autocomplete="off"/>
-			<a href="javascript:void(0);" id="clear_button" class="button" name="clear" >{_"Clear"}</a>
-		</div>
--->
-{/if}
-
 		<div class="reload-messages" style="float:right;">
 			<a href="#settings_container" id="settings_box" title="{_"Notification Settings"}"><b class="icon-setting"></b></a>
 		</div>
@@ -329,30 +320,6 @@
 <script>
 	$(document).ready(function() {
 
-{ifset $needsearchformnamehere}
-/*	
-		$("#search_name").keyup(function(event){
-			if(event.keyCode == 13){
-				// submit as search
-				reloadChat();
-			} else {
-				// search on page only
-				textChanged();
-			}
-		});
-
-		$('#clear_button').click(function(){
-			var name = $('#search_name').val();
-			if (name == '') {
-				reloadChat();
-			} else {
-				$('#search_name').val('');
-				showAll();
-			}
-		});
-	
-*/
-{/if}	
 		$('#reload_button').click(function(){
 		   reloadChat();
 		});
@@ -361,43 +328,6 @@
 	
 	var interval;
 	var modifiedDate;
-
-{ifset $needsearchformnamehere}
-/*
-	var text='';
-	var search='';
-
-	function textChanged() {
-		search = $('#search_name').val();
-		if (search == text) {
-			return false;
-		}
-		search = search.trim();
-		filter();
-		text = search;
-	}
-	
-	$.extend($.expr[":"], {
-		"containsNC": function(elem, i, match, array) {
-			return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
-		}
-	});
-
-	function showAll() {
-		$('.chat-author').parent().parent().parent().slideDown(600);
-	}
-	
-	function filter() {
-		if (search.length<text.length) {
-			$('.chat-author').parent().parent().parent().slideDown(600);
-			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
-		}
-		else if (search!='') {
-			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
-		}
-	}
-*/
-{/if}
 
 	$(document).ready(function() {
 		interval = setInterval("chatTimer()",30*1000);
@@ -416,7 +346,7 @@
 		$("#currentpage").val(page);
 		reloadChat();
 		$('html, body').animate({
-			scrollTop: $("#message_top_anchor").offset().top
+			scrollTop: $("#message_list_anchor").offset().top
 		}, 2000);
 	}
 	
@@ -540,7 +470,7 @@
 		});
 	});
 </script>
-
+				<div id="message_list_anchor"></div>
 				<div id="chat_container">
 					{_"Loading chat.."}
 				{ifset $currentpage}

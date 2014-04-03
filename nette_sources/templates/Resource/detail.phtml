@@ -53,7 +53,7 @@
 
 	<b class="main-icon icon-{$resource_type}" title="{$resource_type_label}"></b>
 		
-	<h4>{_"Last activity: "}{$last_activity|date:'j.n.Y'}</h4>
+	<h4>{_"Last activity: "}{$last_activity|date: $format_date}</h4>
 
 	<h2>
 	{ifset $default_data}
@@ -105,12 +105,13 @@
 				{?$i=0}
 				 {foreach $resource_tags as $key=>$tag_name}
 					<tr>
-						<td><div onmouseover="$('#tag_{$i}').show();" onmouseout="$('#tag_{$i}').hide();" class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;">
+						<td>
+							<div class="tag-outer" style="white-space:nowrap; overflow:hidden;text-overflow:ellipsis;width:200px;height:20px;">
 							{foreach $tag_name->getIdWithPath() as $tag}
 								{if $iterator->isLast()}
-									<a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a>
+									<b class="icon-tag" onmouseover="$('#tag_{$i}').show(1000, function(){ $(this).clearQueue().animate({ opacity: 1}, 500)});" style="cursor:pointer;"></b><a href="?do=searchtag&tag_id={$tag['id']}">{? echo _t_tags($tag['name'])}</a>
 								{else}
-									<span id="tag_{$i}" class="tag-hidden" style="display:none;margin-right:3px;color:#f05a28;"><a href="?do=searchtag&tag_id={$tag['id']}"><b class="icon-tag"></b>{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
+									<span id="tag_{$i}" class="tag-hidden" style="display:none;opacity:0;margin-right:3px;color:#f05a28;"><b class="icon-tag" onmouseover="$('#tag_{$i}').animate({ opacity: 0}, 500, function(){ $(this).clearQueue().hide(1000)});" style="cursor:pointer;"></b><a href="?do=searchtag&tag_id={$tag['id']}">{? echo _t_tags($tag['name'])}</a> <div class="tag-inner" style="width=0;height:0;border-left: 5px solid #BCB6AA;border-top: 5px solid transparent; border-bottom: 5px solid transparent;display:inline-block;"></div></span>
 								{/if}
 							{/foreach}
 							</div>
@@ -339,8 +340,11 @@
 			<iframe src="http://embed.bambuser.com/broadcast/{$data['bambuser_link']}" width="640" height="480" frameborder="0">Your browser does not support iframes.</iframe>
 		{/if}
 		{if $data['media_type'] == 'media_soundcloud'}
+{if $old_souncloud_api}
 			<script src="http://w.soundcloud.com/player/api.js" type="text/javascript"></script>
 			<iframe width="640" height="200" scrolling="no" frameborder="no" src="http://w.soundcloud.com/player/?url=www.soundcloud.com/{$data['soundcloud_link']}&show_artwork=true"></iframe>
+{/if}
+			<iframe width="100%" height="200" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/{$data['soundcloud_link']}&amp;auto_play=false&amp;hide_related=false&amp;visual=false"></iframe>
 		{/if}
 
 		{/if}

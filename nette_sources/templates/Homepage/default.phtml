@@ -19,37 +19,36 @@ $homepage = true;
 {if 'I want' == 'filter on home page'}
 <div class="homepage_default_A">
 	<div class="homepage_default_filter">
-		<a href="#filter_container" id="filter_box_a" class="filter-button-{control userHomepage:filterstatus}" title='{control userHomepage:filtercheck}'>{control userHomepage:filtercheck}</a>
-		<div id="filter_container" style="display:none;">
-			{control filter}
-		</div>
-		
-		<script>
-		$(document).ready(function(){
-			if ($('#filter_box_a').attr('class') == 'filter-button-off') {
-				$('#frmfilter-reset').hide();
-			}
-		});
-		
-		$(document).ready(function(){
-			loadData();
-		});
-		</script>
-			
-		<script type="text/javascript">
-		$(function() {
-			$("#filter_box_a").fancybox({
-				minWidth:700,
-				minHeight:500,
-				closeBtn : true,
-				helpers : {
-					overlay : null,
-					 title : null
-				},
+	
+			<a href="#filter_container" id="filter_box_a" class="filter-button-{control homepageresourcelister:filterstatus}" title="{_"Use the filter to narrow down the list of items"}.">{control homepageresourcelister:filtercheck}</a>
+			<div id="filter_container" style="display:none;">
+				{control homepageresourcelister:filter}
+			</div>
+			<script>
+			$(document).ready(function(){
+				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+					$('#frmfilter-reset').hide();
+				} else {
+					$('#filter-help').hide();
+				}
 			});
-		});
-		</script>
-	</div>
+			</script>
+				
+			<script type="text/javascript">
+			$(function() {
+				$("#filter_box_a").fancybox({
+					minWidth : 1000,
+					minHeight : 500,
+					closeBtn : true,
+					helpers : {
+						overlay : {
+							css: {'background' : 'rgba(200, 200, 200, .5)'}
+						},
+						title : null
+					},
+				});
+			});
+			</script>
 </div>
 {/if}
 
@@ -208,7 +207,7 @@ $homepage = true;
   		});
 	});
 </script>
-	<div class="cleaner"></div>
+
 </div>
 </div>
 <script>

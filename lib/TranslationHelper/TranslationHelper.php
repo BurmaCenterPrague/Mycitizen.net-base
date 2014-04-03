@@ -24,7 +24,7 @@ function _t_set($language) {
 	}
 	$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 	$session->language = $language;
-	$t = new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language);
+	$t = new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language);
 	return $t->locale;
 }
 
@@ -43,7 +43,7 @@ function _t($message) {
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-		$t = new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language);
+		$t = new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language);
 	}
 	$args = func_get_args();
 	return call_user_func_array(array($t,"translate"),$args);
@@ -65,10 +65,10 @@ function _t_tags($message) {
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-		if (file_exists('../locale/' . $language . '/LC_MESSAGES/'.$domain.'.mo')) {
-			$td = new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/'.$domain.'.mo', $language);
+		if (file_exists(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/'.$domain.'.mo')) {
+			$td = new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/'.$domain.'.mo', $language);
 		} else {
-			$td = new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language);
+			$td = new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language);
 		}
 	}
 

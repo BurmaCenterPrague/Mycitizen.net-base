@@ -26,10 +26,47 @@ class Cron extends BaseModel
 	 *	@return void
 	 */
 	public function run() {
+
+		if (isset($this->verbose)) {
+			echo date("r").': '.'Cron has started.<br/>';
+		}
 	
-		// remember language
+		// remember language - if run by user
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language_prev = $session->language;
+
+		if (isset($this->verbose)) {
+			echo date("r").': '.'Queuing notifications to be sent ...<br/>';
+		}
+
+		$users_a = User::getAllUsersForCron();
+		if (is_array($users_a)) {
+			foreach ($users_a as $user_a) {
+				if (User::getUnreadMessages($user_a['user_id'])) {
+					$language = Language::getFlag($user_a['user_language']);
+					if (empty($language)) {
+						$language = 'en_US';
+					}
+					_t_set($language);
+					$email_text = _t("Dear %s", $user_a['user_login']). ",\n\n";
+					$email_text .= _t("You have unread messages!");
+					Cron::addCron(time() - 1, 1, $user_a['user_id'], $email_text, 0, 0);
+					User::setUserCronSent($user_a['user_id']);
+					if (isset($this->verbose)) {
+						echo date("r").': '.'User with id '.$user_a['user_id'].' will receive a notification about unread messages.<br/>';
+					}
+				}
+			}
+		}
+
+		if (isset($this->verbose)) {
+			echo date("r").': '.' ... done<br/>';
+		}
+
+		
+		if (isset($this->verbose)) {
+			echo date("r").': '.'Processing queue ...<br/>';
+		}
 
 		$this->setCronTime();
 		$sender_name = NEnvironment::getVariable("PROJECT_NAME");
@@ -85,14 +122,14 @@ class Cron extends BaseModel
 				if (mail($email, $mail_subject, $mail_body, $options)) {
 			
 					if (isset($this->verbose)) {
-						echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
+						echo date("r").': '.'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
 					}
 					dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
 				
 					} else {
 					
 					if (isset($this->verbose)) {
-						echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
+						echo date("r").': '.'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
 					}
 					dibi::query("UPDATE `cron` SET `executed_time` = 2 WHERE `cron_id` = %i", $task['cron_id']);
 				}
@@ -151,13 +188,13 @@ class Cron extends BaseModel
 					if (mail($email, $mail_subject, $mail_body, $options)) {
 			
 						if (isset($this->verbose)) {
-							echo 'Cron task #'.$task['cron_id'].': Email sent to '.$email.' (member of group '.$group_name.')<br/>';
+							echo date("r").': '.'Cron task #'.$task['cron_id'].': Email sent to '.$email.' (member of group '.$group_name.')<br/>';
 						}
 
 						dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
 				
 					} elseif (isset($this->verbose)) {
-						echo 'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.' (member of group '.$group_name.')<br/>';
+						echo date("r").': '.'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.' (member of group '.$group_name.')<br/>';
 					}
 					
 				}
@@ -167,36 +204,16 @@ class Cron extends BaseModel
 			
 		}
 
-
 		if (isset($this->verbose)) {
-			echo 'Queuing notifications to be sent ...<br/>';
+			echo date("r").': '.' ... done<br/>';
 		}
 
-		$users_a = User::getAllUsersForCron();
-		if (is_array($users_a)) {
-			foreach ($users_a as $user_a) {
-				if (User::getUnreadMessages($user_a['user_id'])) {
-					$language = Language::getFlag($user_a['user_language']);
-					if (empty($language)) {
-						$language = 'en_US';
-					}
-					_t_set($language);
-					$email_text = _t("Dear %s", $user_a['user_login']). ",\n\n";
-					$email_text .= _t("You have unread messages!");
-					Cron::addCron(time(), 1, $user_a['user_id'], $email_text, 0, 0);
-					User::setUserCronSent($user_a['user_id']);
-					if (isset($this->verbose)) {
-						echo 'User with id '.$user_a['user_id'].' will receive a notification about unread messages.<br/>';
-					}
-				}
-			}
-		}
 		
-		// return to previous language
+		// restore previous language
 		_t_set($language_prev);
 		
 		if (isset($this->verbose)) {
-			echo 'Done.<br/>';
+			echo date("r").': '.'Cron has finished.<br/>';
 		}
 
 	}

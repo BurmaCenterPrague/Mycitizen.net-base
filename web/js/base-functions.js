@@ -222,9 +222,12 @@ function warning(object_type,object_id,warning_type) {
 }
 
 function removeMessageNow(id) {
-	$.post("?message_id="+id+"&do=removeMessage");
-	$('#totrash-'+id).hide();
-	$('#chat_message_'+id).slideUp('normal');
+	$.post("?message_id="+id+"&do=removeMessage", function(data) {
+		if (data == "true") {
+			$('#totrash-'+id).hide();
+			$('#chat_message_'+id).slideUp('normal');	
+		}
+	});
 }
 
 
