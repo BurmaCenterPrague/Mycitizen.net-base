@@ -12,13 +12,14 @@
  */
 ?>
 <div class="lister-header">
+	{if isset($template_variables['map_used']) && $template_variables['map_used']}
+		<img src="{$baseUri}images/map-circle-active.png" title="{_"Searched around your location."}" style="float:right;padding:10px;"/>
+	{elseif isset($template_variables['map_used']) && !$template_variables['map_used']}
+		<img src="{$baseUri}images/map-circle-inactive.png" title="{_"Searched globally because not enough was found around your location."}" style="float:right;padding:10px;"/>
+	{/if}
 </div>
 <div class="lister-body">
    {snippet list_body}
-
-	{if isset($template_variables['map_used']) && $template_variables['map_used']}
-		<img src="{$baseUri}images/red-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
-	{/if}
 
     <div class="list-header-wrapper">
         <div class="list-header-name">

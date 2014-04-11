@@ -45,7 +45,7 @@ class ExternalFilter extends NControl
 				$this->refresh_path_params = $options['refresh_path_params'];
 			}
 		}
-		
+
 		if (isset($options['hide_filter'])) {
 			$this->hide_filter = true;
 		}
@@ -369,6 +369,7 @@ class ExternalFilter extends NControl
 		}
 	}
 
+
 	/**
 	 * Calculates the great-circle distance between two points, with
 	 * the Haversine formula.
@@ -396,6 +397,7 @@ class ExternalFilter extends NControl
 	  return $angle * $earthRadius;
 	}
 
+
 /**
  *	Synchronizes the three separate filters for user, group and resource category pages. (Invoked if variable.GLOBAL_FILTER is set in config.ini)
  *	@param	array $filter optional filter to merge other session filter into
@@ -404,7 +406,11 @@ class ExternalFilter extends NControl
 	public function syncFilterArray($filter=array()) {
 
 		$sync = array('userlister', 'grouplister', 'defaultresourceresourcelister');
-
+		
+		if (!count(array_intersect($this->components, $sync))) {
+			return $filter;
+		}
+		
 		if (empty($filter)) {		
 			foreach ($sync as $component_name) {
 				$session = NEnvironment::getSession()->getNamespace($component_name);
@@ -478,7 +484,7 @@ class ExternalFilter extends NControl
 	 */
 	public function clearFilterArray($filter = null)
 	{
-		if (NEnvironment::getVariable("GLOBAL_FILTER")) {
+		if (NEnvironment::getVariable("GLOBAL_FILTER") && !count(array_intersect($this->components, array("homepagefriendlister", "homepagegrouplister", "homepageresourcelister")))) {
 			$this->components[]='defaultresourceresourcelister';
 			$this->components[]='userlister';
 			$this->components[]='grouplister';
@@ -501,7 +507,6 @@ class ExternalFilter extends NControl
 				}
 			}
 		}
-
 	}
 
 	/**

@@ -443,6 +443,13 @@ final class ResourcePresenter extends BasePresenter
 		
 		}
 
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.detailresourcegrouplister");
+		$cache->clean(array(NCache::ALL => TRUE));
+		unset($cache);
+		$cache = new NCache($storage, "Lister.defaultresourcegrouplister");
+		$cache->clean(array(NCache::ALL => TRUE));
+
 		$this->redirect("Resource:default", array(
 				'resource_id' => $this->resource->getResourceId()
 			));
@@ -823,6 +830,11 @@ final class ResourcePresenter extends BasePresenter
 
 		}
 
+		$bad_extensions = array('.pdf');
+		if (!empty($url) && in_array(strtolower(substr($url,-4,4)),$bad_extensions)) {
+			$url = '';
+		}
+
 		if (isset($direct_url) && !empty($direct_url)) {
 			// for all URLs that don't need a callback but where the resource is already avalible
 			$this->saveDirectScreenshot($resource_id,$direct_url);
@@ -1073,7 +1085,7 @@ final class ResourcePresenter extends BasePresenter
 				'selected_row' => $selected_row,
 				'show_extended_columns' => true,
 				'user_group_resource_page' => true,
-				'tooltip_position' => 'bottom left'
+//				'tooltip_position' => 'bottom left'
 			)
 		);
 		
@@ -1092,8 +1104,8 @@ final class ResourcePresenter extends BasePresenter
 		if (!empty($this->resource)) {
 			$resource_id = $this->resource->getResourceId();
 			if (!empty($resource_id)) {
-				
 				$this->resource->insertTag($tag_id);
+				Activity::addActivity(Activity::RESOURCE_UPDATED, $resource_id, 3);
 				$this->resource->setLastActivity();
 				$this->template->resource_tags = $this->resource->groupSortTags($this->resource->getTags());
 				$this->invalidateControl('tagHandle');
@@ -1113,6 +1125,7 @@ final class ResourcePresenter extends BasePresenter
 			$resource_id = $this->resource->getResourceId();
 			if (!empty($resource_id)) {
 				$this->resource->removeTag($tag_id);
+				Activity::addActivity(Activity::RESOURCE_UPDATED, $resource_id, 3);
 				$this->resource->setLastActivity();
 				$this->template->resource_tags = $this->resource->groupSortTags($this->resource->getTags());
 				$this->invalidateControl('tagHandle');
@@ -1176,6 +1189,9 @@ final class ResourcePresenter extends BasePresenter
 					}
 					Activity::addActivity(Activity::RESOURCE_SUBSCRIBED, $resource_id, 3, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage, "Lister.detailresourcememberlister");
+					$cache->clean(array(NCache::ALL => TRUE));
+					unset($cache);
 					$cache = new NCache($storage, "Lister.defaultresourcememberlister");
 					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
@@ -1207,6 +1223,9 @@ final class ResourcePresenter extends BasePresenter
 					Cron::removeCron(1, $user_id, 3, $resource_id);
 					Activity::addActivity(Activity::RESOURCE_UNSUBSCRIBED, $resource_id, 3, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage, "Lister.detailresourcememberlister");
+					$cache->clean(array(NCache::ALL => TRUE));
+					unset($cache);
 					$cache = new NCache($storage, "Lister.defaultresourcememberlister");
 					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";

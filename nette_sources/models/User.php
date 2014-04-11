@@ -1060,7 +1060,9 @@ class User extends BaseModel implements IIdentity
 		$timestamp = strtotime($result);
 		$online = false;
 		if ($timestamp !== false) {
-			if (abs($timestamp - time()) < 60 ) {
+			if ($timestamp <= 0) {
+				$result = _t("never online");			
+			} elseif (abs($timestamp - time()) < 60 ) {
 				$result = _t("now online");
 				$online = true;
 			} elseif (abs($timestamp - time()) < 60*5) {
@@ -1070,6 +1072,8 @@ class User extends BaseModel implements IIdentity
 			} else {
 				$result = _t("Last seen:")." ".date($format, $timestamp);
 			}
+		} else {
+			$result = "";
 		}
 		return array('last_seen' => $result, 'online' => $online);
 	}

@@ -1,14 +1,18 @@
 <?php
 // absolute filesystem path to the web root
 define('WWW_DIR', realpath(dirname(__FILE__)));
-// absolute filesystem path to the application root
+//define('SHARED_DIR', realpath(dirname(__FILE__)) . '/../../mcn-shared-code');
+
+// multi-site
+# define('APP_DIR', SHARED_DIR . '/nette_sources');
+# define('LIBS_DIR', SHARED_DIR . '/lib');
+// single-site
 define('APP_DIR', WWW_DIR . '/../nette_sources');
-// absolute filesystem path to the libraries
 define('LIBS_DIR', WWW_DIR . '/../lib');
-define('TEMP_DIR', WWW_DIR . '/../nette_sources/temp');
+
+define('BOOTSTRAP_DIR', WWW_DIR . '/../nette_sources');
+define('TEMP_DIR', BOOTSTRAP_DIR . '/temp');
 define('LOCALE_DIR', WWW_DIR . '/../locale');
 
-// define('EMAIL_DIR', TEMP_DIR . '/../templates/Emails');
-
 // load bootstrap file
-require APP_DIR . '/bootstrap.php';
+require BOOTSTRAP_DIR . '/bootstrap.php';

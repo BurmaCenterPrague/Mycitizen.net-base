@@ -34,12 +34,12 @@ final class HomepagePresenter extends BasePresenter
 	public function actionDefault()
 	{
 		// detecting mobile devices
-		require_once LIBS_DIR.'/Mobile-Detect/Mobile_Detect.php';
+/*		require_once LIBS_DIR.'/Mobile-Detect/Mobile_Detect.php';
 		$detect = new Mobile_Detect;
 		if ($detect->isMobile()) $this->template->mobile = true;
 		unset($detect);
-		
-		$this->template->tooltip_position = 'bottom center';
+*/	
+//		$this->template->tooltip_position = 'bottom center';
 		$this->template->load_fullcalendar = true;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		
@@ -55,14 +55,16 @@ final class HomepagePresenter extends BasePresenter
 	 *	@return
 	 */
 	protected function createComponentFilter($name)
-	{
-		$user = NEnvironment::getUser()->getIdentity();
-		
+	{	
 		$options = array(
 			'components' => array(
-				'userHomepage',
+/*				'userHomepage',
 				'groupHomepage',
 				'resourceHomepage'
+*/
+				'homepagefriendlister',
+				'homepagegrouplister',
+				'homepageresourcelister'
 			),
 			'refresh_path' => 'Homepage:default',
 			'include_map' => true,
@@ -72,9 +74,12 @@ final class HomepagePresenter extends BasePresenter
 			'include_tags' => true,
 			'include_pairing' => true
 		);
+/*
+		$user = NEnvironment::getUser()->getIdentity();
 		if (!empty($user)) {
 			$options['include_suggest'] = true;
 		}
+*/
 		$control = new ExternalFilter($this, $name, $options);
 		return $control;
 	}
@@ -249,10 +254,10 @@ final class HomepagePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$filter = $this->suggestFilter(1);
-		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+		$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_USER);
 		if ($number < 5) {
 			$filter = $this->suggestFilter(10);
-			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_USER);
 			if ($number < 5) {
 				$filter = $this->suggestFilter(0);
 				$map_used = false;
@@ -280,7 +285,8 @@ final class HomepagePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
 	*	List groups where user is member on home page when logged in.
 	*	@param $name string Namespace for lister
@@ -290,10 +296,10 @@ final class HomepagePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$filter = $this->suggestFilter(1);
-		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+		$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_GROUP);
 		if ($number < 5) {
 			$filter = $this->suggestFilter(10);
-			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_GROUP);
 			if ($number < 5) {
 				$filter = $this->suggestFilter(0);
 				$map_used = false;
@@ -332,10 +338,10 @@ final class HomepagePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$filter = $this->suggestFilter(1);
-		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+		$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_RESOURCE);
 		if ($number < 5) {
 			$filter = $this->suggestFilter(10);
-			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
+			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_RESOURCE);
 			if ($number < 5) {
 				$filter = $this->suggestFilter(0);
 				$map_used = false;
@@ -365,6 +371,32 @@ final class HomepagePresenter extends BasePresenter
 		return $control;
 	}
 
+
+	/**
+	 *	Retrieve number of items according to the filter and the listertype.
+	 *
+	 *	@param array @filter
+	 *	@param array @type
+	 *	@return array filter values
+	 */
+	private function getNumber($filter, $type) {
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Filter.number");
+		$cache->clean();
+		$key = md5(json_encode($filter)).'-'.$type;
+		if ($cache->offsetExists($key)) {
+			$number = $cache->offsetGet($key);
+			return $number;
+		}
+
+		$number = Administration::getData(array($type), $filter, true);
+		
+		$cache->save($key, $number, array(NCache::EXPIRE => time()+120));
+		
+		return $number;
+	}
+
+
 	/**
 	 *	Sets the filter for retrieving the items according to user's own settings.
 	 *
@@ -375,30 +407,34 @@ final class HomepagePresenter extends BasePresenter
 
 		$user = NEnvironment::getUser()->getIdentity();
 		$user_id = $user->getUserId();
+		$key = $user_id.'-'.$radius_multiplicator;
 		
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Filter.suggest");
-		$cache->clean();		
-		if ($cache->offsetExists($user_id)) {
-			$filter = $cache->offsetGet($user_id);
+		$cache->clean();
+		if ($cache->offsetExists($key)) {
+			$filter = $cache->offsetGet($key);
 			return $filter;
 		}
 
 		if (!empty($user)) {
-			$ud = $user->getUserData();
-			$t = $user->getTags();
-			$defaults['tags']['all'] = 0;
-			foreach ($t as $t_row) {
-				if ($t_row->getTagId() != "") {
-					$defaults['tags'][$t_row->getTagId()] = 1;
+			$user_data = $user->getUserData();
+			$tags = $user->getTags();
+			if (count($tags) == 0) {
+				$defaults['tags']['all'] = 1;
+			} else {
+				$defaults['tags']['all'] = 0;
+				foreach ($tags as $tag_row) {
+					if ($tag_row->getTagId()) {
+						$defaults['tags'][$tag_row->getTagId()] = 1;
+					}
 				}
 			}
 		} else {
 			$defaults['tags']['all'] = 1;
 		}
 		
-		if (!empty($user) && $user->hasPosition() && $radius_multiplicator > 0) {
-			
+		if ($radius_multiplicator > 0 && !empty($user) && $user->hasPosition()) {
 			$position = $user->getPosition();
 
 			$distance = NEnvironment::getVariable("MAP_SUGGEST_DST");
@@ -423,11 +459,11 @@ final class HomepagePresenter extends BasePresenter
 		$defaults['name']           = "";
 		$defaults['status']         = NULL;
 		$defaults['trash']          = NULL;
-		$defaults['language']       = $ud['user_language'];
+		$defaults['language']       = $user_data['user_language'];
 		$defaults['type']           = "all";
 		$defaults['exclude_connections_user_id'] = $user_id;
 		
-		$cache->save($user_id, $defaults, array(NCache::EXPIRE => time()+120));
+		$cache->save($key, $defaults, array(NCache::EXPIRE => time()+120));
 		return $defaults;
 	}
 

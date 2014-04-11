@@ -11,8 +11,12 @@
  * @package mycitizen.net
  */
 ?>
-
 <div class="lister-header">
+	{if isset($template_variables['map_used']) && $template_variables['map_used']}
+		<img src="{$baseUri}images/map-circle-active.png" title="{_"Searched around your location."}" style="float:right;padding:10px;"/>
+	{elseif isset($template_variables['map_used']) && !$template_variables['map_used']}
+		<img src="{$baseUri}images/map-circle-inactive.png" title="{_"Searched globally because not enough was found around your location."}" style="float:right;padding:10px;"/>
+	{/if}
 </div>
 <div class="lister-body">
    {snippet list_body}
@@ -22,10 +26,6 @@
 		{else}
 			{var $format_date_time => "j.n.Y"}
 		{/if}
-		
-	{if isset($template_variables['map_used']) && $template_variables['map_used']}
-		<img src="{$baseUri}images/red-pin.png" title="{_"Searched around your location."}" style="float:right;padding:5px;"/>
-	{/if}
 
     <div class="list-header-wrapper">
         <div class="list-header-name">
@@ -66,6 +66,10 @@
 	{/if}
 	
 	{var $avatar => User::getImage($row['id'], 'icon')}
+	{ifset $template_variables['show_online_status']}
+		{var $last_activity_a => User::getRelativeLastActivity($row['id'], $format_date_time)}
+		{var $last_activity => $last_activity_a['last_seen']}
+	{/if}
 	
     {if $number_displayed==1 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) && !isset($template_variables["recommendations"])}
     	<div class="list-body-top-wrapper">
@@ -73,31 +77,32 @@
         	{? $color='transparent'}    
         	<div class="item{ifset $template_variables['selected_row']}{if $template_variables['selected_row'] == $row['id']} selected_row{/if}{/if}"{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}
         	{if Auth::isAuthorized(1,$row['id']) > Auth::UNAUTHORIZED}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'{/if}"
-			{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *}  onClick="showObjectDetail({$row['type']},{$row['id']})"{/if} {ifset $template_variables['friends']}onmouseover="$('#activity_{$row['id']}').show();" onmouseout="$('#activity_{$row['id']}').hide();"{/if}>
+			{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *}  onClick="showObjectDetail({$row['type']},{$row['id']})"{/if} {ifset $template_variables['show_last_activity']}onmouseover="$('#status_{$row['id']}').show();" onmouseout="$('#status_{$row['id']}').hide();"{/if}>
 
-						<div class="icon_user" title="{$fullname}">
+						<div class="icon_user online-status-title" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">
 							{!$avatar}
 						</div>
 
 				<div class="list-body-name" {if isset($template_variables['group_edit_member_lister']) || isset($template_variables['resource_edit_subscriber_lister'])}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'"{/if}>
 					{ifset $template_variables['detail']}
 						{if $template_variables['detail'] == "ajax"}
-            				<span title="{$fullname}">{$row['name']}</span>
+            				<span class="online-status-title" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">{$row['name']}</span>
 						{/if}
 					{else}
         		       	{if Auth::isAuthorized(1,$row['id']) > Auth::UNAUTHORIZED}
-	               			<span title="{$fullname}">{$row['name']}</span>               	
+	               			<span class="online-status-title" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">{$row['name']}</span>
         				{else}
         	       			<em>{_"Hidden user"}</em>
         	       		{/if}
 					{/if}
 					{ifset $template_variables['show_online_status']}
-							<div class="online-status-small" object_type="1" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;"></div>
+							<div class="online-status-small" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;"></div>
 					{/if}
 				</div>
 
 			{ifset $template_variables['show_last_activity']}
-				<div class="online-status" object_type="1" object_id="{$row['id']}"></div>
+				<div class="online-status-small" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;"></div>
+				<div class="online-status" id="status_{$row['id']}" object_id="{$row['id']}" style="display:none;"></div>
 			{/if}
 
 		{ifset $template_variables['your_connections']} {* For home page (my connections) *}

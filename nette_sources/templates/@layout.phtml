@@ -101,63 +101,6 @@
 {/if}
 
 <script>
-{ifset $logged}
-	$(document).ready(function() {
-		$('.trash-radio').change(function(){
-			$('#frmfilter-filter').click();
-		});
-	});
-	
-	$(document).ready(function() {
-		setInterval("reloadMessages()",60*1000);
-		setInterval("onlineStatus()",65*1000);
-		onlineStatus();
-	});
-	
-	function reloadMessages() {
-		$.ajax({
-				url:"{!$baseUri}?do=reloadStatusBar",
-				dataType:"html"
-			}).done(function(payload){
-				$("#messages").html(payload);
-				
-		});
-		$.ajax({
-				url:"{!$baseUri}?do=reloadTitle",
-				dataType:"html"
-			}).done(function(payload){
-				$(document).attr("title", payload+{$PROJECT_NAME}+" | {include #title}");
-				
-		});
-	}
-	
-	function onlineStatus() {
-		$(".online-status").each(function(){
-			var $status = $(this);
-			var object_type = $status.attr("object_type");
-			var object_id = $status.attr("object_id");
-			$.ajax({
-				url:"{!$baseUri}?do=onlineStatus&object_type="+object_type+"&object_id="+object_id,
-				dataType:"html"
-			}).done(function(payload){
-				$status.html(payload);
-			});
-		});
-
-		$(".online-status-small").each(function(){
-			var $status = $(this);
-			var object_type = $status.attr("object_type");
-			var object_id = $status.attr("object_id");
-			$.ajax({
-				url:"{!$baseUri}?do=onlineStatus&object_type="+object_type+"&object_id="+object_id+"&show_date=0",
-				dataType:"html"
-			}).done(function(payload){
-				$status.html(payload);
-			});
-		});
-	}
-{/if}
-
 	$(document).ready(function(){
 		$("a.active").prop("href", "javascript:void(0);");
 		$("a.active").css("cursor", "default");
@@ -166,12 +109,15 @@
 			style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
 			show: { delay: 800 },
 			position: {
-        		my: 'top left',  // Position my top left...
-		        at: {$tooltip_position}, // at the bottom right of...
+        		my: 'top left',
+		        at: 'bottom right',// {$tooltip_position},
+		        target: 'mouse',
+		        adjust: {
+                	x: 15,
+                	y: 5
+            	}
 			}
 		});
-
-
 	});
 
 
@@ -212,7 +158,92 @@
 			});
 		});
 	}
+
+{ifset $logged}
+	$(document).ready(function() {
+		$('.trash-radio').change(function(){
+			$('#frmfilter-filter').click();
+		});
+	});
 	
+	$(document).ready(function() {
+		setInterval("reloadMessages()",60*1000);
+		setInterval("onlineStatus()",65*1000);
+		onlineStatus();
+	});
+	
+	function reloadMessages() {
+		$.ajax({
+				url:"{!$baseUri}?do=reloadStatusBar",
+				dataType:"json"
+			}).done(function(payload){
+				$("#messages").html(payload['message_indicator']);
+				$(document).attr("title", payload['title']+{$PROJECT_NAME}+" | {include #title}");				
+		});
+	}
+
+	var status = {};
+	var status_small = {};
+	var status_title = {};
+	
+	function onlineStatus() {
+		$(".online-status").each(function(){
+			var $element = $(this);
+			var object_id = $(this).attr("object_id");
+			status[object_id] = '';
+		});
+		$(".online-status-small").each(function(){
+			var $element = $(this);
+			var object_id = $(this).attr("object_id");
+			status_small[object_id] = '';
+		});
+		$(".online-status-title").each(function(){
+			var $element = $(this);
+			var object_id = $(this).attr("object_id");
+			status_title[object_id] = '';
+		});
+		
+		$(".online-status").promise().done(function() {
+			var json = JSON.stringify(status);
+			$.ajax({
+				url:"{!$baseUri}?do=onlineStatus&show_date=1",
+				dataType:"json",
+				data: {'data':json}
+			}).done(function(status_output){
+				for (var object_id in status_output) {
+					$(".online-status[object_id="+object_id+"]").html(status_output[object_id]);
+				}
+			});
+		});
+		$(".online-status-small").promise().done(function(){
+			var json = JSON.stringify(status_small);
+			$.ajax({
+				url:"{!$baseUri}?do=onlineStatus&show_date=0",
+				dataType:"json",
+				data: {'data':json}
+			}).done(function(status_output){
+				for (var object_id in status_output) {
+					$(".online-status-small[object_id="+object_id+"]").html(status_output[object_id]);
+				}
+			});
+		});
+		$(".online-status-title").promise().done(function(){
+			var json = JSON.stringify(status_title);
+			$.ajax({
+				url:"{!$baseUri}?do=onlineStatus&span=0",
+				dataType:"json",
+				data: {'data':json}
+			}).done(function(status_output){
+				for (var object_id in status_output) {
+					var name = $(".online-status-title[object_id="+object_id+"]").attr("name");
+					var newTitle = name + "<br />" + status_output[object_id];
+					$(".online-status-title[object_id="+object_id+"]").qtip('option', 'content.text', newTitle);
+				}
+			});
+		});
+	}
+{/if}
+
 </script>
 <title>{$PROJECT_NAME} | {include #title}</title>
 </head>
@@ -234,7 +265,7 @@
 			<div class="header">
 				<div class="login" style="{ifset $logged}min-height:70px;{/if}min-width:170px;">
 				{ifset $logged}
-					<a href="{link User:default, $my_id}" class="user-info">{!$image} {$username}</a>
+					<a href="{link User:default, $my_id}" class="user-info" title="{_"go to your profile"}">{!$image} {$username}</a>
 					<div>
 						<a href="{link User:messages}" title="{_"read or write messages"}"><span id="messages">{!$messages}</span></a>
 						<div class="hidden-menu" style="display:none; opacity:0.00;">

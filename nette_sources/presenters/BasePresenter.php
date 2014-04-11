@@ -13,13 +13,13 @@
 
 abstract class BasePresenter extends NPresenter
 {
-	// for Nette FW
+	// needed by Nette FW
 	public $oldLayoutMode = FALSE;
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	loads basic parameters from settings, prepares general template variables and checks if user is allowed to view page
+	 *	@param void
+	 *	@return void
 	 */
 	public function startup()
 	{
@@ -171,28 +171,91 @@ abstract class BasePresenter extends NPresenter
 		$this->registerHelpers();
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	@Helpers for Latte templates
+	 *	+ htmlpurify: cleans code before output based on whitelist
+	 *	+ autoformat: adds basic html formatting into plain text and applies simplified htmlpurify
+	 *	@param void
+	 *	@return void
 	 */
 	protected function registerHelpers()
 	{
+		require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
+			
 		$this->template->registerHelper('htmlpurify', function ($dirty_html) {
-			require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('Attr.EnableID', true);
 			$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
 			$config->set('HTML.Nofollow', true);
 			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$config->set('HTML.SafeIframe', true);
 			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
 			$config->set('Filter.YouTube', true);
 			$purifier = new HTMLPurifier($config);
 			return $purifier->purify($dirty_html);
 		});
+		
+		$this->template->registerHelper('autoformat', function ($input) {
+			// make links clickable
+			// credits: http://stackoverflow.com/a/1188652 (modified)
+			$output = '';
+			$validTlds = array_fill_keys(explode(" ", ".aero .asia .biz .cat .com .coop .edu .gov .info .int .jobs .mil .mobi .museum .name .net .org .pro .tel .travel .ac .ad .ae .af .ag .ai .al .am .an .ao .aq .ar .as .at .au .aw .ax .az .ba .bb .bd .be .bf .bg .bh .bi .bj .bm .bn .bo .br .bs .bt .bv .bw .by .bz .ca .cc .cd .cf .cg .ch .ci .ck .cl .cm .cn .co .cr .cu .cv .cx .cy .cz .de .dj .dk .dm .do .dz .ec .ee .eg .er .es .et .eu .fi .fj .fk .fm .fo .fr .ga .gb .gd .ge .gf .gg .gh .gi .gl .gm .gn .gp .gq .gr .gs .gt .gu .gw .gy .hk .hm .hn .hr .ht .hu .id .ie .il .im .in .io .iq .ir .is .it .je .jm .jo .jp .ke .kg .kh .ki .km .kn .kp .kr .kw .ky .kz .la .lb .lc .li .lk .lr .ls .lt .lu .lv .ly .ma .mc .md .me .mg .mh .mk .ml .mm .mn .mo .mp .mq .mr .ms .mt .mu .mv .mw .mx .my .mz .na .nc .ne .nf .ng .ni .nl .no .np .nr .nu .nz .om .pa .pe .pf .pg .ph .pk .pl .pm .pn .pr .ps .pt .pw .py .qa .re .ro .rs .ru .rw .sa .sb .sc .sd .se .sg .sh .si .sj .sk .sl .sm .sn .so .sr .st .su .sv .sy .sz .tc .td .tf .tg .th .tj .tk .tl .tm .tn .to .tp .tr .tt .tv .tw .tz .ua .ug .uk .us .uy .uz .va .vc .ve .vg .vi .vn .vu .wf .ws .ye .yt .yu .za .zm .zw .xn--0zwm56d .xn--11b5bs3a9aj6g .xn--80akhbyknj4f .xn--9t4b11yi5a .xn--deba0ad .xn--g6w251d .xn--hgbk6aj7f53bba .xn--hlcj6aya9esc7a .xn--jxalpdlp .xn--kgbechtv .xn--zckzah .arpa"), true);
+
+			$position = 0;
+			$rexProtocol = '(https?://)?';
+			$rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
+			$rexPort     = '(:[0-9]{1,5})?';
+			$rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
+			$rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+			$rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+			while (preg_match("{\\b$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:\"]?(\s|$))}i", $input, &$match, PREG_OFFSET_CAPTURE, $position))
+			{
+				list($url, $urlPosition) = $match[0];
+
+				$output .= substr($input, $position, $urlPosition - $position);
+
+				$domain = $match[2][0];
+				$port   = $match[3][0];
+				$path   = $match[4][0];
+				$query	= $match[5][0];
+				
+				$tld = strtolower(strrchr($domain, '.'));
+				if (preg_match('{\.[0-9]{1,3}}', $tld) || isset($validTlds[$tld]))
+				{
+					$completeUrl = $match[1][0] ? $url : "http://$url";
+					$output .= sprintf('<a href="%s" target="_blank">%s</a>', htmlspecialchars($completeUrl), htmlspecialchars("$domain$port$path$query"));
+				}
+				else
+				{
+					$output .= htmlspecialchars($url);
+				}
+				$position = $urlPosition + strlen($url);
+			}
+			$output .= substr($input, $position);
+
+			// convert tabs to &nbsp;
+			$output = preg_replace("/\t/", " &nbsp;&nbsp;&nbsp;&nbsp;", $output);
+
+			// convert spaces at beginning of newlines to &nbsp;
+			// $output = preg_replace("/\n(\s*)\s+/", "\n$1&nbsp;", $output);
+
+			// convert newlines to br tags
+			$output = nl2br($output);
+
+			// purify with simple options
+			$config = HTMLPurifier_Config::createDefault();
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
+			$config->set('Attr.AllowedFrameTargets', array('_blank'));
+			$purifier = new HTMLPurifier($config);
+			$output = $purifier->purify($output);
+
+			return $output;
+		});
 	}
-	
+
+
 	/**
 	 * Messages component factory.
 	 * @return mixed
@@ -203,10 +266,11 @@ abstract class BasePresenter extends NPresenter
 		return $messages;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates main menu
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentMenu($name)
 	{
@@ -283,37 +347,33 @@ abstract class BasePresenter extends NPresenter
 		return $control;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns data on AJAX request for new message indicator and for html <title> element
+	 *	@param void
+	 *	@return JSON array/object
 	 */
 	public function handleReloadStatusBar()
 	{
+		$data = array();
 		$messages = Resource::getUnreadMessages();
-		print $messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._t("New messages").': '._t("0");
-		$this->terminate();
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function handleReloadTitle()
-	{
-		$messages = Resource::getUnreadMessages();
-		if ($messages > 1) print sprintf(_t("%s new messages"),$this->translate_number($messages)).' | ';
-		if ($messages == 1) print _t("1 new message").' | ';
-
+		$data['message_indicator'] = $messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._t("New messages").': '._t("0");
+		if ($messages > 1) {
+			$data['title'] = sprintf(_t("%s new messages"),$this->translate_number($messages)).' | ';
+		} elseif ($messages == 1) {
+			$data['title'] = _t("1 new message").' | ';
+		} else {
+			$data['title'] = '';
+		}
+		echo json_encode($data);
 		$this->terminate();
 	}
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Helper for Burmese (Myanmar) numbers where digits need to be translated one-by-one
+	 *	@param int $in
+	 *	@return int
 	 */
 	private function translate_number($in) {
 		function translate_array( $matches ) {
@@ -326,6 +386,7 @@ abstract class BasePresenter extends NPresenter
 		return preg_replace_callback("/(\d)/u","translate_array",strval($in));
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -333,13 +394,15 @@ abstract class BasePresenter extends NPresenter
 	 */
 	public function handleReloadChat($group_id)
 	{
+### USED?
 		$this->terminate();
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the language used on the UI (saved in session)
+	 *	@param int $language
+	 *	@return void
 	 */
 	public function handleSelectLanguage($language)
 	{
@@ -351,10 +414,12 @@ abstract class BasePresenter extends NPresenter
 		$this->redirect("this");
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Visitor counter
+	 *	@param int $type_id
+	 *	@param int $object_id
+	 *	@return void
 	 */
 	public function visit($type_id, $object_id)
 	{
@@ -417,17 +482,18 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Default for accessibility of pages: only with login
+	 *	@param void
+	 *	@return boolean
 	 */
 	protected function isAccessible()
 	{
 		return false;
 	}
 
+
 	/**
-	 *	callback called by GrabzIt server to retrieve the thumbnail;
+	 *	Callback called by GrabzIt server to retrieve the thumbnail;
 	 *	(Cannot be in ResourcePresenter.php because of permissions for visibility-restricted resources.)
 	 *	@param string $id identifier of Grabz.it
 	 *	@param int $resource_id
@@ -469,7 +535,7 @@ abstract class BasePresenter extends NPresenter
 	
 	
 	/**
-	*	processes scheduled tasks; sends email notifications;
+	*	Processes scheduled tasks; sends email notifications;
 	*	needs to be called with /?do=cron&token=xyz
 	*	token is set in config.ini
 	* 	adding &verbose=1 will output some more info
@@ -490,6 +556,7 @@ abstract class BasePresenter extends NPresenter
 		$cron->run();
 		$this->terminate();
 	}
+
 
 	/**
 	*	uploads images to user's folder on the server, called by ckeditor
@@ -569,6 +636,7 @@ abstract class BasePresenter extends NPresenter
 		die();
 	}
 
+
 	/**
 	*	deletes images in user's folder on the server, called from image browser
 	 *	@param string $file_name
@@ -590,7 +658,8 @@ abstract class BasePresenter extends NPresenter
 		echo "true";
 		die();
 	}
-	
+
+
 	/**
 	 *	Translates recent dates into "today" and "yesterday".
 	 *	@param int $timestamp Unix timestamp
@@ -608,6 +677,7 @@ abstract class BasePresenter extends NPresenter
 		
 		return date('j M Y', $timestamp);
 	}
+
 
 	/**
 	 *	Creates HTML output of recent activity
@@ -745,7 +815,7 @@ abstract class BasePresenter extends NPresenter
 				printf('<div class="activity-item" onclick="window.location=\'%s\'"><div class="activity-time"><h4>%s</h4></div><div class="activity-link"><h4><a href="%s">%s %s</a></h4></div><div class="activity-description"><h4>%s</h4></div></div>', $object_link, $time, $object_link, $object_icon, $object_name, $description);
 			}
 		} else {
-			echo '<div class="activity-item"><h4>'._t("Nothing to display").'</h4></div>';
+			echo '<div class="activity-item" style="cursor:default;"><h4>'._t("Nothing to display").'</h4></div>';
 		}
 		
 		if ($id < 5) {
@@ -867,6 +937,7 @@ abstract class BasePresenter extends NPresenter
 		die();
 	}
 
+
 	/**
 	 *	Handler for changes to events by drag and drop on FullCalendar (home page)
 	 *
@@ -937,26 +1008,45 @@ abstract class BasePresenter extends NPresenter
 		die();
 	}
 
-	public function handleOnlineStatus($object_type, $object_id, $show_date = 1) {
+	/**
+	 *	Handler to return the online status of users (ListerControlMain_users.phtml)
+	 *	@param int $show_date Whether to show the date when users who is offline was "last seen", or nothing
+	 *	@param int $span Whether to show the date wrapped in a span
+	 *	@return json object/array of user_id => text 
+	 */
+	public function handleOnlineStatus($show_date = 1, $span = 1) {
+		$queries = NEnvironment::getHttpRequest()->getQuery();
+		$data = json_decode($queries['data']);
+
+		if (!isset($data) || count($data) < 1) {
+			echo "false";
+			die();
+		}
 		
-		if (Auth::USER <= Auth::isAuthorized($object_type, $object_id)) {
-			switch ($object_type) {
-			case 1:
-				$format_date_time = _t("j.n.Y");
-				$last_activity = User::getRelativeLastActivity($object_id, $format_date_time);
-		
-				if ($last_activity['online']) {
-					echo '<span style="color:#0A0;font-size:2em;margin-top:-4px;" title="'._t("now online").'">&#149</span>';
-				} else {
-					if ($show_date) {
-						echo '<span style="top:5px;position:relative;display:none;" id="activity_'.$object_id.'">'.$last_activity['last_seen'].'</span>';
+		foreach ($data AS $object_id => &$value) {
+			if (Auth::USER <= Auth::isAuthorized(1, $object_id)) {
+
+					$format_date_time = _t("j.n.Y");
+					$last_activity = User::getRelativeLastActivity($object_id, $format_date_time);
+				
+					if ($span == 0) {
+						$value = $last_activity['last_seen'];
+					} elseif ($last_activity['online']) {
+						if ($show_date) {
+							$value = ' ';
+						} else {
+							$value = '<span style="color:#0A0;font-size:2em;margin-top:-4px;">&#149</span>';
+						}
 					} else {
-						echo ' ';
+						if ($show_date) {
+							$value = '<span style="top:5px;position:relative;" id="activity_'.$object_id.'">'.$last_activity['last_seen'].'</span>';
+						} else {
+							$value = ' ';
+						}
 					}
-				}
-			break;
 			}
 		}
+		echo json_encode($data);
 		die();
 	}
 }

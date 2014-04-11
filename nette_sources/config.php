@@ -3,21 +3,28 @@
 ##### File needed by API only
 
 define('WWW_DIR', realpath(dirname(__FILE__)));
-// absolute filesystem path to the application root
+// next constant for location of nette_sources and lib directories
+# define('SHARED_DIR', realpath(dirname(__FILE__)) . '/../../mcn-shared-code');
+
+// multi-site
+# define('APP_DIR', SHARED_DIR . '/nette_sources');
+# define('LIBS_DIR', SHARED_DIR . '/lib');
+// single-site
 define('APP_DIR', WWW_DIR . '/../nette_sources');
-// absolute filesystem path to the libraries
 define('LIBS_DIR', WWW_DIR . '/../lib');
+
+define('BOOTSTRAP_DIR', WWW_DIR . '/../nette_sources');
 define('TEMP_DIR', WWW_DIR . '/../nette_sources/temp');
 define('LOCALE_DIR', WWW_DIR . '/../locale');
 
 
-require_once dirname(__FILE__) . '/../lib/Nette/loader.php';
+require_once LIBS_DIR . '/Nette/loader.php';
 // Step 2: Configure environment
 // 2a) enable NDebug for better exception and error visualisation
-NDebug::enable();
+// NDebug::enable();
 
 // 2b) load configuration from config.ini file
-NEnvironment::loadConfig();
+NEnvironment::loadConfig(BOOTSTRAP_DIR . '/config.ini');
 
 ini_set('session.name', NEnvironment::getVariable('SESSION_NAME'));
 dibi::connect(array(
@@ -44,7 +51,5 @@ session_set_save_handler(array('SessionDatabaseHandler', 'open'), array('Session
             array('SessionDatabaseHandler', 'destroy'), array('SessionDatabaseHandler', 'clean'));
 $session = NEnvironment::getSession();
 $session->setExpiration('+ 4 days');
-
-
 
 ?>

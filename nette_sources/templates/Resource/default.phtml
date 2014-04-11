@@ -16,11 +16,12 @@
 <div class="resource_default_main">
 	<div class="resource_default_filter">
 		<div class="filter-body filter-body-{control defaultresourceresourcelister:filterstatus}">
+{ifset $filterhint}
 			<div id="filter-help">
 				{_"Use the filter to narrow down the list of items"}
 				<span class="arrow-right"></span>
 			</div>
-
+{/if}
 			<a href="#filter_container" id="filter_box_a" class="filter-button-{control defaultresourceresourcelister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control defaultresourceresourcelister:filtercheck}</a>
 			<div id="filter_container" style="display:none;">
 				{control defaultresourceresourcelister:filter}
@@ -112,9 +113,14 @@
 					{/if}
 				</div> <!-- item-resource -->
 	
-            
+				{if isset($default_data['object_data']['resource_position_x']) && !empty($default_data['object_data']['resource_position_x'])}
+				<div style="float:right;">
+				<a href="{plink resource:default, $default_data['object_data']["resource_id"]}"><img src="https://maps.googleapis.com/maps/api/staticmap?zoom=9&size=150x150&markers=color:red|label:R|{$default_data['object_data']['resource_position_x']},{$default_data['object_data']['resource_position_y']}&sensor=false" style="width:150px;height:150px;border:solid 1px #CCC;margin-left:20px;border-radius: 15px;box-shadow: 1px 1px 2px #8A8A8A;" class="default-map"/></a>
+				</div>
+				{/if}
+
         		<div class="resource-description">
-        			{$default_data['object_data']['resource_description']}
+        			{!$default_data['object_data']['resource_description']|autoformat}
         		</div>
         		{if $default_data['object_data']['resource_type'] == 2}
         		<div class="resource-event-time"  style="padding:20px 30px; margin:20px 0;">
@@ -157,7 +163,9 @@
 						</div>
 						{/if}
 					{/if}
-					
+
+						<div class="cleaner"></div>
+						
 					{if Auth::MODERATOR <= Auth::isAuthorized(3,$default_data['object_data']["resource_id"])}
 						<div class="administration">
 						<h3>{_"Administration"}</h3>

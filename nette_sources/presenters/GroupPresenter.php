@@ -734,8 +734,8 @@ final class GroupPresenter extends BasePresenter
 		if (!empty($this->group)) {
 			$group_id = $this->group->getGroupId();
 			if (!empty($group_id)) {
-				
 				$this->group->insertTag($tag_id);
+				Activity::addActivity(Activity::GROUP_UPDATED, $group_id, 2);
 				$this->group->setLastActivity();
 				$this->template->group_tags = $this->group->groupSortTags($this->group->getTags());
 				$this->invalidateControl('tagHandle');
@@ -755,6 +755,7 @@ final class GroupPresenter extends BasePresenter
 			$group_id = $this->group->getGroupId();
 			if (!empty($group_id)) {
 				$this->group->removeTag($tag_id);
+				Activity::addActivity(Activity::GROUP_UPDATED, $group_id, 2);
 				$this->group->setLastActivity();
 				$this->template->group_tags = $this->group->groupSortTags($this->group->getTags());
 				$this->invalidateControl('tagHandle');
@@ -787,6 +788,9 @@ final class GroupPresenter extends BasePresenter
 					$storage = new NFileStorage(TEMP_DIR);
 					$cache = new NCache($storage, "Lister.detailgroupuserlister");
 					$cache->clean(array(NCache::ALL => TRUE));
+					unset($cache);
+					$cache = new NCache($storage, "Lister.defaultgroupuserlister");
+					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
 				}
 			}
@@ -817,6 +821,9 @@ final class GroupPresenter extends BasePresenter
 					Activity::addActivity(Activity::GROUP_LEFT, $group_id, 2, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
 					$cache = new NCache($storage, "Lister.detailgroupuserlister");
+					$cache->clean(array(NCache::ALL => TRUE));
+					unset($cache);
+					$cache = new NCache($storage, "Lister.defaultgroupuserlister");
 					$cache->clean(array(NCache::ALL => TRUE));
 					print "true";
 				}
@@ -1226,6 +1233,13 @@ final class GroupPresenter extends BasePresenter
 		}
 
 		$this->group->setLastActivity();
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.detailgroupresourcelister");
+		$cache->clean(array(NCache::ALL => TRUE));
+		unset($cache);
+		$cache = new NCache($storage, "Lister.defaultgroupresourcelister");
+		$cache->clean(array(NCache::ALL => TRUE));
 
 		$this->redirect("Group:default", array(
 				'group_id' => $this->group->getGroupId()

@@ -514,6 +514,17 @@ class API_Base extends API implements iAPI
 			return array('result'=>false);
 		}
 	}
+	
+	/**
+        *Comment
+        * @url POST     /EmptyTrash
+        */
+        public function postEmptyTrash() {
+                $user = NEnvironment::getUser()->getIdentity();
+		Resource::emptyTrash();	
+                return array('result'=>true);
+
+        }
 
 	/**
 	*Comment

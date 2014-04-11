@@ -5,9 +5,9 @@ define('PROJECT_DATE', '20140403');
 
 session_set_cookie_params(1209600);
 
-require_once dirname(__FILE__) . '/../lib/Nette/loader.php';
+require_once LIBS_DIR . '/Nette/loader.php';
 // load configuration from config.ini file
-NEnvironment::loadConfig();
+NEnvironment::loadConfig(BOOTSTRAP_DIR . '/config.ini');
 
 $application = NEnvironment::getApplication();
 

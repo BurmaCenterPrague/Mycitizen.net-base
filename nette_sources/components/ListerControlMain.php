@@ -72,7 +72,6 @@ class ListerControlMain extends NControl
 			} else {
 				$session->filterdata = $this->persistent_filter;
 			}
-			
 		}
 		if (isset($options['template_variables'])) {
 			$this->template_variables = $options['template_variables'];
@@ -148,12 +147,6 @@ class ListerControlMain extends NControl
 	/**
 	 *	Outputs status of filter for use in class
 	 */
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function renderFilterstatus()
 	{
 		if ($this->activeFilter())
@@ -165,32 +158,27 @@ class ListerControlMain extends NControl
 	/**
 	 *	Checks whether filter is active or not
 	 */
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function activeFilter()
 	{
 		$active = false;
 		$filter = $this->getFilterArray();
 		if (isset($filter['name']) && strlen($filter['name']) > 0)
 			$active = true;
-		elseif (!empty($filter['type']) && !is_array($filter['type']) && ($this->name == 'defaultresourceresourcelister') || ($this->name == 'homepageresourcelister'))
+		elseif (!empty($filter['type']) && !is_array($filter['type']) && (($this->name == 'defaultresourceresourcelister') || ($this->name == 'homepageresourcelister')))
 			$active = true;
 		elseif (isset($filter['language']) && $filter['language'] > 0)
 			$active = true;
 		elseif (isset($filter['mapfilter']) && $filter['mapfilter'] != 'null')
 			$active = true;
 		
-		if (!$active && isset($filter['tags']))
+		if (!$active && isset($filter['tags'])) {
 			foreach ($filter['tags'] as $key => $value) {
 				if ($key != 'all' && $value == true) {
 					$active = true;
 					break;
 				}
 			}
+		}
 		return $active;
 	}
 
@@ -385,6 +373,7 @@ class ListerControlMain extends NControl
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$this->name);
 		$dont_cache = array('chatwidget','pmwidget', 'chatlistergroup');
+		$long_cache = array('userHomepage','groupHomepage','resourceHomepage');
 		$cache->clean();
 		$cache_key = md5(json_encode($filter));
 		if (!in_array($this->name, $dont_cache) && $cache->offsetExists($cache_key)) {
@@ -417,6 +406,8 @@ class ListerControlMain extends NControl
 			if (!in_array($this->name, $dont_cache)) {
 				if (isset($filter["all_members_only"]) && $filter["all_members_only"]["type"] == 1) {
 					$settings = array(NCache::EXPIRE => time()+120, NCache::TAGS => array("userid/".$filter["all_members_only"]["type"]));
+				} elseif (in_array($this->name, $long_cache)) {
+					$settings = array(NCache::EXPIRE => time()+600);
 				} else {
 					$settings = array(NCache::EXPIRE => time()+120);
 				}
@@ -475,6 +466,7 @@ class ListerControlMain extends NControl
 		}
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -484,7 +476,6 @@ class ListerControlMain extends NControl
 	{
 		$filter  = array();
 		$session = NEnvironment::getSession()->getNamespace($this->name);
-		
 		
 		if (!empty($session->filterdata)) {
 			$filter = $session->filterdata;
@@ -518,6 +509,7 @@ class ListerControlMain extends NControl
 		
 		return $filter;
 	}
+
 
 	/**
 	 *	@todo ### Description

@@ -75,7 +75,7 @@
 					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
 						</div>
 
 						<div class="restore-from-trash">
@@ -95,7 +95,7 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
 							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			
@@ -206,7 +206,7 @@
 					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
 						</div>
 
 						<div class="restore-from-trash">
@@ -226,7 +226,7 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0').is(':checked')){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
 							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			

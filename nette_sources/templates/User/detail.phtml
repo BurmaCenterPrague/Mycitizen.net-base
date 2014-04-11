@@ -90,7 +90,7 @@
 	
 	<div class="user_detail_description">
 	
-		{$data['user_description']}
+		{!$data['user_description']|autoformat}
 
 		{ifset $object_language}
 		<div class="user-detail-language">	
