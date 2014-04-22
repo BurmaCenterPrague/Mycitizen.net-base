@@ -908,6 +908,8 @@ final class UserPresenter extends BasePresenter
 				$user = NEnvironment::getUser()->getIdentity();
 				$user->setCaptchaOk(true);
 			}
+		} else {
+			$user->setCaptchaOk(true);
 		}
 		if (isset($values['text'])) unset($values['text']);
 		
@@ -1754,6 +1756,7 @@ final class UserPresenter extends BasePresenter
 	}
 */
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1766,7 +1769,6 @@ final class UserPresenter extends BasePresenter
 		$form    = new NAppForm($this, 'messageform');
 		$form->addSelect('friend_id', _t('To:'), $friends);
 		$form->addTextarea('message_text', '');
-//		$form['message_text']->getControlPrototype()->class('ckeditor-big');
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
 		
@@ -1777,6 +1779,7 @@ final class UserPresenter extends BasePresenter
 		
 		return $form;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1868,6 +1871,7 @@ final class UserPresenter extends BasePresenter
 		return $form;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1899,12 +1903,13 @@ final class UserPresenter extends BasePresenter
 			$this->redirect("User:default");
 		}
 	}
-	
+
+
 	/**
-	*	click on move-to-trash icon in message list
- *	@param
- *	@return
-*/
+	 *	click on move-to-trash icon in message list
+	 *	@param
+	 *	@return
+	*/
 	public function handleMoveToTrash($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1922,10 +1927,10 @@ final class UserPresenter extends BasePresenter
 	}
 	
 	/**
-	*	click on restore-from-trash icon in message list
- *	@param
- *	@return
-*/
+	 *	click on restore-from-trash icon in message list
+	 *	@param
+	 *	@return
+	*/
 	public function handleMoveFromTrash($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
@@ -1939,7 +1944,8 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->terminate();
 	}
-	
+
+
 	/**
 	*	Marks message as read
 	 *	@param
@@ -1959,7 +1965,8 @@ final class UserPresenter extends BasePresenter
 		}
 		$this->terminate();
 	}
-	
+
+
 	/**
 	 *	Marks message as unread
 	 *	@param
@@ -2292,6 +2299,8 @@ final class UserPresenter extends BasePresenter
 					
 					$answer = Settings::getVariable('signup_answer');
 					if ($answer) {
+						$user->setCaptchaOk(true);
+					} else {
 						$user->setCaptchaOk(true);
 					}
 

@@ -16,7 +16,7 @@
 <head>
 	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>{_"Image Browser"}</title>
+	<title>{_"File Browser"}</title>
 	<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
 {ifset $load_external_js_css}
 	<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
@@ -32,9 +32,9 @@
 			window.opener.CKEDITOR.tools.callFunction({$CKEditorFuncNum}, url, message);
 			window.close();
 		}
-		function deleteImage(fileName) {
+		function deleteFile(fileName) {
 			if (confirm({_"Do you really want to delete this file?"}+" "+fileName)) {
-				$.getJSON('{!$baseUri}?do=deleteImage&file_name=' + encodeURIComponent(fileName) + '&user_id={!$user_id}',function(payload){
+				$.getJSON('{!$baseUri}?do=deleteFile&file_name=' + encodeURIComponent(fileName) + '&user_id={!$user_id}',function(payload){
 					location.href=self.location.href;
 				});
 			}
@@ -45,8 +45,8 @@
 <div id="layout">
 	<div id="topheader">
 		<div style="padding:20px 20px 0 250px;">
-			<h1>{_"Please select an image"}</h1>
-			<h2>{_"Images of %s", $user_name}</h2>
+			<h1>{_"Please select a file"}</h1>
+			<h2>{_"Files of %s", $user_name}</h2>
 		</div>
 		<div style="float:right;">
 			<a href="javascript:void(0);" onclick="window.close()" class="button" style="text-decoration:none;">{_"close"}</a>
@@ -54,8 +54,8 @@
 	</div>
 	<div id="content">
 	<div class="wrapper-text">
-		<p>{_"If you need to upload a new image, close this window and click on 'Upload'."}<br/>
-		<b>{_"Note:"}</b> {_"Images are public. If you want to prevent others from seeing them, you should choose a file name that is hard to guess."}</p>
+		<p>{_"If you need to upload a new file, close this window and click on 'Upload'."}<br/>
+		<b>{_"Note:"}</b> {_"These files are public. If you want to prevent others from seeing them, you should choose a file name that is hard to guess."}</p>
 	<table>
 		<tr>
 {var $row => 1}
@@ -63,16 +63,37 @@
 
 {if isset($data) && count($data)}
 {foreach $data as $item}
-		<td style="width:150px; border:solid 1px #CCC; padding:10px 2px 5px 10px; margin:0; border-radius: 8px; background-color:#eae9e3;">
-		<div style="height:120px;">
+		<td style="width:190px; border:solid 1px #CCC; padding:10px 2px 5px 10px; margin:0; border-radius: 8px; background-color:#eae9e3; vertical-align:top;">
 			<div style="float:right; cursor:pointer;">
-				<b onclick="deleteImage({$item['file_name']});" class="icon-cancel" title="{_"delete"}"></b>
+				<b onclick="deleteFile({$item['file_name']});" class="icon-cancel" title="{_"delete"}"></b>
 			</div>
-			<a href="{$item['web_path']}" class="image-fancybox" rel="group" title="{$item['file_name']}, {$item['width']}x{$item['height']}"><img src="data:image/jpeg;base64,{!$item['img_b64']}" style="border:solid 1px #666;"/></a>
-		</div>
+		<table style="width:110px;">
+		<tr><td style="height:120px; vertical-align:top;">
+			<div{if !isset($item['width'])} style="text-align:center;padding-top:20px;"{/if}>
+			{ifset $item['width']}<a href="{$item['web_path']}" class="image-fancybox" rel="group" title="{$item['file_name']}, {$item['width']}x{$item['height']}"><img src="data:image/jpeg;base64,{!$item['img_b64']}" style="border:solid 1px #666;"/></a>
+			{else}
+			<img src="{!$item['src']}"/>
+			{/if}
+			</div>
+		</td></td>
+		<tr><td>
 		<a href="javascript:void(0);" onclick="insert({$item['web_path']})" class="button" style="text-decoration:none;">{_"insert"}</a>
+		</td></td>
+		<tr><td style="height:2.5em; vertical-align:top;">
 		<h4>{$item['file_name']}</h4>
-		<h4>{$item['width']} x {$item['height']} {_"pixel"}</h4>
+		</td></td>
+		<tr><td style="height:1.5em; vertical-align:top;">
+		{ifset $item['width']}
+		{$item['width']} x {$item['height']} {_"pixel"}
+		{else}
+		{/if}
+		</td></td>
+		<tr><td style="height:1.5em; vertical-align:top;">
+		{ifset $item['modified_date']}
+		{$item['modified_date']}
+		{/if}
+		</td></tr>
+		</table>
 		</td>
 		{? $column++}
 		{if $column > 6}
@@ -82,7 +103,7 @@
 		{/if}
 {/foreach}
 {else}
-	<h3>{_"No images."}</h3>
+	<h3>{_"No files."}</h3>
 {/if}
 		</tr>
 	</table>

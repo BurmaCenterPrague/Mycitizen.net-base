@@ -171,6 +171,9 @@
 	<td class="edit-secondary-table-td">
 	<h3>{_('Screenshot')}</h3>
 	{ifset $screenshot}{!$screenshot}{/if}
+	{ifset $resource_id}
+	<a href="?do=removescreenshot&resource_id={!$resource_id}" class="button">{_"remove screenshot"}</a>
+	{/if}
 	</td>
 {ifset $screenshot}	
 <script>

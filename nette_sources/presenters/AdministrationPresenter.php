@@ -439,16 +439,17 @@ final class AdministrationPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Delete reports
+	 *	@param int $report_id
+	 *	@return void
 	*/
 	public function handleDeleteReport($report_id) {
-
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()>1 && !empty($report_id)) {
-		
 			Resource::delete($report_id);
 			echo "true";
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage, "Filter.number");
+			$cache->clean(array(NCache::ALL => TRUE));
 		}
 		
 		$this->terminate();

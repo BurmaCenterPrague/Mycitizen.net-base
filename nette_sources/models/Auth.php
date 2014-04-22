@@ -145,17 +145,13 @@ class Auth
 					if ($group->getVisibilityLevel() <= 2) {
 						$top_access = 1;
 					}
-					
+
+					// Deployment admins and mods have always group admin access
 					if ($logged_user->getAccessLevel() == 3 || $logged_user->getAccessLevel() == 2) {
 						$top_access = 3;
 					}
 					
 					$access = $group->getUserAccessLevel($logged_user->getUserId());
-
-					// Moderator has same rights as admin.
-					if ($access == 2) {
-						$access = 3;
-					}
 					
 					// User role at group can beat general user role.
 					if ($top_access < $access) {
@@ -195,11 +191,7 @@ class Auth
 					
 					// resource-specific access levels
 					$access = $resource->getUserAccessLevel($logged_user->getUserId());
-					// Ressource mod has same permissions as admin.
-					if ($access == 2) {
-						$access = 3;
-					}
-					
+
 					// permission for resource can beat general permission
 					if ($top_access < $access) {
 						$top_access = $access;

@@ -694,7 +694,9 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql .= " )";
 				} else {
-					If (isset($filter['sort_by_activity'])) {
+					if (isset($filter['order_by'])) {
+						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+					} elseif (isset($filter['sort_by_activity'])) {
 						$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
 					} else {
 						$sql .= " GROUP BY `id` ORDER BY links DESC)";
@@ -712,7 +714,9 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql .= " )";
 				} else {
-					If (isset($filter['sort_by_activity'])) {
+					if (isset($filter['order_by'])) {
+						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+					} elseif (isset($filter['sort_by_activity'])) {
 						$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
 					} else {
 						$sql .= " GROUP BY `id` ORDER BY links DESC)";
@@ -746,7 +750,9 @@ class Administration extends BaseModel
 						if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
 							$sql .= " GROUP BY `id` ORDER BY `resource`.`resource_creation_date` DESC)";
 						} else {
-							If (isset($filter['sort_by_activity'])) {
+							if (isset($filter['order_by'])) {
+								$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+							} elseif (isset($filter['sort_by_activity'])) {
 								$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
 							} else {
 								$sql .= " GROUP BY `id` ORDER BY links DESC, `resource`.`resource_creation_date` DESC,opened.`resource_opened_by_user` ASC)";

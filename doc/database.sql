@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS `system` (
 
 INSERT INTO `system` (`id`, `name`, `value`) VALUES
 (1, 'cron_last_run', '0'),
-(2, 'database_version', '0.3.1');
+(2, 'database_version', '0.7');
 
 CREATE TABLE IF NOT EXISTS `tag` (
   `tag_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -235,6 +235,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_position_x` double DEFAULT NULL,
   `user_position_y` double DEFAULT NULL,
   `user_registration_confirmed` int(1) NOT NULL DEFAULT '0',
+  `user_captcha_ok` INT(1) NOT NULL,
   `user_first_login` int(1) NOT NULL DEFAULT '0',
   `user_email_new` varchar(255) NOT NULL,
   `user_last_activity` timestamp NULL DEFAULT NULL,

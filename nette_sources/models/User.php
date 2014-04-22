@@ -1054,10 +1054,13 @@ class User extends BaseModel implements IIdentity
 	 *	@param
 	 *	@return
 	 */
-	public static function getRelativeLastActivity($user_id, $format = '')
+	public static function getRelativeLastActivity($user_id, $format = 'r')
 	{
-		$result = dibi::fetchSingle("SELECT `user_last_activity` FROM `user` WHERE `user_id` = %i", $user_id);
-		$timestamp = strtotime($result);
+		$query_result = dibi::fetchSingle("SELECT `user_last_activity` FROM `user` WHERE `user_id` = %i", $user_id);
+		if (empty($query_result)) {
+			return array('last_seen' => _t("never online"), 'online' => false);
+		}
+		$timestamp = $query_result->getTimestamp();
 		$online = false;
 		if ($timestamp !== false) {
 			if ($timestamp <= 0) {
@@ -1069,6 +1072,8 @@ class User extends BaseModel implements IIdentity
 				$result = _t("Last seen less than 5 mins ago.");
 			} elseif (abs($timestamp - time()) < 60*10) {
 				$result = _t("Last seen less than 10 mins ago.");
+			} elseif (strtotime('midnight', $timestamp) == strtotime('midnight')) {
+				$result = _t("Last seen:")." ". _t("today");
 			} else {
 				$result = _t("Last seen:")." ".date($format, $timestamp);
 			}

@@ -88,7 +88,7 @@ class Image extends BaseModel
 		
 					if(!file_exists($link)) {
 						$img_r = @imagecreatefromstring(base64_decode($src));
-						if (!imagejpeg($img_r, $link)) {
+						if ($img_r === false || !imagejpeg($img_r, $link)) {
 							return _t("Error writing image: ").$link;
 						}
 					}
@@ -125,11 +125,16 @@ class Image extends BaseModel
 				$large_icon_h = 50;
 				$icon_w = 20;
 				$icon_h = 25;
-				// ->sharpen() causes problems for CMYK?
-				$avatar = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
-				$large_icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->toString(IMAGETYPE_JPEG,90));
-				$icon = base64_encode(NImage::fromString($data)->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->toString(IMAGETYPE_JPEG,90));
-				
+				$img = @imagecreatefromstring($data);
+				if ($img !== false) {
+					$image_o = NImage::fromString($data)->sharpen();
+					// ->sharpen() causes problems for CMYK?
+					$avatar = base64_encode($image_o->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
+					$image_o = NImage::fromString($data);
+					$large_icon = base64_encode($image_o->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->toString(IMAGETYPE_JPEG,90));
+					$image_o = NImage::fromString($data);
+					$icon = base64_encode($image_o->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->toString(IMAGETYPE_JPEG,90));
+				}
 				$values = array (
 					$name.'_portrait' => $avatar,
 					$name.'_largeicon' => $large_icon,
@@ -179,10 +184,17 @@ class Image extends BaseModel
 				$data = base64_decode($src);
 				$avatar_w = 160;
 				$avatar_h = 200;
-				$avatar = @base64_encode(NImage::fromString($data)->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
-				$f = finfo_open();
-				$mime_type = finfo_buffer($f, base64_decode($src), FILEINFO_MIME_TYPE);
-				$image = '<img src="data:'.$mime_type.';base64,'.$avatar.'"/>';
+				$img = @imagecreatefromstring($data);
+				if ($img !== false) {
+					$image_o = new NImage($img);
+					$avatar = base64_encode($image_o->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
+					$f = finfo_open();
+					$mime_type = finfo_buffer($f, base64_decode($src), FILEINFO_MIME_TYPE);
+					$image = '<img src="data:'.$mime_type.';base64,'.$avatar.'"/>';
+				} else {
+					// default image
+					$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
+				}
 			}
 		} else {
 			// default image

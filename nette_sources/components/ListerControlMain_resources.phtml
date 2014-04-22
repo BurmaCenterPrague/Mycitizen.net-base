@@ -40,8 +40,8 @@
 		{ifset $template_variables['show_extended_columns']}
 		<div class="list-header-connections">
 			{if count($lister_type) == 1}
-					{_"Subscribers"}
-				{/if}
+			{_"Subscribers"}
+			{/if}
 		</div>
 		{/if}
 	{/if}
@@ -49,7 +49,35 @@
 
 
 {if isset($data) && count($data)>0 }
-
+	{var $resource_name}
+	{? $resource_name = array(
+		1=>'1',
+		2=>'event',
+		3=>'org',
+		4=>'doc',
+		6=>'website',
+		7=>'7',
+		8=>'8',
+		9=>'friendship',
+		'media_soundcloud'=>'audio',
+		'media_youtube'=>'video',
+		'media_vimeo'=>'video',
+		'media_bambuser'=>'live-video'
+		)}
+	{? $resource_type_labels = array(
+		1=>_t('message'),
+		2=>_t('event'),
+		3=>_t('organization'),
+		4=>_t('document'),
+		6=>_t('link to external resource'),
+		7=>'7',
+		8=>'8',
+		9=>'friendship',
+		'media_soundcloud'=>_t('sound on Soundcloud'),
+		'media_youtube'=>_t('video on YouTube'),
+		'media_vimeo'=>_t('video on Vimeo'),
+		'media_bambuser'=>_t('live-video on Bambuser')
+		)}
     {var $number_displayed}
 	{? $number_displayed=0}
 	
@@ -64,35 +92,6 @@
         	<div class="item{ifset $template_variables['selected_row']}{if $template_variables['selected_row'] == $row['id']} selected_row{/if}{/if}"
 			{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}{* Top on front page*} onClick="window.location = '{!$baseUri}resource/?resource_id={$row['id']}'"{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *} onClick="showObjectDetail({$row['type']},{$row['id']})"{/if}>
 						{? $resource_type=''}
-						{var $resource_name}
-						{? $resource_name = array(
-							1=>'1',
-							2=>'event',
-							3=>'org',
-							4=>'doc',
-							6=>'website',
-							7=>'7',
-							8=>'8',
-							9=>'friendship',
-							'media_soundcloud'=>'audio',
-							'media_youtube'=>'video',
-							'media_vimeo'=>'video',
-							'media_bambuser'=>'live-video'
-							)}
-						{? $resource_type_labels = array(
-							1=>_t('message'),
-							2=>_t('event'),
-							3=>_t('organization'),
-							4=>_t('document'),
-							6=>_t('link to external resource'),
-							7=>'7',
-							8=>'8',
-							9=>'friendship',
-							'media_soundcloud'=>_t('sound on Soundcloud'),
-							'media_youtube'=>_t('video on YouTube'),
-							'media_vimeo'=>_t('video on Vimeo'),
-							'media_bambuser'=>_t('live-video on Bambuser')
-							)}
 						{var $res => Resource::Create($row['id'])}
 						{var $resdata => $res->getResourceData()}
 						{? $resource_type = $resdata['resource_type']==5 ? $resource_name[$resdata['media_type']] : $resource_name[$resdata['resource_type']]}
@@ -103,12 +102,12 @@
 				<div class="list-body-name">
 					{ifset $template_variables['detail']}
 					{if $template_variables['detail'] == "ajax"}
-            			<span style="width:120px;" {if isset($screenshot) && ($screenshot!='')}title='{!$screenshot}'{else}title="{$resdata['resource_description']}"{/if}>{$row['name']}</span>
+            			<span class="{if $row['status']==0} status-disabled{/if}" style="width:120px;" {if isset($screenshot) && ($screenshot!='')}title='{!$screenshot}'{else}title="{$resdata['resource_description']}"{/if}>{$row['name']}</span>
 					{/if}
 					{else}
 						{var $res => Resource::Create($row['id'])}
 						{var $screenshot => $res->getScreenshot()}
-						<span style="width:120px;" {if isset($screenshot) && ($screenshot!='')}title='{!$screenshot}'{else}title="{$resdata['resource_description']}"{/if}>{$row['name']}</span>
+						<span class="{if $row['status']==0} status-disabled{/if}" style="width:120px;" {if isset($screenshot) && ($screenshot!='')}title='{!$screenshot}'{else}title="{$resdata['resource_description']}"{/if}>{$row['name']}</span>
 					{/if}
 				</div>
 

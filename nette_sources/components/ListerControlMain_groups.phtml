@@ -78,11 +78,11 @@
 				<div class="list-body-name">
 					{ifset $template_variables['detail']}
 					{if $template_variables['detail'] == "ajax"}
-				<span style="width:120px;" title="{$row['description']}">{$row['name']}</span>
+				<span class="{if $row['status']==0} status-disabled{/if}" style="width:120px;" title="{$row['description']}">{$row['name']}</span>
 					{/if}
 					{else}
         		       	{if Auth::isAuthorized(2,$row['id'])>0}
-        		       		<span style="width:120px;" title="{$row['description']}">{$row['name']}</span>
+        		       		<span class="{if $row['status']==0} status-disabled{/if}" style="width:120px;" title="{$row['description']}">{$row['name']}</span>
         				{else}
         	       			<em>{_"Hidden group"}</em>
         	       		{/if}

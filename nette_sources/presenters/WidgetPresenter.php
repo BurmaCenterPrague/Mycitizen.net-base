@@ -272,7 +272,7 @@ final class WidgetPresenter extends BasePresenter
 	/**
 	 *	@todo Prepares the window content for image browser (called by ckeditor).
 	 *	@param void
-	 *	@return
+	 *	@return void
 	 */
 	public function actionBrowse()
 	{
@@ -295,8 +295,9 @@ final class WidgetPresenter extends BasePresenter
 		$this->template->user_name = User::getFullName($user_id);
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 
-		$allowed_extensions = array('jpg', 'jpeg', 'gif', 'png');
-		$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
+//		$allowed_extensions = array('jpg', 'jpeg', 'gif', 'png');
+//		$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
+		$image_types = array('image/jpeg', 'image/gif', 'image/png');
 		$path = WWW_DIR.'/images/uploads/user-'.$user_id;
 
 		if(!file_exists($path) || !is_dir($path)) {
@@ -308,16 +309,31 @@ final class WidgetPresenter extends BasePresenter
 
 		$data = array();
 		if (count($file_names)) {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			foreach ($file_names as $file_name) {
 				$file_path = $path.'/'.$file_name;
-				$image = NImage::fromFile($file_path);
-				$data[] = array(
-					'file_name' => $file_name,
-					'web_path' => NEnvironment::getVariable("URI") . '/images/uploads/user-'.$user_id.'/'.$file_name,
-					'width' => $image->width,
-					'height' => $image->height,
-					'img_b64' => base64_encode($image->resize(120, 100)->toString(IMAGETYPE_JPEG,90)) // no sharpen for CMYK
-				);
+				$mime_type = finfo_file($finfo, $file_path);
+				$modified_date = date(_t("d.m.Y H:i:s"),filemtime($file_path));
+				if (in_array($mime_type, $image_types)===true) {
+					$image = NImage::fromFile($file_path);
+					$data[] = array(
+						'file_name' => $file_name,
+						'web_path' => NEnvironment::getVariable("URI") . '/images/uploads/user-'.$user_id.'/'.$file_name,
+						'width' => $image->width,
+						'height' => $image->height,
+						'modified_date' => $modified_date,
+						'img_b64' => base64_encode($image->resize(110, 100)->toString(IMAGETYPE_JPEG,90)) // no sharpen for CMYK
+					);
+				} else {
+					$extension = pathinfo($file_path, PATHINFO_EXTENSION);
+					$icon_web_path = NEnvironment::getVariable("URI") . '/images/mime-types/'.$extension.'.png';
+					$data[] = array(
+						'file_name' => $file_name,
+						'web_path' => NEnvironment::getVariable("URI") . '/images/uploads/user-'.$user_id.'/'.$file_name,
+						'modified_date' => $modified_date,
+						'src' => $icon_web_path
+					);
+				}
 			}
 		}
 		$this->template->data = $data;

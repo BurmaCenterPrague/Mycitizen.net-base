@@ -85,7 +85,6 @@
 	var searchedOnServer = false;
 	
 	$(document).ready(function() {
-	
 		$("#search_name").keyup(function(event){
 			if(event.keyCode == 13){
 				// submit as search
@@ -259,7 +258,7 @@
 			width: '700px',
 			filebrowserUploadUrl: '{!baseUri}?do=upload',
 			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
-			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
 			toolbarGroups: [
 				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
 				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},

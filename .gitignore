@@ -2,7 +2,7 @@
 .old_*
 .synkron.syncdb
 .htaccess
-.ser
+*.ser
 config.ini
 robots.txt
 web/images/cache/group/*.jpg

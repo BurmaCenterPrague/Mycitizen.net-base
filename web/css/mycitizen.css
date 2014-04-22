@@ -354,7 +354,7 @@ background: #FFFFFF url(../images/ico-filter-button-off.png) no-repeat 3px cente
 .list-body-name {
 	font-weight: bold;
 	margin-top: 6px;
-	width: 160px;
+	width: 100px;
     overflow: hidden;
     white-space: nowrap;
     float: left;
@@ -1578,7 +1578,7 @@ max-width:500px;
 .activity-box a { text-decoration:none;}
 .activity-item { background-color:#eae9e3; border-radius:10px; padding:5px 20px; margin:5px 0; min-height:30px; text-align:left;cursor:pointer;}
 .activity-time { display:inline-block; width:100px;}
-.activity-link { display:inline-block; width:500px;}
+.activity-link { display:inline-block; width:50%;}
 .activity-link a { color:#000;}
 .activity-link img { display:inline-block; vertical-align:middle; border: 4px solid #A9A295; width: 20px;}
 .activity-description { display:inline-block;}
@@ -1665,4 +1665,8 @@ max-width:500px;
 	margin-left: 20px;
 	border-radius: 15px;
 	box-shadow: 1px 1px 2px #8A8A8A;
+}
+
+.status-disabled {
+	color:#666;
 }

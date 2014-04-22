@@ -291,6 +291,7 @@ final class ResourcePresenter extends BasePresenter
 		$this->resource = $resource;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -298,6 +299,10 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function actionEdit($resource_id = null)
 	{
+		if (Auth::isAuthorized(3,$resource_id) < Auth::ADMINISTRATOR) {
+			$this->flashMessage("You are not allowed to edit this resource.","error");
+			$this->redirect("Resource:default", $resource_id);
+		}
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
 		if (!empty($resource)) {
@@ -528,6 +533,10 @@ final class ResourcePresenter extends BasePresenter
 		
 		Activity::addActivity(Activity::RESOURCE_COMMENT, $this->resource->getResourceId(), 3);
 		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.chatlisterresource");
+		$cache->clean(array(NCache::ALL => TRUE));
+		
 		$resource->updateUser($user->getUserId(), array(
 			'resource_user_group_access_level' => 1
 		));
@@ -537,6 +546,7 @@ final class ResourcePresenter extends BasePresenter
 		
 		### set last activity
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1500,16 +1510,13 @@ final class ResourcePresenter extends BasePresenter
 
 		$this->redirect("Resource:default");
 	}
+
 	
 	/**
-	*	For the moderation of chat messages
+	 *	For the moderation of chat messages
+	 *	@param
+	 *	@return
 	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function handleRemoveMessage($message_id,$resource_id)
 	{
 		//if (Auth::MODERATOR<=Auth::isAuthorized($object_type,$object_id)) $this->terminate();
@@ -1523,4 +1530,34 @@ final class ResourcePresenter extends BasePresenter
 
 		$this->terminate();	
 	}
+
+	
+	/**
+	 *	Removing screenshots on edit resource page
+	 *	@param int $resource_id
+	 *	@return
+	*/
+	public function handleRemoveScreenshot($resource_id)
+	{
+		if (Auth::isAuthorized(3,$resource_id) < Auth::ADMINISTRATOR) {
+			$this->flashMessage("You are not allowed to edit this resource.","error");
+			$this->redirect("Resource:default", $resource_id);
+		}
+
+		$files = glob(WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-*.jpg');
+		$done = false;
+		if ( is_array ( $files ) && count($files) ) {
+			foreach($files as $file) {
+				unlink($file);
+				$done = true;
+			}
+		}
+
+		if ($done) {
+			$this->flashMessage("The screenshot has been removed.");
+		}
+		$this->redirect("Resource:default", $resource_id);
+	}
+
+
 }

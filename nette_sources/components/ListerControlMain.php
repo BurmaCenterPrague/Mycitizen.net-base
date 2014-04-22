@@ -93,28 +93,90 @@ class ListerControlMain extends NControl
 		$this->registerHelpers();
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	@Helpers for Latte templates
+	 *	+ htmlpurify: cleans code before output based on whitelist
+	 *	+ autoformat: adds basic html formatting into plain text and applies simplified htmlpurify
+	 *	@param void
+	 *	@return void
 	 */
 	protected function registerHelpers()
 	{
-		$this->template->registerHelper('htmlpurify', function($dirty_html)
-		{
-			require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
+		require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
+
+		$this->template->registerHelper('htmlpurify', function ($dirty_html) {
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('Attr.EnableID', true);
 			$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
 			$config->set('HTML.Nofollow', true);
 			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$config->set('HTML.SafeIframe', true);
 			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
 			$config->set('Filter.YouTube', true);
 			$purifier = new HTMLPurifier($config);
 			return $purifier->purify($dirty_html);
 		});
+		
+		$this->template->registerHelper('autoformat', function ($input) {
+			// make links clickable
+			// credits: http://stackoverflow.com/a/1188652 (modified)
+			$output = '';
+			$validTlds = array_fill_keys(explode(" ", ".aero .asia .biz .cat .com .coop .edu .gov .info .int .jobs .mil .mobi .museum .name .net .org .pro .tel .travel .ac .ad .ae .af .ag .ai .al .am .an .ao .aq .ar .as .at .au .aw .ax .az .ba .bb .bd .be .bf .bg .bh .bi .bj .bm .bn .bo .br .bs .bt .bv .bw .by .bz .ca .cc .cd .cf .cg .ch .ci .ck .cl .cm .cn .co .cr .cu .cv .cx .cy .cz .de .dj .dk .dm .do .dz .ec .ee .eg .er .es .et .eu .fi .fj .fk .fm .fo .fr .ga .gb .gd .ge .gf .gg .gh .gi .gl .gm .gn .gp .gq .gr .gs .gt .gu .gw .gy .hk .hm .hn .hr .ht .hu .id .ie .il .im .in .io .iq .ir .is .it .je .jm .jo .jp .ke .kg .kh .ki .km .kn .kp .kr .kw .ky .kz .la .lb .lc .li .lk .lr .ls .lt .lu .lv .ly .ma .mc .md .me .mg .mh .mk .ml .mm .mn .mo .mp .mq .mr .ms .mt .mu .mv .mw .mx .my .mz .na .nc .ne .nf .ng .ni .nl .no .np .nr .nu .nz .om .pa .pe .pf .pg .ph .pk .pl .pm .pn .pr .ps .pt .pw .py .qa .re .ro .rs .ru .rw .sa .sb .sc .sd .se .sg .sh .si .sj .sk .sl .sm .sn .so .sr .st .su .sv .sy .sz .tc .td .tf .tg .th .tj .tk .tl .tm .tn .to .tp .tr .tt .tv .tw .tz .ua .ug .uk .us .uy .uz .va .vc .ve .vg .vi .vn .vu .wf .ws .ye .yt .yu .za .zm .zw .xn--0zwm56d .xn--11b5bs3a9aj6g .xn--80akhbyknj4f .xn--9t4b11yi5a .xn--deba0ad .xn--g6w251d .xn--hgbk6aj7f53bba .xn--hlcj6aya9esc7a .xn--jxalpdlp .xn--kgbechtv .xn--zckzah .arpa"), true);
+
+			$position = 0;
+			$rexProtocol = '(https?://)?';
+			$rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
+			$rexPort     = '(:[0-9]{1,5})?';
+			$rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
+			$rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+			$rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+			while (preg_match("{\\b$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:\"]?(\s|$))}i", $input, &$match, PREG_OFFSET_CAPTURE, $position))
+			{
+				list($url, $urlPosition) = $match[0];
+
+				$output .= substr($input, $position, $urlPosition - $position);
+
+				$domain = $match[2][0];
+				$port   = $match[3][0];
+				$path   = $match[4][0];
+				$query	= $match[5][0];
+				
+				$tld = strtolower(strrchr($domain, '.'));
+				if (preg_match('{\.[0-9]{1,3}}', $tld) || isset($validTlds[$tld]))
+				{
+					$completeUrl = $match[1][0] ? $url : "http://$url";
+					$output .= sprintf('<a href="%s" target="_blank">%s</a>', htmlspecialchars($completeUrl), htmlspecialchars("$domain$port$path$query"));
+				}
+				else
+				{
+					$output .= htmlspecialchars($url);
+				}
+				$position = $urlPosition + strlen($url);
+			}
+			$output .= substr($input, $position);
+
+			// convert tabs to &nbsp;
+			$output = preg_replace("/\t/", " &nbsp;&nbsp;&nbsp;&nbsp;", $output);
+
+			// convert spaces at beginning of newlines to &nbsp;
+			// $output = preg_replace("/\n(\s*)\s+/", "\n$1&nbsp;", $output);
+
+			// convert newlines to br tags
+			$output = nl2br($output);
+
+			// purify with simple options
+			$config = HTMLPurifier_Config::createDefault();
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
+			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
+			$purifier = new HTMLPurifier($config);
+			$output = $purifier->purify($output);
+
+			return $output;
+		});
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -548,7 +610,7 @@ class ListerControlMain extends NControl
 	}
 
 	/**
-	 *	Define administration form for connected users.
+	 *	Define administration form for connected users of a group or resource.
 	 *	@param array $data_row
 	 *	@return array $form
 	 */
@@ -559,11 +621,19 @@ class ListerControlMain extends NControl
 		$user_data = $user->getUserData();
 		$form      = new NAppForm($this, "userform" . $data_row['id']);
 		$form->addHidden('id');
-//		No Group Administrator because this is reserved for the owner.
+
 		$access_level = array(
 			'1' => _t('Normal'),
 			'2' => _t('Moderator')
 		);
+
+		// moderators can be made the new owner
+		if ($data_row['access_level'] == 2 ) {
+			if ((isset($this->persistent_filter['group_id']) && Auth::ADMINISTRATOR == Auth::isAuthorized(2,$this->persistent_filter['group_id'])) || (isset($this->persistent_filter['resource_id']) && Auth::ADMINISTRATOR == Auth::isAuthorized(3,$this->persistent_filter['resource_id']))) {
+				$access_level['3'] = _t('Owner');
+			}
+		}
+
 		$form->addSelect('access_level', null, $access_level);
 		$form->addCheckbox('status');
 		$form->addSubmit('send', _t('Update'));
@@ -577,11 +647,14 @@ class ListerControlMain extends NControl
 			'access_level' => $data_row['access_level'],
 			'status' => $data_row['status']
 		));
+
 		return $form;
 	}
 
+
+
 	/**
-	 *	@todo ### Description
+	 *	Process return values from createComponentUserListItem()
 	 *	@param
 	 *	@return
 	 */
@@ -591,7 +664,7 @@ class ListerControlMain extends NControl
 		$user   = User::create($values['id']);
 		
 		unset($values['id']);
-		
+
 		if (isset($this->persistent_filter['group_id'])) {
 			foreach ($values as $key => $value) {
 				$values["group_user_" . $key] = $value;
@@ -600,6 +673,18 @@ class ListerControlMain extends NControl
 			
 			$group = Group::create($this->persistent_filter['group_id']);
 			$group->updateUser($user->getUserId(), $values);
+			if ($values["group_user_access_level"] == 3) {
+				if (Auth::ADMINISTRATOR == Auth::isAuthorized(2,$this->persistent_filter['group_id'])) {
+					$owner = $group->getOwner();
+					$group->updateUser($owner->getUserId(), array("group_user_access_level" => 2));
+					Activity::addActivity(Activity::GROUP_PERMISSION_CHANGE, $this->persistent_filter['group_id'], 2, $owner->getUserId());
+					$group->setOwner($user->getUserId());
+					Activity::addActivity(Activity::GROUP_PERMISSION_CHANGE, $this->persistent_filter['group_id'], 2, $user->getUserId());
+				}
+			}
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage, "Lister.groupmemberlister");
+			$cache->clean(array(NCache::ALL => TRUE));
 		} else if (isset($this->persistent_filter['resource_id'])) {
 			foreach ($values as $key => $value) {
 				$values["resource_user_group_" . $key] = $value;
@@ -608,6 +693,18 @@ class ListerControlMain extends NControl
 			
 			$resource = Resource::create($this->persistent_filter['resource_id']);
 			$resource->updateUser($user->getUserId(), $values);
+			if ($values["resource_user_group_access_level"] == 3) {
+				if (Auth::ADMINISTRATOR == Auth::isAuthorized(3,$this->persistent_filter['resource_id'])) {
+					$owner = $resource->getOwner();
+					$resource->updateUser($owner->getUserId(), array("resource_user_group_access_level" => 2));
+					Activity::addActivity(Activity::RESOURCE_PERMISSION_CHANGE, $this->persistent_filter['resource_id'], 3, $owner->getUserId());
+					$resource->setOwner($user->getUserId());
+					Activity::addActivity(Activity::RESOURCE_PERMISSION_CHANGE, $this->persistent_filter['resource_id'], 3, $user->getUserId());
+				}
+			}
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage, "Lister.resourcesubscriberlister");
+			$cache->clean(array(NCache::ALL => TRUE));
 		} else {
 			foreach ($values as $key => $value) {
 				$values["user_" . $key] = $value;

@@ -33,7 +33,9 @@ class Activity extends BaseModel {
 	const LOGIN_FAILED = 18;
 	const FRIENDSHIP_REQUEST = 19;
 	const USER_PW_CHANGE = 20;
-	
+	const GROUP_PERMISSION_CHANGE = 21;
+	const RESOURCE_PERMISSION_CHANGE = 22;
+
 
 	/**
 	*	adds an activity to the database
@@ -63,8 +65,8 @@ class Activity extends BaseModel {
 	*
 	*	note: Only groups and resources listed because friends' activities should be considered private.
 	*/
-  	public static function getActivities($user_id, $min_timestamp = 0, $max_timestamp = null) {
-  		
+  	public static function getActivities($user_id, $min_timestamp = 0, $max_timestamp = null, $latest = 0) {
+
   		if ($max_timestamp == null) $max_timestamp = time();
   		
   		// get all connections of this user
@@ -95,35 +97,64 @@ class Activity extends BaseModel {
   		}
 
   		// retrieve relevant items from database
-  		$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
-  		(
-			(`affected_user_id` = %i)
-			OR
-			(`object_type` = 1
-				AND
-				(
-					`object_id` = %i
-					OR
-					`affected_user_id` = %i
+  		if ($latest) {
+			$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
+			`timestamp` > %i AND `timestamp` < %i AND
+			(
+				(`affected_user_id` = %i)
+				OR
+				(`object_type` = 1
+					AND
+					(
+						`object_id` = %i
+						OR
+						`affected_user_id` = %i
+					)
 				)
-			)
-			OR
-			(`object_type` = 2 AND `object_id` IN %in AND `affected_user_id` IS NULL)
-			OR
-			(`object_type` = 3 AND `object_id` IN %in AND `affected_user_id` IS NULL)
-  		)
-  		AND `timestamp` > %i AND `timestamp` < %i	
-  		ORDER BY `timestamp` DESC', $user_id, $user_id, $user_id, $connections[2], $connections[3], $min_timestamp, $max_timestamp);
+				OR
+				(`object_type` = 2 AND `object_id` IN %in AND `affected_user_id` IS NULL)
+				OR
+				(`object_type` = 3 AND `object_id` IN %in AND `affected_user_id` IS NULL)
+				OR
+				(`object_type` = 1 AND `activity` = %i)
+				OR
+				(`object_type` = 2 AND `activity` = %i)
+				OR
+				(`object_type` = 3 AND `activity` = %i)
+			)	
+			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3], Activity::USER_JOINED, Activity::GROUP_CREATED, Activity::RESOURCE_CREATED);
 
+  		} else {
+			$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
+			`timestamp` > %i AND `timestamp` < %i AND
+			(
+				(`affected_user_id` = %i)
+				OR
+				(`object_type` = 1
+					AND
+					(
+						`object_id` = %i
+						OR
+						`affected_user_id` = %i
+					)
+				)
+				OR
+				(`object_type` = 2 AND `object_id` IN %in AND `affected_user_id` IS NULL)
+				OR
+				(`object_type` = 3 AND `object_id` IN %in AND `affected_user_id` IS NULL)
+			)
+			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3]);
+		}
   		
   		foreach ($result as $row) {
 			$data[] = $row->toArray();
 		}
 		
-		// remove multiple notifications about chat messages and failed logins (starting from latest)
+		// remove multiple notifications from same day (starting from latest)
 		if (isset($data) && is_array($data)) {
+			$unduplicate_activities = array(Activity::GROUP_CHAT, Activity::RESOURCE_COMMENT, Activity::LOGIN_FAILED, Activity::USER_UPDATED, Activity::GROUP_UPDATED, Activity::RESOURCE_UPDATED, Activity::GROUP_RESOURCE_ADDED, Activity::GROUP_RESOURCE_REMOVED, Activity::FRIENDSHIP_REQUEST, Activity::FRIENDSHIP_YES, Activity::FRIENDSHIP_NO, Activity::FRIENDSHIP_END);
 			foreach ($data as $row) {
-				if ($row['activity'] == Activity::GROUP_CHAT || $row['activity'] == Activity::RESOURCE_COMMENT || $row['activity'] == Activity::LOGIN_FAILED || $row['activity'] == Activity::USER_UPDATED || $row['activity'] == Activity::GROUP_UPDATED || $row['activity'] == Activity::RESOURCE_UPDATED) {
+				if (in_array($row['activity'], $unduplicate_activities)) {
 					foreach ($data as $key=>$row2) {
 						if ($row2['activity_id'] < $row['activity_id'] && $row2['activity'] == $row['activity'] && $row2['object_id'] == $row['object_id'] && strtotime("midnight",$row2['timestamp']) == strtotime("midnight",$row['timestamp'])) {
 							unset($data[$key]);
@@ -133,13 +164,37 @@ class Activity extends BaseModel {
 			}
 		}
 
-		// remove notifications about items that date before making connection (starting from latest)
-		if (isset($data) && is_array($data)) {
-			foreach ($data as $row) {
-				if ($row['activity'] == Activity::FRIENDSHIP_YES || $row['activity'] == Activity::GROUP_JOINED || $row['activity'] == Activity::RESOURCE_SUBSCRIBED) {
-					foreach ($data as $key=>$row2) {
-						if ($row2['activity_id'] != $row['activity_id'] &&  $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT &&   $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED  && $row2['object_id'] == $row['object_id'] && $row2['timestamp']<$row['timestamp']) {
-							unset($data[$key]);
+  		if ($latest) {
+  			// remove notifications about items that user is not allowed to see
+			if (isset($data) && is_array($data)) {
+				foreach ($data as $key=>$row) {
+					switch ($row['object_type']) {
+						case 1:
+							if ($row['object_id'] == $user_id || $row['affected_user_id'] == $user_id) continue;
+							$object = User::create($row['object_id']);
+						break;
+						case 2:
+							$object = Group::create($row['object_id']);
+						break;
+						case 3:
+							$object = Resource::create($row['object_id']);
+						break;
+					}
+					if (empty($object) || !$object->isActive() || Auth::isAuthorized($row['object_type'],$row['object_id']) == Auth::UNAUTHORIZED) {
+						unset($data[$key]);
+					}
+					unset($object);
+				}			
+			}		
+  		} else {
+			// remove notifications about items that date before making connection (starting from latest)
+			if (isset($data) && is_array($data)) {
+				foreach ($data as $row) {
+					if ($row['activity'] == Activity::FRIENDSHIP_YES || $row['activity'] == Activity::GROUP_JOINED || $row['activity'] == Activity::RESOURCE_SUBSCRIBED) {
+						foreach ($data as $key=>$row2) {
+							if ($row2['activity_id'] != $row['activity_id'] &&  $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT &&   $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED  && $row2['object_id'] == $row['object_id'] && $row2['timestamp']<$row['timestamp']) {
+								unset($data[$key]);
+							}
 						}
 					}
 				}

@@ -25,8 +25,8 @@ $homepage = true;
 	{ifset $access_level_welcome}
 	<h4>{$access_level_welcome}<h4>
 	{/if}
-	{ifset $reports_pending} {* not yet implemented *}
-	<h4>{_"There are unread reports."}<h4>
+	{ifset $reports_pending}
+	<h4>{_"There are unread reports:"} <a href="{!$reports_url}" class="button">{$reports_pending}</a><h4>
 	{/if}
 	{ifset $incomplete_profile}
 	<h4>{_"Now is the best time to complete your profile. You can enter your name, your location and tags for your interests."}</h4><p><a href="{link User:edit, $my_id}" class="button">{_"Click here to continue"}</a></p>
@@ -47,8 +47,11 @@ $homepage = true;
 	<ul id="tab_headers" style="display:none;">
 		<li><a href="#connections">{_"My Connections"}</a></li>
 		<li><a href="#recommendations">{_"My Recommendations"}</a></li>
-		<li><a href="#activity">{_"My Activity"}</a></li>
+		<li id="tab_activity"><a href="#activity">{_"My Activity"}</a></li>
 		<li id="tab_events"><a href="#events">{_"My Events"}</a></li>
+{ifset $home_tabs}{foreach $home_tabs as $home_tab}{? $home_tab_data = explode(",", $home_tab)}
+		<li id="tab_{$home_tab_data[0]}"><a href="#slide_{$home_tab_data[0]}">{$home_tab_data[1]}</a></li>
+{/foreach}{/if}
 	</ul>
 <div class="wrapper-home">
 	<div id="connections">
@@ -73,7 +76,7 @@ $homepage = true;
 				$(function() {
 					$("#filter_box_a").fancybox({
 						minWidth : 1000,
-						minHeight : 500,
+						minHeight : 550,
 						closeBtn : true,
 						helpers : {
 							overlay : {
@@ -139,12 +142,18 @@ $homepage = true;
 
 	<div id="activity">
 	<div id="activity_box_home" class="activity-box">
+		<input id="latest_items" type="checkbox" name="latest_items"></input>
+		{_"Include all new users, groups and resources that you are allowed to view."}
 		<div id="load-more-home-1">
 		</div>
 	</div>
 	<script>
 		$(document).ready(function(){
-			loadActivity("#load-more-home-1", 2);
+			$("input[name='latest_items']").change(function(){
+				var latest = $(this).prop('checked')?'1':'0';
+				loadActivity("#load-more-home-1", 2, latest);
+			});
+
 		});
 	</script>
 	</div>
@@ -207,7 +216,9 @@ $homepage = true;
   		});
 	});
 </script>
-
+{ifset $home_tabs}{foreach $home_tabs as $home_tab}{? $home_tab_data = explode(",", $home_tab)}
+		<iframe id='slide_{$home_tab_data[0]}' src="" style="width:90%;height:700px;border:none;"></iframe>
+{/foreach}{/if}
 </div>
 </div>
 <script>
@@ -220,6 +231,15 @@ $homepage = true;
 				if (ui.newTab.attr('id') == 'tab_events') {
 					$('#calendar').fullCalendar( 'render' );
 				}
+				if (ui.newTab.attr('id') == 'tab_activity') {
+					var latest = $("input[name='latest_items']").prop('checked')?'1':'0';
+					loadActivity("#load-more-home-1", 2, latest);
+				}
+{ifset $home_tabs}{foreach $home_tabs as $home_tab}{? $home_tab_data = explode(",", $home_tab)}
+				if (ui.newTab.attr('id') == "tab_{!$home_tab_data[0]}") {
+					$("#slide_{!$home_tab_data[0]}").attr("src","{!$home_tab_data[2]}");
+				}
+{/foreach}{/if}
 			},
 			hide: 800,
 			show: 800

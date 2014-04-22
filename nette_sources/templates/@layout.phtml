@@ -20,7 +20,7 @@
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.css" />
+    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
 		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
 	
 {ifset $load_js_css_tree}
@@ -148,9 +148,9 @@
 		});
 	});
 	
-	function loadActivity(where, id) {
+	function loadActivity(where, id, latest) {
 		$(where).animate({ opacity:0},function() {
-			$(this).load("{!$baseUri}?do=activity&id="+id,function() {
+			$(this).load("{!$baseUri}?do=activity&id="+id+"&latest="+latest,function() {
 				$(this).animate({ opacity:1});
 				$('.fancybox-inner').animate({
 					scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
@@ -271,13 +271,8 @@
 						<div class="hidden-menu" style="display:none; opacity:0.00;">
 						<div class="fading">
 							<a href="{link User:edit, $my_id}"  class="button" >{_"Edit profile"}</a>
-							{if !isset($homepage) || !$homepage}
+{if !isset($homepage) || !$homepage}
 							<a href="#activity_box" class="button" id="show_activity">{_"Recent activity"}</a>
-							{/if}
-							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
-						</div>
-						</div>
-					</div>
 <script type="text/javascript">
 $(function() {
 	$("#show_activity").fancybox({
@@ -291,13 +286,27 @@ $(function() {
 			title : null
 		},
 		afterLoad: function() {
-			loadActivity("#load-more-1", 2);
+			var latest = $("input[name='latest_items']").prop('checked')?'1':'0';
+			loadActivity("#load-more-1", 2, latest);
 		}
 	});
 });
+$(document).ready(function(){
+	$("input[name='latest_items']").change(function(){
+		var latest = $(this).prop('checked')?'1':'0';
+		loadActivity("#load-more-1", 2, latest);
+	});
+});
 </script>
+{/if}
+							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
+						</div>
+						</div>
+					</div>
 				<div id="activity_box" class="activity-box" style="display:none;">
 					<h2>{_"Recent Activity"}</h2>
+					<input id="latest_items" type="checkbox" name="latest_items"></input>
+					<label for="latest_items">{_"Include all new users, groups and resources that you are allowed to view."}</label>
 					<div id="load-more-1">
 					</div>
 				</div>
@@ -330,7 +339,7 @@ $(function() {
 	});
 </script>
 			<div class="logo">
-				<h1><a href="{link Homepage:default}"><img src="{$baseUri}/images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
+				<h1><a href="{link Homepage:default}"><img src="{$baseUri}images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
 			</div>
 			<div class="language">
 				<form>
@@ -362,7 +371,7 @@ $(function() {
 			{include $footer}
 
 			<div class="rules-and-conditions">
-			{? $terms_link = '<a href='.$TOC_URL.' target="_blank">'._t("Terms of Use").'</a>'}
+			{? $terms_link = '<a href='.$TC_URL.' target="_blank">'._t("Terms of Use").'</a>'}
 			{? $pp_link = '<a href='.$PP_URL.' target="_blank">'._t("Privacy policy").'</a>'}
 				{!_"By using this platform you accept our %s and our %s.", $terms_link, $pp_link}
 			</div>			

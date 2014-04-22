@@ -63,7 +63,7 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
-		$this->template->TOC_URL = NEnvironment::getVariable("TOC_URL");
+		$this->template->TC_URL = NEnvironment::getVariable("TC_URL");
 		$this->template->PP_URL = NEnvironment::getVariable("PP_URL");
 		$this->template->PIWIK_URL = NEnvironment::getVariable("PIWIK_URL");
 		$this->template->PIWIK_ID = NEnvironment::getVariable("PIWIK_ID");
@@ -143,18 +143,6 @@ abstract class BasePresenter extends NPresenter
 			if ($first_login || (empty($this->template->fullname) && ($number_tags == 0) && (!$has_position))) $this->template->incomplete_profile = true;
 		
 
-			$userObject               = NEnvironment::getUser()->getIdentity();
-			$access_level = $userObject->getAccessLevel();
-			switch ($access_level) {
-				case 1: break;
-				case 2: $this->template->access_level_welcome =_t('You are a moderator on this platform.');break;
-				case 3: $this->template->access_level_welcome =_t('You are an administrator on this platform.');break;
-			}
-			if ($access_level == 3 || $access_level == 2) {
-				$this->template->admin = true;
-			}
-			
-			$this->template->access_level = $access_level;
 			$this->template->messages = Resource::getUnreadMessages();
 			$this->template->messages = $this->template->messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->template->messages : '<b class="icon-no-message"></b>'._t("New messages").': 0';
 			
@@ -247,7 +235,7 @@ abstract class BasePresenter extends NPresenter
 			// purify with simple options
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
-			$config->set('Attr.AllowedFrameTargets', array('_blank'));
+			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$purifier = new HTMLPurifier($config);
 			$output = $purifier->purify($output);
 
@@ -392,12 +380,13 @@ abstract class BasePresenter extends NPresenter
 	 *	@param
 	 *	@return
 	 */
+/*
 	public function handleReloadChat($group_id)
 	{
 ### USED?
 		$this->terminate();
 	}
-
+*/
 
 	/**
 	 *	Sets the language used on the UI (saved in session)
@@ -567,8 +556,9 @@ abstract class BasePresenter extends NPresenter
 		$user = NEnvironment::getUser();
 		if (!$user->isLoggedIn()) die('You are not logged in.');
 		
-		$allowed_extensions = array('jpg','jpeg','gif','png');
-		$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
+		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
+		$allowed_types = array('image/jpeg', 'image/gif', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation', 'application/vnd.oasis.opendocument.spreadsheet');
+		$image_types = array('image/jpeg', 'image/gif', 'image/png');
 		$path = '/images/uploads';
 		$max_size = 3000000;
 		$max_width = 800;
@@ -617,17 +607,18 @@ abstract class BasePresenter extends NPresenter
 
 			if (move_uploaded_file($file_info->getTemporaryFile(), WWW_DIR . $rel_url)) {
 		
-				// resize
-				$image = NImage::fromFile(WWW_DIR . $rel_url);
-				$width = $image->width;
-				$height = $image->height;
-				if ($width > $max_width || $height > $max_height) {
-					$image->resize($max_width, $max_height);
-					$image->save(WWW_DIR . $rel_url);
+				if (in_array($file_info->getContentType(), $image_types)===true) {
+					// resize
+					$image = NImage::fromFile(WWW_DIR . $rel_url);
+					$width = $image->width;
+					$height = $image->height;
+					if ($width > $max_width || $height > $max_height) {
+						$image->resize($max_width, $max_height);
+						$image->save(WWW_DIR . $rel_url);
+					}
 				}
 				$url = NEnvironment::getVariable("URI") . $rel_url;
 				echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($funcNum, '$url', '$message');</script>";
-
 			} else {
 				$message = 'ERROR: cannot move file';
 			}
@@ -643,12 +634,12 @@ abstract class BasePresenter extends NPresenter
 	 *	@param int $user_id
 	 *	@return void
 	*/
-	public function handleDeleteImage($file_name, $user_id) {
+	public function handleDeleteFile($file_name, $user_id) {
 		$user_env = NEnvironment::getUser();		
 		if (!$user_env->isLoggedIn()) die('You are not logged in.');
 		$user = $user_env->getIdentity();
 		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) die('No permission');
-		$allowed_extensions = array('jpg','jpeg','gif','png');
+		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
 		$ext = pathinfo($file_name, PATHINFO_EXTENSION);
 		if (in_array($ext, $allowed_extensions)===false) die('Wrong extension.');
 				
@@ -685,7 +676,7 @@ abstract class BasePresenter extends NPresenter
 	 *	@param int $id describes time range: today, yesterday, week, month
 	 *	@return void
 	 */
-	public function handleActivity($id = 2) {
+	public function handleActivity($id = 2, $latest = 0) {
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!isset($user)) $this->terminate();
 		
@@ -694,7 +685,7 @@ abstract class BasePresenter extends NPresenter
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Activity.stream");
 		$cache->clean();
-		$cache_key = $user_id.'-'.$id;
+		$cache_key = $user_id.'-'.$id.'-'.$latest;
 		if ($cache->offsetExists($cache_key)) {
 			$output = $cache->offsetGet($cache_key);
 			echo $output;
@@ -731,10 +722,9 @@ abstract class BasePresenter extends NPresenter
 		echo '<div id="activity-scroll-target-'.$id.'"></div>';
 		
 		echo "<h3>".$header_time."</h3>";
-		
 
-		$activities = Activity::getActivities($user_id, $from, $to);
-		
+		$activities = Activity::getActivities($user_id, $from, $to, $latest);
+
 		if (isset($activities) && count($activities)) {
 
 			foreach ($activities as $activity) {
@@ -763,7 +753,11 @@ abstract class BasePresenter extends NPresenter
 			
 				switch ($activity['activity']) {
 					case Activity::USER_JOINED:
-						$description = _t('You signed up.');
+						if ($activity['object_id'] == $user_id) {
+							$description = _t('You signed up.');
+						} else {
+							$description = _t('A new user has signed up.');
+						}
 					break;
 					case Activity::FRIENDSHIP_REQUEST:
 						if ($activity['object_id'] != $user_id) {
@@ -809,6 +803,9 @@ abstract class BasePresenter extends NPresenter
 					case Activity::RESOURCE_UPDATED: $description = _t('The resource was updated.'); break;
 					case Activity::LOGIN_FAILED: $description = _t('Somebody tried to login with your name and a wrong password.'); break;
 					case Activity::USER_PW_CHANGE: $description = _t('Your password was changed.'); break;
+					case Activity::GROUP_PERMISSION_CHANGE: $description = _t('Your permissions of the group were changed.'); break;
+					case Activity::RESOURCE_PERMISSION_CHANGE: $description = _t('Your permissions of the resource were changed.'); break;
+
 					default: $description = 'Unspecified activity'; break;
 				}
 			
@@ -819,17 +816,19 @@ abstract class BasePresenter extends NPresenter
 		}
 		
 		if ($id < 5) {
+
+			$id_inc = $id +1;
+			
 			echo '
 	<div id="load-more-'.$id .'">
 		<p><a href="javascript:void(0);" id="load_more" class="button">'._t("load more...").'</a></p>
 	</div>';
 
-			$id_inc = $id +1;
 		
 			echo '
 	<script>
 		$("#load_more").click(function(){
-			loadActivity("#load-more-'.$id.'", '.$id_inc.');
+			loadActivity("#load-more-'.$id.'", '.$id_inc.', '.$latest.');
 		});
 	</script>
 			';
@@ -1016,6 +1015,11 @@ abstract class BasePresenter extends NPresenter
 	 */
 	public function handleOnlineStatus($show_date = 1, $span = 1) {
 		$queries = NEnvironment::getHttpRequest()->getQuery();
+		if (!isset($queries['data'])) {
+			echo "false";
+			die();
+		}
+		
 		$data = json_decode($queries['data']);
 
 		if (!isset($data) || count($data) < 1) {
@@ -1025,17 +1029,16 @@ abstract class BasePresenter extends NPresenter
 		
 		foreach ($data AS $object_id => &$value) {
 			if (Auth::USER <= Auth::isAuthorized(1, $object_id)) {
-
 					$format_date_time = _t("j.n.Y");
 					$last_activity = User::getRelativeLastActivity($object_id, $format_date_time);
-				
+
 					if ($span == 0) {
 						$value = $last_activity['last_seen'];
 					} elseif ($last_activity['online']) {
 						if ($show_date) {
 							$value = ' ';
 						} else {
-							$value = '<span style="color:#0A0;font-size:2em;margin-top:-4px;">&#149</span>';
+							$value = '<span style="color:#0A0;font-size:2em;margin-top:-4px;" title="'._t('now online').'">&#149</span>';
 						}
 					} else {
 						if ($show_date) {
@@ -1049,4 +1052,6 @@ abstract class BasePresenter extends NPresenter
 		echo json_encode($data);
 		die();
 	}
+
+
 }

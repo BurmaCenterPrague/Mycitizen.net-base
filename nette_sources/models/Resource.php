@@ -615,8 +615,9 @@ class Resource extends BaseModel {
 		return $resource_data['resource_author'];		
 	}
 
+
 	/**
-	 *	@todo ### Description
+	 *	Retrieve the owner
 	 *	@param
 	 *	@return
 	 */
@@ -629,6 +630,20 @@ class Resource extends BaseModel {
       }
       return null;
 	}
+
+
+	/**
+	 *	Assign a new owner to a resource
+	 *	@param int $user_id id of new owner
+	 *	@return
+	 */
+	public function setOwner($user_id) {
+		if(Auth::ADMINISTRATOR == Auth::isAuthorized(3,$this->numeric_id)) {
+			return dibi::query("UPDATE `resource` SET `resource_author`  = %i WHERE `resource_id` = %i", $user_id, $this->numeric_id);
+		}
+		return null;
+	}
+
 
 	/**
 	 *	@todo ### Description

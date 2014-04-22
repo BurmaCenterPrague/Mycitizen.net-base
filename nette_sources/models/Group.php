@@ -318,8 +318,6 @@ class Group extends BaseModel {
 	public function getUserAccessLevel($user_id) {
 		$result = dibi::fetchAll("SELECT `group_user_access_level` FROM `group_user` WHERE `group_id` = %i AND `user_id` = %i",$this->numeric_id,$user_id);
 		if(!empty($result[0])) {
-
-		
 			return $result[0]->group_user_access_level;
 		}
 		return 0;
@@ -421,8 +419,9 @@ class Group extends BaseModel {
 
    }
 
+
 	/**
-	 *	@todo ### Description
+	 *	Retrieve the owner
 	 *	@param
 	 *	@return
 	 */
@@ -435,6 +434,20 @@ class Group extends BaseModel {
 		}
 		return null;
 	}
+
+
+	/**
+	 *	Assign a new owner to a group
+	 *	@param int $user_id id of new owner
+	 *	@return
+	 */
+	public function setOwner($user_id) {
+		if(Auth::ADMINISTRATOR == Auth::isAuthorized(2,$this->numeric_id)) {
+			return dibi::query("UPDATE `group` SET `group_author`  = %i WHERE `group_id` = %i", $user_id, $this->numeric_id);
+		}
+		return null;
+	}
+
 
 	/**
 	 *	@todo ### Description

@@ -59,7 +59,7 @@
 	
 	{foreach $data as $row}
 	{? $number_displayed++}
-	
+
 	{var $fullname => User::getFullName($row['id'])}
 	{if empty($fullname)}
 	{var $fullname => $row['name']}
@@ -86,11 +86,11 @@
 				<div class="list-body-name" {if isset($template_variables['group_edit_member_lister']) || isset($template_variables['resource_edit_subscriber_lister'])}onClick="window.location = '{!$baseUri}user/?user_id={$row['id']}'"{/if}>
 					{ifset $template_variables['detail']}
 						{if $template_variables['detail'] == "ajax"}
-            				<span class="online-status-title" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">{$row['name']}</span>
+            				<span class="online-status-title{if $row['status']==0} status-disabled{/if}" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">{$row['name']}</span>
 						{/if}
 					{else}
         		       	{if Auth::isAuthorized(1,$row['id']) > Auth::UNAUTHORIZED}
-	               			<span class="online-status-title" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">{$row['name']}</span>
+	               			<span class="online-status-title{if $row['status']==0} status-disabled{/if}" title="{$fullname}{ifset $template_variables['show_online_status']}<br/>{$last_activity}{/if}" name="{$fullname}" object_id="{$row['id']}">{$row['name']}</span>
         				{else}
         	       			<em>{_"Hidden user"}</em>
         	       		{/if}
