@@ -1,0 +1,58 @@
+<?php
+/**
+ * mycitizen.net - Social networking for civil society
+ *
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
+{block title}{_"Administration - Noticeboard"}{/block}
+{block content}
+	<div class="menu_admin">
+	{control adminmenu}
+	</div>
+<div class="wrapper-text">
+	<h1>{_"Noticeboard Messages"}</h1>
+	<h4>{_"These messages will be displayed in the activity stream of all users."}</h4>
+	{control noticeboardform}
+	{control noticeboardlister}
+</div>
+<script>
+$(document).ready(function() {
+	CKEDITOR.replace( 'message_text', {
+		height: '200px',
+		width: '740px',
+		filebrowserUploadUrl: '{!baseUri}?do=upload',
+		filebrowserBrowseUrl: '{!baseUri}widget/browse/',
+		allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}',
+		toolbarGroups: [
+			{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+			{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+			{ name: 'links'},
+			{ name: 'insert', groups: [ 'image', 'symbol', 'smiley']},
+			{ name: 'styles'},
+			{ name: 'colors'}
+		]
+	});
+});
+
+	function removeMessage(id) {
+		$('#chat_message_'+id).css({'background-color':'#E30'});
+		setTimeout( function(){
+			reply=confirm({_"Do you really want to delete this message?"});
+			if (reply==true) {
+				$.post("{!$baseUri}administration/?do=removeMessage&message_id="+id);
+					$('#totrash-'+id).slideUp();
+					$('#chat_message_'+id).slideUp('normal');
+			} else {
+				$('#chat_message_'+id).css({'background-color':'transparent'});
+			}	
+		}, 500 );
+	}
+</script>
+{/block}

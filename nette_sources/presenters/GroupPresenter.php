@@ -1442,19 +1442,17 @@ final class GroupPresenter extends BasePresenter
 
 
 	/**
-	*	For the moderation of chat messages
-	*/
-
-	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	For the moderation of chat messages
+	 *	@param int $message_id
+	 *	@param int $group_id
 	 *	@return
 	*/
-	public function handleRemoveMessage($message_id,$group_id)
+	public function handleRemoveMessage($message_id, $group_id)
 	{
-		//if (Auth::MODERATOR<=Auth::isAuthorized($object_type,$object_id)) $this->terminate();
-		//(NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) $this->terminate();
-		
+		if (Auth::isAuthorized(2,$group_id) < Auth::MODERATOR) {
+			echo "false";
+			$this->terminate();
+		}
 
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
@@ -1467,8 +1465,6 @@ final class GroupPresenter extends BasePresenter
 		} else {
 			echo "false";
 		}
-
-		
 		$this->terminate();	
 	}
 

@@ -227,6 +227,8 @@ final class ResourcePresenter extends BasePresenter
 				7=>'7',
 				8=>'8',
 				9=>'friendship',
+				10=>'friendship request',
+				11=>'noticeboard message',
 				'media_soundcloud'=>_t('sound on Soundcloud'),
 				'media_youtube'=>_t('video on YouTube'),
 				'media_vimeo'=>_t('video on Vimeo'),
@@ -346,8 +348,9 @@ final class ResourcePresenter extends BasePresenter
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 	}
 
+
 	/**
-	 *	@todo ### Description
+	 *	Preparing form submission for comments on Resources
 	 *	@param
 	 *	@return
 	 */
@@ -366,7 +369,47 @@ final class ResourcePresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+
+	/**
+	 *	Processing form submission for comments on Resources
+	 *	@param
+	 *	@return
+	 */
+	public function chatformSubmitted(NAppForm $form)
+	{
+		$user = NEnvironment::getUser()->getIdentity();
+		
+		$values                  = $form->getValues();
+		$resource                = Resource::create();
+		$data                    = array();
+		$data['resource_author'] = $user->getUserId();
+		$data['resource_type']   = 8;
+		$data['resource_data']   = json_encode(array(
+			'message_text' => $values['message_text']
+		));
+		$resource->setResourceData($data);
+		$resource->setParent($this->resource->getResourceId());
+		
+		$resource->save();
+		$this->resource->setLastActivity();
+		
+		Activity::addActivity(Activity::RESOURCE_COMMENT, $this->resource->getResourceId(), 3);
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.chatlisterresource");
+		$cache->clean(array(NCache::ALL => TRUE));
+		
+		$resource->updateUser($user->getUserId(), array(
+			'resource_user_group_access_level' => 1
+		));
+		$this->redirect("Resource:default", array(
+			'resource_id' => $this->resource->getResourceId()
+		));
+
+	}
+
+
 	/**
 	*	Form on resource detail pages that list the user's own group and offer to subscribe.
 	*
@@ -506,45 +549,6 @@ final class ResourcePresenter extends BasePresenter
 		
 		unset($group);
 
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function chatformSubmitted(NAppForm $form)
-	{
-		$user = NEnvironment::getUser()->getIdentity();
-		
-		$values                  = $form->getValues();
-		$resource                = Resource::create();
-		$data                    = array();
-		$data['resource_author'] = $user->getUserId();
-		$data['resource_type']   = 8;
-		$data['resource_data']   = json_encode(array(
-			'message_text' => $values['message_text']
-		));
-		$resource->setResourceData($data);
-		$resource->setParent($this->resource->getResourceId());
-		
-		$resource->save();
-		$this->resource->setLastActivity();
-		
-		Activity::addActivity(Activity::RESOURCE_COMMENT, $this->resource->getResourceId(), 3);
-		
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Lister.chatlisterresource");
-		$cache->clean(array(NCache::ALL => TRUE));
-		
-		$resource->updateUser($user->getUserId(), array(
-			'resource_user_group_access_level' => 1
-		));
-		$this->redirect("Resource:default", array(
-			'resource_id' => $this->resource->getResourceId()
-		));
-		
-		### set last activity
 	}
 
 

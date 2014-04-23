@@ -1,4 +1,4 @@
--- mycitizen.net version 0.3.1
+-- mycitizen.net version 0.7
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS `activity` (
   `object_id` int(11) NOT NULL,
   `affected_user_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`activity_id`),
-  KEY `type` (`object_type`),
-  KEY `id` (`object_id`)
+  KEY `timestamp` (`timestamp`,`object_type`,`object_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 CREATE TABLE IF NOT EXISTS `cron` (
@@ -107,10 +106,8 @@ CREATE TABLE IF NOT EXISTS `resource` (
   `resource_name` varchar(255) NOT NULL,
   `resource_description` text NOT NULL,
   `resource_data` text,
-  `resource_owner` int(11) DEFAULT NULL,
   `resource_visibility_level` int(2) NOT NULL DEFAULT '1',
   `resource_language` int(2) NOT NULL DEFAULT '1',
-  `resource_icon` blob,
   `resource_status` int(2) NOT NULL DEFAULT '1',
   `resource_viewed` int(11) NOT NULL DEFAULT '0',
   `resource_position_x` double DEFAULT NULL,
@@ -254,7 +251,6 @@ CREATE TABLE IF NOT EXISTS `user_friend` (
   `user_id` int(11) NOT NULL,
   `friend_id` int(11) NOT NULL,
   `user_friend_status` int(1) NOT NULL DEFAULT '0',
-  `user_friend_access_level` int(2) NOT NULL DEFAULT '1',
   PRIMARY KEY (`user_friend_id`),
   KEY `id-status` (`friend_id`, `user_friend_status`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;

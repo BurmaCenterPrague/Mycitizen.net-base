@@ -87,9 +87,10 @@ class Resource extends BaseModel {
 			if($data['resource_type'] == null) {
 				$data['resource_type'] = 0;
 			}
-			if($data['resource_owner'] == null) {
+/*			if($data['resource_owner'] == null) {
 				$data['resource_owner'] = 0;
 			}
+*/
 			$tags = $this->getTags();
 			$data['tags'] = array();	
 			foreach($tags as $tagO) {
@@ -178,14 +179,16 @@ class Resource extends BaseModel {
 		dibi::query("DELETE FROM `resource` WHERE `resource_id` = %i",$resource_id);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the id of this object
+	 *	@param void
+	 *	@return int
 	 */
 	public function getResourceId() {
 		return $this->numeric_id;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -754,17 +757,22 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
-	public function remove_message($object_type, $object_id) {
-		$result = dibi::fetchSingle("SELECT `resource_user_group_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_type` = %i AND `member_id` = %i", $this->numeric_id, $object_type, $object_id);
-		if ($result) {
-			dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
-			dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = 0 WHERE `resource_id` = %i AND `member_type` = %i AND `member_id` = %i", $this->numeric_id, $object_type, $object_id);
-			return true;
+	/**
+	 *	Immediately removes a message (chat, comment or noticeboard)
+	 *	@param int $object_type
+	 *	@param int $object_id
+	 *	@return bool
+	 */
+	public function remove_message($object_type = null, $object_id = null) {
+		if (isset($object_type) && isset($object_id)) {
+			$result = dibi::fetchSingle("SELECT `resource_user_group_id` FROM `resource_user_group` WHERE `resource_id` = %i AND `member_type` = %i AND `member_id` = %i", $this->numeric_id, $object_type, $object_id);
+			if ($result) {
+				dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
+				dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = 0 WHERE `resource_id` = %i AND `member_type` = %i AND `member_id` = %i", $this->numeric_id, $object_type, $object_id);
+				return true;
+			}
+		} else {
+			return dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
 		}
 		return false;
    }
@@ -854,7 +862,7 @@ class Resource extends BaseModel {
 	{
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$name);
-		$cache->clean(); //array(NCache::ALL => TRUE));
+		$cache->clean(array(NCache::ALL => TRUE));
 	}
 
 }

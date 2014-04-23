@@ -28,6 +28,7 @@
 		{? $id=$row['id']}
 		{var $res => Resource::Create($id)}
 		{var $resdata => $res->getResourceData()}
+{if $resdata['resource_type'] != 11}
 		{? $all_recipient_data = $res->getAllMembers(array('resource_id'=>$id))}
 		{? $recipient_data = $all_recipient_data[0]}
 		{? $recipient_id = $recipient_data['member_id']}
@@ -40,7 +41,7 @@
 		{* ? $need_js_reply = true *}
 		{? $user_data = $res->getOwner()->getUserData()}
 		{? $sender_id = $res->getOwner()->getUserId()}
-		
+{/if}
 		{? $date=(array)$resdata['resource_creation_date']}
 		{? date_default_timezone_set($date['timezone'])}
 		{? $date_formatted = strftime('%e.%m.%Y %H:%M:%S',strtotime($date['date']))}
@@ -52,8 +53,10 @@
 
 		<table>
 			<tr>
+				{if $resdata['resource_type'] != 11}
 				<td>
 				</td>
+				{/if}
 				<td>
 			<div class="chat-header 
 				{ifset $user_id}
@@ -93,6 +96,12 @@
 						</script>
 					{/if}
 
+					{ifset $template_variables['remove_enabled']}
+						<div class="move-to-trash">
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessage({$id});"><b class="icon-message-to-trash" title="{_"Remove this message."}"></b></a>	
+						</div>
+					{/if}
+					
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
 							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
@@ -122,6 +131,7 @@
 				</td>
 			</tr>
 			<tr>
+				{if $resdata['resource_type'] != 11}
 				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
@@ -146,16 +156,18 @@
 				</div>
 				{/if}
 				</td>
+				{/if}
 				<td style="max-width:630px;">
 			<div id="{$id}_text" class="chat-text balloon-right" style="{if $resdata['resource_type']==9}background-color:#F7D6A8;{/if}padding:0.7em 0.3em;">
-			{if $resdata['resource_type']!=9}
+			{if $resdata['resource_type'] != 11}
+			{if $resdata['resource_type'] != 9}
 			<div class="arrow"></div>
 			{/if}
 				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}
 					{if !$res->getOwner()->isActive()}
 				<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
 					{/if}
-					{if $resdata['resource_type'] == 9}
+					{if $resdata['resource_type'] == 9 || $resdata['resource_type'] == 11}
 				<p>{!$resdata['message_text']|htmlpurify}</p>
 					{elseif $resdata['resource_type'] == 10}
 				<p>{!$resdata['message_text']|htmlpurify}</p>
@@ -169,6 +181,9 @@
 				{else}
 					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
 				{/if}
+			{else}
+				<p>{!$resdata['message_text']|htmlpurify}</p>
+			{/if}
 			</div>
 				</td>
 				<td style="vertical-align:top; padding-top:7px; width:80px;">

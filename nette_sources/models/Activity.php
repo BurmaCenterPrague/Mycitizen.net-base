@@ -35,7 +35,7 @@ class Activity extends BaseModel {
 	const USER_PW_CHANGE = 20;
 	const GROUP_PERMISSION_CHANGE = 21;
 	const RESOURCE_PERMISSION_CHANGE = 22;
-
+	const NOTICEBOARD_MESSAGE = 23;
 
 	/**
 	*	adds an activity to the database
@@ -53,6 +53,15 @@ class Activity extends BaseModel {
   			);
   		
   		return dibi::query('INSERT INTO `activity`', $data);
+  	}
+
+
+	/**
+	*	removes an activity from the database
+	*	
+	*/
+	public static function removeActivity($activity, $object_id, $object_type) {
+  		return dibi::query('DELETE from `activity` WHERE `activity` = %i AND `object_id` = %i AND `object_type` = %i', $activity, $object_id, $object_type);
   	}
 
 
@@ -121,8 +130,10 @@ class Activity extends BaseModel {
 				(`object_type` = 2 AND `activity` = %i)
 				OR
 				(`object_type` = 3 AND `activity` = %i)
+				OR
+				(`activity` = %i)
 			)	
-			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3], Activity::USER_JOINED, Activity::GROUP_CREATED, Activity::RESOURCE_CREATED);
+			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3], Activity::USER_JOINED, Activity::GROUP_CREATED, Activity::RESOURCE_CREATED, Activity::NOTICEBOARD_MESSAGE);
 
   		} else {
 			$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
@@ -142,8 +153,10 @@ class Activity extends BaseModel {
 				(`object_type` = 2 AND `object_id` IN %in AND `affected_user_id` IS NULL)
 				OR
 				(`object_type` = 3 AND `object_id` IN %in AND `affected_user_id` IS NULL)
+				OR
+				(`activity` = %i)
 			)
-			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3]);
+			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3], Activity::NOTICEBOARD_MESSAGE);
 		}
   		
   		foreach ($result as $row) {
@@ -168,6 +181,7 @@ class Activity extends BaseModel {
   			// remove notifications about items that user is not allowed to see
 			if (isset($data) && is_array($data)) {
 				foreach ($data as $key=>$row) {
+					if ($row['activity'] == Activity::NOTICEBOARD_MESSAGE) continue;
 					switch ($row['object_type']) {
 						case 1:
 							if ($row['object_id'] == $user_id || $row['affected_user_id'] == $user_id) continue;

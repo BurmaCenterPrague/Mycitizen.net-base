@@ -21,6 +21,11 @@ final class AdministrationPresenter extends BasePresenter
 	*/
 	public function startup()
 	{
+		$user   = NEnvironment::getUser()->getIdentity();
+		$access = $user->getAccessLevel();
+		if ($access < 2) {
+			$this->redirect("Homepage:default");
+		}
 		parent::startup();
 		
 //		if (class_exists('NDebug') && (NDebug::isEnabled())) { NDebug::enableProfiler(); }
@@ -102,6 +107,12 @@ final class AdministrationPresenter extends BasePresenter
 	 */
 	public function actionTags()
 	{
+		$user   = NEnvironment::getUser()->getIdentity();
+		$access = $user->getAccessLevel();
+		if ($access < 3) {
+			$this->flashMessage(_t('Only administrators can visit this section!'), 'error');
+			$this->redirect("Administration:default");
+		}
 	}
 
 	/**
@@ -111,6 +122,12 @@ final class AdministrationPresenter extends BasePresenter
 	 */
 	public function actionTag()
 	{
+		$user   = NEnvironment::getUser()->getIdentity();
+		$access = $user->getAccessLevel();
+		if ($access < 3) {
+			$this->flashMessage(_t('Only administrators can visit this section!'), 'error');
+			$this->redirect("Administration:default");
+		}
 	}
 
 	/**
@@ -120,6 +137,16 @@ final class AdministrationPresenter extends BasePresenter
 	 */
 	public function actionPiwik()
 	{
+	}
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public function actionNoticeboard()
+	{
+		$this->template->load_js_css_editor = true;
 	}
 
 
@@ -292,6 +319,7 @@ final class AdministrationPresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -333,31 +361,39 @@ final class AdministrationPresenter extends BasePresenter
 				'parent' => 0
 			);
 
+		$menu_mod['4'] = array(
+				'title' => _t('Notice Board'),
+				'presenter' => 'administration',
+				'action' => 'noticeboard',
+				'parameters' => array(),
+				'parent' => 0
+			);
+
 		
 		if ($access == 3) {
 			$menu_admin    = array(
-				'4' => array(
+				'5' => array(
 					'title' => _t('Tags'),
 					'presenter' => 'administration',
 					'action' => 'tags',
 					'parameters' => array(),
 					'parent' => 0
 				),
-				'5' => array(
+				'6' => array(
 					'title' => _t('Add tag'),
 					'presenter' => 'administration',
 					'action' => 'tag',
 					'parameters' => array(),
-					'parent' => 4
+					'parent' => 5
 				),
-				'6' => array(
+				'7' => array(
 					'title' => _t('Settings'),
 					'presenter' => 'administration',
 					'action' => 'settings',
 					'parameters' => array(),
 					'parent' => 0
 				),
-				'7' => array(
+				'8' => array(
 					'title' => _t('Setup and Maintenance'),
 					'presenter' => 'administration',
 					'action' => 'setupmaintenance',
@@ -1033,5 +1069,117 @@ final class AdministrationPresenter extends BasePresenter
 
 
 	}
-	
+
+	/**
+	 *	Preparing form submission for comments on Resources
+	 *	@param
+	 *	@return
+	 */
+	protected function createComponentNoticeboardform()
+	{
+		$form = new NAppForm($this, 'noticeboardform');
+		$form->addTextarea('message_text', '');
+		$form['message_text']->getControlPrototype()->class('ckeditor-small');
+		$form->addSubmit('send', _t('Post'));
+		$form->addProtection(_t('Error submitting form.'));
+		
+		$form->onSubmit[] = array(
+			$this,
+			'noticeboardformSubmitted'
+		);
+		
+		return $form;
+	}
+
+
+	/**
+	 *	Processing form submission for comments on Resources
+	 *	@param
+	 *	@return
+	 */
+	public function noticeboardformSubmitted(NAppForm $form)
+	{
+		$user = NEnvironment::getUser()->getIdentity();
+		
+		$values                  = $form->getValues();
+		$resource                = Resource::create();
+		$data                    = array();
+		$data['resource_author'] = 0;
+		$data['resource_type']   = 11;
+		$data['resource_data']   = json_encode(array(
+			'message_text' => $values['message_text']
+		));
+		$resource->setResourceData($data);
+		
+		$resource->save();
+		
+		Activity::addActivity(Activity::NOTICEBOARD_MESSAGE, $resource->getResourceId(), 3);
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.noticeboard");
+		$cache->clean(array(NCache::ALL => TRUE));
+		
+		$this->redirect("Administration:noticeboard");
+	}
+
+
+	/**
+	 *	Lists the notices for admin
+	 *	@param
+	 *	@return
+	 */
+	protected function createComponentNoticeboardlister($name)
+	{
+		$options = array(
+			'itemsPerPage' => 20,
+			'lister_type' => array(
+				ListerControlMain::LISTER_TYPE_RESOURCE
+			),
+			'template_body' => 'ListerControlMain_messages.phtml',
+			'filter' => array(
+				'type' => 11,
+				'status' => 1
+			),
+			'refresh_path' => 'Administration:noticeboard',
+			'template_variables' => array(
+                    'hide_filter' => true,
+                    'remove_enabled' => true
+                    )
+		);
+		$control = new ListerControlMain($this, $name, $options);
+		return $control;
+	}
+
+
+	/**
+	 *	For the moderation of noticeboard messages
+	 *	@param int $message_id
+	 *	@return
+	*/
+	public function handleRemoveMessage($message_id)
+	{
+		if (NEnvironment::getUser()->getIdentity()->getAccessLevel() < 2) {
+			echo "false";
+			$this->terminate();
+		}
+
+		$resource = Resource::create($message_id);
+		if (!empty($resource)) {
+			if ($resource->remove_message()) {
+				Activity::removeActivity(Activity::NOTICEBOARD_MESSAGE, $resource->getResourceId(), 3);
+				echo "true";
+				$storage = new NFileStorage(TEMP_DIR);
+				$cache = new NCache($storage, "Lister.noticeboard");
+				$cache->clean(array(NCache::ALL => TRUE));
+				$cache = new NCache($storage, "Activity.stream");
+				$cache->clean(array(NCache::ALL => TRUE));
+
+			} else {
+				echo "false";
+			}
+		} else {
+			echo "false";
+		}
+		$this->terminate();	
+	}
 }
