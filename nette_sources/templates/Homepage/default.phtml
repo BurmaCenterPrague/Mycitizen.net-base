@@ -58,35 +58,8 @@ $homepage = true;
 
 		<div class="homepage_default_filter">
 			<div class="filter-body filter-body-{control homepageresourcelister:filterstatus}">
-				<a href="#filter_container" id="filter_box_a" class="filter-button-{control homepageresourcelister:filterstatus}" title="{_"Use the filter to narrow down the list of items"}.">{control homepageresourcelister:filtercheck}</a>
-				<div id="filter_container" style="display:none;">
-					{control filter}
-				</div>
-				<script>
-				$(document).ready(function(){
-					if ($('#filter_box_a').attr('class') == 'filter-button-off') {
-						$('#frmfilter-reset').hide();
-					} else {
-						$('#filter-help').hide();
-					}
-				});
-				</script>
-				
-				<script type="text/javascript">
-				$(function() {
-					$("#filter_box_a").fancybox({
-						minWidth : 1000,
-						minHeight : 550,
-						closeBtn : true,
-						helpers : {
-							overlay : {
-								css: {'background' : 'rgba(200, 200, 200, .5)'}
-							},
-							title : null
-						},
-					});
-				});
-				</script>
+				<a href="#filter_container" id="filter_box_a" class="filter-button-{control homepageresourcelister:filterstatus}" title="{control homepageresourcelister:filtertitle}">{control homepageresourcelister:filtercheck}</a>
+
 			</div>
 		</div>
 		<div class="top-users">
@@ -142,8 +115,7 @@ $homepage = true;
 
 	<div id="activity">
 	<div id="activity_box_home" class="activity-box">
-		<input id="latest_items" type="checkbox" name="latest_items"></input>
-		{_"Include all new users, groups and resources that you are allowed to view."}
+		<input id="latest_items" type="checkbox" name="latest_items"></input>{_"Include all new users, groups and resources that you are allowed to view."}
 		<div id="load-more-home-1">
 		</div>
 	</div>
@@ -247,6 +219,38 @@ $homepage = true;
 
 	});
 </script>
+
+<!-- BEGIN Filter for my connections -->
+<div id="filter_container" style="display:none;">
+	{control filter}
+</div>
+<script>
+$(document).ready(function(){
+	if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+		$('#frmfilter-reset').hide();
+	} else {
+		$('#filter-help').hide();
+	}
+});
+</script>
+
+<script type="text/javascript">
+$(function() {
+	$("#filter_box_a").fancybox({
+		minWidth : 1000,
+		minHeight : 550,
+		closeBtn : true,
+		helpers : {
+			overlay : {
+				css: {'background' : 'rgba(200, 200, 200, .5)'}
+			},
+			title : null
+		},
+	});
+});
+</script>
+<!-- END Filter for my connections -->
+	
 {else}{* Users who are not logged in see "top" items. *}
 <div class="wrapper-home-B">
 	<div class="homepage_default_users">

@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.7 Beta : 23 Apr 2014
+0.8 Beta : 3 May 2014
 
 
 authors
@@ -41,6 +41,11 @@ included packages
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
 - [Treeview 1.4.1](http://docs.jquery.com/Plugins/Treeview) (MIT license or GPL)
 - [zxcvbn](https://github.com/lowe/zxcvbn) 1.0 [license](https://github.com/lowe/zxcvbn/blob/master/LICENSE.txt)
+
+other credits
+-------------
+- [map icon](http://www.iconsdb.com/gray-icons/world-map-icon.html) Creative Commons Attribution-NoDerivs 3.0 Unported
+- [icons for mime types in file browser](http://teambox.com/) MIT license
 
 system requirements
 -------------------

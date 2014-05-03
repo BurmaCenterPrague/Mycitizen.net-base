@@ -254,6 +254,7 @@ class ExternalFilter extends NControl
 		return $form;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -275,7 +276,10 @@ class ExternalFilter extends NControl
 	 */
 	public function filterFormSubmitted(NAppForm $form)
 	{
+		$session = NEnvironment::getSession()->getNamespace($this->name);
+		
 		if ($form['filter']->isSubmittedBy()) {
+			$session->data['object_id'] = NULL;
 			$values     = $form->getValues();
 			$filter     = $this->getFilterArray();
 
@@ -317,6 +321,7 @@ class ExternalFilter extends NControl
 			$this->setFilterArray($new_filter);
 			$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 		} else if ($form['suggest']->isSubmittedBy()) {
+			$session->data['object_id'] = NULL;
 			$user = NEnvironment::getUser()->getIdentity();
 			if (!empty($user)) {
 				$ud   = $user->getUserData();
@@ -416,6 +421,7 @@ class ExternalFilter extends NControl
 				$session = NEnvironment::getSession()->getNamespace($component_name);
 				if (is_array($session->filterdata)) {
 					$filter = array_merge($filter, $session->filterdata);
+					$session->data['object_id'] = NULL;
 				}
 			}
 		}
@@ -438,6 +444,7 @@ class ExternalFilter extends NControl
 
 		return $filter;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -467,15 +474,16 @@ class ExternalFilter extends NControl
 			if ($component_name == 'userlister') $name = 'User';
 			if ($component_name == 'grouplister') $name = 'Group';
 			if ($component_name == 'defaultresourceresourcelister') $name = 'Resource';
-			
-			unset($old_filter);
-		}
 		
-		if (isset($name)) {
-			$user_session = NEnvironment::getSession()->getNamespace($name);
-			$user_session->data = NULL;
-		}
+			if (isset($name)) {
+				$user_session = NEnvironment::getSession()->getNamespace($name);
+				$user_session->data = NULL;
+			}
+	
+			unset($old_filter);
+		}		
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -492,11 +500,13 @@ class ExternalFilter extends NControl
 
 		foreach ($this->components as $component_name) {
 			$session = NEnvironment::getSession()->getNamespace($component_name);
-
+			$session->data['object_id'] = NULL;
+			
 			if (is_null($filter)) {
 				unset($session->filterdata['name']);
 				unset($session->filterdata['status']);
 				unset($session->filterdata['type']);
+				unset($session->filterdata['mapfilter']);
 			} else {
 				if ($session->filterdata !== NULL) {
 					foreach ($filter as $key => $value) {

@@ -145,7 +145,7 @@ class User extends BaseModel implements IIdentity
  *	@param
  *	@return
 */
-	public function getBigIcon()
+	public function getLargeIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `user_largeicon` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 		return $portrait;
@@ -263,7 +263,7 @@ class User extends BaseModel implements IIdentity
 	*/
 
 /**
- *	@todo ### Description
+ *	something Nette-specific
  *	@param
  *	@return
 */
@@ -442,7 +442,7 @@ class User extends BaseModel implements IIdentity
 		$id = $this->numeric_id;
 		
 		$answer = Settings::getVariable('signup_answer');
-		if ($answer) {
+		if ($answer && $this->getCaptchaOk() == false) {
 			$link  = NEnvironment::getVariable("URI") . "/widget/mobilecaptcha/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;		
 		} else {
 //			$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
@@ -674,6 +674,24 @@ class User extends BaseModel implements IIdentity
 		return 1;
 	}
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public static function areFriends($user_1_id, $user_2_id)
+	{
+		$user = User::create($user_1_id);
+		if (!empty($user)) {
+			if ($user->friendsStatus($user_2_id) == 2 && $user->reverseFriendsStatus($user_2_id) == 2) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -867,9 +885,9 @@ class User extends BaseModel implements IIdentity
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the full name of a user.
+	 *	@param int $user_id
+	 *	@return int | boolean
 	 */
 	public static function getFullName($user_id)
 	{
@@ -1057,10 +1075,10 @@ class User extends BaseModel implements IIdentity
 	public static function getRelativeLastActivity($user_id, $format = 'r')
 	{
 		$query_result = dibi::fetchSingle("SELECT `user_last_activity` FROM `user` WHERE `user_id` = %i", $user_id);
-		if (empty($query_result)) {
+		if (empty($query_result) || $query_result=='0000-00-00 00:00:00') {
 			return array('last_seen' => _t("never online"), 'online' => false);
 		}
-		$timestamp = $query_result->getTimestamp();
+		$timestamp = strtotime($query_result);
 		$online = false;
 		if ($timestamp !== false) {
 			if ($timestamp <= 0) {
@@ -1074,6 +1092,8 @@ class User extends BaseModel implements IIdentity
 				$result = _t("Last seen less than 10 mins ago.");
 			} elseif (strtotime('midnight', $timestamp) == strtotime('midnight')) {
 				$result = _t("Last seen:")." ". _t("today");
+			} elseif (date('Ymd', strtotime('yesterday')) == date('Ymd', $timestamp)) {
+				$result = _t("Last seen:")." ". _t("yesterday");
 			} else {
 				$result = _t("Last seen:")." ".date($format, $timestamp);
 			}
@@ -1144,8 +1164,12 @@ class User extends BaseModel implements IIdentity
 	 *	@return
 	 */
 	public static function getImage($user_id,$size='img',$title=null) {
-		$image = new Image($user_id, 1);
-		return $image->toImg($size, $title);
+		$image = Image::createimage($user_id, 1);
+		if ($image !== false) {
+			return $image->renderImg($size, $title);
+		} else {
+			return Image::default_img($size, $title);
+		}
 	}
 
 
@@ -1168,7 +1192,7 @@ class User extends BaseModel implements IIdentity
 				switch ($size) {
 					case 'img': $src = $object->getAvatar(); break;
 					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getBigIcon(); break;
+					case 'large_icon': $src = $object->getLargeIcon(); break;
 				}
 	
 				if (!empty($src)) {

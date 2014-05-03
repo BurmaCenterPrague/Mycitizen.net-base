@@ -2,7 +2,7 @@
 
 ##### File needed by API only
 
-define('WWW_DIR', realpath(dirname(__FILE__)));
+define('WWW_DIR', realpath(dirname(__FILE__).'/../web'));
 // next constant for location of nette_sources and lib directories
 # define('SHARED_DIR', realpath(dirname(__FILE__)) . '/../../mcn-shared-code');
 

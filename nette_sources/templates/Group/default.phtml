@@ -16,41 +16,7 @@
 <div class="group_default_main">
     <div class="group_default_filter"> 
 		<div class="filter-body filter-body-{control grouplister:filterstatus}">
-{ifset $filterhint}
-			<div id="filter-help">
-				{_"Use the filter to narrow down the list of items"}
-				<span class="arrow-right"></span>
-			</div>
-{/if}
-			<a href="#filter_container" id="filter_box_a" class="filter-button-{control grouplister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control grouplister:filtercheck}</a>
-			<div id="filter_container" style="display:none;">
-				{control grouplister:filter}
-			</div>
-			<script>
-			$(document).ready(function(){
-				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
-					$('#frmfilter-reset').hide();
-				} else {
-					$('#filter-help').hide();
-				}
-			});
-			</script>
-			
-			<script type="text/javascript">
-			$(function() {
-				$("#filter_box_a").fancybox({
-					minWidth: 1000,
-					minHeight: 550,
-					closeBtn: true,
-					helpers: {
-						overlay: {
-							css: {'background' : 'rgba(200, 200, 200, .5)'}
-						},
-						title: null
-					},
-				});
-			});
-			</script>
+			<a href="#filter_container" id="filter_box_a" class="filter-button-{control grouplister:filterstatus}" title="{control grouplister:filtertitle}">{control grouplister:filtercheck}</a>
 		</div>
 	</div>
 
@@ -63,7 +29,7 @@
 		<div class="wrapper">
 			<div class="group_default_info">
 				{ifset $default_data}
-				<div class="item-group" onclick=window.location='{link Group:default, $default_data['object_data']['group_id']}'>
+				<div class="item-group" onclick='window.location={link Group:default, $default_data['object_data']['group_id']}'>
 					<div class="group-image">
 						{!$large_icon}
 					</div>
@@ -164,10 +130,39 @@
 				{/if}
 			{/if}
 			</div>
-			
+
+<!-- BEGIN Filter -->
+<div id="filter_container" style="display:none;">
+	{control grouplister:filter}
+</div>
+<script>
+$(document).ready(function(){
+	if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+		$('#frmfilter-reset').hide();
+	} else {
+		$('#filter-help').hide();
+	}
+});
+</script>
+
+<script type="text/javascript">
+$(function() {
+	$("#filter_box_a").fancybox({
+		minWidth: 1000,
+		minHeight: 550,
+		closeBtn: true,
+		helpers: {
+			overlay: {
+				css: {'background' : 'rgba(200, 200, 200, .5)'}
+			},
+			title: null
+		},
+	});
+});
+</script>
+<!-- END Filter -->
+
     	</div> <!-- .wrapper -->
-
 	</div>
-
 </div>
 {/block}

@@ -104,11 +104,11 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function save() {
 		try {
 			dibi::begin();
@@ -135,6 +135,25 @@ class Resource extends BaseModel {
 		dibi::commit();
 		return true;
 	}
+
+
+	/**
+	 *	Checks whether the same has just been posted to prevent multiple message on slow networks
+	 *	@param
+	 *	@return boolean true for doublette found
+	*/
+	public function check_doublette($data, $object_id, $object_type) {
+		$result = dibi::fetchAll("SELECT `resource_id` FROM `resource` WHERE %and AND `resource_creation_date` > NOW() - INTERVAL 5 MINUTE", $data);
+		if (!empty($result)) {
+			foreach ($result AS $row) {
+				$output = $row->toArray();
+				$result2 = dibi::fetchSingle("SELECT * FROM `resource_user_group` WHERE `resource_id` = %i AND `member_id` = %i AND `member_type` = %i", $output['resource_id'], $object_id, $object_type);
+				if (!empty($result)) return true;
+			}
+		}
+		return false;
+	}
+
 
 	/**
 	 *	@todo ### Description
@@ -249,7 +268,7 @@ class Resource extends BaseModel {
 	{
 		$result = dibi::fetchSingle("SELECT `resource_name` FROM `resource` WHERE `resource_id` = %i", $resource_id);
 		if (empty($result)) {
-			return "";
+			return false;
 		}
 		return $result;
 	}
@@ -759,8 +778,8 @@ class Resource extends BaseModel {
 
 	/**
 	 *	Immediately removes a message (chat, comment or noticeboard)
-	 *	@param int $object_type
-	 *	@param int $object_id
+	 *	@param int $object_type where message appears 
+	 *	@param int $object_id where message appears
 	 *	@return bool
 	 */
 	public function remove_message($object_type = null, $object_id = null) {
@@ -772,7 +791,8 @@ class Resource extends BaseModel {
 				return true;
 			}
 		} else {
-			return dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
+			dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $this->numeric_id);
+			return true;
 		}
 		return false;
    }
@@ -831,27 +851,32 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	creates screenshot in html
+	 *	@param string $title
+	 *	@param boolean $placeholder
+	 *	@return string
+	*/
 	public function getScreenshot($title=null, $placeholder=false) {
-	
 		$image = '';
-		if (isset($title)) $title_tag =' title="'.$title.'"'; else $title_tag='';
-		
 		$url = $this->getThumbnailUrl();
-				
 		if (!empty($url)) {
 			$md5 = md5($url);
 			$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';
 			$filepath = WWW_DIR.$link;
 			
 			if (file_exists($filepath)) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;" '.$title_tag.'/></a></div>';
+				if (isset($title)) {
+					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;" title="'.$title.'"/></a></div>';
+				} else {
+					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;"/></div>';
+				}
 			} elseif ($placeholder) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;" '.$title_tag.'/></a></div>';
+				if (isset($title)) {
+					$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;" title="'.$title.'"/></a></div>';
+				} else {
+					$image = '<div class="screenshot" style="padding:5px;background:#fff;"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;"/></div>';
+				}
 			}
 		}
 
@@ -862,7 +887,9 @@ class Resource extends BaseModel {
 	{
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$name);
-		$cache->clean(array(NCache::ALL => TRUE));
+		$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id")));
+		$cache = new NCache($storage, "Lister.render.".$name);
+		$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id")));
 	}
 
 }

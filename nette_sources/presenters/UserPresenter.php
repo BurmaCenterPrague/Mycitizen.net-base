@@ -106,10 +106,17 @@ final class UserPresenter extends BasePresenter
 			
 			$this->template->access_level = $this->user->getAccessLevel();
 			
-			$this->template->img = User::getImage($user_id, 'img');
-			$this->template->icon = User::getImage($user_id, 'icon');
-			$this->template->large_icon = User::getImage($user_id, 'large_icon');
-			
+			$image = Image::createimage($user_id, 1);
+			if ($image !== false) {
+				$this->template->img = $image->renderImg('img');
+				$this->template->icon = $image->renderImg('icon');
+				$this->template->large_icon = $image->renderImg('large_icon');
+				$this->template->mime_type = $image->mime_type;
+			} else {
+				$this->template->img = Image::default_img('img');
+				$this->template->icon = Image::default_img('icon');
+				$this->template->large_icon = Image::default_img('large_icon');
+			}
 			$this->template->user_tags = $this->user->groupSortTags($this->user->getTags());
 		}
 		
@@ -138,11 +145,17 @@ final class UserPresenter extends BasePresenter
 				if($friend_object->thatsMe()) $this->template->thats_me=true;
 			}
 			
-			$this->template->img = User::getImage($session->data['object_id'], 'img');
-			$this->template->icon = User::getImage($session->data['object_id'], 'icon');
-			$this->template->large_icon = User::getImage($session->data['object_id'], 'large_icon');
-			
-			$this->template->mime_type = $image_type;
+			$image = Image::createimage($session->data['object_id'],1);
+			if ($image !== false) {
+				$this->template->img = $image->renderImg('img');
+				$this->template->icon = $image->renderImg('icon');
+				$this->template->large_icon = $image->renderImg('large_icon');
+				$this->template->mime_type = $image->mime_type;
+			} else {
+				$this->template->img = Image::default_img('img');
+				$this->template->icon = Image::default_img('icon');
+				$this->template->large_icon = Image::default_img('large_icon');
+			}
 		}
 		
 		if (isset($data)) {
@@ -196,7 +209,11 @@ final class UserPresenter extends BasePresenter
 			
 		$question = Settings::getVariable('signup_question');
 		if ($question && $user->getCaptchaOk() == false) {
-			$this->redirect("Widget:mobilecaptcha", array('control_key' => $control_key, 'user_id' => $user_id));
+			if (isset($device) && $device=="mobile") {
+				$this->redirect("Widget:mobilecaptcha", array('control_key' => $control_key, 'user_id' => $user_id));
+			} else {
+				$this->redirect("User:register", array('user_id' => $user_id));
+			}
 		}
 
 		if ($device == NULL) {
@@ -325,7 +342,7 @@ final class UserPresenter extends BasePresenter
 		
 		$query = NEnvironment::getHttpRequest();
 		$do = $query->getQuery("do");
-		if ($do == 'makebigicon' || $do == 'makeicon' || $do == 'crop') return;
+		if ($do == 'crop') return;
 	
 		$user = NEnvironment::getUser()->getIdentity();
 		if (empty($user)) {
@@ -355,50 +372,31 @@ final class UserPresenter extends BasePresenter
 			$this->template->user_tags = $tags;
 		}
 		$this->template->user_id = $user->getUserId();
-		$data = $user->getAvatar();
-		
-		$this->template->img_src = $data;
-
 		$size_x = 0;
 		$size_y = 0;
-
-		if(!empty($data) && $data) {
-			$f = finfo_open();
-
-			$image_type = finfo_buffer($f, base64_decode($data), FILEINFO_MIME_TYPE);
-		
-			$this->template->mime_type = $image_type;	
-
-			$img_r = imagecreatefromstring(base64_decode($data));
-		
-			$size_x = imagesx($img_r);
-			$size_y = imagesy($img_r);
+		$image = Image::createimage($user->getUserId(), 1);
+		if ($image !== false) {
+			$this->template->icon = $image->renderImg('icon');
+			$this->template->large_icon = $image->renderImg('large_icon');
+			$this->template->mime_type = $image->mime_type;
+			$size_x = $image->width;
+			$size_y = $image->height;
 			$this->template->factor = 1;
 			$this->template->min_size_x = 120;
 			$this->template->min_size_y = 150;
-
 			if ($size_x == 0 || $size_y == 0) {
-			
-				unset($this->template->img_src);
-				
+				$this->flashMessage(_t("There is a problem with your avatar."),"error");
 				$user->removeAvatar();
 				$user->removeIcons();
-			
-			} elseif ($size_x < 80 || $size_y < 100) {
-
+		
+			} elseif ($size_x < 120 || $size_y < 150) {
 				$this->flashMessage(sprintf(_t("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
-				
-				$user->removeAvatar();
 				$user->removeIcons();
-			
-				unset($this->template->img_src);
-			
 			} elseif ($size_x > 160 || $size_y > 200 ) {
-
 				$this->template->image_too_large = true;
 				$this->flashMessage(_t("Your image still needs to be resized before you can continue!"));
 				$user->removeIcons();
-				
+			
 				// check if image is too large to be cropped on screen
 				$max_x = 600;
 				$max_y = 600;
@@ -407,22 +405,21 @@ final class UserPresenter extends BasePresenter
 					$this->template->factor = $factor;
 					$this->template->min_size_x = round(120 / $factor);
 					$this->template->min_size_y = round(150 / $factor);
-					$this->template->img_src = base64_encode(NImage::fromString(base64_decode($data))->resize($max_x, $max_y)->toString(IMAGETYPE_JPEG,80));
+					$this->template->img_src = $image->resize($max_x, $max_y)->src();
+				} else {
+					$this->template->img_src = $image->src();
 				}
-			
 			} elseif (abs(round($size_x/$size_y*500/4)-100) > 10) {
 			// more than 10% deviation from ideal ratio
 				$this->template->image_props_wrong = true;
 				$this->flashMessage(_t("Your image still needs to be cropped to the right dimensions before you can continue!"));
+				$this->template->img_src = $image->src();
 				$user->removeIcons();
-			
+			} else {
+				$this->template->img_src = $image->src();
 			}
-		
-			$this->template->icon = User::getImage($this->template->user_id, 'icon');
-			$this->template->large_icon = User::getImage($this->template->user_id, 'large_icon');
-		
-			imagedestroy($img_r);
-
+		} else {
+			$user->removeIcons();
 		}
 		
 	}
@@ -603,11 +600,12 @@ final class UserPresenter extends BasePresenter
 		return $form;
 	}
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function changelostpasswordformSubmitted(NAppForm $form)
 	{
 
@@ -898,18 +896,17 @@ final class UserPresenter extends BasePresenter
 
 		$answer = Settings::getVariable('signup_answer');
 		
-		if ($answer) {
+		if ($answer && isset($values['text'])) {
 			if ($answer != $values['text']) {
 				sleep(5);
 				$this->flashMessage(_t("You entered the wrong captcha."), 'error');
 				NEnvironment::getUser()->logout();
 				$this->redirect('User:register');
 			} else {
-				$user = NEnvironment::getUser()->getIdentity();
-				$user->setCaptchaOk(true);
+				$values['user_captcha_ok'] = 1; //$new_user->setCaptchaOk(true);
 			}
 		} else {
-			$user->setCaptchaOk(true);
+			$values['user_captcha_ok'] = 1;//$new_user->setCaptchaOk(true);
 		}
 		if (isset($values['text'])) unset($values['text']);
 		
@@ -963,7 +960,7 @@ final class UserPresenter extends BasePresenter
 		$password = $values['user_password'];
 		
 		$new_user = User::create();
-		
+
 		$values['user_password'] = User::encodePassword($values['user_password']);
 		unset($values['password_again']);
 		$hash                = User::generateHash();
@@ -1074,65 +1071,6 @@ final class UserPresenter extends BasePresenter
 		return $form;
 	}
 
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-/*	protected function createComponentChatform()
-	{
-		$form = new NAppForm($this, 'chatform');
-		$form->addTextarea('message_text', '');
-//		$form['message_text']->getControlPrototype()->class('ckeditor-big');
-		$form->addSubmit('send', _t('Send'));
-		$form->addProtection(_t('Error submitting form.'));
-		
-		$form->onSubmit[] = array(
-			$this,
-			'chatformSubmitted'
-		);
-		
-		$this->template->message = true;
-		return $form;
-	}
-*/
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-/*
-	public function chatformSubmitted(NAppForm $form)
-	{
-		$user = NEnvironment::getUser()->getIdentity();
-		
-		$values                            = $form->getValues();
-		$resource                          = Resource::create();
-		$data                              = array();
-		$data['resource_author']           = $user->getUserId();
-		$data['resource_type']             = 1;
-		$data['resource_visibility_level'] = 3;
-		$data['resource_name'] = '<chat>';
-		$data['resource_data']             = json_encode(array(
-			'message_text' => $values['message_text']
-		));
-		$resource->setResourceData($data);
-		$resource->save();
-		$resource->updateUser($this->user->getUserId(), array(
-			'resource_user_group_access_level' => 1
-		));
-		
-		$resource->updateUser($user->getUserId(), array(
-			'resource_user_group_access_level' => 1,
-			'resource_opened_by_user' => 1
-		));
-		$this->redirect("User:default", array(
-			'user_id' => $this->user->getUserId()
-		));
-	}
-*/
-
 
 	/**
 	 *	@todo ### Description
@@ -1238,7 +1176,7 @@ final class UserPresenter extends BasePresenter
 					$values['user_email']     = $data['user_email'];
 					
 					$user->sendEmailchangeEmail($values['user_email_new']);
-					$this->flashMessage(_t("You requested a change of your email address. A message with a link was sent to your new address. The new address will be activated once you confirmed the change."));
+					$this->flashMessage(_t("You requested a change of your email address. A message with a link was sent to your old address. The new address will be activated once you confirmed the change."));
 				} else { // mods and admins
 					$this->emailchangeAdmin($user->getUserId(),$values['user_email']);
 				}
@@ -1259,6 +1197,8 @@ final class UserPresenter extends BasePresenter
 				} elseif ($size[0]<80 || $size[1]<100) {
 					$this->flashMessage(sprintf(_t("The image is too small! Min. size for upload is %s"), "80x100"),'error');
 				} else {
+					$user->removeAvatar();
+					$user->removeIcons();
 					$values['user_portrait'] = base64_encode(file_get_contents($values['user_avatar']->getTemporaryFile()));
 				}
 			}
@@ -1268,6 +1208,11 @@ final class UserPresenter extends BasePresenter
 				$this->flashMessage(_t("User updated"));
 				Activity::addActivity(Activity::USER_UPDATED, $user->getUserId(), 1);
 			}
+			
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId())));
+			
 			$this->redirect("this");
 		}
 	}
@@ -1312,6 +1257,7 @@ final class UserPresenter extends BasePresenter
 			$options['filter'] = array(
 				'user_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("user_id/".$session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -1343,6 +1289,7 @@ final class UserPresenter extends BasePresenter
 			$options['filter'] = array(
 				'user_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("user_id/".$session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -1377,6 +1324,7 @@ final class UserPresenter extends BasePresenter
 			$options['filter'] = array(
 				'user_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("user_id/".$session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -1411,6 +1359,7 @@ final class UserPresenter extends BasePresenter
 			$options['filter'] = array(
 				'user_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("user_id/".$session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -1481,7 +1430,8 @@ final class UserPresenter extends BasePresenter
 				'show_extended_columns' => true,
 				'show_last_activity' => true,
 				'format_date_time' => _t("j.n.Y")
-				)
+				),
+			'cache_tags' => array("user_id/".$this->user->getUserId())
 		);
 
 		$control = new ListerControlMain($this, $name, $options);
@@ -1499,13 +1449,9 @@ final class UserPresenter extends BasePresenter
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!is_null($user_id) ) {
 			if (Auth::isAuthorized(1,$user->getUserId()) >= 2) {
-			
 				$user = User::Create($user_id);
-
 			} else {
-
 				$this->redirect("User:default");
-
 			}
 		}
 		
@@ -1514,13 +1460,18 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		if (!empty($user)) {
-			$image = new Image($user_id,1);
+			$image = Image::createimage($user_id,1);
 			$image->remove_cache();
 			
 			$user->removeAvatar();
 			$user->removeIcons();
 			Activity::addActivity(Activity::USER_UPDATED, $user->getUserId(), 1);
 		}
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId())));
+			
 		$this->redirect("this");
 	}
 
@@ -1590,8 +1541,10 @@ final class UserPresenter extends BasePresenter
 		$resource = Resource::create($message_id);
 		if (!empty($resource)) {
 			if ($resource->remove_message(1, $user_id)) {
+				$storage = new NFileStorage(TEMP_DIR);
+				$cache = new NCache($storage);
+				$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/messagelisteruser")));
 				echo "true";
-				$resource->cleanCache('messagelisteruser', $message_id);
 			} else {
 				echo "false";
 			}
@@ -1603,11 +1556,11 @@ final class UserPresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleDefaultPage($object_type, $object_id)
 	{
 		$this->user_id                = $object_id;
@@ -1663,12 +1616,23 @@ final class UserPresenter extends BasePresenter
 			$this->terminate();
 		} else {
 			$user   = NEnvironment::getUser()->getIdentity();
+			$user_id = $user->getUserId();
 			$friend = User::create($friend_id);
 			
 			if (!empty($friend)) {
 				$friend_id = $friend->getUserId();
 				if (!empty($friend_id)) {
 					$user->updateFriend($friend_id, array());
+					
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/friendlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagefriendlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedfriendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/friendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagefriendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagerecommendedfriendlister")));
+
 					print "true";
 				}
 			}
@@ -1676,6 +1640,7 @@ final class UserPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1689,12 +1654,23 @@ final class UserPresenter extends BasePresenter
 			$this->terminate();
 		} else {
 			$user   = NEnvironment::getUser()->getIdentity();
+			$user_id = $user->getUserId();
 			$friend = User::create($friend_id);
 			
 			if (!empty($friend)) {
 				$friend_id = $friend->getUserId();
 				if (!empty($friend_id)) {
 					$user->removeFriend($friend_id);
+
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/friendlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagefriendlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedfriendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/friendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagefriendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagerecommendedfriendlister")));
+
 					print "true";
 				}
 			}
@@ -1702,63 +1678,10 @@ final class UserPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-	
 
 
 	/**
-	*	chat on User detail page
-	*/
-/*
-	protected function createComponentChatlisteruser($name)
-	{
-		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
-		
-		$options = array(
-			'itemsPerPage' => 30,
-			'lister_type' => array(
-				ListerControlMain::LISTER_TYPE_RESOURCE
-			),
-			'template_body' => 'ListerControlMain_messages.phtml',
-			'filter' => array(
-				'type' => 1,
-				'all_members_only' => array(
-					array(
-						'type' => 1,
-						'id' => $logged_user_id
-					),
-					array(
-						'type' => 1,
-						'id' => $this->user->getUserId()
-					)
-				)
-			),
-			'refresh_path' => 'User:default',
-			'refresh_path_params' => array(
-				'user_id' => $this->user->getUserId()
-			),
-			'template_variables' => array(
-				'trash_enabled' => true,
-				'hide_apply' => true,
-				'hide_reset' => true,
-				'mark_read_enabled' => true,
-                'reply_enabled'=>1,
-				'messages' => true,
-				'message_lister' => true,
-				'logged_user_id' => $logged_user_id
-                )
-		);
-		$session = NEnvironment::getSession()->getNamespace($name);
-		
-		if (!isset($session['filterdata']['trash'])) $session->filterdata = array_merge(array('trash' => 2, $session->filterdata));
-		
-		$control = new ListerControlMain($this, $name, $options);
-		return $control;
-	}
-*/
-
-
-	/**
-	 *	@todo ### Description
+	 *	Creates the form to send off messages; no processig of results, submitted by own AJAX
 	 *	@param
 	 *	@return
 	 */
@@ -1766,12 +1689,13 @@ final class UserPresenter extends BasePresenter
 	{
 		$user    = NEnvironment::getUser()->getIdentity();
 		$friends = $user->getFriends();
+		$friends = array(0=>_t('Please select a recipient'))+$friends;
 		$form    = new NAppForm($this, 'messageform');
 		$form->addSelect('friend_id', _t('To:'), $friends);
 		$form->addTextarea('message_text', '');
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
-		
+		$form->setDefaults(array('friend_id' => 0));		
 		$form->onSubmit[] = array(
 			$this,
 			'messageformSubmitted'
@@ -1781,16 +1705,16 @@ final class UserPresenter extends BasePresenter
 	}
 
 
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function messageformSubmitted(NAppForm $form)
+
+/*	public function messageformSubmitted(NAppForm $form)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		
 		$values                            = $form->getValues();
+		if ($values['friend_id']==0) {
+			$this->flashMessage(_t('Please select a recipient.'), 'error');
+			$this->redirect("User:messages");
+		}
 		$resource                          = Resource::create();
 		$data                              = array();
 		$data['resource_author']           = $user->getUserId();
@@ -1817,7 +1741,7 @@ final class UserPresenter extends BasePresenter
 		$this->flashMessage(_t("Your message has been sent."));
 		$this->redirect("User:messages");
 	}
-	
+*/
 
 	/**
 	 *	@todo ### Description
@@ -1898,8 +1822,13 @@ final class UserPresenter extends BasePresenter
 			$user->setUserData($values);
 			$user->save();
 			
+			
 			$this->flashMessage(_t("User permissions changed."));
 			
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id")));
+				
 			$this->redirect("User:default");
 		}
 	}
@@ -1919,13 +1848,16 @@ final class UserPresenter extends BasePresenter
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					Resource::moveToTrash($resource_id);
-					$resource->cleanCache('messagelisteruser', $resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
 				}
 			}
 		}
 		$this->terminate();
 	}
-	
+
+
 	/**
 	 *	click on restore-from-trash icon in message list
 	 *	@param
@@ -1937,9 +1869,13 @@ final class UserPresenter extends BasePresenter
 		$resource = Resource::create($resource_id);
 
 		if (!empty($resource)) {
-			if ($resource->userIsRegistered($user->getUserId())) {
-				Resource::moveFromTrash($resource_id);
-				$resource->cleanCache('messagelisteruser', $resource_id);
+			if (!empty($user)) {
+				if ($resource->userIsRegistered($user->getUserId())) {
+					Resource::moveFromTrash($resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+				}
 			}
 		}
 		$this->terminate();
@@ -1959,7 +1895,9 @@ final class UserPresenter extends BasePresenter
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					$resource->setOpened($user->getUserId(),$resource_id);
-					$resource->cleanCache('messagelisteruser', $resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
 				}
 			}
 		}
@@ -1980,20 +1918,24 @@ final class UserPresenter extends BasePresenter
 		// cannot mark own messages as unread?
 		
 		if (!empty($resource)) {
-			if ($resource->userIsRegistered($user->getUserId())) {
-				$resource->setUnopened($user->getUserId(),$resource_id);
-				$resource->cleanCache('messagelisteruser', $resource_id);
+			if (!empty($user)) {
+				if ($resource->userIsRegistered($user->getUserId())) {
+					$resource->setUnopened($user->getUserId(),$resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+				}
 			}
 		}
 		$this->terminate();
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleCrop() {
 
 		$request = NEnvironment::getHttpRequest();
@@ -2015,23 +1957,28 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		// remove from cache
-		$image = new Image($user_id,1);
-		$result = $image->remove_cache();
-		if ($result !== true) $this->flashMessage($result, 'error');
+		$image = Image::createimage($user_id,1);
+		$image->remove_cache();
 		$image->crop($x, $y, $w, $h);
+		$image->save_data();
 		$result = $image->create_cache();
 		if ($result !== true) $this->flashMessage($result, 'error');
 		$this->flashMessage(_t("Finished cropping and resizing."));
 		Activity::addActivity(Activity::USER_UPDATED, $user_id, 1);
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/$user_id")));
+
 		$this->redirect("User:edit",$user_id);
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='userlister';
@@ -2046,7 +1993,7 @@ final class UserPresenter extends BasePresenter
 				)
 			);
 		
-		$filter->clearFilterArray($filterdata);
+		$filter->clearFilterArray();
 		
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $filter->syncFilterArray($filterdata); else $session->filterdata=$filterdata;
 
@@ -2111,6 +2058,10 @@ final class UserPresenter extends BasePresenter
 			'message_text' => $message_text
 		));
 		$resource->setResourceData($data);
+		$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+		if ($check === true) {
+			die("false");
+		}		
 		$resource->save();
 		$resource->updateUser($recipient_id, array(
 			'resource_user_group_access_level' => 1
@@ -2120,10 +2071,12 @@ final class UserPresenter extends BasePresenter
 			'resource_user_group_access_level' => 1,
 			'resource_opened_by_user' => 1
 		));
-		$this->redirect("User:default", array(
-			'user_id' => $recipient_id
-		));
-		
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidget")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmwidget")));
+
 		die("true");
 	}
 
@@ -2286,7 +2239,7 @@ final class UserPresenter extends BasePresenter
 					$user->save();
 					$user_id = $user->getUserId();
 					// generate cache
-					$image = new Image($user_id,1);
+					$image = Image::createimage($user_id,1);
 					$image->create_cache();
 			
 					$user->setRegistrationDate();

@@ -182,7 +182,50 @@ abstract class BasePresenter extends NPresenter
 			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
 			$config->set('Filter.YouTube', true);
 			$purifier = new HTMLPurifier($config);
-			return $purifier->purify($dirty_html);
+			$text = $purifier->purify($dirty_html);
+			
+			// converting references
+			$pattern = array(
+				'/(\s|^|>)(@{1,3}[^@\s<>"\'!?,:;()]+@?)([!?.,:;()\Z\s<])/u',
+				'/(\s|^|\W)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
+			);
+			$text = preg_replace_callback(
+				$pattern,
+				function($lighter){
+					$title = '';
+					$lighter[2] = trim($lighter[2]);
+					if (preg_match("/^@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+						if (Auth::isAuthorized(1, $ids[1]) > Auth::UNAUTHORIZED) {
+							$label = User::getFullName($ids[1]);
+							$link = 'user/?user_id='.$ids[1];
+							$title = _t("go to '%s'", $label);
+						}
+					} elseif (preg_match("/^@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+						if (Auth::isAuthorized(2, $ids[1]) > Auth::UNAUTHORIZED) {
+							$label = Group::getName($ids[1]);
+							$link = 'group/?group_id='.$ids[1];
+							$title = _t("go to '%s'", $label);
+						}
+					} elseif (preg_match("/^@@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+						if (Auth::isAuthorized(3, $ids[1]) > Auth::UNAUTHORIZED) {
+							$label = Resource::getName($ids[1]);
+							$link = 'resource/?resource_id='.$ids[1];
+							$title = _t("go to '%s'", $label);
+						}
+					}
+					If (!isset($label) || !isset($link)) {
+						$label = str_replace('_',' ',$lighter[2]);
+						$link = '?do=search&string='.urlencode($lighter[2]);
+						$title = _t("search for '%s'", $label);
+					}
+					if (!isset($lighter[3])) {
+						$lighter[3] = '';
+					}
+					return $lighter[1].'<a href="'.NEnvironment::getVariable("URI").'/'.$link.'" title="'.$title.'">'.$label.'</a>'.$lighter[3];
+				},
+				$text);
+			
+			return $text;
 		});
 		
 		$this->template->registerHelper('autoformat', function ($input) {
@@ -198,7 +241,7 @@ abstract class BasePresenter extends NPresenter
 			$rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
 			$rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
 			$rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-			while (preg_match("{\\b$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:\"]?(\s|$))}i", $input, &$match, PREG_OFFSET_CAPTURE, $position))
+			while (preg_match("{\\b$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:\"]?(\s|$))}i", $input, $match, PREG_OFFSET_CAPTURE, $position))
 			{
 				list($url, $urlPosition) = $match[0];
 
@@ -367,26 +410,13 @@ abstract class BasePresenter extends NPresenter
 		function translate_array( $matches ) {
 			$number = '';
 			foreach ((array)array_shift($matches) as $match) {
-				$number .= _($match);
+				$number .= _t($match);
 			}
 			return $number;
 		}
 		return preg_replace_callback("/(\d)/u","translate_array",strval($in));
 	}
 
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-/*
-	public function handleReloadChat($group_id)
-	{
-### USED?
-		$this->terminate();
-	}
-*/
 
 	/**
 	 *	Sets the language used on the UI (saved in session)
@@ -559,7 +589,7 @@ abstract class BasePresenter extends NPresenter
 		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
 		$allowed_types = array('image/jpeg', 'image/gif', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation', 'application/vnd.oasis.opendocument.spreadsheet');
 		$image_types = array('image/jpeg', 'image/gif', 'image/png');
-		$path = '/images/uploads';
+		$path = '/uploads';
 		$max_size = 3000000;
 		$max_width = 800;
 		$max_height = 2500;
@@ -570,6 +600,7 @@ abstract class BasePresenter extends NPresenter
 		$funcNum = $query->getQuery('CKEditorFuncNum');
 		if (!$funcNum) die();
 		
+		$content_type = $file_info->getContentType(); // before moving file
 
 		$user = NEnvironment::getUser()->getIdentity();
 		if ($user) {
@@ -585,11 +616,12 @@ abstract class BasePresenter extends NPresenter
 
 		$name = pathinfo($file_name, PATHINFO_FILENAME);
 		$ext = pathinfo($file_name, PATHINFO_EXTENSION);
-		if (in_array($ext, $allowed_extensions)===false) {
+		$access_level = $user->getAccessLevel();
+		if ($access_level < 3 && in_array($ext, $allowed_extensions)===false) {
 			$message = 'ERROR: wrong extension';
-		} elseif (in_array($file_info->getContentType(), $allowed_types)===false) {
+		} elseif ($access_level < 3 && in_array($file_info->getContentType(), $allowed_types)===false) {
 			$message = 'ERROR: wrong file type';
-		} elseif ($file_info->getSize()==0) {
+		} elseif ($file_info->getSize()===0) {
 			$message = 'ERROR: The image is too small!';
 		} elseif ($file_info->getSize()>$max_size) {
 			$message = 'ERROR: The image is too big!';
@@ -606,8 +638,7 @@ abstract class BasePresenter extends NPresenter
 			}
 
 			if (move_uploaded_file($file_info->getTemporaryFile(), WWW_DIR . $rel_url)) {
-		
-				if (in_array($file_info->getContentType(), $image_types)===true) {
+				if (in_array($content_type, $image_types)===true) {
 					// resize
 					$image = NImage::fromFile(WWW_DIR . $rel_url);
 					$width = $image->width;
@@ -629,24 +660,89 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	*	deletes images in user's folder on the server, called from image browser
+	 *	deletes files in user's folder on the server, called from file browser
 	 *	@param string $file_name
 	 *	@param int $user_id
 	 *	@return void
-	*/
+	 */
 	public function handleDeleteFile($file_name, $user_id) {
+		if (empty($file_name) || empty($user_id))  {
+			die('Empty parameters');
+		}
 		$user_env = NEnvironment::getUser();		
-		if (!$user_env->isLoggedIn()) die('You are not logged in.');
+		if (!$user_env->isLoggedIn()) {
+			die('You are not logged in.');
+		}
 		$user = $user_env->getIdentity();
-		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) die('No permission');
+		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) {
+			die('No permission');
+		}
+
 		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
+		
 		$ext = pathinfo($file_name, PATHINFO_EXTENSION);
-		if (in_array($ext, $allowed_extensions)===false) die('Wrong extension.');
-				
-		$file_path = WWW_DIR . '/images/uploads/user-'.$user_id.'/'.$file_name;
+		if (empty($ext) || in_array($ext, $allowed_extensions)===false) {
+			die('Wrong extension.');
+		}
+
+		$file_name = pathinfo($file_name, PATHINFO_FILENAME).'.'.$ext;
+		$file_path = WWW_DIR . '/uploads/user-'.$user_id.'/'.$file_name;
+
+		if (!file_exists($file_path)) {
+			echo json_encode(_t("File '%s' not found.", $file_name));
+			die();
+		}
 
 		unlink($file_path);
-		echo "true";
+		echo json_encode("true");
+		die();
+	}
+
+
+	/**
+	 *	renames files in user's folder on the server, called from file browser
+	 *	@param string $old_name
+	 *	@param string $new_name
+	 *	@param int $user_id
+	 *	@return void
+	 */
+	public function handleRenameFile($old_name, $new_name, $user_id) {
+		if (empty($old_name) || empty($new_name) || empty($user_id)) {
+			die('Empty parameters');
+		}
+		$user_env = NEnvironment::getUser();		
+		if (!$user_env->isLoggedIn()) {
+			die('You are not logged in.');
+		}
+		$user = $user_env->getIdentity();
+		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) {
+			die('No permission');
+		}
+
+		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
+		$file_path_old = WWW_DIR . '/uploads/user-'.$user_id.'/'.$old_name;
+		$ext = pathinfo($file_path_old, PATHINFO_EXTENSION);
+		if (empty($ext) || in_array($ext, $allowed_extensions)===false) {
+			die('Wrong extension.');
+		}
+
+		$new_name = pathinfo($new_name, PATHINFO_FILENAME).'.'.$ext;
+		
+		$file_path_new = WWW_DIR . '/uploads/user-'.$user_id.'/'.$new_name;
+
+		if ($file_path_new == $file_path_old) {
+			die();
+		}
+		
+		if (!file_exists($file_path_old)) {
+			echo json_encode(_t("File '%s' not found.", $old_name));
+			die();
+		}
+		if (file_exists($file_path_new)) {
+			echo json_encode(_t("File '%s' already exists.", $new_name));
+			die();
+		}
+		echo json_encode(rename($file_path_old, $file_path_new) ? 'true' : 'Error renameing file.');
 		die();
 	}
 
@@ -823,7 +919,7 @@ abstract class BasePresenter extends NPresenter
 						$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
 						$config->set('Filter.YouTube', true);
 						$purifier = new HTMLPurifier($config);
-						$message_text = $purifier->purify($data['message_text']);
+						$message_text = StaticModel::purify_and_convert($data['message_text']);
 						$time = $this->relativeTime($activity['timestamp']);
 						printf('<div class="activity-item" style="cursor:default;"><div class="activity-time"><h4>%s</h4></div><div class="activity-description"><h4>'._t("Message to all users").'</h4></div><div style="clear:both;"></div><div class="activity-time"></div><div class="activity-description" style="max-width:80%%;">%s</div></div>', $time, $message_text);
 					}
@@ -853,7 +949,7 @@ abstract class BasePresenter extends NPresenter
 		ob_end_clean();
 		echo $output;
 		if ($id == 2) $time = time()+120; else $time = time()+3600;
-		$cache->save($cache_key, $output, array(NCache::EXPIRE => $time));
+		$cache->save($cache_key, $output, array(NCache::EXPIRE => $time, NCache::TAGS => array("user_id/$user_id", "name/activity")));
 		$this->terminate();
 	}
 
@@ -948,7 +1044,7 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 		echo json_encode($array_feed_items);
-		$cache->save($cache_key, $array_feed_items, array(NCache::EXPIRE => time()+120));
+		$cache->save($cache_key, $array_feed_items, array(NCache::EXPIRE => time()+120, NCache::TAGS => array("user_id/$user_id", "name/events")));
 		die();
 	}
 
@@ -1054,7 +1150,7 @@ abstract class BasePresenter extends NPresenter
 						if ($show_date) {
 							$value = ' ';
 						} else {
-							$value = '<span style="color:#0A0;font-size:2em;margin-top:-4px;" title="'._t('now online').'">&#149</span>';
+							$value = '<span style="color:#37AB44;font-size:2em;margin-top:-4px;" title="'._t('now online').'">&#149</span>';
 						}
 					} else {
 						if ($show_date) {
@@ -1067,6 +1163,89 @@ abstract class BasePresenter extends NPresenter
 		}
 		echo json_encode($data);
 		die();
+	}
+
+
+	/**
+	 *	Sets the filter for a search
+	 *	@param string $string
+	 *	@return void
+	*/
+	public function handleSearch($string)
+	{
+		$string = str_replace('_', ' ', trim($string));
+		if (preg_match("/^@([0-9]+)@?/", $string, $matches)) {
+			$type = 'user_id';
+			$id = $matches[1];
+			$redirect = "User:default";
+		} elseif (preg_match("/^@([^@]+)@?/", $string, $matches)) {
+			$type = 'user_name';
+			$text = $matches[1];
+			$name = 'userlister';
+			$redirect = "User:default";
+		} elseif (preg_match("/^@@([^@0-9]+)@?/", $string, $matches)) {
+			$type = 'group_name';
+			$text = $matches[1];
+			$name = 'grouplister';
+			$redirect = "Group:default";
+		} elseif (preg_match("/^@@([^@]+)@?/", $string, $matches)) {
+			$type = 'group_id';
+			$id = $matches[1];		
+			$redirect = "Group:default";
+		} elseif (preg_match("/^@@@([^@0-9]+)@?/", $string, $matches)) {
+			$type = 'resource-name';
+			$text = $matches[1];
+			$name = 'defaultresourceresourcelister';
+			$redirect = "Resource:default";
+		} elseif (preg_match("/^@@@([^@]+)@?/", $string, $matches)) {
+			$type = 'resource_id';
+			$id = $matches[1];		
+			$redirect = "Resource:default";
+		} elseif (preg_match("/^#([^#]+)#?/", $string, $matches)) {
+			$type = 'tag_name';
+			$tag = $matches[1];
+			$redirect = "User:default";
+		} else {
+			$this->redirect("this");
+		}
+		
+		if (isset($id)) {
+			$this->redirect($redirect, array($type => $id));
+		} elseif ($type == 'tag_name') {
+			$result = Tag::ids_from_name($tag);
+			$tag_ids = $result['tag_ids'];
+			if (count($tag_ids) > 0) {
+				$tag_id = $tag_ids[0];
+				$filterdata = array(
+					'tags' => array(
+						'all' => false,
+						$tag_id => true
+						)
+					);
+			} else {
+				$this->flashMessage(_t('Tag not found.'));
+				$this->redirect("this");
+			}
+		} else {
+			$filterdata = array(
+				'name' => $text
+				);
+		}
+		
+		if (NEnvironment::getVariable("GLOBAL_FILTER")) {
+			$name='defaultresourceresourcelister';
+		}
+		$filter = new ExternalFilter($this,$name);
+		$session = NEnvironment::getSession()->getNamespace($name);
+		unset($session->filterdata);
+		$filter->clearFilterArray();
+		if (NEnvironment::getVariable("GLOBAL_FILTER")) {
+			$filter->syncFilterArray($filterdata);
+		} else {
+			$session->filterdata = $filterdata;
+		}
+
+		$this->redirect($redirect);
 	}
 
 

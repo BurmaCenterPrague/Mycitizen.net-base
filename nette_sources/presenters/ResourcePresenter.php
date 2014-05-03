@@ -320,14 +320,6 @@ final class ResourcePresenter extends BasePresenter
 				$this->template->resource_id = $resource_id;
 				$form = $this['updateform'];
 
-//				$form ->setOption('container', NHtml::el('fieldset')->style("display:inline"));
-				
-				if (!empty($resource_id) && $user->getAccessLevel()<2) {
-					$form['resource_type']->setDisabled();
-				} else {
-					$form->setDefaults(array('resource_type' => 6));
-				}
-				
 			}
 			
 			$screenshot_url = $resource->getThumbnailUrl();
@@ -390,19 +382,29 @@ final class ResourcePresenter extends BasePresenter
 		));
 		$resource->setResourceData($data);
 		$resource->setParent($this->resource->getResourceId());
-		
+		$data_doublette_check = array_merge($data, array('resource_parent_id' => $this->resource->getResourceId()));
+		$check = $resource->check_doublette($data_doublette_check, $user->getUserId(), 1);
+		if ($check === true) {
+			$this->flashMessage(_t('You just said that.'));
+			$this->redirect("Resource:default", array(
+				'resource_id' => $this->resource->getResourceId()
+			));
+		}
 		$resource->save();
 		$this->resource->setLastActivity();
 		
 		Activity::addActivity(Activity::RESOURCE_COMMENT, $this->resource->getResourceId(), 3);
 		
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Lister.chatlisterresource");
-		$cache->clean(array(NCache::ALL => TRUE));
-		
 		$resource->updateUser($user->getUserId(), array(
 			'resource_user_group_access_level' => 1
 		));
+
+		### clear cache for $this->resource->getResourceId()
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("resource_id/".$this->resource->getResourceId(), "name/chatlisterresource")));
+		$cache->clean(array(NCache::TAGS => array("resource_id/".$this->resource->getResourceId(), "name/chatlisterresource")));
+
 		$this->redirect("Resource:default", array(
 			'resource_id' => $this->resource->getResourceId()
 		));
@@ -476,7 +478,7 @@ final class ResourcePresenter extends BasePresenter
 		
 		$user = NEnvironment::getUser()->getIdentity();
 		$values = $form->getValues();
-				
+		
 		if (is_array($values['group_id'])) {
 
 			foreach ($values['group_id'] as $group_id) {
@@ -491,18 +493,12 @@ final class ResourcePresenter extends BasePresenter
 		
 		}
 
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Lister.detailresourcegrouplister");
-		$cache->clean(array(NCache::ALL => TRUE));
-		unset($cache);
-		$cache = new NCache($storage, "Lister.defaultresourcegrouplister");
-		$cache->clean(array(NCache::ALL => TRUE));
-
 		$this->redirect("Resource:default", array(
 				'resource_id' => $this->resource->getResourceId()
 			));
 			
 	}
+
 
 	/**
 	 *	Doing the actual subscription for subscriberesourceformSubmitted().
@@ -541,7 +537,15 @@ final class ResourcePresenter extends BasePresenter
 			}
 
 			Activity::addActivity(Activity::GROUP_RESOURCE_ADDED, $group_id, 2);
-			
+
+
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/defaultresourcegrouplister")));
+			$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/detailresourcegrouplister")));
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/defaultgroupresourcelister")));
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/detailgroupresourcelister")));
+
 			$this->flashMessage(sprintf(_t("Group %s subscribed to this resource."),$group_name));
 		} else {
 			$this->flashMessage(sprintf(_t("Group %s is already subscribed."),$group_name), 'error');
@@ -590,7 +594,8 @@ final class ResourcePresenter extends BasePresenter
 			),
 			'refresh_path_params' => array(
 				'resource_id' => $resource_id
-			)
+			),
+			'cache_tags' => array("resource_id/$resource_id")
 		);
 		$control     = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -606,6 +611,7 @@ final class ResourcePresenter extends BasePresenter
 		$query = NEnvironment::getHttpRequest();
 		$date = $query->getQuery("date");
 		$all_day = $query->getQuery("all_day");
+		$defaults = array();
 
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!$user->hasRightsToCreate() && !$user->getAccessLevel() >= 2) {
@@ -630,6 +636,7 @@ final class ResourcePresenter extends BasePresenter
 			$resource_data = $this->resource->getResourceData();
 			$resource_id   = $this->resource->getResourceId();
 		}
+
 		$form = new NAppForm($this, 'updateform');
 		$form->addGroup();
 		$form->addText('resource_name', _t('Name:'))->addRule(NForm::FILLED, _t('Resource name cannot be empty!'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a name for the resource.'))->id("help-name"));
@@ -639,14 +646,12 @@ final class ResourcePresenter extends BasePresenter
 		
 		$form->addTextArea('resource_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this resource is about.'))->id("help-name"));
 		
-		$form->setDefaults(array('resource_type' => 6));
 		if (isset($resource_data['resource_type'])) {
 			$form->addHidden('resource_type_exists');
-			$form->setDefaults(array(
-				'resource_type_exists' => $resource_data['resource_type']
-				));
+			$defaults['resource_type_exists'] = $resource_data['resource_type'];
+		} else {
+			$defaults['resource_type'] = 6;
 		}
-		
 		
 		//different resource fields according to type
 		//event
@@ -659,9 +664,9 @@ final class ResourcePresenter extends BasePresenter
 		$form['event_description']->getControlPrototype()->class('ckeditor-big');
 		$form->addText('event_url', _t('URL to external source:'))->addCondition(~NForm::EQUAL, "")->addRule($form::REGEXP, _t("URL must start with http:// or https://!"), '/^http[s]?:\/\/.+/');
 		$form->addCheckbox('event_allday', _t('All day event'));
-		$form->setDefaults(array('event_allday' => $all_day));
+		$defaults['event_allday'] = $all_day;
 		$form->addText('event_timestamp', _t('Event time:'));
-		$form->setDefaults(array('event_timestamp' => $date));
+		$defaults['event_timestamp'] = $date;
 		$form->addCheckbox('event_end', _t('Different end time'));
 		$form->addText('event_timestamp_end', _t('Event end time:'));
 				
@@ -679,7 +684,7 @@ final class ResourcePresenter extends BasePresenter
 		);
 		$form->addSelect('event_alert', _t('Alarm:'), $event_alert_times);
 		$form->addHidden('preset_time', $date);
-		if ($date) $form->setDefaults(array('resource_visibility_level' => 3));
+		if ($date) $defaults['resource_visibility_level'] = 3;
 
 		//organization
 		if (!empty($resource_id) && $resource_data['resource_type'] == 3) {
@@ -733,7 +738,6 @@ final class ResourcePresenter extends BasePresenter
 		
 		if (empty($resource_id)) {
 			$form->addSubmit('register', _t('Create new resource'));
-			
 		} else {
 			$form->addSubmit('send', _t('Update'));
 		}
@@ -743,11 +747,13 @@ final class ResourcePresenter extends BasePresenter
 			'updateformSubmitted'
 		);
 		if (!empty($resource_data)) {
-			$form->setDefaults($resource_data);
+			$defaults = array_merge($defaults, $resource_data);
 		}
-		
+		$form->setDefaults($defaults);
+ 
 		return $form;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -760,7 +766,7 @@ final class ResourcePresenter extends BasePresenter
 		$values        = $form->getValues();
 
 		if (strtotime($values['event_timestamp']) > strtotime($values['event_timestamp_end'])) $values['event_timestamp_end'] = $values['event_timestamp'];
-		
+
 		if ($values['event_allday']) {
 			$values['event_timestamp'] = date("r", strtotime("midnight", strtotime($values['event_timestamp'])));
 			$values['event_timestamp_end'] = date("r", strtotime("tomorrow midnight -1 minute", strtotime($values['event_timestamp_end'])));
@@ -909,12 +915,21 @@ final class ResourcePresenter extends BasePresenter
 				// event has been changed with time in the past: don't send alerts
 				Cron::removeCron(0, 0, 3, $resource_id);
 			}
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("name/events")));
 		}
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id")));
+
 
 		$this->redirect("Resource:edit", array(
 			'resource_id' => $resource_id
 		));
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -930,6 +945,7 @@ final class ResourcePresenter extends BasePresenter
 		}
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -943,6 +959,7 @@ final class ResourcePresenter extends BasePresenter
 		$resource->save();
 		$this->terminate();
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -969,6 +986,7 @@ final class ResourcePresenter extends BasePresenter
 			$options['filter'] = array(
 				'resource_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("resource_id/".$session->data['object_id']);
 		}
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -999,6 +1017,7 @@ final class ResourcePresenter extends BasePresenter
 			$options['filter'] = array(
 				'resource_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("resource_id/".$session->data['object_id']);
 		}
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -1026,13 +1045,14 @@ final class ResourcePresenter extends BasePresenter
 			'refresh_path' => 'Resource:default',
 			'refresh_path_params' => array(
 				'resource_id' => $this->resource->getResourceId()
-			),
+			)
 		);
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
 			$options['filter'] = array(
 				'resource_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("resource_id/".$session->data['object_id']);
 		}
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -1059,13 +1079,14 @@ final class ResourcePresenter extends BasePresenter
 			'refresh_path' => 'Resource:default',
 			'refresh_path_params' => array(
 				'resource_id' => $this->resource->getResourceId()
-			),
+			)
 		);
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
 			$options['filter'] = array(
 				'resource_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("resource_id/".$session->data['object_id']);
 		}
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -1098,14 +1119,14 @@ final class ResourcePresenter extends BasePresenter
 				'detail' => 'ajax',
 				'selected_row' => $selected_row,
 				'show_extended_columns' => true,
-				'user_group_resource_page' => true,
-//				'tooltip_position' => 'bottom left'
+				'user_group_resource_page' => true
 			)
 		);
 		
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1127,11 +1148,12 @@ final class ResourcePresenter extends BasePresenter
 		}
 	}
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleRemoveTag($resource_id, $tag_id)
 	{
 		$this->resource = Resource::create($resource_id);
@@ -1147,11 +1169,12 @@ final class ResourcePresenter extends BasePresenter
 		}
 	}
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleDefaultPage($object_type, $object_id)
 	{
 		$this->resource               = Resource::create($object_id);
@@ -1173,6 +1196,7 @@ final class ResourcePresenter extends BasePresenter
 		
 		//$this->presenter->terminate();
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1203,11 +1227,14 @@ final class ResourcePresenter extends BasePresenter
 					}
 					Activity::addActivity(Activity::RESOURCE_SUBSCRIBED, $resource_id, 3, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage, "Lister.detailresourcememberlister");
-					$cache->clean(array(NCache::ALL => TRUE));
-					unset($cache);
-					$cache = new NCache($storage, "Lister.defaultresourcememberlister");
-					$cache->clean(array(NCache::ALL => TRUE));
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/detailresourcememberlister")));
+					$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/defaultresourcememberlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/detailuserresourcelister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/defaultuserresourcelister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepageresourcelister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedresourcelister")));
+					
 					print "true";
 				}
 			}
@@ -1237,11 +1264,14 @@ final class ResourcePresenter extends BasePresenter
 					Cron::removeCron(1, $user_id, 3, $resource_id);
 					Activity::addActivity(Activity::RESOURCE_UNSUBSCRIBED, $resource_id, 3, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage, "Lister.detailresourcememberlister");
-					$cache->clean(array(NCache::ALL => TRUE));
-					unset($cache);
-					$cache = new NCache($storage, "Lister.defaultresourcememberlister");
-					$cache->clean(array(NCache::ALL => TRUE));
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/defaultresourcememberlister")));
+					$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/detailresourcememberlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/defaultuserresourcelister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/detailuserresourcelister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepageresourcelister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedresourcelister")));
+
 					print "true";
 				}
 			}
@@ -1276,6 +1306,7 @@ final class ResourcePresenter extends BasePresenter
 				'moderation_enabled' => true,
 				'resource_id' => $this->resource->getResourceId()
 			),
+			'cache_tags' => array("resource_id/".$this->resource->getResourceId())
 		);
 
 		$session = NEnvironment::getSession()->getNamespace($this->name);
@@ -1470,7 +1501,8 @@ final class ResourcePresenter extends BasePresenter
 				'administration' => true,
                 'hide_filter'=>true,
                 'resource_edit_subscriber_lister'=>true
-			)
+			),
+			'cache_tags' => array("resource_id/$resource_id")
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -1508,7 +1540,7 @@ final class ResourcePresenter extends BasePresenter
 				)
 			);
 		
-		$filter->clearFilterArray($filterdata);
+		$filter->clearFilterArray();
 		
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $filter->syncFilterArray($filterdata); else $session->filterdata=$filterdata;
 
@@ -1523,15 +1555,26 @@ final class ResourcePresenter extends BasePresenter
 	*/
 	public function handleRemoveMessage($message_id,$resource_id)
 	{
-		//if (Auth::MODERATOR<=Auth::isAuthorized($object_type,$object_id)) $this->terminate();
-		//(NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) $this->terminate();
-		
+		if (Auth::isAuthorized(3,$resource_id) < Auth::MODERATOR) {
+			print 'false';
+			$this->terminate();
+		}		
 
-		$resource = Resource::create($message_id);
-		if (!empty($resource)) {
-			$resource->remove_message(3, $resource_id);
+		$message_o = Resource::create($message_id);
+		if (!empty($message_o)) {
+			$result = $message_o->remove_message(3, $resource_id);
 		}
 
+		if ($result) {
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/chatlisterresource")));
+		
+			print 'true';
+		} else {
+			print 'false';
+		}
+		
 		$this->terminate();	
 	}
 

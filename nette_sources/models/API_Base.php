@@ -398,7 +398,14 @@ class API_Base extends API implements iAPI
       				$data['resource_type'] = 1;
 				$data['resource_visibility_level'] = 3;
       				$data['resource_name'] = $_POST['message'];
-      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
+/* begin changed */
+//      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
+      				$data['resource_data'] = json_encode(array('message_text'=>'<p>'.nl2br($_POST['message']).'</p>'));
+					$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+					if ($check === true) {
+						return array('result'=>false);
+					}
+/* end changed */
       				$resource->setResourceData($data);
       				$resource->save();
       				$resource->updateUser($_POST['objectId'],array('resource_user_group_access_level'=>1));
@@ -410,7 +417,14 @@ class API_Base extends API implements iAPI
       				$data['resource_author'] = $logged_user->getUserId();
       				$data['resource_type'] = 8;
       				$data['resource_name'] = $_POST['message'];
-      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
+/* begin changed */
+//      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
+      				$data['resource_data'] = json_encode(array('message_text'=>'<p>'.nl2br($_POST['message']).'</p>'));
+					$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+					if ($check === true) {
+						return array('result'=>false);
+					}
+/* end changed */
      	 			$resource->setResourceData($data);
       				$resource->save();
 				$group = Group::Create($_POST['objectId']);
@@ -425,7 +439,15 @@ class API_Base extends API implements iAPI
       				$data['resource_author'] = $logged_user->getUserId();
       				$data['resource_type'] = 8;
       				$data['resource_name'] = $_POST['message'];
-      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
+/* begin changed */
+//      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
+      				$data['resource_data'] = json_encode(array('message_text'=>'<p>'.nl2br($_POST['message']).'</p>'));
+      				
+					$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+					if ($check === true) {
+						return array('result'=>false);
+					}
+/* end changed */
       				$resource->setResourceData($data);
 				$resource->setParent($object_resource->getResourceId());
 
@@ -436,7 +458,7 @@ class API_Base extends API implements iAPI
 			}
 			return array('result'=>true);
 		} else {
-     			return array('result'=>false);
+     		return array('result'=>false);
 		}
 
 	}
@@ -447,7 +469,7 @@ class API_Base extends API implements iAPI
 	* @url POST	/ChangeProfile
 	*/
 	public function postChangeProfile() {
-	
+
 		$values['user_name'] = $_POST['firstName'];
 		$values['user_surname'] = $_POST['lastName'];
 		$email = $_POST['email'];
@@ -456,32 +478,44 @@ class API_Base extends API implements iAPI
 		$values['user_position_x'] = $_POST['position_gpsx'];
 		$values['user_position_y'] = $_POST['position_gpsy'];
 		if($_POST['image'] != "") {
-			$values['user_portrait'] = $_POST['image'];
+				$image = $_POST['image'];
+				$image = preg_replace("/[-]/","+",$image);
+				$image = preg_replace("/[_]/","/",$image);
+				$values['user_portrait'] = $image;
 		}
-      		$logged_user = NEnvironment::getUser()->getIdentity();
+		$logged_user = NEnvironment::getUser()->getIdentity();
 		$user = User::Create($logged_user->getUserId());
 		$data = $user->getUserData();
 		if($data['user_email'] != $email && User::emailExists($email)) {
-			return array('result'=>false,'error'=>'email_exists');
+				return array('result'=>false,'error'=>'email_exists');
 		}
-      		if($data['user_email'] != $email && !StaticModel::validEmail($email)) {
-			return array('result'=>false,'error'=>'invalid_email');
-      		}
+		if($data['user_email'] != $email && !StaticModel::validEmail($email)) {
+				return array('result'=>false,'error'=>'invalid_email');
+		}
 		if($data['user_email'] != $email) {
-			$access = $user->getAccessLevel();
-			if($access < 2) {
-				$values['user_email_new'] = $email;
-				$values['user_email'] = $data['user_email'];
+				$access = $user->getAccessLevel();
+				if($access < 2) {
+						$values['user_email_new'] = $email;
+						$values['user_email'] = $data['user_email'];
 
-				$user->sendEmailchangeEmail();
-			}
+						$user->sendEmailchangeEmail();
+				}
 		}
-        	$user->setUserData($values);
-        	$user->save();
+		$user->setUserData($values);
+		$user->save();
+
+/* begin added */
+		if($_POST['image'] != "") {
+				$image_o = Image::createimage($logged_user->getUserId(),1);
+				$image_o->remove_cache()->fill_canvas()->crop(0, 0, 160, 200)->save_data()->create_cache();
+		}
+		Activity::addActivity(Activity::USER_UPDATED, $logged_user->getUserId(), 1);
+/* end added */
 		
 		return array('result'=>true);
 
-	}
+        }
+
 
 	/**
 	*Comment
@@ -496,7 +530,12 @@ class API_Base extends API implements iAPI
 		} else {
 			$logged_user->removeTag($tag_id);
 		}
-                return array('result'=>true);
+
+/* begin added */		
+		Activity::addActivity(Activity::USER_UPDATED, $logged_user->getUserId(), 1);
+/* end added */
+
+		return array('result'=>true);
 
         }
 
@@ -605,7 +644,8 @@ class API_Base extends API implements iAPI
 				}
 			}
 		}
-                return array('result'=>true);
+        
+        return array('result'=>true);
 
         }
 
@@ -624,7 +664,7 @@ class API_Base extends API implements iAPI
 		$group_tags = $_POST['tags'];
 		$group_language = $_POST['language'];
 		$tags = explode(',',$group_tags);
-		if(Auth::VIP > $user->getAccessLevel()) {
+		if(Auth::MODERATOR > $user->getAccessLevel()) {
       			if(!$user->hasRightsToCreate()) {
 				return array('result'=>false,'message'=>'no_rights');
       			}
@@ -649,9 +689,13 @@ class API_Base extends API implements iAPI
 		foreach($tags as $tag_id) {
 			$group->insertTag($tag_id);
 		}	
-                return array('result'=>true,'group_id'=>$group_id);
+
+/* begin added */
+		Activity::addActivity(Activity::GROUP_CREATED, $group_id, 2);
+/* end added */
+
+		return array('result'=>true,'group_id'=>$group_id);
 
         }
-
 
 }

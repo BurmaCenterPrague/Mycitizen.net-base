@@ -211,7 +211,8 @@ final class AdministrationPresenter extends BasePresenter
 		$decimals = 2;  
 		$mbytes = number_format($size/(1024*1024),$decimals);
 		$this->template->database_size = $mbytes;
-
+		$this->template->token = NEnvironment::getVariable("CRON_TOKEN");
+		$this->template->cron_url = urlencode(NEnvironment::getVariable("URI") . '/?do=cron&token=' . NEnvironment::getVariable("CRON_TOKEN"));
 	}
 
 	/**
@@ -484,8 +485,7 @@ final class AdministrationPresenter extends BasePresenter
 			Resource::delete($report_id);
 			echo "true";
 			$storage = new NFileStorage(TEMP_DIR);
-			$cache = new NCache($storage, "Filter.number");
-			$cache->clean(array(NCache::ALL => TRUE));
+			$cache = new NCache($storage);
 		}
 		
 		$this->terminate();
@@ -906,21 +906,9 @@ final class AdministrationPresenter extends BasePresenter
 				
 				if (!empty($tags[0])) {
 					foreach ($tags as $tag) {
-						$result = dibi::fetchAll("SELECT * FROM `tag` WHERE LOWER(`tag_name`) = LOWER(%s)", $tag);
-						if (sizeof($result) > 2) {
-							// more than one tag
-							$messages[] = $count.': Multiple tags match '.$tag.'.';
-							foreach ($result as $result_item) {
-								$data_array= $result_item->toArray();
-								$tag_ids[] = $data_array['tag_id'];
-							}
-						} elseif (sizeof($result) < 1) {
-							// create missing tag; for now notification
-							$messages[] = $count.': No tag matches "'.$tag.'". Please create manually.';
-						} else {
-							$data_array = $result[0]->toArray();
-							$tag_ids[] = $data_array['tag_id'];
-						}
+						$result = Tag::ids_from_name($tag);
+						$tag_ids = array_merge($tag_ids, $result['tag_ids']);
+						$messages[] = $count.': '.$result['message'];
 					}
 				}
 			
@@ -1116,9 +1104,10 @@ final class AdministrationPresenter extends BasePresenter
 		Activity::addActivity(Activity::NOTICEBOARD_MESSAGE, $resource->getResourceId(), 3);
 		
 		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Lister.noticeboard");
-		$cache->clean(array(NCache::ALL => TRUE));
-		
+		$cache = new NCache($storage, "Lister.");
+		$cache->clean(array(NCache::TAGS => array("name/noticeboard")));
+		$cache->clean(array(NCache::TAGS => array("name/activity")));
+				
 		$this->redirect("Administration:noticeboard");
 	}
 
@@ -1169,10 +1158,9 @@ final class AdministrationPresenter extends BasePresenter
 				Activity::removeActivity(Activity::NOTICEBOARD_MESSAGE, $resource->getResourceId(), 3);
 				echo "true";
 				$storage = new NFileStorage(TEMP_DIR);
-				$cache = new NCache($storage, "Lister.noticeboard");
-				$cache->clean(array(NCache::ALL => TRUE));
-				$cache = new NCache($storage, "Activity.stream");
-				$cache->clean(array(NCache::ALL => TRUE));
+				$cache = new NCache($storage);
+				$cache->clean(array(NCache::TAGS => array("name/noticeboard")));
+				$cache->clean(array(NCache::TAGS => array("name/activity")));
 
 			} else {
 				echo "false";

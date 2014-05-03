@@ -264,7 +264,7 @@
 			<textarea placeholder="{_"Type your text here."}" id="message_text" name="message_text"></textarea>
 			</td></tr>
 			<tr><td style="padding: 20px 10px 30px;">
-			<a href="javascript:void(0);" class="button" id="chat_submit" style="font-size:1.3em; margin:2em 0px;">Send</a>
+			<a href="javascript:void(0);" class="button" id="chat_submit" style="font-size:1.3em; margin:2em 0px;">{_"Send"}</a>
 			</td></tr>
 			</table>
 <script>
@@ -300,6 +300,18 @@
 					CKEDITOR.instances[instance_name].setData('');
             		reloadChatIfModified();
         		}, "json");
+			}
+		});
+	});
+	
+	$(document).ready(function(){
+		$(function(){
+			document.body.onbeforeunload = function() {
+				for(editorName in CKEDITOR.instances) {
+					if (CKEDITOR.instances[editorName].checkDirty()) {
+						return "Unsaved changes present!"
+					}
+				}
 			}
 		});
 	});

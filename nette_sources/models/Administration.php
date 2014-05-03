@@ -357,7 +357,7 @@ class Administration extends BaseModel
 				if ($counter_mode) {
 					$sql_group = "SELECT COUNT(`group`.`group_id`) as count FROM `group`";
 				} else {
-					$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`group`.`group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`group`.`group_status` as status,`group_viewed` as viewed, `group_icon` as icon, `group_largeicon` as avatar, `group_last_activity` as last_activity, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
+					$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`group`.`group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`group`.`group_status` as status,`group_viewed` as viewed, `group_largeicon` as avatar, `group_last_activity` as last_activity, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
 				}
 				if (isset($filter['user_id'])) {
 					$sql_group .= " INNER JOIN `group_user` ON (`group_user`.`group_id` = `group`.`group_id` AND `group_user`.`user_id` = '" . $filter['user_id'] . "')";
@@ -368,7 +368,7 @@ class Administration extends BaseModel
 					if ($counter_mode) {
 						$sql_group = "SELECT COUNT(`group`.`group_id`) as count FROM `group`";
 					} else {
-						$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`resource_user_group`.`resource_user_group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`group_viewed` as viewed, `group_icon` as icon, `group_largeicon` as avatar, `group_last_activity` as last_activity, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
+						$sql_group = "SELECT '" . Group::getType() . "' as type,'group' as type_name,`group`.`group_id` as id,`group`.`group_name` as name,`group`.`group_description` as description,`resource_user_group`.`resource_user_group_access_level` as access_level,`group`.`group_visibility_level` as visibility_level,`resource_user_group`.`resource_user_group_status` as status,`group_viewed` as viewed, `group_largeicon` as avatar, `group_last_activity` as last_activity, (SELECT COUNT(`user_id`) FROM `group_user` gu WHERE gu.`group_id` = `group`.`group_id`) as links FROM `group`";
 					}
 					$sql_group .= " INNER JOIN `resource_user_group` ON (`resource_user_group`.`member_id` = `group`.`group_id` AND `resource_user_group`.`member_type` = '2' AND `resource_user_group`.`resource_id` = '" . $filter['resource_id'] . "')";
 				}	
@@ -562,6 +562,10 @@ class Administration extends BaseModel
 							array(
 								'`user_surname` LIKE %~like~',
 								$filter['name']
+							),
+							array(
+								'REPLACE(CONCAT(`user_name`, `user_surname`), " ", "") LIKE %~like~',
+								str_replace(' ', '', $filter['name'])
 							)
 						)
 					);

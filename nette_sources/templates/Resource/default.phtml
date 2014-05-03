@@ -16,40 +16,7 @@
 <div class="resource_default_main">
 	<div class="resource_default_filter">
 		<div class="filter-body filter-body-{control defaultresourceresourcelister:filterstatus}">
-{ifset $filterhint}
-			<div id="filter-help">
-				{_"Use the filter to narrow down the list of items"}
-				<span class="arrow-right"></span>
-			</div>
-{/if}
-			<a href="#filter_container" id="filter_box_a" class="filter-button-{control defaultresourceresourcelister:filterstatus}" title="{_"Use the filter to narrow down the list of items."}">{control defaultresourceresourcelister:filtercheck}</a>
-			<div id="filter_container" style="display:none;">
-				{control defaultresourceresourcelister:filter}
-			</div>
-			<script>
-			$(document).ready(function(){
-				if ($('#filter_box_a').attr('class') == 'filter-button-off') {
-					$('#frmfilter-reset').hide();
-				} else {
-					$('#filter-help').hide();
-				}
-			});
-			</script>
-			<script type="text/javascript">
-			$(function() {
-				$("#filter_box_a").fancybox({
-					minWidth: 1000,
-					minHeight: 550,
-					closeBtn: true,
-					helpers: {
-						overlay: {
-							css: {'background' : 'rgba(200, 200, 200, .5)'}
-						},
-						title: null
-					},
-				});
-			});
-			</script>
+			<a href="#filter_container" id="filter_box_a" class="filter-button-{control defaultresourceresourcelister:filterstatus}" title="{control defaultresourceresourcelister:filtertitle}">{control defaultresourceresourcelister:filtercheck}</a>
 		</div>
 	</div>
 
@@ -62,7 +29,7 @@
 		<div class="wrapper">
         	<div class="resource_default_info">
 				{ifset $default_data}
-				<div class="item-resource" onclick=window.location='{link Resource:default, $default_data['object_data']['resource_id']}'>
+				<div class="item-resource" onclick='window.location={link Resource:default, $default_data['object_data']['resource_id']}'>
 				
 					{? $resource_name = array(
 									1=>'1',
@@ -203,10 +170,37 @@
 
 				{/if}
         	</div>
+        	
+<!-- BEGIN Filter -->
+<div id="filter_container" style="display:none;">
+	{control defaultresourceresourcelister:filter}
+</div>
+<script>
+$(document).ready(function(){
+	if ($('#filter_box_a').attr('class') == 'filter-button-off') {
+		$('#frmfilter-reset').hide();
+	} else {
+		$('#filter-help').hide();
+	}
+});
+</script>
+<script type="text/javascript">
+$(function() {
+	$("#filter_box_a").fancybox({
+		minWidth: 1000,
+		minHeight: 550,
+		closeBtn: true,
+		helpers: {
+			overlay: {
+				css: {'background' : 'rgba(200, 200, 200, .5)'}
+			},
+			title: null
+		},
+	});
+});
+</script>
+<!-- END Filter -->
     	</div> <!-- .wrapper -->
-
 	</div>
-
 </div>
 {/block}
-

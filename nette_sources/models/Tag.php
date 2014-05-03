@@ -305,5 +305,35 @@ class Tag extends BaseModel
 			dibi::query("DELETE FROM `resource_tag` WHERE `tag_id` = %i", $tag_id);
 		}
 	}
+
+
+	/**
+	 *	Tries to retrieve ID from tag
+	 *	@param string $tag
+	 *	@return array
+	 */
+	public static function ids_from_name($tag)
+	{
+		$tag_ids = array();
+		$message = '';
+		
+		$result = dibi::fetchAll("SELECT * FROM `tag` WHERE LOWER(`tag_name`) = LOWER(%s)", $tag);
+		if (sizeof($result) > 2) {
+			// more than one tag
+			$message = 'Multiple tags match '.$tag.'.';
+			foreach ($result as $result_item) {
+				$data_array= $result_item->toArray();
+				$tag_ids[] = $data_array['tag_id'];
+			}
+		} elseif (sizeof($result) < 1) {
+			// create missing tag; for now notification
+			$message = 'No tag matches "'.$tag.'". Please create manually.';
+		} else {
+			$data_array = $result[0]->toArray();
+			$tag_ids[] = $data_array['tag_id'];
+		}
+		
+		return array('tag_ids' => $tag_ids, 'message' => $message);
+	}
 	
 }

@@ -70,35 +70,35 @@ final class WidgetPresenter extends BasePresenter
 		}
 		
 		$options = array(
-                        'itemsPerPage'=>20,
-                        'lister_type'=>array(ListerControlMain::LISTER_TYPE_RESOURCE),
-                        'filter' => array(
-                        		'type' => 8,
-                        		'page' => $page,
-								'template_filter' => '',
-								'only_active' => true,
-								'owner' => $owner_ids,
-                        		'all_members_only'=>array(
-                        			array(
-                        				'type'=>2,
-                        				'id'=>$group_id
-                        			)
-                        		),
-								'status' => 1
-                        ),
-						'template_body'=>'ChatLister_ajax.phtml',
-                        'refresh_path'=>'Group:default',
-                        'refresh_path_params' => array(
-								'group_id' => $group_id
-							),
-                        'template_variables' => array(
-                        		'hide_filter' => 1,
-                        		'user_login' => $user_data['user_login'],
-                        		'is_member' => $group->isMember($user_id),
-                        		'group_id' => $group_id
-                        		)
-                     );
-
+			'itemsPerPage'=>20,
+			'lister_type'=>array(ListerControlMain::LISTER_TYPE_RESOURCE),
+			'filter' => array(
+					'type' => 8,
+					'page' => $page,
+					'template_filter' => '',
+					'only_active' => true,
+					'owner' => $owner_ids,
+					'all_members_only'=>array(
+						array(
+							'type'=>2,
+							'id'=>$group_id
+						)
+					),
+					'status' => 1
+			),
+			'template_body'=>'ChatLister_ajax.phtml',
+			'refresh_path'=>'Group:default',
+			'refresh_path_params' => array(
+					'group_id' => $group_id
+				),
+			'template_variables' => array(
+					'hide_filter' => 1,
+					'user_login' => $user_data['user_login'],
+					'is_member' => $group->isMember($user_id),
+					'group_id' => $group_id
+					),
+			'cache_tags' => array("group_id/$group_id")
+        );
 
 		$control = new ListerControlMain($this, $name, $options);		
 		
@@ -175,7 +175,8 @@ final class WidgetPresenter extends BasePresenter
 				'hide_reset' => true,
 				'logged_user_id' => $logged_user_id
 			),
-			'refresh_path' => 'User:messages'
+			'refresh_path' => 'User:messages',
+			'cache_tags' => array("user_id/$logged_user_id")
 		);
 		
 		
@@ -184,7 +185,7 @@ final class WidgetPresenter extends BasePresenter
 				$options['filter']['all_members_only'] = array(
 						array(
 							'type' => 1,
-							'id' => NEnvironment::getUser()->getIdentity()->getUserId()
+							'id' => $logged_user_id
 						),
 						array(
 							'type' => 1,
@@ -195,7 +196,7 @@ final class WidgetPresenter extends BasePresenter
 				$options['filter']['all_members_only'] = array(
 						array(
 							'type' => 1,
-							'id' => NEnvironment::getUser()->getIdentity()->getUserId()
+							'id' => $logged_user_id
 						)
 					);			
 			}
@@ -298,7 +299,7 @@ final class WidgetPresenter extends BasePresenter
 //		$allowed_extensions = array('jpg', 'jpeg', 'gif', 'png');
 //		$allowed_types = array('image/jpeg', 'image/gif', 'image/png');
 		$image_types = array('image/jpeg', 'image/gif', 'image/png');
-		$path = WWW_DIR.'/images/uploads/user-'.$user_id;
+		$path = WWW_DIR.'/uploads/user-'.$user_id;
 
 		if(!file_exists($path) || !is_dir($path)) {
 			mkdir($path);
@@ -318,7 +319,7 @@ final class WidgetPresenter extends BasePresenter
 					$image = NImage::fromFile($file_path);
 					$data[] = array(
 						'file_name' => $file_name,
-						'web_path' => NEnvironment::getVariable("URI") . '/images/uploads/user-'.$user_id.'/'.$file_name,
+						'web_path' => NEnvironment::getVariable("URI") . '/uploads/user-'.$user_id.'/'.$file_name,
 						'width' => $image->width,
 						'height' => $image->height,
 						'modified_date' => $modified_date,
@@ -329,7 +330,7 @@ final class WidgetPresenter extends BasePresenter
 					$icon_web_path = NEnvironment::getVariable("URI") . '/images/mime-types/'.$extension.'.png';
 					$data[] = array(
 						'file_name' => $file_name,
-						'web_path' => NEnvironment::getVariable("URI") . '/images/uploads/user-'.$user_id.'/'.$file_name,
+						'web_path' => NEnvironment::getVariable("URI") . '/uploads/user-'.$user_id.'/'.$file_name,
 						'modified_date' => $modified_date,
 						'src' => $icon_web_path
 					);
@@ -348,12 +349,7 @@ final class WidgetPresenter extends BasePresenter
 	 */
 	public function actionMobilecaptcha()
 	{
-		$request = NEnvironment::getHttpRequest();
-		$control_key = $request->getQuery("control_key");
-		$user_id = $request->getQuery("user_id");
-		if (empty($control_key) || empty($user_id)) {
-			die('Error: missing data');
-		}
+
 	}
 	
 

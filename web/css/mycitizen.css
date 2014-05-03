@@ -909,6 +909,9 @@ background-color: transparent;
 margin: 0;
 padding: 0.5em 0.5em;
 }
+.chat-item .chat-text a {
+text-decoration:underline;
+}
 .resource-detail-extended {
 margin: 0 0 3em 0;
 }
@@ -1076,6 +1079,7 @@ text-align: left;
 }
 #filter_container label {
 display: inline-block;
+height: 18px;
 }
 .all-tags label, .filter-name label, .filter-language label, .filter-pairing div, .filter-type label {
 text-transform: uppercase;
@@ -1581,7 +1585,7 @@ max-width:500px;
 .activity-link { display:inline-block; width:50%;}
 .activity-link a { color:#000;}
 .activity-link img { display:inline-block; vertical-align:middle; border: 4px solid #A9A295; width: 20px;}
-.activity-description { display:inline-block;}
+.activity-description { display:inline-block; width:35%;}
 
 
 .edit-primary {
@@ -1670,3 +1674,9 @@ max-width:500px;
 .status-disabled {
 	color:#666;
 }
+
+.resource_default_resources .list-body-name,
+.resource_detail_groups .list-body-name,
+.group_detail_resources .list-body-name,
+.user_detail_resources .list-body-name,
+.user_detail_groups .list-body-name {width:130px;}

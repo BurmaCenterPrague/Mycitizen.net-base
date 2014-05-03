@@ -238,13 +238,129 @@ class StaticModel extends BaseModel {
    }
 
 
-/** see class Settings
-	public static function getSetting($variable_name) {
-	
-		return dibi::fetchSingle("SELECT `variable_value` FROM `settings` WHERE `variable_name` = %s", $variable_name);
-
+	/**
+	 * Translates reference signs to readable form for mobile app messaging
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	public static function messageAPI($text) {
+		$config = HTMLPurifier_Config::createDefault();
+		$config->set('Attr.EnableID', true);
+		$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
+		$config->set('HTML.Nofollow', true);
+		$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+		$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
+		$config->set('HTML.SafeIframe', true);
+		$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
+		$config->set('Filter.YouTube', true);
+		$purifier = new HTMLPurifier($config);
+		$text = $purifier->purify($dirty_html);
+		
+		// converting references
+		$pattern = array(
+			'/(\s|^|>)(@{1,3}[^@\s<>"\'!?,:;()]+@?)([!?.,:;()\Z\s<])/u',
+			'/(\s|^|\W)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
+		);
+		$text = preg_replace_callback(
+			$pattern,
+			function($lighter){
+				$title = '';
+				$lighter[2] = trim($lighter[2]);
+				if (preg_match("/^@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+					if (Auth::isAuthorized(1, $ids[1]) > Auth::UNAUTHORIZED) {
+						$label = User::getFullName($ids[1]);
+						$link = 'user/?user_id='.$ids[1];
+						$title = _t("go to '%s'", $label);
+					}
+				} elseif (preg_match("/^@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+					if (Auth::isAuthorized(2, $ids[1]) > Auth::UNAUTHORIZED) {
+						$label = Group::getName($ids[1]);
+						$link = 'group/?group_id='.$ids[1];
+						$title = _t("go to '%s'", $label);
+					}
+				} elseif (preg_match("/^@@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+					if (Auth::isAuthorized(3, $ids[1]) > Auth::UNAUTHORIZED) {
+						$label = Resource::getName($ids[1]);
+						$link = 'resource/?resource_id='.$ids[1];
+						$title = _t("go to '%s'", $label);
+					}
+				}
+				If (!isset($label) || !isset($link)) {
+					$label = str_replace('_',' ',$lighter[2]);
+					$link = '?do=search&string='.urlencode($lighter[2]);
+					$title = _t("search for '%s'", $label);
+				}
+				if (!isset($lighter[3])) {
+					$lighter[3] = '';
+				}
+				return $lighter[1].'<a href="'.NEnvironment::getVariable("URI").'/'.$link.'"><b>'.$title.'</b></a>'.$lighter[3];
+			},
+			$text);
+		return $text;
 	}
-*/
 
+
+	/**
+	 * applies HTML purification and referrer conversion
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	public static function purify_and_convert($dirty_html) {
+		$config = HTMLPurifier_Config::createDefault();
+		$config->set('Attr.EnableID', true);
+		$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
+		$config->set('HTML.Nofollow', true);
+		$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+		$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
+		$config->set('HTML.SafeIframe', true);
+		$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
+		$config->set('Filter.YouTube', true);
+		$purifier = new HTMLPurifier($config);
+		$text = $purifier->purify($dirty_html);
+		
+		// converting references
+		$pattern = array(
+			'/(\s|^|>)(@{1,3}[^@\s<>"\'!?,:;()]+@?)([!?.,:;()\Z\s<])/u',
+			'/(\s|^|\W)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
+		);
+		$text = preg_replace_callback(
+			$pattern,
+			function($lighter){
+				$title = '';
+				$lighter[2] = trim($lighter[2]);
+				if (preg_match("/^@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+					if (Auth::isAuthorized(1, $ids[1]) > Auth::UNAUTHORIZED) {
+						$label = User::getFullName($ids[1]);
+						$link = 'user/?user_id='.$ids[1];
+						$title = _t("go to '%s'", $label);
+					}
+				} elseif (preg_match("/^@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+					if (Auth::isAuthorized(2, $ids[1]) > Auth::UNAUTHORIZED) {
+						$label = Group::getName($ids[1]);
+						$link = 'group/?group_id='.$ids[1];
+						$title = _t("go to '%s'", $label);
+					}
+				} elseif (preg_match("/^@@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+					if (Auth::isAuthorized(3, $ids[1]) > Auth::UNAUTHORIZED) {
+						$label = Resource::getName($ids[1]);
+						$link = 'resource/?resource_id='.$ids[1];
+						$title = _t("go to '%s'", $label);
+					}
+				}
+				If (!isset($label) || !isset($link)) {
+					$label = str_replace('_',' ',$lighter[2]);
+					$link = '?do=search&string='.urlencode($lighter[2]);
+					$title = _t("search for '%s'", $label);
+				}
+				if (!isset($lighter[3])) {
+					$lighter[3] = '';
+				}
+				return $lighter[1].'<a href="'.NEnvironment::getVariable("URI").'/'.$link.'" title="'.$title.'">'.$label.'</a>'.$lighter[3];
+			},
+			$text);
+		return $text;
+	}
 
 }

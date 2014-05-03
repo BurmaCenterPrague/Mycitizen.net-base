@@ -39,6 +39,19 @@
 				});
 			}
 		}
+		function renameFile(fileName) {
+			var newName = prompt({_"Please enter the new file name:"}, fileName);
+			if (newName != null && newName != fileName) {
+				$.getJSON('{!$baseUri}?do=renameFile&old_name=' + encodeURIComponent(fileName) + '&new_name=' + encodeURIComponent(newName) + '&user_id={!$user_id}',function(payload){
+					if (payload != 'true') {
+						alert(payload);
+					} else {
+						location.href=self.location.href;
+					}
+				});
+			}
+		}
+
 	</script>
 </head>
 <body>
@@ -65,7 +78,7 @@
 {foreach $data as $item}
 		<td style="width:190px; border:solid 1px #CCC; padding:10px 2px 5px 10px; margin:0; border-radius: 8px; background-color:#eae9e3; vertical-align:top;">
 			<div style="float:right; cursor:pointer;">
-				<b onclick="deleteFile({$item['file_name']});" class="icon-cancel" title="{_"delete"}"></b>
+				<b onclick='deleteFile({$item['file_name']});' class="icon-cancel" title="{_"delete"}"></b>
 			</div>
 		<table style="width:110px;">
 		<tr><td style="height:120px; vertical-align:top;">
@@ -79,7 +92,7 @@
 		<tr><td>
 		<a href="javascript:void(0);" onclick="insert({$item['web_path']})" class="button" style="text-decoration:none;">{_"insert"}</a>
 		</td></td>
-		<tr><td style="height:2.5em; vertical-align:top;">
+		<tr><td style="height:2.5em; vertical-align:top; cursor:pointer;" onclick='renameFile({$item['file_name']});' title='{_"click to rename"}'>
 		<h4>{$item['file_name']}</h4>
 		</td></td>
 		<tr><td style="height:1.5em; vertical-align:top;">

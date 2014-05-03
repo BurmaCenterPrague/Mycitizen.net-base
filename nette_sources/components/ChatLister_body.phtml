@@ -139,7 +139,7 @@ $baseUri = NEnvironment::getVariable("URI") . '/';
 					return false;
 				}
 
-				$("#chat_container").animate({ opacity:0},function(){
+				$("#chat_container").animate({ opacity:0.7},function(){
 					$("#chat_container").html(payload);
 					$("#chat_container").animate({ opacity:1},function(){
 						$("#reload_button").attr("class", "icon-reload");
@@ -191,7 +191,7 @@ $baseUri = NEnvironment::getVariable("URI") . '/';
 					return false;
 				}
 
-				$("#chat_container").animate({ opacity:0},function(){
+				$("#chat_container").animate({ opacity:0.7},function(){
 					$("#chat_container").html(payload);
 					$("#reload_button").attr("class", "icon-reload");
 					$("#chat_container").animate({ opacity:1});

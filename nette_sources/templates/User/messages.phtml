@@ -33,7 +33,7 @@
 			<textarea placeholder="{_"Type your text here."}" id="message_text" name="message_text"></textarea>
 		</div>
 		<div class="message-send" style="padding: 20px 10px 30px;">
-		 	<a href="javascript:void(0);" class="button" id="chat_submit" style="font-size:1.3em; margin:2em 0px;">Send</a>
+		 	<a href="javascript:void(0);" class="button" id="chat_submit" style="font-size:1.3em; margin:2em 0px;">{_"Send"}</a>
 		</div>
 		{/if}
 	</div>
@@ -188,7 +188,7 @@
 					return false;
 				}
 
-				$("#chat_container").animate({ opacity:0},function(){
+				$("#chat_container").animate({ opacity:0.7},function(){
 					$("#chat_container").html(payload);
 					$("#chat_container").animate({ opacity:1},function(){
 						$("#reload_button").attr("class", "icon-reload");
@@ -241,16 +241,17 @@
 				}
 
 
-				$("#chat_container").animate({ opacity:0},function(){
+				$("#chat_container").animate({ opacity:0.7},function(){
 					$("#chat_container").html(payload);
 					$("#reload_button").attr("class", "icon-reload");
-					$("#chat_container").animate({ opacity:1});
+					$("#chat_container").animate({ opacity:1},200);
 				});
 				clearInterval(interval);
 				interval = setInterval("chatTimer()",30*1000);
 			},
 		});
 	}
+	
 {if !isset($nofriends)}
 	$(document).ready(function() {
 		CKEDITOR.replace( 'message_text', {
@@ -258,7 +259,7 @@
 			width: '700px',
 			filebrowserUploadUrl: '{!baseUri}?do=upload',
 			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
-			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
 			toolbarGroups: [
 				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
 				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
@@ -280,14 +281,31 @@
 				CKEDITOR.instances[instance_name].updateElement();
 				var serialized = $("#message_text").serialize();
 				var recipient_id = $('#frmmessageform-friend_id option:selected').val();
+				if (recipient_id == 0) {
+					alert({_'Please select a recipient'});
+					return false;
+				}
 				$.post('{!$baseUri}user/messages/?do=submitpmchat&recipient_id='+recipient_id, serialized, function(result) {
 					CKEDITOR.instances[instance_name].setData('');
 					reloadChatIfModified();
 				}, "json");
 			}
 		});
+
 	});
 {/if}
+	
+	$(document).ready(function(){
+		$(function(){
+			document.body.onbeforeunload = function() {
+				for(editorName in CKEDITOR.instances) {
+					if (CKEDITOR.instances[editorName].checkDirty()) {
+						return "Unsaved changes present!"
+					}
+				}
+			}
+		});
+	});
 </script>
 <div id="message_list_anchor"></div>
 <div id="chat_container">

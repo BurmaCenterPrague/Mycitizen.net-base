@@ -185,62 +185,74 @@
 	var status = {};
 	var status_small = {};
 	var status_title = {};
+	var status_b = false;
+	var status_small_b = false;
+	var status_title_b = false;
 	
 	function onlineStatus() {
 		$(".online-status").each(function(){
 			var $element = $(this);
 			var object_id = $(this).attr("object_id");
 			status[object_id] = '';
+			status_b=true;
 		});
 		$(".online-status-small").each(function(){
 			var $element = $(this);
 			var object_id = $(this).attr("object_id");
 			status_small[object_id] = '';
+			status_small_b=true;
 		});
 		$(".online-status-title").each(function(){
 			var $element = $(this);
 			var object_id = $(this).attr("object_id");
 			status_title[object_id] = '';
+			status_title_b=true
 		});
 		
-		$(".online-status").promise().done(function() {
-			var json = JSON.stringify(status);
-			$.ajax({
-				url:"{!$baseUri}?do=onlineStatus&show_date=1",
-				dataType:"json",
-				data: {'data':json}
-			}).done(function(status_output){
-				for (var object_id in status_output) {
-					$(".online-status[object_id="+object_id+"]").html(status_output[object_id]);
-				}
+		if (status_b) {
+			$(".online-status").promise().done(function() {
+				var json = JSON.stringify(status);
+				$.ajax({
+					url:"{!$baseUri}?do=onlineStatus&show_date=1",
+					dataType:"json",
+					data: {'data':json}
+				}).done(function(status_output){
+					for (var object_id in status_output) {
+						$(".online-status[object_id="+object_id+"]").html(status_output[object_id]);
+					}
+				});
 			});
-		});
-		$(".online-status-small").promise().done(function(){
-			var json = JSON.stringify(status_small);
-			$.ajax({
-				url:"{!$baseUri}?do=onlineStatus&show_date=0",
-				dataType:"json",
-				data: {'data':json}
-			}).done(function(status_output){
-				for (var object_id in status_output) {
-					$(".online-status-small[object_id="+object_id+"]").html(status_output[object_id]);
-				}
+		}
+		if (status_small_b) {
+			$(".online-status-small").promise().done(function(){
+				var json = JSON.stringify(status_small);
+				$.ajax({
+					url:"{!$baseUri}?do=onlineStatus&show_date=0",
+					dataType:"json",
+					data: {'data':json}
+				}).done(function(status_output){
+					for (var object_id in status_output) {
+						$(".online-status-small[object_id="+object_id+"]").html(status_output[object_id]);
+					}
+				});
 			});
-		});
-		$(".online-status-title").promise().done(function(){
-			var json = JSON.stringify(status_title);
-			$.ajax({
-				url:"{!$baseUri}?do=onlineStatus&span=0",
-				dataType:"json",
-				data: {'data':json}
-			}).done(function(status_output){
-				for (var object_id in status_output) {
-					var name = $(".online-status-title[object_id="+object_id+"]").attr("name");
-					var newTitle = name + "<br />" + status_output[object_id];
-					$(".online-status-title[object_id="+object_id+"]").qtip('option', 'content.text', newTitle);
-				}
+		}
+		if (status_title_b) {
+			$(".online-status-title").promise().done(function(){
+				var json = JSON.stringify(status_title);
+				$.ajax({
+					url:"{!$baseUri}?do=onlineStatus&span=0",
+					dataType:"json",
+					data: {'data':json}
+				}).done(function(status_output){
+					for (var object_id in status_output) {
+						var name = $(".online-status-title[object_id="+object_id+"]").attr("name");
+						var newTitle = "<h4>" + name + "</h4>" + status_output[object_id];
+						$(".online-status-title[object_id="+object_id+"]").qtip('option', 'content.text', newTitle);
+					}
+				});
 			});
-		});
+		}
 	}
 {/if}
 

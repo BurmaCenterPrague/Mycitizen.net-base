@@ -43,7 +43,20 @@ class Activity extends BaseModel {
 	*	If $affected_user_id is NULL then this activity will be listed for all users that have view permissions for that object.
 	*/
 	public static function addActivity($activity, $object_id, $object_type, $affected_user_id = null) {
-  
+  		
+  		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		if ($object_type == 1) {
+			$cache->clean(array(NCache::TAGS => array("user_id/$object_id", "name/activity")));
+		} elseif ($object_type == 2) {
+			$cache->clean(array(NCache::TAGS => array("group_id/$object_id", "name/activity")));
+		} elseif ($object_type == 3) {
+			$cache->clean(array(NCache::TAGS => array("resource_id/$object_id", "name/activity")));
+		}
+		if ($affected_user_id != null) {
+			$cache->clean(array(NCache::TAGS => array("user_id/$affected_user_id", "name/activity")));
+		}
+							
   		$data = array(
   					'activity' => $activity,
   					'object_id' => $object_id,
@@ -61,6 +74,15 @@ class Activity extends BaseModel {
 	*	
 	*/
 	public static function removeActivity($activity, $object_id, $object_type) {
+  		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		if ($object_type == 1) {
+			$cache->clean(array(NCache::TAGS => array("user_id/$object_id", "name/activity")));
+		} elseif ($object_type == 2) {
+			$cache->clean(array(NCache::TAGS => array("group_id/$object_id", "name/activity")));
+		} elseif ($object_type == 3) {
+			$cache->clean(array(NCache::TAGS => array("resource_id/$object_id", "name/activity")));
+		}
   		return dibi::query('DELETE from `activity` WHERE `activity` = %i AND `object_id` = %i AND `object_type` = %i', $activity, $object_id, $object_type);
   	}
 
@@ -184,7 +206,7 @@ class Activity extends BaseModel {
 					if ($row['activity'] == Activity::NOTICEBOARD_MESSAGE) continue;
 					switch ($row['object_type']) {
 						case 1:
-							if ($row['object_id'] == $user_id || $row['affected_user_id'] == $user_id) continue;
+							if ($row['object_id'] == $user_id || $row['affected_user_id'] == $user_id) continue 2;
 							$object = User::create($row['object_id']);
 						break;
 						case 2:

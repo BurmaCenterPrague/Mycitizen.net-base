@@ -61,8 +61,7 @@ final class GroupPresenter extends BasePresenter
 			$this->template->format_date = _t("j.n.Y");
 			
 			$this->visit(2, $group_id);
-			
-			
+
 			if ($this->group->hasPosition()) {
 				$this->template->showmap = true;
 			}
@@ -207,44 +206,30 @@ final class GroupPresenter extends BasePresenter
 		$this->template->group_id = $group->getGroupId();
 		
 		$this->template->hash = $this->group->getGroupHash();
-		
-		$data = $this->group->getAvatar();
-		
-		$this->template->img_src = $data;
-		$this->template->icon = Group::getImage($this->template->group_id, 'icon');
-		$this->template->large_icon = Group::getImage($this->template->group_id, 'large_icon');
-		
-		$f = finfo_open();
-		
+
 		$size_x = 0;
 		$size_y = 0;
 
-		if(!empty($data)) {
-			$img_r = imagecreatefromstring(base64_decode($data));
-		
-			$size_x = imagesx($img_r);
-			$size_y = imagesy($img_r);
+		$image = Image::createimage($group->getGroupId(), 2);
+		if($image !== false) {
+			$this->template->icon = $image->renderImg('icon');
+			$this->template->large_icon = $image->renderImg('large_icon');
+			$this->template->mime_type = $image->mime_type;
+			$size_x = $image->width;
+			$size_y = $image->height;
 			$this->template->factor = 1;
 			$this->template->min_size_x = 120;
 			$this->template->min_size_y = 150;
 	
 			if ($size_x == 0 || $size_y == 0) {
-			
 				unset($this->template->img_src);
-				
 				$group->removeAvatar();
 			
-			} elseif ($size_x < 80 || $size_y < 100) {
-		
+			} elseif ($size_x < 120 || $size_y < 150) {
 				$this->flashMessage(sprintf(_t("The image is too small. Minimum size is %s."), "80px x 100px"), 'error');
-				
 				$group->removeAvatar();
-				$group->removeIcons();
-			
-				unset($this->template->img_src);
-			
+				$group->removeIcons();			
 			} elseif ($size_x > 160 || $size_y > 200 ) {
-
 				$this->template->image_too_large = true;
 				$this->flashMessage(_t("Your image still needs to be resized before you can continue!"));
 				$group->removeIcons();
@@ -257,89 +242,25 @@ final class GroupPresenter extends BasePresenter
 					$this->template->factor = $factor;
 					$this->template->min_size_x = round(120 / $factor);
 					$this->template->min_size_y = round(150 / $factor);
-					$this->template->img_src = base64_encode(NImage::fromString(base64_decode($data))->resize($max_x, $max_y)->toString(IMAGETYPE_JPEG,80));
+					$this->template->img_src = $image->resize($max_x, $max_y)->src();
+				} else {
+					$this->template->img_src = $image->src();
 				}
-			
 			} elseif (abs(round($size_x/$size_y*500/4)-100) > 10) {
 			// more than 10% deviation from ideal ratio
-				
 				$this->template->image_props_wrong = true;
 				$this->flashMessage(_t("Your image still needs to be cropped to the right dimensions before you can continue!"));
+				$this->template->img_src = $image->src();
 				$group->removeIcons();
-
+			} else {
+				$this->template->img_src = $image->src();
 			}
-		}		
-		
-		$image_type = finfo_buffer($f, base64_decode($data), FILEINFO_MIME_TYPE);
-		
-		$this->template->mime_type = $image_type;	
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-/*
-	protected function createComponentChatform()
-	{
-#### needed?
-		$form = new NAppForm($this, 'chatform');
-		$form->addTextarea('message_text', ''); // circumvented by TinyMCE ->addRule(NForm::FILLED, _t('Please enter some text.'));
-		$form['message_text']->getControlPrototype()->class('ckeditor');
-		$form->addProtection(_t('Error submitting form.'));
-		
-		$form->addSubmit('send', _t('Send'));
-		
-		$form->onSubmit[] = array(
-			$this,
-			'chatformSubmitted'
-		);
-		
-		return $form;
-	}
-*/
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-/*
-	public function chatformSubmitted(NAppForm $form)
-	{
-#### needed?
-		$user = NEnvironment::getUser()->getIdentity();
-
-		$values                  = $form->getValues();
-		$resource                = Resource::create();
-		$data                    = array();
-		$data['resource_author'] = $user->getUserId();
-		$data['resource_type']   = 8;
-		//      $data['resource_name'] = $values['resource_name'];
-		$data['resource_data']   = json_encode(array(
-			'message_text' => $values['message_text']
-		));
-		$resource->setResourceData($data);
-		$resource->save();
-		$this->group->setLastActivity();
-		
-		Activity::addActivity(Activity::GROUP_CHAT, $this->group->getGroupId(), 2);
-		
-		$resource->updateUser($user->getUserId(), array(
-			'resource_user_group_access_level' => 1
-		));
-		$resource->updateGroup($this->group->getGroupId(), array(
-			'resource_user_group_access_level' => 1
-		));
-		$this->redirect("Group:default", array(
-			'group_id' => $this->group->getGroupId(),
-			'chatlistergroup-page' => 1,
-			'do' => 'chatlistergroup-changePage'
-		));
+		} else {
+			$group->removeIcons();
+		}
 		
 	}
-*/
+
 
 	/**
 	 *	@todo ### Description
@@ -383,6 +304,7 @@ final class GroupPresenter extends BasePresenter
 				'group_id' => $session->data['object_id'],
 				'purpose' => 'members'
 			);
+			$options['cache_tags'] = array("group_id/".$session->data['object_id']);
 		}
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -412,6 +334,7 @@ final class GroupPresenter extends BasePresenter
 			$options['filter'] = array(
 				'group_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("group_id/".$session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -451,6 +374,7 @@ final class GroupPresenter extends BasePresenter
 				'group_id' => $session->data['object_id'],
 				'purpose' => 'members'
 			);
+			$options['cache_tags'] = array("group_id/".$session->data['object_id']);
 		}
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -486,6 +410,7 @@ final class GroupPresenter extends BasePresenter
 			$options['filter'] = array(
 				'group_id' => $session->data['object_id']
 			);
+			$options['cache_tags'] = array("group_id/".$session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -521,12 +446,14 @@ final class GroupPresenter extends BasePresenter
 				'administration' => true,
                 'hide_filter'=>true,
 				'show_online_status' => true
-			)
+			),
+			'cache_tags' => array("group_id/$group_id")
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
 	*	List of group members on group edit page
 	*/
@@ -552,7 +479,8 @@ final class GroupPresenter extends BasePresenter
 				'administration' => true,
                 'hide_filter'=>true,
                 'group_edit_member_lister'=>true
-			)
+			),
+			'cache_tags' => array("group_id/$group_id")
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -642,7 +570,7 @@ final class GroupPresenter extends BasePresenter
 		
 		if ($values['group_avatar']->getTemporaryFile() != "") {
 		
-			$size= getimagesize($values['group_avatar']->getTemporaryFile());
+			$size = getimagesize($values['group_avatar']->getTemporaryFile());
 			
 			if ($size[0]>2500 || $size[1]>2500) {
 				$this->flashMessage(sprintf(_t("Image is too big! Max. size is for upload is %s"), "2500x2500"),'error');
@@ -670,10 +598,15 @@ final class GroupPresenter extends BasePresenter
 			Activity::addActivity(Activity::GROUP_UPDATED, $group_id, 2);
 		}
 
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("group_id/$group_id")));
+
 		$this->redirect("Group:edit", array(
 			'group_id' => $group_id
 		));
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -691,8 +624,8 @@ final class GroupPresenter extends BasePresenter
 
 	
 	/**
-	*	Default page, left column
-	**/
+	 *	Default page, left column
+	 */
 	protected function createComponentGrouplister($name)
 	{
 		$session      = NEnvironment::getSession()->getNamespace($this->name);
@@ -723,6 +656,7 @@ final class GroupPresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -743,6 +677,7 @@ final class GroupPresenter extends BasePresenter
 		}
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -762,6 +697,7 @@ final class GroupPresenter extends BasePresenter
 			}
 		}
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -786,11 +722,14 @@ final class GroupPresenter extends BasePresenter
 					}
 					Activity::addActivity(Activity::GROUP_JOINED, $group_id, 2, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage, "Lister.detailgroupuserlister");
-					$cache->clean(array(NCache::ALL => TRUE));
-					unset($cache);
-					$cache = new NCache($storage, "Lister.defaultgroupuserlister");
-					$cache->clean(array(NCache::ALL => TRUE));
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/detailgroupuserlister")));
+					$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/defaultgroupuserlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/detailusergrouplister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/defaultusergrouplister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagegrouplister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedgrouplister")));
+
 					print "true";
 				}
 			}
@@ -820,11 +759,14 @@ final class GroupPresenter extends BasePresenter
 					$group->removeUser($user_id);
 					Activity::addActivity(Activity::GROUP_LEFT, $group_id, 2, $user_id);
 					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage, "Lister.detailgroupuserlister");
-					$cache->clean(array(NCache::ALL => TRUE));
-					unset($cache);
-					$cache = new NCache($storage, "Lister.defaultgroupuserlister");
-					$cache->clean(array(NCache::ALL => TRUE));
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/detailgroupuserlister")));
+					$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/defaultgroupuserlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/detailusergrouplister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/defaultusergrouplister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagegrouplister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedgrouplister")));
+
 					print "true";
 				}
 			}
@@ -888,13 +830,15 @@ final class GroupPresenter extends BasePresenter
             'template_variables' => array(
                     'hide_filter'=>1,
                     'reply_enabled'=>1
-                    )
+                    ),
+            'cache_tags' => array("group_id/".$this->group->getGroupId())
 		);
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1168,16 +1112,11 @@ final class GroupPresenter extends BasePresenter
 		$group_resources = $this->group->getSubscribedResources();
 		
 		foreach($group_resources as $group_resource) {
-		
 			$resource_id = $group_resource['resource_id'];
-			
 			// check permission
 			if (Auth::isAuthorized(Auth::TYPE_RESOURCE, $resource_id) >= 1) {
-
 				$resource_selection[$resource_id] = $group_resource['resource_name'];
-
 			}
-		
 		}
 
 		if (empty($resource_selection))  {
@@ -1233,13 +1172,6 @@ final class GroupPresenter extends BasePresenter
 		}
 
 		$this->group->setLastActivity();
-		
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Lister.detailgroupresourcelister");
-		$cache->clean(array(NCache::ALL => TRUE));
-		unset($cache);
-		$cache = new NCache($storage, "Lister.defaultgroupresourcelister");
-		$cache->clean(array(NCache::ALL => TRUE));
 
 		$this->redirect("Group:default", array(
 				'group_id' => $this->group->getGroupId()
@@ -1274,7 +1206,14 @@ final class GroupPresenter extends BasePresenter
 			Cron::removeCron(2, $group_id, 3, $resource_id);
 			
 			Activity::addActivity(Activity::GROUP_RESOURCE_REMOVED, $group_id, 2);
-			
+
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/defaultgroupresourcelister")));
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/detailgroupresourcelister")));
+			$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/detailresourcegrouplister")));
+			$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/defaultresourcegrouplister")));
+	
 			$this->flashMessage(sprintf(_t("Group %s unsubscribed from resource."),$group_name));
 		} else {
 			$this->flashMessage(sprintf(_t("Group %s has not been subscribed to resource."),$group_name), 'error');
@@ -1301,10 +1240,12 @@ final class GroupPresenter extends BasePresenter
 			$this->terminate();
 		}
 		if (!empty($group)) {
-			$image = new Image($group_id,2);
-			$image->remove_cache();
-			$group->removeAvatar();
-			$group->removeIcons();
+			$image = Image::createimage($group_id,2);
+			if ($image !== false) {
+				$image->remove_cache();
+				$group->removeAvatar();
+				$group->removeIcons();
+			}
 		}
 		$this->redirect("this");
 	}
@@ -1335,25 +1276,29 @@ final class GroupPresenter extends BasePresenter
 		}
 				
 		// remove from cache
-		$image = new Image($group_id,2);
-		$result = $image->remove_cache();
-		if ($result !== true) $this->flashMessage($result, 'error');
+		$image = Image::createimage($group_id,2);
+		$image->remove_cache();
 		$image->crop($x, $y, $w, $h);
+		$image->save_data();
 		$result = $image->create_cache();
 		if ($result !== true) $this->flashMessage($result, 'error');
 		$this->flashMessage(_t("Finished cropping and resizing."));
 		Activity::addActivity(Activity::GROUP_UPDATED, $group_id, 2);
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("group_id/$group_id")));
 
 		$this->redirect("Group:edit",$group_id);
 
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleInvitation() {
 	
 		$query = NEnvironment::getHttpRequest();
@@ -1412,11 +1357,11 @@ final class GroupPresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='grouplister';
@@ -1431,7 +1376,7 @@ final class GroupPresenter extends BasePresenter
 				)
 			);
 
-		$filter->clearFilterArray($filterdata);
+		$filter->clearFilterArray();
 		
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $filter->syncFilterArray($filterdata); else $session->filterdata=$filterdata;
 
@@ -1458,7 +1403,11 @@ final class GroupPresenter extends BasePresenter
 		if (!empty($resource)) {
 			if ($resource->remove_message(2, $group_id)) {
 				echo "true";
-				$resource->cleanCache('chatwidget');
+
+				$storage = new NFileStorage(TEMP_DIR);
+				$cache = new NCache($storage);
+				$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/chatwidget")));
+
 			} else {
 				echo "false";
 			}
@@ -1492,6 +1441,10 @@ final class GroupPresenter extends BasePresenter
 			'message_text' => $message_text
 		));
 		$resource->setResourceData($data);
+		$check = $resource->check_doublette($data, $user->getUserId(), 1);
+		if ($check === true) {
+			die("false");
+		}
 		$resource->save();
 		
 		$group->setLastActivity();
@@ -1504,6 +1457,11 @@ final class GroupPresenter extends BasePresenter
 		$resource->updateGroup($group_id, array(
 			'resource_user_group_access_level' => 1
 		));
+
+		### clear cache for $group_id
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/chatwidget")));
 
 		die("true");
 	}

@@ -216,7 +216,7 @@ class Group extends BaseModel {
 	{
 		$result = dibi::fetchSingle("SELECT `group_name` FROM `group` WHERE `group_id` = %i", $group_id);
 		if (empty($result)) {
-			return "";
+			return false;
 		}
 		return $result;
 	}
@@ -579,7 +579,7 @@ class Group extends BaseModel {
 	 *	@param
 	 *	@return
 	 */
-	public function getBigIcon()
+	public function getLargeIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `group_largeicon` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
 		return $portrait;
@@ -646,15 +646,20 @@ class Group extends BaseModel {
 
 
 	/**
-	 *	Calls toImg() from Image class. (as static class)
+	 *	Calls renderImg() from Image class. (as static class)
 	 *	@param int $group_id
 	 *	@param string $size
 	 *	@param string $title
 	 *	@return string
 	 */
 	public static function getImage($group_id, $size, $title=null) {
-		$image = new Image($group_id, 2);
-		return $image->toImg($size, $title);
+		$image = Image::createimage($group_id, 2);
+		if ($image !== false) {
+			return $image->renderImg($size, $title);
+		} else {
+			return Image::default_img($size, $title);
+		}
+
 	}
 
 

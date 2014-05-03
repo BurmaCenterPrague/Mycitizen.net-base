@@ -37,6 +37,8 @@ class ListerControlMain extends NControl
 	protected $persistent_filter = array();
 	protected $template_variables = array();
 	protected $active = false;
+	protected $cache_tags;
+	protected $cache_expiry;
 
 	/**
 	 *	@todo ### Description
@@ -80,6 +82,14 @@ class ListerControlMain extends NControl
 			$this->template_variables['persistent_filter'] = $options['filter'];
 		}
 		
+		if (isset($options['cache_tags'])) {
+			$this->cache_tags = $options['cache_tags'];
+		}
+
+		if (isset($options['cache_expiry'])) {
+			$this->cache_expiry = $options['cache_expiry'];
+		}
+
 		$filter           = $this->getFilterArray();
 		$this->itemscount = $this->getDataCount($filter);
 		if (!empty($filter['page'])) {
@@ -89,7 +99,7 @@ class ListerControlMain extends NControl
 				$this->setFilterArray($filter);
 			}
 		}
-		$this->generateList();
+
 		$this->registerHelpers();
 	}
 
@@ -116,7 +126,50 @@ class ListerControlMain extends NControl
 			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
 			$config->set('Filter.YouTube', true);
 			$purifier = new HTMLPurifier($config);
-			return $purifier->purify($dirty_html);
+			$text = $purifier->purify($dirty_html);
+			
+			// converting references
+			$pattern = array(
+				'/(\s|^|>)(@{1,3}[^@\s<>"\'!?,:;()]+@?)([!?.,:;()\Z\s<])/u',
+				'/(\s|^|\W)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
+			);
+			$text = preg_replace_callback(
+				$pattern,
+				function($lighter){
+					$title = '';
+					$lighter[2] = trim($lighter[2]);
+					if (preg_match("/^@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+						if (Auth::isAuthorized(1, $ids[1]) > Auth::UNAUTHORIZED) {
+							$label = User::getFullName($ids[1]);
+							$link = 'user/?user_id='.$ids[1];
+							$title = _t("go to '%s'", $label);
+						}
+					} elseif (preg_match("/^@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+						if (Auth::isAuthorized(2, $ids[1]) > Auth::UNAUTHORIZED) {
+							$label = Group::getName($ids[1]);
+							$link = 'group/?group_id='.$ids[1];
+							$title = _t("go to '%s'", $label);
+						}
+					} elseif (preg_match("/^@@@([0-9]+)@?/", $lighter[2], $ids) === 1) {
+						if (Auth::isAuthorized(3, $ids[1]) > Auth::UNAUTHORIZED) {
+							$label = Resource::getName($ids[1]);
+							$link = 'resource/?resource_id='.$ids[1];
+							$title = _t("go to '%s'", $label);
+						}
+					}
+					If (!isset($label) || !isset($link)) {
+						$label = str_replace('_',' ',$lighter[2]);
+						$link = '?do=search&string='.urlencode($lighter[2]);
+						$title = _t("search for '%s'", $label);
+					}
+					if (!isset($lighter[3])) {
+						$lighter[3] = '';
+					}
+					return $lighter[1].'<a href="'.NEnvironment::getVariable("URI").'/'.$link.'" title="'.$title.'">'.$label.'</a>'.$lighter[3];
+				},
+				$text);
+			
+			return $text;
 		});
 		
 		$this->template->registerHelper('autoformat', function ($input) {
@@ -132,7 +185,7 @@ class ListerControlMain extends NControl
 			$rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
 			$rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
 			$rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
-			while (preg_match("{\\b$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:\"]?(\s|$))}i", $input, &$match, PREG_OFFSET_CAPTURE, $position))
+			while (preg_match("{\\b$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:\"]?(\s|$))}i", $input, $match, PREG_OFFSET_CAPTURE, $position))
 			{
 				list($url, $urlPosition) = $match[0];
 
@@ -188,35 +241,46 @@ class ListerControlMain extends NControl
 		$this->renderFilter();
 		$this->renderBody();
 	}
-	
-	/**
-	 *	Outputs status of filter as readable text
-	 */
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+
+	/**
+	 *	Outputs status of filter as readable text for button
+	 */
 	public function renderFiltercheck()
 	{
-		if ($this->activeFilter())
-			echo _t("Filter is on.");
-		else
+		if ($this->activeFilter()) {
+//			echo _t("Filter is on.");
+			echo $this->filter_summary();
+		} else {
 			echo _t("Filter is off.");
+		}
 	}
-	
+
+
 	/**
 	 *	Outputs status of filter for use in class
 	 */
 	public function renderFilterstatus()
 	{
-		if ($this->activeFilter())
+		if ($this->activeFilter()) {
 			echo "on";
-		else
+		} else {
 			echo "off";
+		}
 	}
-	
+
+
+	/**
+	 *	Outputs title for filter
+	 */
+	public function renderFiltertitle()
+	{
+		if (!$this->activeFilter()) {
+			echo _t("Use the filter to narrow down the list of items");
+		}
+	}
+
+
 	/**
 	 *	Checks whether filter is active or not
 	 */
@@ -232,17 +296,77 @@ class ListerControlMain extends NControl
 			$active = true;
 		elseif (isset($filter['mapfilter']) && $filter['mapfilter'] != 'null')
 			$active = true;
-		
-		if (!$active && isset($filter['tags'])) {
-			foreach ($filter['tags'] as $key => $value) {
-				if ($key != 'all' && $value == true) {
-					$active = true;
-					break;
+		else {
+			if (!$active && isset($filter['tags'])) {
+				foreach ($filter['tags'] as $key => $value) {
+					if ($key != 'all' && $value == true) {
+						$active = true;
+						break;
+					}
 				}
 			}
 		}
 		return $active;
 	}
+
+
+	/**
+	 *	Returns summary of used filter criteria
+	 *	@param void
+	 *	@return string
+	 */
+	public function filter_summary()
+	{
+		$output = array();
+		$length = 0;
+		$filter = $this->getFilterArray();
+		if (isset($filter['name']) && strlen($filter['name']) > 0) {
+			$name = _t('Name');
+			$output[] = '<span style="color:#777;">'.$name.':</span> '.preg_replace('/[\r\n]+/', '', $filter['name']);
+			$length += strlen(_t('Name').$filter['name']);
+		}
+		if (!empty($filter['type']) && !is_array($filter['type']) && (($this->name == 'defaultresourceresourcelister') || ($this->name == 'homepageresourcelister'))) {
+			$name_a = Resource::getTypeArray();
+			$name = $name_a[$filter['type']];
+			$output[] = '<span style="color:#777;">'._t('Type').':</span> '.$name;
+			$length += strlen(_t('Type').$name);
+		}
+		if (isset($filter['language']) && $filter['language'] > 0) {
+			$name = Language::getLanguageName($filter['language']);
+			$output[] = '<span style="color:#777;">'._t('Language').':</span> '.$name;
+			$length += strlen(_t('Language').$name);
+		}
+		if (isset($filter['tags'])) {
+			if (isset($filter['tags']['all']) && $filter['tags']['all']==true) {
+//				$output[] = _t('Tag').': '._t('all');
+			} else {
+				$output_temp = array();
+				foreach ($filter['tags'] as $key => $value) {
+					if ($key != 'all' && $value == true) {
+						if ($length > 80) {
+							$output_temp[] = '<b class="icon-tag" title="'._t('More tags').'" style="width:17px;"></b>...';
+							break;
+						}
+						$tag = Tag::create($key);
+						$name = _t_tags($tag->getName());
+						$output_temp[] = '<b class="icon-tag" title="'._t('Tag').'" style="width:17px;"></b>'.preg_replace('/[\r\n]+/', '', $name);
+						$length += strlen($name);
+					}
+				}
+				if (!empty($output_temp)) {
+					$output[] = implode(' | ', $output_temp);
+				}
+			}
+		}
+		if (isset($filter['mapfilter']) && $filter['mapfilter'] != 'null') {
+			$output[] = '<img src="'.NEnvironment::getVariable("URI").'/images/icon-map.png" title="'._t('Map').'" style="vertical-align:middle;"/>';
+		}
+		
+		return '<span style="margin: 0 5px; padding:5px 7px; background-color:#EAE9E3;">'.implode(' | ', $output).'</span><b class="icon-cancel" onclick="$(\'#filter_box_a\').attr(\'id\',\'\');$(\'#frmfilter-reset\').click();" title="'._t("Reset the filter and show the entire list.").'" style="height:17px;"></b>';
+		
+	}
+
+
 
 	/**
 	 *	@todo ### Description
@@ -303,7 +427,6 @@ class ListerControlMain extends NControl
 			$template->name = $this->name;
 		}
 		$template->persistent_filter  = $this->persistent_filter;
-		$template->data               = $this->data;
 		$template->template_variables = $this->template_variables;
 		$template->refresh_path       = $this->refresh_path;
 		$user                         = NEnvironment::getUser()->getIdentity();
@@ -316,9 +439,42 @@ class ListerControlMain extends NControl
 		$template->lister_type = $this->lister_type;
 		$template->active_filter = $this->activeFilter();
 		$template->baseUri = NEnvironment::getVariable("URI") . '/';
-		
-		$template->render();
-		
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.render.".$this->name);
+		$cache->clean();
+		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
+		if (in_array($this->name, $no_filter)) {
+			$cache_key = 'general';
+		} else {
+			$filter = $this->getFilterArray();
+			$cache_key = $language.'-'.md5(json_encode($filter).json_encode($this->template_variables));
+		}
+		if ($cache->offsetExists($cache_key)) {
+			$output = $cache->offsetGet($cache_key);
+			echo $output;
+			echo '<!-- cache Lister.render.'.$this->name.' -->';
+		} else {
+			$this->generateList();
+			$template->data = $this->data;
+			
+			ob_start();
+			$template->render();
+			$output = ob_get_contents();
+			ob_end_clean();
+			echo $output;
+			if (isset($this->cache_expiry)) {
+				$settings = array(NCache::EXPIRE => time()+$this->cache_expiry);
+			} else {
+				$settings = array(NCache::EXPIRE => time()+120);
+			}
+			$settings[NCache::TAGS] = array();
+			if (isset($this->cache_tags)) {
+				$settings[NCache::TAGS] = $this->cache_tags;
+			}
+			$settings[NCache::TAGS][] = "name/$this->name";
+			$cache->save($cache_key, $output, $settings);
+		}
 	}
 
 
@@ -366,7 +522,6 @@ class ListerControlMain extends NControl
 		if ($this->itemscount % $this->itemsperpage != 0) {
 			$maxpage++;
 		}
-//		var_dump($this->itemsperpage);die();
 		return $maxpage;
 	}
 
@@ -388,6 +543,7 @@ class ListerControlMain extends NControl
 		$this->currentpage = $page;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -398,6 +554,7 @@ class ListerControlMain extends NControl
 		$itemsonpage = $this->itemsperpage;
 		return $itemsonpage * ($page - 1);
 	}
+
 
 	/**
 	 *	Retrieves the data for lists.
@@ -434,11 +591,14 @@ class ListerControlMain extends NControl
 
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$this->name);
-		$dont_cache = array('chatwidget','pmwidget', 'chatlistergroup');
-		$long_cache = array('userHomepage','groupHomepage','resourceHomepage');
+		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
 		$cache->clean();
-		$cache_key = md5(json_encode($filter));
-		if (!in_array($this->name, $dont_cache) && $cache->offsetExists($cache_key)) {
+		if (in_array($this->name, $no_filter)) {
+			$cache_key = 'general';
+		} else {
+			$cache_key = md5(json_encode($filter));
+		}
+		if ($cache->offsetExists($cache_key)) {
 			$this->data = $cache->offsetGet($cache_key);
 		} else {
 			$this->data = $this->getPageData($filter);
@@ -463,18 +623,20 @@ class ListerControlMain extends NControl
 				}
 				$filter_connections = array_merge($filter, array('user_id' => $filter['exclude_connections_user_id']));
 				$data_connections = $this->getPageData($filter_connections);
-				$this->data = array_diff($this->data, $data_connections);
+### array_diff throws notice if arrays are multi-dimensional
+				$this->data = @array_diff($this->data, $data_connections);
 			}
-			if (!in_array($this->name, $dont_cache)) {
-				if (isset($filter["all_members_only"]) && $filter["all_members_only"]["type"] == 1) {
-					$settings = array(NCache::EXPIRE => time()+120, NCache::TAGS => array("userid/".$filter["all_members_only"]["type"]));
-				} elseif (in_array($this->name, $long_cache)) {
-					$settings = array(NCache::EXPIRE => time()+600);
-				} else {
-					$settings = array(NCache::EXPIRE => time()+120);
-				}
-				$cache->save($cache_key, $this->data, $settings);
+			if (isset($this->cache_expiry)) {
+				$settings = array(NCache::EXPIRE => time()+$this->cache_expiry);
+			} else {
+				$settings = array(NCache::EXPIRE => time()+120);
 			}
+			$settings[NCache::TAGS] = array();
+			if (isset($this->cache_tags)) {
+				$settings[NCache::TAGS] = $this->cache_tags;
+			}
+			$settings[NCache::TAGS][] = "name/$this->name";
+			$cache->save($cache_key, $this->data, $settings);
 		}
 		
 		foreach ($this->data as $key => $data_row) {
@@ -488,7 +650,6 @@ class ListerControlMain extends NControl
 				$this->createComponentResourceListItem($data_row);
 			}
 		}
-
 	}
 
 
@@ -508,6 +669,7 @@ class ListerControlMain extends NControl
 			$session->filterdata = array_merge($this->persistent_filter, $filter);
 		}
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -684,7 +846,7 @@ class ListerControlMain extends NControl
 			}
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage, "Lister.groupmemberlister");
-			$cache->clean(array(NCache::ALL => TRUE));
+//			$cache->clean(array(NCache::TAGS => array("group_id/".$this->persistent_filter['group_id'])));
 		} else if (isset($this->persistent_filter['resource_id'])) {
 			foreach ($values as $key => $value) {
 				$values["resource_user_group_" . $key] = $value;
@@ -704,7 +866,7 @@ class ListerControlMain extends NControl
 			}
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage, "Lister.resourcesubscriberlister");
-			$cache->clean(array(NCache::ALL => TRUE));
+//			$cache->clean(array(NCache::TAGS => array("resource_id/".$this->persistent_filter['resource_id'])));
 		} else {
 			foreach ($values as $key => $value) {
 				$values["user_" . $key] = $value;
@@ -984,8 +1146,13 @@ class ListerControlMain extends NControl
 		$user = NEnvironment::getUser()->getIdentity();
 		
 		Resource::emptyTrash();
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Lister.messagelisteruser");
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId())));
+		$cache = new NCache($storage, "Lister.render.messagelisteruser");
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId())));
 		$this->flashMessage(_t("Trash emptied."));
-		//		$this->redirect("User:messages");
 		$this->handleChangePage(1);
 	}
 }

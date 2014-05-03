@@ -17,6 +17,74 @@ class Image extends BaseModel
 
 	public $type;
 	public $id;
+	public $width;
+	public $height;
+	public $mime_type;
+	
+	private $data; // src for largest available image
+	private $img;
+	private $large_icon;
+	private $icon; 
+	private $name;
+	private $src;
+	private $defined_width;
+	private $defined_height;
+	
+	
+	public static function createimage($id, $type) {
+		if ($type == 1) {
+			$object = new User($id);
+		} else {
+			$object = new Group($id);
+		}
+		if (empty($object)) {
+			return false;
+		} else {
+			$data = base64_decode($object->getAvatar());
+		}
+
+		if (empty($data)) {
+			return false;
+		}
+
+		// check result
+		$img = @imagecreatefromstring($data);
+		if ($img === false) {
+			return false;
+		}
+		
+		$image = new Image;
+		$image->id = $id;
+		$image->type = $type;
+		$image->data = $data;
+		$image->width = imagesx($img);
+		$image->height = imagesy($img);
+		$image->src = array(
+			'img' => $object->getAvatar(),
+			'large_icon' => $object->getLargeIcon(),
+			'icon' => $object->getIcon()
+			);
+		$image->defined_width = array(
+			'img' => 160,
+			'large_icon' => 40,
+			'icon' => 20
+			);
+		$image->defined_height = array(
+			'img' => 200,
+			'large_icon' => 50,
+			'icon' => 25
+			);
+		if ($image->type == 1) {
+			$image->name = 'user';
+		} else {
+			$image->name = 'group';
+		}
+		$f = finfo_open();
+		$image->mime_type = finfo_buffer($f, $image->data, FILEINFO_MIME_TYPE);
+
+		return $image;
+	}
+	
 	
 	/**
 	 *	Removes the cached images from the folder.
@@ -24,12 +92,40 @@ class Image extends BaseModel
 	 *	@param int $type user, group or resource
 	 *	@return void
 	 */
-	public function __construct($id, $type) {
-		$this->id = $id;
-		$this->type = $type;
+	public function __construct()
+	{
 	}
 	
+	public function save_data() {
 	
+		$values = array();
+
+		if (isset($this->img) && !empty($this->img)) {
+			$values[$this->name.'_portrait'] = base64_encode($this->img);
+		}
+		if (isset($this->large_icon) && !empty($this->large_icon)) {
+			$values[$this->name.'_largeicon'] = base64_encode($this->large_icon);
+		}
+		if (isset($this->icon) && !empty($this->icon)) {
+			$values[$this->name.'_icon'] = base64_encode($this->icon);
+		}
+		if (empty($values)) {
+			$values[$this->name.'_portrait'] = base64_encode($this->data);
+		}
+		
+		if ($this->type == 1) {
+			$object = new User($this->id);
+			$object->setUserData($values);
+		} else {
+			$object = new Group($this->id);
+			$object->setGroupData($values);
+		}
+		$object->save();
+		
+		return $this;
+	}
+
+
 	/**
 	 *	Removes the cached images from the folder.
 	 *	@param void
@@ -50,7 +146,7 @@ class Image extends BaseModel
 				unlink($file);
 			}
 		}
-		return true;
+		return $this;
 	}
 
 
@@ -67,7 +163,7 @@ class Image extends BaseModel
 			$object = Group::create($this->id);
 			$name = 'group';
 		} else {
-			return _t("Error recreating image.");
+			return "Error recreating image.";
 		}
 		
 		if (isset($object)) {
@@ -79,7 +175,7 @@ class Image extends BaseModel
 				switch ($size) {
 					case 'img': $src = $object->getAvatar(); break;
 					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getBigIcon(); break;
+					case 'large_icon': $src = $object->getLargeIcon(); break;
 				}
 	
 				if (!empty($src)) {
@@ -100,55 +196,65 @@ class Image extends BaseModel
 	}
 
 
+	/*
+	 *	enlarges the image so that both dimensions have the minimum size
+	 */
+	public function fill_canvas()
+	{
+		$min_w = 160;
+		$min_h = 200;
+		$image_o = NImage::fromString($this->data);
+		if ($image_o->width < $min_w ) {
+			$this->data = $image_o->resize($min_w, NULL, NImage::ENLARGE)->toString(IMAGETYPE_JPEG,90);
+		} elseif ($image_o->height < $min_h ) {
+			$this->data = $image_o->resize(NULL, $min_h, NImage::ENLARGE)->toString(IMAGETYPE_JPEG,90);
+		}
+		
+		return $this;
+	}
+
+
 	/**
-	 *	Crops and scales the image from the database for 3 sizes and saves them back to database.
+	 *	recreates src for img
+	 */
+	public function src()
+	{
+		
+		return base64_encode($this->data);
+	}
+
+
+	/**
+	 *	resize
+	 */
+	public function resize($x,$y)
+	{
+		$this->data = NImage::fromString($this->data)->resize($x, $y)->toString(IMAGETYPE_JPEG,90);
+		return $this;
+	}
+
+
+	/**
+	 *	Crops and scales the image from the database for 3 sizes
 	 *	@param void
 	 *	@return void
 	 */	
 	public function crop($x, $y, $w, $h) {
-		if ($this->type == 1) {
-			$object = new User($this->id);
-			$name = 'user';
-		} else {
-			$object = new Group($this->id);
-			$name = 'group';
-		}
-
-		if (!empty($object)) {
-			$data = base64_decode($object->getAvatar());
-		
-			if (isset($data)) {
-				// target sizes
-				$avatar_w = 160;
-				$avatar_h = 200;
-				$large_icon_w = 40;
-				$large_icon_h = 50;
-				$icon_w = 20;
-				$icon_h = 25;
-				$img = @imagecreatefromstring($data);
-				if ($img !== false) {
-					$image_o = NImage::fromString($data)->sharpen();
-					// ->sharpen() causes problems for CMYK?
-					$avatar = base64_encode($image_o->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
-					$image_o = NImage::fromString($data);
-					$large_icon = base64_encode($image_o->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->toString(IMAGETYPE_JPEG,90));
-					$image_o = NImage::fromString($data);
-					$icon = base64_encode($image_o->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->toString(IMAGETYPE_JPEG,90));
-				}
-				$values = array (
-					$name.'_portrait' => $avatar,
-					$name.'_largeicon' => $large_icon,
-					$name.'_icon' => $icon,
-					);
-
-				if ($this->type == 1) {			
-					$object->setUserData($values);
-				} else {
-					$object->setGroupData($values);
-				} 
-				$object->save();			
-			}
-		}
+		// target sizes
+		$avatar_w = 160;
+		$avatar_h = 200;
+		$large_icon_w = 40;
+		$large_icon_h = 50;
+		$icon_w = 20;
+		$icon_h = 25;
+		$image_o = NImage::fromString($this->data)->sharpen();
+		// ->sharpen() causes problems for CMYK?
+		$this->img = $image_o->crop($x, $y, $w, $h)->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90);
+		$image_o = NImage::fromString($this->data);
+		$this->large_icon = $image_o->crop($x, $y, $w, $h)->resize($large_icon_w, $large_icon_h)->toString(IMAGETYPE_JPEG,90);
+		$image_o = NImage::fromString($this->data);
+		$this->icon = $image_o->crop($x, $y, $w, $h)->resize($icon_w, $icon_h)->toString(IMAGETYPE_JPEG,90);
+		return $this;
 	}
 
 
@@ -158,39 +264,30 @@ class Image extends BaseModel
 	 *	@param string $title
 	 *	@return string
 	 */
-	public function toImg($size='img', $title=null) {
+	public function renderImg($size='img', $title=null) {
 		if (isset($title)) $title_tag =' title="'.$title.'"'; else $title_tag='';
+		if (isset($this->src[$size])) {
+			$src = $this->src[$size];
+		}
+		if ($size=='img' && empty($src)) {
+			$src = $this->data;
+		}
 
-		if ($this->type == 1) {
-			$object = new User($this->id);
-			$name = 'user';
-		} else {
-			$object = new Group($this->id);
-			$name = 'group';
-		}
+		$width = $this->defined_width[$size];
 		
-		switch ($size) {
-			case 'img': $src = $object->getAvatar(); $width=160; break;
-			case 'icon': $src = $object->getIcon(); $width=20; break;
-			case 'large_icon': $src = $object->getBigIcon(); $width=40; break;
-		}
-		
-		if (!empty($src) && $src != 'null' && (Auth::isAuthorized($this->type, $this->id)>0)) {
-			$hash=md5($src);
-			$link = NEnvironment::getVariable("URI") . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
-			if (file_exists(WWW_DIR . '/images/cache/'.$name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg')) {
+		if (!empty($src) && (Auth::isAuthorized($this->type, $this->id) > Auth::UNAUTHORIZED)) {
+			$hash = md5($src);
+			$link = NEnvironment::getVariable("URI") . '/images/cache/'.$this->name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
+			if (file_exists(WWW_DIR . '/images/cache/'.$this->name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg')) {
 				$image = '<img src="'.$link.'" width="'.$width.'"'.$title_tag.'/>';
 			} else {
-				$data = base64_decode($src);
-				$avatar_w = 160;
-				$avatar_h = 200;
-				$img = @imagecreatefromstring($data);
+				$avatar_w = $this->defined_width[$size];
+				$avatar_h = $this->defined_height[$size];
+				$img = @imagecreatefromstring($this->data);
 				if ($img !== false) {
 					$image_o = new NImage($img);
 					$avatar = base64_encode($image_o->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
-					$f = finfo_open();
-					$mime_type = finfo_buffer($f, base64_decode($src), FILEINFO_MIME_TYPE);
-					$image = '<img src="data:'.$mime_type.';base64,'.$avatar.'"/>';
+					$image = '<img src="data:'.$this->mime_type.';base64,'.$avatar.'"/>';
 				} else {
 					// default image
 					$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
@@ -201,5 +298,21 @@ class Image extends BaseModel
 			$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
 		}
 		return $image;
+	}
+
+
+	/**
+	 *	returns default image
+	 */
+	public static function default_img($size,$title=null)
+	{
+		$defined_width = array(
+			'img' => 160,
+			'large_icon' => 40,
+			'icon' => 20
+			);
+		$width = $defined_width[$size];
+		if (isset($title)) $title_tag =' title="'.$title.'"'; else $title_tag='';
+		return '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
 	}
 }

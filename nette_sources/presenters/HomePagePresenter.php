@@ -60,7 +60,7 @@ final class HomepagePresenter extends BasePresenter
 			$filter = array(
 					'type' => 7
 				);
-			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_RESOURCE);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
 			if ($number > 0) {
 				$this->template->reports_pending = $number;
 				$this->template->reports_url = NEnvironment::getVariable("URI") . '/administration/reports/';
@@ -92,10 +92,6 @@ final class HomepagePresenter extends BasePresenter
 	{	
 		$options = array(
 			'components' => array(
-/*				'userHomepage',
-				'groupHomepage',
-				'resourceHomepage'
-*/
 				'homepagefriendlister',
 				'homepagegrouplister',
 				'homepageresourcelister'
@@ -108,12 +104,6 @@ final class HomepagePresenter extends BasePresenter
 			'include_tags' => true,
 			'include_pairing' => true
 		);
-/*
-		$user = NEnvironment::getUser()->getIdentity();
-		if (!empty($user)) {
-			$options['include_suggest'] = true;
-		}
-*/
 		$control = new ExternalFilter($this, $name, $options);
 		return $control;
 	}
@@ -136,7 +126,8 @@ final class HomepagePresenter extends BasePresenter
 			'template_variables' => array(
 				'show_extended_columns' => true,
 				'front_page' => true
-			)
+			),
+			'cache_expiry' => 1200
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -160,7 +151,8 @@ final class HomepagePresenter extends BasePresenter
 			'template_variables' => array(
 				'show_extended_columns' => true,
 				'front_page' => true
-			)
+			),
+			'cache_expiry' => 1200
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -184,12 +176,14 @@ final class HomepagePresenter extends BasePresenter
 			'template_variables' => array(
 				'show_extended_columns' => true,
 				'front_page' => true
-			)
+			),
+			'cache_expiry' => 1200
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
 	*	List friends on home page when logged in.
 	*	@param $name string Namespace for lister
@@ -214,12 +208,15 @@ final class HomepagePresenter extends BasePresenter
 				'front_page' => true,
 				'your_connections' => true,
 				'show_online_status' => true
-			)
+			),
+			'cache_tags' => array("user_id/".$user->getUserId()),
+			'cache_expiry' => 600
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
 	*	List groups where user is member on home page when logged in.
 	*	@param $name string Namespace for lister
@@ -243,12 +240,15 @@ final class HomepagePresenter extends BasePresenter
 			'template_variables' => array(
 				'your_connections' => true,
 				'front_page' => true
-			)
+			),
+			'cache_tags' => array("user_id/".$user->getUserId()),
+			'cache_expiry' => 600
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
 	*	List resources which user has subscribed to on home page when logged in.
 	*	@param $name string Namespace for lister
@@ -272,7 +272,9 @@ final class HomepagePresenter extends BasePresenter
 			'template_variables' => array(
 				'your_connections' => true,
 				'front_page' => true
-			)
+			),
+			'cache_tags' => array("user_id/".$user->getUserId()),
+			'cache_expiry' => 600
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -288,10 +290,10 @@ final class HomepagePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$filter = $this->suggestFilter(1);
-		$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_USER);
+		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
 		if ($number < 5) {
 			$filter = $this->suggestFilter(10);
-			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_USER);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_USER), $filter, true);
 			if ($number < 5) {
 				$filter = $this->suggestFilter(0);
 				$map_used = false;
@@ -314,7 +316,9 @@ final class HomepagePresenter extends BasePresenter
 				'front_page' => true,
 				'recommendations' => true,
 				'map_used' => $map_used
-			)
+			),
+			'cache_tags' => array("user_id/".$user->getUserId(), "name/number"),
+			'cache_expiry' => 600
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -330,10 +334,10 @@ final class HomepagePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$filter = $this->suggestFilter(1);
-		$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_GROUP);
+		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_GROUP), $filter, true);
 		if ($number < 5) {
 			$filter = $this->suggestFilter(10);
-			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_GROUP);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_GROUP), $filter, true);
 			if ($number < 5) {
 				$filter = $this->suggestFilter(0);
 				$map_used = false;
@@ -357,12 +361,15 @@ final class HomepagePresenter extends BasePresenter
 				'recommendations' => true,
 				'front_page' => true,
 				'map_used' => $map_used
-			)
+			),
+			'cache_tags' => array("user_id/".$user->getUserId()),
+			'cache_expiry' => 600
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
-	
+
+
 	/**
 	*	List resources which user has subscribed to on home page when logged in.
 	*	@param $name string Namespace for lister
@@ -372,10 +379,10 @@ final class HomepagePresenter extends BasePresenter
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		$filter = $this->suggestFilter(1);
-		$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_RESOURCE);
+		$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
 		if ($number < 5) {
 			$filter = $this->suggestFilter(10);
-			$number = $this->getNumber($filter, ListerControlMain::LISTER_TYPE_RESOURCE);
+			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
 			if ($number < 5) {
 				$filter = $this->suggestFilter(0);
 				$map_used = false;
@@ -399,35 +406,12 @@ final class HomepagePresenter extends BasePresenter
 				'recommendations' => true,
 				'front_page' => true,
 				'map_used' => $map_used
-			)
+			),
+			'cache_tags' => array("user_id/".$user->getUserId()),
+			'cache_expiry' => 600
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
-	}
-
-
-	/**
-	 *	Retrieve number of items according to the filter and the listertype.
-	 *
-	 *	@param array @filter
-	 *	@param array @type
-	 *	@return array filter values
-	 */
-	private function getNumber($filter, $type) {
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Filter.number");
-		$cache->clean();
-		$key = md5(json_encode($filter)).'-'.$type;
-		if ($cache->offsetExists($key)) {
-			$number = $cache->offsetGet($key);
-			return $number;
-		}
-
-		$number = Administration::getData(array($type), $filter, true);
-		
-		$cache->save($key, $number, array(NCache::EXPIRE => time()+120));
-		
-		return $number;
 	}
 
 
@@ -497,7 +481,7 @@ final class HomepagePresenter extends BasePresenter
 		$defaults['type']           = "all";
 		$defaults['exclude_connections_user_id'] = $user_id;
 		
-		$cache->save($key, $defaults, array(NCache::EXPIRE => time()+120));
+		$cache->save($key, $defaults, array(NCache::EXPIRE => time()+300, NCache::TAGS => array("user_id/$user_id")));
 		return $defaults;
 	}
 
