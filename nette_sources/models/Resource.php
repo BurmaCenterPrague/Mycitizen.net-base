@@ -490,7 +490,10 @@ class Resource extends BaseModel {
          throw $e;
       }
       dibi::commit();   
-   }   /**
+   }
+
+
+   /**
     *	@todo ### Description
     *	@param
     *	@return
@@ -515,13 +518,13 @@ class Resource extends BaseModel {
 	 *	@return
 	 */
 	public static function getTypeArray() {
-	$types = array(
-		2 => _t('event'),
-		3 => _t('organization'),
-		4 => _t('text information'),
-		5 => _t('video/audio'),
-		6 => _t('other')
-		);
+		$types = array(
+			2 => _t('event'),
+			3 => _t('organization'),
+			4 => _t('text information'),
+			5 => _t('video/audio'),
+			6 => _t('other')
+			);
 
 /*
       $result = dibi::fetchAll("SELECT * FROM `resource_type` WHERE `resource_type_group` = 1");
@@ -536,21 +539,21 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function incrementVisitor() {
 		 $result = dibi::query("UPDATE `resource` SET `resource_viewed` = resource_viewed+1 WHERE `resource_id` = %i",$this->numeric_id);
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function setOpened($user_id,$resource_id = 0) {
 		if (!$resource_id) $resource_id = $this->numeric_id;
 		$result = dibi::query("UPDATE `resource_user_group` SET `resource_opened_by_user` = '1' WHERE `resource_id` = %i AND `member_type` = 1 AND `member_id` = %i",$resource_id,$user_id);
@@ -558,16 +561,17 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function setUnopened($user_id,$resource_id = 0) {
 		if (!$resource_id) $resource_id = $this->numeric_id;
 		$result = dibi::query("UPDATE `resource_user_group` SET `resource_opened_by_user` = '0' WHERE `resource_id` = %i AND `member_type` = 1 AND `member_id` = %i",$resource_id,$user_id);
 		$this->cleanCache('messagelisteruser');
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -628,6 +632,22 @@ class Resource extends BaseModel {
       return dibi::fetchSingle("SELECT `resource_type` FROM `resource` WHERE `resource_id` = %i", $resource_id);
    }
 
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public static function getMediaType($resource_id) {
+		$resource = Ressource::create($resource_id);
+		if (empty($resource)) {
+			return false;
+		}
+		$data = $resource->getResourceData();
+    	return $data['media_type'];
+	}
+
+	
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -798,32 +818,32 @@ class Resource extends BaseModel {
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getLastActivity() {
       $result = dibi::fetchSingle("SELECT `resource_last_activity` FROM `resource` WHERE `resource_id` = %i",$this->numeric_id);
       return $result;
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
    public function setLastActivity() {
       dibi::query("UPDATE `resource` SET `resource_last_activity` = NOW() WHERE `resource_id` = %i",$this->numeric_id);
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getThumbnailUrl() {
 	
 		$url = '';
@@ -869,7 +889,7 @@ class Resource extends BaseModel {
 				if (isset($title)) {
 					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;" title="'.$title.'"/></a></div>';
 				} else {
-					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;"/></div>';
+					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;"/></a></div>';
 				}
 			} elseif ($placeholder) {
 				if (isset($title)) {

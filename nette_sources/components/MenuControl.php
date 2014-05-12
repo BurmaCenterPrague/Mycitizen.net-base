@@ -49,7 +49,7 @@ class MenuControl extends NControl {
          $session->language = 'en_US';
          $language = $session->language;
       }
-      $template->setTranslator(new GettextTranslator('../locale/'.$language.'/LC_MESSAGES/messages.mo', $language));
+      $template->setTranslator(new GettextTranslator(LOCALE_DIR.'/'.$language.'/LC_MESSAGES/messages.mo', $language));
 
       $template->setFile(dirname(__FILE__) . '/'.$this->styletemplate.'.phtml');
 		$template->orientation = $this->orientation;

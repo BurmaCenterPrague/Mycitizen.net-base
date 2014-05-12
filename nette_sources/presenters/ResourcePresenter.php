@@ -45,12 +45,18 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function actionDefault($resource_id = null)
 	{
+		// prevent Ajax calls on /resource/ pages to be redirected
+		$query = NEnvironment::getHttpRequest();
+		$do = $query->getQuery("do");
+
+		if ($this->isAjax() && $do!='defaultPage' && $do!='detailPage' && $do!='changePage' && $do!='clickLink') return;
+		
 		$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
-		
+		$acceptable_resource_types = array(2, 3, 4, 5, 6);
 		if (!is_null($resource_id)) {
 			$this->setView('detail');
-			$this->template->load_js_css_editor = true;
+//			$this->template->load_js_css_editor = true;
 			$this->resource = Resource::create($resource_id);
 			$d              = $this->resource->getResourceData();
 			if (empty($d)) {
@@ -60,7 +66,10 @@ final class ResourcePresenter extends BasePresenter
 			if (Auth::isAuthorized(Auth::TYPE_RESOURCE, $resource_id) == 0) {
 				$this->flashMessage(_t("You are not allowed to view this resource."), 'error');
 				$this->redirect("Resource:default");
-				
+			}
+			if (!in_array(Resource::getResourceType($resource_id),$acceptable_resource_types)) {
+				$this->flashMessage(_t("You are not allowed to view this resource."), 'error');
+				$this->redirect("Resource:default");
 			}
 			
 			$this->template->last_activity = $this->resource->getLastActivity();
@@ -118,154 +127,149 @@ final class ResourcePresenter extends BasePresenter
 			}
 			
 		}
-		
+
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
-			$data['object_data']                = Resource::create($session->data['object_id'])->getResourceData();
-			$data['object_data']['resource_id'] = $session->data['object_id'];
-			$resource_object                    = Resource::create($session->data['object_id']);
-			if (!empty($resource_object)) {
-				$owner = $resource_object->getOwner();
-				if (!is_null($owner)) {
-					$owner_data            = $owner->getUserData();
-					$this->template->owner = array(
-						'owner_id' => $owner->getUserId(),
-						'owner_name' => $owner_data['user_login']
-					);
-					$user                  = NEnvironment::getUser()->getIdentity();
-					if (!empty($user)) {
-						if ($user->getUserId() == $owner->getUserId()) {
-							$this->template->iamowner = true;
+			$data['object_data'] = Resource::create($session->data['object_id'])->getResourceData();
+			if (!empty($data['object_data'])) {
+				$data['object_data']['resource_id'] = $session->data['object_id'];
+				if (!in_array(Resource::getResourceType($data['object_data']['resource_id']),$acceptable_resource_types)) {
+					$this->flashMessage(_t("You are not allowed to view this resource."), 'error');
+					unset($session->data);
+					$this->redirect("Resource:default");
+				}
+
+				$resource_object = Resource::create($session->data['object_id']);
+				if (!empty($resource_object)) {
+					$owner = $resource_object->getOwner();
+					if (!is_null($owner)) {
+						$owner_data            = $owner->getUserData();
+						$this->template->owner = array(
+							'owner_id' => $owner->getUserId(),
+							'owner_name' => $owner_data['user_login']
+						);
+						$user                  = NEnvironment::getUser()->getIdentity();
+						if (!empty($user)) {
+							if ($user->getUserId() == $owner->getUserId()) {
+								$this->template->iamowner = true;
+							}
 						}
-					}
 					
+					}
+				
+				}
+				$user = NEnvironment::getUser()->getIdentity();
+				if (!empty($user)) {
+					if ($resource_object->userIsRegistered($user->getUserId())) {
+						$data['object_data']['logged_user_member'] = 1;
+					} else {
+						$data['object_data']['logged_user_member'] = 0;
+					}
+					$this->template->logged_user = $user->getUserId();
+				} else {
+					$data['object_data']['logged_user_member'] = -1;
+				}
+			
+				$image = $resource_object->getScreenshot();
+				if (!empty($image)) $this->template->screenshot = $image;
+			
+				### ??? $data set?
+				$this->template->default_data = $data; 
+
+				/* date_default_timezone_set($ ... ) */
+				if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
+					$this->template->start_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp']));
+					if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp_end']));
+				} else {
+					$this->template->start_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp']));
+					if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp_end']));			
+				}			
+
+				// event icon
+				if (strtotime($data['object_data']['event_timestamp'])-$data['object_data']['event_alert'] > time()) {
+					$this->template->event_ahead = true;
+				} else {
+					if (isset($data['object_data']['event_timestamp_end']) && $data['object_data']['event_timestamp_end']) {
+						if (strtotime($data['object_data']['event_timestamp_end']) > time()) $this->template->event_alert = true;
+					} elseif (strtotime($data['object_data']['event_timestamp']) > time()) $this->template->event_alert = true;
 				}
 				
-			}
-			$user = NEnvironment::getUser()->getIdentity();
-			if (!empty($user)) {
-				if ($resource_object->userIsRegistered($user->getUserId())) {
-					$data['object_data']['logged_user_member'] = 1;
-				} else {
-					$data['object_data']['logged_user_member'] = 0;
+				if (isset($data['object_data']['resource_language'])) {
+					$languages = Language::getArray();
+					$this->template->object_language = $languages[$data['object_data']['resource_language']];
 				}
-				$this->template->logged_user = $user->getUserId();
-			} else {
-				$data['object_data']['logged_user_member'] = -1;
-			}
+		
+
+				$resource_name = array(
+					1=>'1',
+					2=>'event',
+					3=>'org',
+					4=>'doc',
+					6=>'website',
+					7=>'7',
+					8=>'8',
+					9=>'friendship',
+					'media_soundcloud'=>'audio',
+					'media_youtube'=>'video',
+					'media_vimeo'=>'video',
+					'media_bambuser'=>'live-video'
+					);
+				$this->template->resource_type = $data['object_data']['resource_type']==5 ? $resource_name[$data['object_data']['media_type']] : $resource_name[$data['object_data']['resource_type']];
+
+				$resource_type_labels = array(
+					1=>_t('message'),
+					2=>_t('event'),
+					3=>_t('organization'),
+					4=>_t('document'),
+					6=>_t('link to external resource'),
+					7=>'7',
+					8=>'8',
+					9=>'friendship',
+					10=>'friendship request',
+					11=>'noticeboard message',
+					'media_soundcloud'=>_t('sound on Soundcloud'),
+					'media_youtube'=>_t('video on YouTube'),
+					'media_vimeo'=>_t('video on Vimeo'),
+					'media_bambuser'=>_t('live-video on Bambuser')
+					);
+				$this->template->resource_type_label  = $data['object_data']['resource_type']==5 ? $resource_type_labels[$data['object_data']['media_type']] : $resource_type_labels[$data['object_data']['resource_type']];
+
+				/* date_default_timezone_set($ ... ) */
+				if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
+					$this->template->start_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp']));
+					if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp_end']));
+				} else {
+					$this->template->start_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp']));
+					if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp_end']));			
+
 			
-			$image = $resource_object->getScreenshot();
-			if (!empty($image)) $this->template->screenshot = $image;
-			
-			### ??? $data set?
-			$this->template->default_data = $data; 
-
-			/* date_default_timezone_set($ ... ) */
-			if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
-				$this->template->start_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp']));
-				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp_end']));
-			} else {
-				$this->template->start_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp']));
-				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp_end']));			
-			}			
-
-			// event icon
-			if (strtotime($data['object_data']['event_timestamp'])-$data['object_data']['event_alert'] > time()) {
-				$this->template->event_ahead = true;
-			} else {
-				if (isset($data['object_data']['event_timestamp_end']) && $data['object_data']['event_timestamp_end']) {
-					if (strtotime($data['object_data']['event_timestamp_end']) > time()) $this->template->event_alert = true;
-				} elseif (strtotime($data['object_data']['event_timestamp']) > time()) $this->template->event_alert = true;
+				// event icon
+				if (strtotime($data['object_data']['event_timestamp'])-$data['object_data']['event_alert'] > time()) {
+					$this->template->event_ahead = true;
+				} else {
+					if (isset($data['object_data']['event_timestamp_end']) && $data['object_data']['event_timestamp_end']) {
+						if (strtotime($data['object_data']['event_timestamp_end']) > time()) $this->template->event_alert = true;
+					} elseif (strtotime($data['object_data']['event_timestamp']) > time()) $this->template->event_alert = true;
+				}
 			}
-
-			$this->template->event_alert_times = array(
-				0 => _t('no alert'),
-				60 => '1 min',
-				300 => '5 min',
-				600 => '10 min',
-				900 => '15 min',
-				1800 => '30 min',
-				3600 => '1 h',
-				3600*12 => '12 h',
-				3600*24 => '24 h',
-				3600*24*7 => _t('1 week')
-			);
 		}
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!empty($user)) {
 			$this->template->logged_user = $user->getUserId();
 		}
-		
-		if (isset($data) && isset($data['object_data']['resource_language'])) {
-			$languages = Language::getArray();
-			$this->template->object_language = $languages[$data['object_data']['resource_language']];
-		}
-		
-		if (isset($data)) {	
-			$resource_name = array(
-				1=>'1',
-				2=>'event',
-				3=>'org',
-				4=>'doc',
-				6=>'website',
-				7=>'7',
-				8=>'8',
-				9=>'friendship',
-				'media_soundcloud'=>'audio',
-				'media_youtube'=>'video',
-				'media_vimeo'=>'video',
-				'media_bambuser'=>'live-video'
-				);
-			$this->template->resource_type = $data['object_data']['resource_type']==5 ? $resource_name[$data['object_data']['media_type']] : $resource_name[$data['object_data']['resource_type']];
 
-			$resource_type_labels = array(
-				1=>_t('message'),
-				2=>_t('event'),
-				3=>_t('organization'),
-				4=>_t('document'),
-				6=>_t('link to external resource'),
-				7=>'7',
-				8=>'8',
-				9=>'friendship',
-				10=>'friendship request',
-				11=>'noticeboard message',
-				'media_soundcloud'=>_t('sound on Soundcloud'),
-				'media_youtube'=>_t('video on YouTube'),
-				'media_vimeo'=>_t('video on Vimeo'),
-				'media_bambuser'=>_t('live-video on Bambuser')
-				);
-			$this->template->resource_type_label  = $data['object_data']['resource_type']==5 ? $resource_type_labels[$data['object_data']['media_type']] : $resource_type_labels[$data['object_data']['resource_type']];
-
-			/* date_default_timezone_set($ ... ) */
-			if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
-				$this->template->start_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp']));
-				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y'), strtotime($data['object_data']['event_timestamp_end']));
-			} else {
-				$this->template->start_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp']));
-				if (isset($data['object_data']['event_timestamp_end'])) $this->template->end_formatted = date(_t('l, j F Y, g:ia T'), strtotime($data['object_data']['event_timestamp_end']));			
-			}
-			
-			// event icon
-			if (strtotime($data['object_data']['event_timestamp'])-$data['object_data']['event_alert'] > time()) {
-				$this->template->event_ahead = true;
-			} else {
-				if (isset($data['object_data']['event_timestamp_end']) && $data['object_data']['event_timestamp_end']) {
-					if (strtotime($data['object_data']['event_timestamp_end']) > time()) $this->template->event_alert = true;
-				} elseif (strtotime($data['object_data']['event_timestamp']) > time()) $this->template->event_alert = true;
-			}
-
-			$this->template->event_alert_times = array(
-				0 => _t('no alert'),
-				60 => '1 min',
-				300 => '5 min',
-				600 => '10 min',
-				900 => '15 min',
-				1800 => '30 min',
-				3600 => '1 h',
-				3600*12 => '12 h',
-				3600*24 => '24 h',
-				3600*24*7 => _t('1 week')
-			);
+		$this->template->event_alert_times = array(
+			0 => _t('no alert'),
+			60 => '1 min',
+			300 => '5 min',
+			600 => '10 min',
+			900 => '15 min',
+			1800 => '30 min',
+			3600 => '1 h',
+			3600*12 => '12 h',
+			3600*24 => '24 h',
+			3600*24*7 => _t('1 week')
+		);
 		}
 		
 	}
@@ -433,12 +437,12 @@ final class ResourcePresenter extends BasePresenter
 			if (Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) >= 2) {
 
 				// check if already subscribed
-				if (!$this->resource->groupIsRegistered($group_id)) {				
+				if (isset($this->resource) && !$this->resource->groupIsRegistered($group_id)) {				
 					$group = new Group($group_id);
 					$data = $group->getGroupData();
 					$group_selection[$group_id] = $data['group_name'];
+					unset($group);
 				}
-				unset($group);
 
 			}
 		
@@ -528,9 +532,9 @@ final class ResourcePresenter extends BasePresenter
 			
 			// adding cron for notifications
 			$data = $this->resource->getResourceData();
+			$resource_id = $this->resource->getResourceId();
 			if ($data['resource_type'] == 2) {
 				$event_time = strtotime($data['event_timestamp']);
-				$resource_id = $this->resource->getResourceId();
 				if ($event_time + 600 > time()) { // remind of max 10 mins. back
 					Cron::addCron($event_time - $data['event_alert'], 2, $group_id, $data['resource_name']."\r\n\r\n".$data['resource_description'], 3, $resource_id);
 				}
@@ -547,6 +551,9 @@ final class ResourcePresenter extends BasePresenter
 			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/detailgroupresourcelister")));
 
 			$this->flashMessage(sprintf(_t("Group %s subscribed to this resource."),$group_name));
+			
+			// add activity to chat
+			$group->addActivityToChat($resource_id, 3, 'subscribe');
 		} else {
 			$this->flashMessage(sprintf(_t("Group %s is already subscribed."),$group_name), 'error');
 		}
@@ -731,7 +738,7 @@ final class ResourcePresenter extends BasePresenter
 	<ul>
 		<li><b>YouTube:</b> https://www.youtube.com/watch?v=<u>xxxxx</u></li>
 		<li><b>Vimeo:</b> http://vimeo.com/<u>xxxxx</u></li>
-		<li><b>Soundcloud:</b> http://soundcloud.com/<u>xxx/yyy</u></li>
+		<li><b>Soundcloud:</b> (click on "embed") ... https://api.soundcloud.com/tracks/<u>xxx</u>&amp;...</li>
 		<li><b>Bambuser:</b> http://bambuser.com/v/<u>xxx</u></li>
 	</ul>')->id("help-name"));
 		$form->setCurrentGroup(NULL);
@@ -1191,10 +1198,44 @@ final class ResourcePresenter extends BasePresenter
 			'object_id' => $object_id
 		);
 		
+		if ($this->isAjax()) {
+			$this->actionDefault();
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		} else {
+		  	$this->redirect('this');
+		}
+	}
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
+	public function handleDetailPage($object_type, $object_id)
+	{
+		$this->resource               = Resource::create($object_id);
+		$data                         = $this->resource->getResourceData();
+		$this->template->default_data = array(
+			'object_type' => $object_type,
+			'object_id' => $object_id,
+			'object_data' => $data
+		);
 		
-		$this->redirect("this");
+		$session       = NEnvironment::getSession()->getNamespace($this->name);
+		$session->data = array(
+			'object_type' => $object_type,
+			'object_id' => $object_id
+		);
 		
-		//$this->presenter->terminate();
+		if ($this->isAjax()) {
+			$this->actionDefault($object_id);
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		} else {
+		  	$this->redirect('this');
+		}
 	}
 
 
@@ -1522,11 +1563,11 @@ final class ResourcePresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	Triggered by clicking on a tag; sets filter to this tag
+	 *	@param int $tag_id
+	 *	@return void
+	 */
 	public function handleSearchTag($tag_id)
 	{
 		$filter = new ExternalFilter($this,'defaultresourceresourcelister');

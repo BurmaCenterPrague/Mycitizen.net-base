@@ -16,6 +16,8 @@ abstract class BasePresenter extends NPresenter
 	// needed by Nette FW
 	public $oldLayoutMode = FALSE;
 
+
+
 	/**
 	 *	loads basic parameters from settings, prepares general template variables and checks if user is allowed to view page
 	 *	@param void
@@ -39,7 +41,7 @@ abstract class BasePresenter extends NPresenter
 			$language          = $session->language;
 		}
 
-		$this->template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$this->template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		$this->template->language = $language;
 		$language_id = Language::getId($language);
 		$this->template->language_name = Language::getLanguageName($language_id);
@@ -57,12 +59,33 @@ abstract class BasePresenter extends NPresenter
 			$this->template->footer = '';
 		}
 		
+		$toggleChat = $query->getQuery("toggleChat");
+		if (isset($toggleChat)) {
+				$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+				if (isset($session->chat)) {
+					$session->chat = ($session->chat === true) ? false : true;
+				} else {
+					$session->chat = true;
+				}
+				$message = "error";
+				$message = ($session->chat === true) ? _t("Chat window turned on. If you don't see it, please refresh the page.") : _t("Chat window turned off.");
+				$this->flashMessage($message);
+
+				$this->invalidateControl('popupchat');
+				$this->redirect('this');
+		}
+
+		if (isset($session->chat) && $session->chat) {
+			$this->template->popup_chat = APP_DIR.'/components/popup_chat.phtml';
+		}
+		
 		setlocale(LC_ALL, $language);
 
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+		$this->template->baseUri_np = preg_replace('#^https?://#', '//', NEnvironment::getVariable("URI") . '/');
 		$this->template->TC_URL = NEnvironment::getVariable("TC_URL");
 		$this->template->PP_URL = NEnvironment::getVariable("PP_URL");
 		$this->template->PIWIK_URL = NEnvironment::getVariable("PIWIK_URL");
@@ -96,8 +119,6 @@ abstract class BasePresenter extends NPresenter
 		}
 
 		
-		$this->template->tooltip_position = 'bottom right';
-		
 		if (!empty($this->template->PIWIK_URL) && !empty($this->template->PIWIK_ID)) {
 			$this->template->piwik_url_bare = preg_replace('/https?(:\/\/.*)/i','$1',$this->template->PIWIK_URL);
 			if (substr($this->template->piwik_url_bare,-1,1)!='/'){
@@ -107,7 +128,6 @@ abstract class BasePresenter extends NPresenter
 		
 		
 		$user = NEnvironment::getUser();
-//		if (!method_exists($user, 'sendConfirmationEmail')) $user->logout();
 		if ($user->isLoggedIn()) {
 			if (!$user->getIdentity()->isActive()) {
 				if ($user->getIdentity()->isConfirmed()) {
@@ -170,13 +190,13 @@ abstract class BasePresenter extends NPresenter
 	protected function registerHelpers()
 	{
 		require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
-			
+
 		$this->template->registerHelper('htmlpurify', function ($dirty_html) {
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('Attr.EnableID', true);
 			$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
 			$config->set('HTML.Nofollow', true);
-			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b[class|title],div,br,img[src|alt|height|width|style|title],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
 			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$config->set('HTML.SafeIframe', true);
 			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
@@ -187,7 +207,7 @@ abstract class BasePresenter extends NPresenter
 			// converting references
 			$pattern = array(
 				'/(\s|^|>)(@{1,3}[^@\s<>"\'!?,:;()]+@?)([!?.,:;()\Z\s<])/u',
-				'/(\s|^|\W)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
+				'/(\s|^|>)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
 			);
 			$text = preg_replace_callback(
 				$pattern,
@@ -225,6 +245,29 @@ abstract class BasePresenter extends NPresenter
 				},
 				$text);
 			
+			$smileys = array(
+					':-o' => 'omg_smile.png',
+					':-O' => 'omg_smile.png',
+					':-)' => 'regular_smile.png',
+					':)' => 'regular_smile.png',
+					';-)' => 'wink_smile.png',
+					';)' => 'wink_smile.png',
+					':-(' => 'sad_smile.png',
+					':(' => 'sad_smile.png',
+					':-D' => 'teeth_smile.png',
+					':D' => 'teeth_smile.png',
+					':-P' => 'tongue_smile.png',
+					':P' => 'tongue_smile.png',
+					'(n)' => 'thumbs_down.png',
+					'(y)' => 'thumbs_up.png',
+					'8-)' => 'shades_smile.png',
+					'<3' => 'heart.png'
+				);
+			array_walk($smileys, function(&$value, $key){
+				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+			});
+			$text = strtr($text, $smileys);
+
 			return $text;
 		});
 		
@@ -277,11 +320,34 @@ abstract class BasePresenter extends NPresenter
 
 			// purify with simple options
 			$config = HTMLPurifier_Config::createDefault();
-			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b[class|title],br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
 			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$purifier = new HTMLPurifier($config);
 			$output = $purifier->purify($output);
 
+			$smileys = array(
+					':-o' => 'omg_smile.png',
+					':-O' => 'omg_smile.png',
+					':-)' => 'regular_smile.png',
+					':)' => 'regular_smile.png',
+					';-)' => 'wink_smile.png',
+					';)' => 'wink_smile.png',
+					':-(' => 'sad_smile.png',
+					':(' => 'sad_smile.png',
+					':-D' => 'teeth_smile.png',
+					':D' => 'teeth_smile.png',
+					':-P' => 'tongue_smile.png',
+					':P' => 'tongue_smile.png',
+					'(n)' => 'thumbs_down.png',
+					'(y)' => 'thumbs_up.png',
+					'8-)' => 'shades_smile.png',
+					'<3' => 'heart.png'
+				);
+			array_walk($smileys, function(&$value, $key){
+				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+			});
+			$output = strtr($output, $smileys);
+			
 			return $output;
 		});
 	}
@@ -373,6 +439,7 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 		$control = new MenuControl($this, $name, $menu);
+		$control->setStyle(MenuCOntrol::MENU_STYLE_CLASSIC);
 		$control->setStyle(MenuCOntrol::MENU_STYLE_CLASSIC);
 		$control->setOrientation(MenuControl::MENU_ORIENTATION_HORIZONTAL);
 		return $control;
@@ -748,25 +815,6 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Translates recent dates into "today" and "yesterday".
-	 *	@param int $timestamp Unix timestamp
-	 *	@return string
-	 */
-	private function relativeTime($timestamp) {
-	
-		if (date('Ymd') == date('Ymd', $timestamp)) {
-			return _t('Today');
-		}
-
-		if (date('Ymd', strtotime('yesterday')) == date('Ymd', $timestamp)) {
-			return _t('Yesterday');
-		}
-		
-		return date('j M Y', $timestamp);
-	}
-
-
-	/**
 	 *	Creates HTML output of recent activity
 	 *
 	 *	@param int $id describes time range: today, yesterday, week, month
@@ -788,21 +836,7 @@ abstract class BasePresenter extends NPresenter
 			$this->terminate();
 		}
 		
-		$header_time = '';		
-		$resource_name = array(
-				1=>'1',
-				2=>'event',
-				3=>'org',
-				4=>'doc',
-				6=>'website',
-				7=>'7',
-				8=>'8',
-				9=>'friendship',
-				'media_soundcloud'=>'audio',
-				'media_youtube'=>'video',
-				'media_vimeo'=>'video',
-				'media_bambuser'=>'live-video'
-				);
+		$header_time = '';
 		
 		$now = time();
 		// get timeframe from id
@@ -813,131 +847,22 @@ abstract class BasePresenter extends NPresenter
 			default: $header_time = _t("Month"); $from = strtotime('1 month ago midnight'); $to = strtotime('7 days ago midnight'); break;
 		}
 
-		ob_start();
+		$output = '';
 		// for scrolling
-		echo '<div id="activity-scroll-target-'.$id.'"></div>';
+		$output .= '<div id="activity-scroll-target-'.$id.'"></div>';
 		
-		echo "<h3>".$header_time."</h3>";
+		$output .= "<h3>".$header_time."</h3>";
 
 		$activities = Activity::getActivities($user_id, $from, $to, $latest);
+		$output .= Activity::renderList($activities, $user_id);
 
-		if (isset($activities) && count($activities)) {
-
-			foreach ($activities as $activity) {
-			
-				if ($activity['activity'] != Activity::NOTICEBOARD_MESSAGE) {
-					switch ($activity['object_type']) {
-						case 1:
-							if (!empty($activity['affected_user_id']) && $activity['object_id'] == $user_id) $object_id = $activity['affected_user_id']; else $object_id = $activity['object_id'];
-							$object_link = NEnvironment::getVariable("URI").'/user/?user_id='.$object_id;
-							$object_icon = User::getImage($object_id, 'icon');
-							$object_name = User::getUserLogin($object_id);
-							$time = $this->relativeTime($activity['timestamp']);
-						break;
-						case 2:
-							$object_link = NEnvironment::getVariable("URI").'/group/?group_id='.$activity['object_id'];
-							$object_icon = Group::getImage($activity['object_id'], 'icon');
-							$object_name = Group::getName($activity['object_id']);
-							$time = $this->relativeTime($activity['timestamp']);
-						break;
-						case 3:
-							$object_link = NEnvironment::getVariable("URI").'/resource/?resource_id='.$activity['object_id'];
-							$object_icon = '<b class="icon-' . $resource_name[Resource::getResourceType($activity['object_id'])] . '"></b>';
-							$object_name = Resource::getName($activity['object_id']);;
-							$time = $this->relativeTime($activity['timestamp']);
-						break;
-					}
-			
-					switch ($activity['activity']) {
-						case Activity::USER_JOINED:
-							if ($activity['object_id'] == $user_id) {
-								$description = _t('You signed up.');
-							} else {
-								$description = _t('A new user has signed up.');
-							}
-						break;
-						case Activity::FRIENDSHIP_REQUEST:
-							if ($activity['object_id'] != $user_id) {
-								$description = sprintf(_t('User %s requested your friendship.'),$object_name);
-							} else {
-								$description = sprintf(_t('You requested %s\'s friendship.'),$object_name);
-							}
-						break;
-						case Activity::FRIENDSHIP_YES:
-							if ($activity['object_id'] != $user_id) {
-								$description = sprintf(_t('User %s accepted your friendship.'),$object_name);
-							} else {
-								$description = sprintf(_t('You accepted %s\'s friendship.'),$object_name);
-							}
-						break;
-						case Activity::FRIENDSHIP_NO:
-							if ($activity['object_id'] != $user_id) {
-								$description = sprintf(_t('User %s rejected your friendship.'),$object_name);
-							} else {
-								$description = sprintf(_t('You rejected %s\'s friendship.'),$object_name);
-							}
-						break;
-						case Activity::FRIENDSHIP_END:
-							if ($activity['object_id'] != $user_id) {
-								$description = sprintf(_t('User %s canceled your friendship.'),$object_name);
-							} else {
-								$description = sprintf(_t('You canceled the friendship with %s.'),$object_name);
-							}
-						break;
-
-						case Activity::GROUP_JOINED: $description = _t('You joined the group.'); break;
-						case Activity::RESOURCE_SUBSCRIBED: $description = _t('You subscribed to the resource.'); break;
-						case Activity::GROUP_LEFT: $description = _t('You left the group.'); break;
-						case Activity::RESOURCE_UNSUBSCRIBED: $description = _t('You unsubscribed from the resource.'); break;
-						case Activity::GROUP_RESOURCE_ADDED: $description = _t('The group added a resource.'); break;
-						case Activity::GROUP_CHAT: $description = _t('A new chat message was posted in the group.'); break;
-						case Activity::RESOURCE_COMMENT: $description = _t('The resource has new comments.'); break;
-						case Activity::GROUP_CREATED: $description = _t('A new group was created.'); break;
-						case Activity::RESOURCE_CREATED: $description = _t('A new resource was created.'); break;
-						case Activity::USER_UPDATED: $description = _t('You updated your profile.'); break;
-						case Activity::GROUP_RESOURCE_REMOVED: $description = _t('The group unsubscribed from a resource.'); break;
-						case Activity::GROUP_UPDATED: $description = _t('The group was updated.'); break;
-						case Activity::RESOURCE_UPDATED: $description = _t('The resource was updated.'); break;
-						case Activity::LOGIN_FAILED: $description = _t('Somebody tried to login with your name and a wrong password.'); break;
-						case Activity::USER_PW_CHANGE: $description = _t('Your password was changed.'); break;
-						case Activity::GROUP_PERMISSION_CHANGE: $description = _t('Your permissions of the group were changed.'); break;
-						case Activity::RESOURCE_PERMISSION_CHANGE: $description = _t('Your permissions of the resource were changed.'); break;
-						default: $description = 'Unspecified activity'; break;
-					}
-				}
-				if ($activity['activity'] == Activity::NOTICEBOARD_MESSAGE) {
-					$message_o = Resource::create($activity['object_id']);
-					if (!empty($message_o) && $message_o->isActive()) {
-						$data = $message_o->getResourceData();
-						$config = HTMLPurifier_Config::createDefault();
-						$config->set('Attr.EnableID', true);
-						$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
-						$config->set('HTML.Nofollow', true);
-						$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
-						$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
-						$config->set('HTML.SafeIframe', true);
-						$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
-						$config->set('Filter.YouTube', true);
-						$purifier = new HTMLPurifier($config);
-						$message_text = StaticModel::purify_and_convert($data['message_text']);
-						$time = $this->relativeTime($activity['timestamp']);
-						printf('<div class="activity-item" style="cursor:default;"><div class="activity-time"><h4>%s</h4></div><div class="activity-description"><h4>'._t("Message to all users").'</h4></div><div style="clear:both;"></div><div class="activity-time"></div><div class="activity-description" style="max-width:80%%;">%s</div></div>', $time, $message_text);
-					}
-				} else {
-					printf('<div class="activity-item" onclick="window.location=\'%s\'"><div class="activity-time"><h4>%s</h4></div><div class="activity-link"><h4><a href="%s">%s %s</a></h4></div><div class="activity-description"><h4>%s</h4></div></div>', $object_link, $time, $object_link, $object_icon, $object_name, $description);
-				}
-			}
-		} else {
-			echo '<div class="activity-item" style="cursor:default;"><h4>'._t("Nothing to display").'</h4></div>';
-		}
-		
 		if ($id < 5) {
 			$id_inc = $id +1;
-			echo '
+			$output .= '
 	<div id="load-more-'.$id .'">
 		<p><a href="javascript:void(0);" id="load_more" class="button">'._t("load more...").'</a></p>
 	</div>';
-			echo '
+			$output .= '
 	<script>
 		$("#load_more").click(function(){
 			loadActivity("#load-more-'.$id.'", '.$id_inc.', '.$latest.');
@@ -945,8 +870,6 @@ abstract class BasePresenter extends NPresenter
 	</script>
 			';
 		}
-		$output = ob_get_contents();
-		ob_end_clean();
 		echo $output;
 		if ($id == 2) $time = time()+120; else $time = time()+3600;
 		$cache->save($cache_key, $output, array(NCache::EXPIRE => $time, NCache::TAGS => array("user_id/$user_id", "name/activity")));
@@ -1248,5 +1171,262 @@ abstract class BasePresenter extends NPresenter
 		$this->redirect($redirect);
 	}
 
+
+	/**
+	 *	receives request to change content of page via Ajax
+	 */
+    public function handleClickLink()
+    {
+		if ($this->isAjax()) {
+			$session = NEnvironment::getSession()->getNamespace($this->name);
+			$data = $session->data;
+
+/*
+			if (!empty($data) && isset($data["object_id"])) {
+			
+				$this->presenter->actionDefault($data["object_id"]);
+			} else {
+				$this->presenter->actionDefault();
+			}
+*/
+
+			$this->presenter->actionDefault();
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+            $this->invalidateControl('activityMenu');
+		} else {
+		  	$this->redirect('this');
+		}
+    }
+
+
+	/**
+	 *	@todo Change the page from pager via Ajax
+	 *	@param int $page
+	 *	@param string $name
+	 *	@return
+	 */
+	public function handleChangePage($page, $name)
+	{
+		if ($this->isAjax()) {
+			$session = NEnvironment::getSession()->getNamespace($name);
+			if (!empty($session->filterdata)) {
+				$filter = $session->filterdata;
+				$filter['page'] = $page;
+				$session->filterdata = $filter;
+			}
+			$data = $session->data;
+/*
+			if (!empty($data) && isset($data["object_id"])) {
+				$this->presenter->actionDefault($data["object_id"]);
+			} else {
+				$this->presenter->actionDefault();
+			}
+*/
+			$this->presenter->actionDefault();
+			$this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		}
+	}
+
+
+	/**
+	 *	Receives the PM
+	 *	@param
+	 *	@return
+	*/
+	public function handleSubmitPMPOPChat($pmpop_message_text = '', $recipient_id)
+	{
+		$logged_user = NEnvironment::getUser()->getIdentity();
+		
+		if ($recipient_id == 0 || !$logged_user->friendshipIsRegistered($recipient_id) || empty($pmpop_message_text)) {
+			echo json_encode(_t("Error sending message.")); die();
+		}
+
+		$resource                          = Resource::create();
+		$data                              = array();
+		$data['resource_author']           = $logged_user->getUserId();
+		$data['resource_type']             = 1;
+		$data['resource_visibility_level'] = 3;
+		$data['resource_name'] = '<PM>';
+		$data['resource_data']             = json_encode(array(
+			'message_text' => $pmpop_message_text
+		));
+		$resource->setResourceData($data);
+		$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+		if ($check === true) {
+			echo json_encode(_t("You have just said that.")); die();
+		}		
+		$resource->save();
+		$resource->updateUser($recipient_id, array(
+			'resource_user_group_access_level' => 1
+		));
+		
+		$resource->updateUser($logged_user->getUserId(), array(
+			'resource_user_group_access_level' => 1,
+			'resource_opened_by_user' => 1
+		));
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidget")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmwidget")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidgetslim")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmwidgetslim")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/messagelisteruser")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/messagelisteruser")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmabstract")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmabstract")));
+
+		echo json_encode("true");
+		die();
+	}
+
+
+	/**
+	 *	Creates the form to send off messages; no processig of results, submitted by own AJAX
+	 *	@param
+	 *	@return
+	 */
+	protected function createComponentPopupmessageform()
+	{
+		$user    = NEnvironment::getUser()->getIdentity();
+		$friends = $user->getFriends();
+		$friends = array(0=>_t('Please select a recipient'))+$friends;
+		$form    = new NAppForm($this, 'popupmessageform');
+		$form->addSelect('friend_id', _t('To:'), $friends);
+		$form->addTextarea('pmppop_message_text', '');
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->setDefaults(array('friend_id' => 0));		
+		$form->onSubmit[] = array(
+			$this,
+			'popupmessageformSubmitted'
+		);
+		
+		return $form;
+	}
+
+	/**
+	 *	click on move-to-trash icon in message list
+	 *	@param
+	 *	@return
+	*/
+	public function handleMoveToTrash($resource_id)
+	{
+		$user     = NEnvironment::getUser()->getIdentity();
+		$resource = Resource::create($resource_id);
+		if (!empty($resource)) {
+			if (!empty($user)) {
+				if ($resource->userIsRegistered($user->getUserId())) {
+					Resource::moveToTrash($resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+				}
+			}
+		}
+		$this->terminate();
+	}
+
+
+	/**
+	 *	click on restore-from-trash icon in message list
+	 *	@param
+	 *	@return
+	*/
+	public function handleMoveFromTrash($resource_id)
+	{
+		$user     = NEnvironment::getUser()->getIdentity();
+		$resource = Resource::create($resource_id);
+
+		if (!empty($resource)) {
+			if (!empty($user)) {
+				if ($resource->userIsRegistered($user->getUserId())) {
+					Resource::moveFromTrash($resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+				}
+			}
+		}
+		$this->terminate();
+	}
+
+
+	/**
+	*	Marks message as read
+	 *	@param
+	 *	@return
+	 */
+	public function handleMarkRead($resource_id)
+	{
+		$user     = NEnvironment::getUser()->getIdentity();
+		$resource = Resource::create($resource_id);
+		if (!empty($resource)) {
+			if (!empty($user)) {
+				if ($resource->userIsRegistered($user->getUserId())) {
+					$resource->setOpened($user->getUserId(),$resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+				}
+			}
+		}
+		$this->terminate();
+	}
+
+
+	/**
+	 *	Marks message as unread
+	 *	@param
+	 *	@return
+	 */
+	public function handleMarkUnread($resource_id)
+	{
+		$user     = NEnvironment::getUser()->getIdentity();
+		$resource = Resource::create($resource_id);
+		
+		// cannot mark own messages as unread?
+		
+		if (!empty($resource)) {
+			if (!empty($user)) {
+				if ($resource->userIsRegistered($user->getUserId())) {
+					$resource->setUnopened($user->getUserId(),$resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+				}
+			}
+		}
+		$this->terminate();
+	}
+
+
+	public function handleEmptyTrash()
+	{
+		Resource::emptyTrash();
+
+		$user = NEnvironment::getUser()->getIdentity();
+				
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+	}
 
 }

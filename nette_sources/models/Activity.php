@@ -240,4 +240,182 @@ class Activity extends BaseModel {
   		return $data;
   	}
 
+
+	/**
+	 *	Renders the list of activities
+	 *	@param array $activities
+	 *	@return string
+	 */
+	public static function renderList($activities, $user_id, $email=false) {
+
+		if ($email) {
+			$output = '<table style="width:100%;">';
+		} else {
+			$output = '';
+		}
+		
+		if (isset($activities) && count($activities)) {
+			$resource_name = array(
+				1=>'1',
+				2=>'event',
+				3=>'org',
+				4=>'doc',
+				6=>'website',
+				7=>'7',
+				8=>'8',
+				9=>'friendship',
+				'media_soundcloud'=>'audio',
+				'media_youtube'=>'video',
+				'media_vimeo'=>'video',
+				'media_bambuser'=>'live-video'
+				);
+			foreach ($activities as $activity) {
+			
+				if ($activity['activity'] != Activity::NOTICEBOARD_MESSAGE) {
+					switch ($activity['object_type']) {
+						case 1:
+							if (!empty($activity['affected_user_id']) && $activity['object_id'] == $user_id) $object_id = $activity['affected_user_id']; else $object_id = $activity['object_id'];
+							$object_link = NEnvironment::getVariable("URI").'/user/?user_id='.$object_id;
+							$object_icon = User::getImage($object_id, 'icon');
+							$object_name = User::getUserLogin($object_id);
+							$time = self::relativeTime($activity['timestamp']);
+						break;
+						case 2:
+							$object_link = NEnvironment::getVariable("URI").'/group/?group_id='.$activity['object_id'];
+							$object_icon = Group::getImage($activity['object_id'], 'icon');
+							$object_name = Group::getName($activity['object_id']);
+							$time = self::relativeTime($activity['timestamp']);
+						break;
+						case 3:
+							$object_link = NEnvironment::getVariable("URI").'/resource/?resource_id='.$activity['object_id'];
+							$object_icon = '<b class="icon-' . $resource_name[Resource::getResourceType($activity['object_id'])] . '"></b>';
+							$object_name = Resource::getName($activity['object_id']);;
+							$time = self::relativeTime($activity['timestamp']);
+						break;
+					}
+			
+					switch ($activity['activity']) {
+						case Activity::USER_JOINED:
+							if ($activity['object_id'] == $user_id) {
+								$description = _t('You signed up.');
+							} else {
+								$description = _t('A new user has signed up.');
+							}
+						break;
+						case Activity::FRIENDSHIP_REQUEST:
+							if ($activity['object_id'] != $user_id) {
+								$description = sprintf(_t('User %s requested your friendship.'),$object_name);
+							} else {
+								$description = sprintf(_t('You requested %s\'s friendship.'),$object_name);
+							}
+						break;
+						case Activity::FRIENDSHIP_YES:
+							if ($activity['object_id'] != $user_id) {
+								$description = sprintf(_t('User %s accepted your friendship.'),$object_name);
+							} else {
+								$description = sprintf(_t('You accepted %s\'s friendship.'),$object_name);
+							}
+						break;
+						case Activity::FRIENDSHIP_NO:
+							if ($activity['object_id'] != $user_id) {
+								$description = sprintf(_t('User %s rejected your friendship.'),$object_name);
+							} else {
+								$description = sprintf(_t('You rejected %s\'s friendship.'),$object_name);
+							}
+						break;
+						case Activity::FRIENDSHIP_END:
+							if ($activity['object_id'] != $user_id) {
+								$description = sprintf(_t('User %s canceled your friendship.'),$object_name);
+							} else {
+								$description = sprintf(_t('You canceled the friendship with %s.'),$object_name);
+							}
+						break;
+
+						case Activity::GROUP_JOINED: $description = _t('You joined the group.'); break;
+						case Activity::RESOURCE_SUBSCRIBED: $description = _t('You subscribed to the resource.'); break;
+						case Activity::GROUP_LEFT: $description = _t('You left the group.'); break;
+						case Activity::RESOURCE_UNSUBSCRIBED: $description = _t('You unsubscribed from the resource.'); break;
+						case Activity::GROUP_RESOURCE_ADDED: $description = _t('The group added a resource.'); break;
+						case Activity::GROUP_CHAT: $description = _t('A new chat message was posted in the group.'); break;
+						case Activity::RESOURCE_COMMENT: $description = _t('The resource has new comments.'); break;
+						case Activity::GROUP_CREATED: $description = _t('A new group was created.'); break;
+						case Activity::RESOURCE_CREATED: $description = _t('A new resource was created.'); break;
+						case Activity::USER_UPDATED: $description = _t('Your profile was updated.'); break;
+						case Activity::GROUP_RESOURCE_REMOVED: $description = _t('The group unsubscribed from a resource.'); break;
+						case Activity::GROUP_UPDATED: $description = _t('The group was updated.'); break;
+						case Activity::RESOURCE_UPDATED: $description = _t('The resource was updated.'); break;
+						case Activity::LOGIN_FAILED: $description = _t('Somebody tried to login with your name and a wrong password.'); break;
+						case Activity::USER_PW_CHANGE: $description = _t('Your password was changed.'); break;
+						case Activity::GROUP_PERMISSION_CHANGE: $description = _t('Your permissions of the group were changed.'); break;
+						case Activity::RESOURCE_PERMISSION_CHANGE: $description = _t('Your permissions of the resource were changed.'); break;
+						default: $description = 'Unspecified activity'; break;
+					}
+				}
+				if ($activity['activity'] == Activity::NOTICEBOARD_MESSAGE) {
+					$message_o = Resource::create($activity['object_id']);
+					if (!empty($message_o) && $message_o->isActive()) {
+						$data = $message_o->getResourceData();
+						$config = HTMLPurifier_Config::createDefault();
+						$config->set('Attr.EnableID', true);
+						$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
+						$config->set('HTML.Nofollow', true);
+						$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+						$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
+						$config->set('HTML.SafeIframe', true);
+						$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
+						$config->set('Filter.YouTube', true);
+						$purifier = new HTMLPurifier($config);
+						$message_text = StaticModel::purify_and_convert($data['message_text']);
+						$time = self::relativeTime($activity['timestamp']);
+						if ($email) {
+							$output .= sprintf('<tr><td style="width:100px; padding:5px 20px; margin:5px 0; min-height:30px; background-color:#eae9e3; border-radius:10px 0 0 0">%s</td><td colspan="2" style="padding:5px 20px; margin:5px 0; min-height:30px; background-color:#eae9e3; border-radius:0 10px 0 0;">'._t("Message to all users").'</td></tr>
+							<tr><td colspan="3" style="padding:5px 20px; margin:5px 0; min-height:30px; background-color:#eae9e3; border-radius:0 0 10px 10px;">%s</td></tr>', $time, $message_text)."\n\r";
+						} else {
+							$output .= sprintf('<div class="activity-item" style="cursor:default;"><div class="activity-time"><h4>%s</h4></div><div class="activity-description"><h4>'._t("Message to all users").'</h4></div><div style="clear:both;"></div><div class="activity-time"></div><div class="activity-description" style="max-width:80%%;">%s</div></div>', $time, $message_text);
+						}
+					}
+				} else {
+					if ($email) {
+						$output .= sprintf('<tr><td style="width:100px; padding:5px 20px; margin:5px 0; min-height:30px;background-color:#eae9e3; border-radius:10px 0 0 10px;">%s</td><td style="width:180px; padding:5px 20px; margin:5px 0; min-height:30px; background-color:#eae9e3;"><a href="%s">%s</a>&nbsp;<a href="%s">%s</a></td><td style="padding:5px 20px; margin:5px 0; min-height:30px; border-radius:0 10px 10px 0;background-color:#eae9e3;">%s</td></tr>', $time, $object_link, $object_icon, $object_link, $object_name, $description)."\n\r";
+					} else {
+						$output .= sprintf('<div class="activity-item" onclick="window.location=\'%s\'"><div class="activity-time"><h4>%s</h4></div><div class="activity-link"><h4><a href="%s">%s %s</a></h4></div><div class="activity-description"><h4>%s</h4></div></div>', $object_link, $time, $object_link, $object_icon, $object_name, $description);
+					}
+				}
+			}
+		} else {
+			if ($email) {
+				$output .= '<tr><td colspan="3" style="padding:5px 20px; margin:5px 0; min-height:30px;"><span style="background-color:#eae9e3; border-radius:10px;"><h4>'._t("Nothing to display")."</h4></span></td></tr>\n\r";
+			} else {
+				$output .= '<div class="activity-item" style="cursor:default;"><h4>'._t("Nothing to display")."</h4></div>\n\r";
+			}
+		}
+
+		if ($email) {
+			$output .= '</table>';
+		}
+		return $output;
+	}
+
+
+	/**
+	 *	Translates recent dates into "today" and "yesterday".
+	 *	@param int $timestamp Unix timestamp
+	 *	@return string
+	 */
+	public static function relativeTime($timestamp) {
+	
+		if (date('Ymd') == date('Ymd', $timestamp)) {
+			return _t('Today');
+		}
+
+		if (date('Ymd', strtotime('yesterday')) == date('Ymd', $timestamp)) {
+			return _t('Yesterday');
+		}
+		
+		return date('j M Y', $timestamp);
+	}
+
+
+
+
 }

@@ -33,13 +33,10 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function actionDefault($group_id = null)
 	{
-	
-	
 		$query = NEnvironment::getHttpRequest();
 		
 		if ($query->getQuery("do")=='invitation') return;
 		
-		$this->template->load_js_css_editor = true;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		
 		$user = NEnvironment::getUser()->getIdentity();
@@ -72,8 +69,11 @@ final class GroupPresenter extends BasePresenter
 			
 			$this->template->group_id = $group_id;
 			$this->template->data     = $this->group->getGroupData();
-
-			$this->template->hash     = $this->group->getGroupHash();
+			// $this->template->hash     = group->getGroupHash();
+			$hash = $this->group->getGroupHash();
+			if (!empty($hash)) {
+				$this->template->key_link   = NEnvironment::getVariable("URI").$this->link('Group:default', array('group_id'=>$group_id)).'&do=invitation&key='.$this->group->getGroupHash();
+			}
 			
 			$owner                    = $this->group->getOwner();
 			if (!is_null($owner)) {
@@ -100,44 +100,46 @@ final class GroupPresenter extends BasePresenter
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
 			$data['object_data']             = Group::create($session->data['object_id'])->getGroupData();
-			$data['object_data']['group_id'] = $session->data['object_id'];
-
-			$this->template->img = Group::getImage($session->data['object_id'], 'img');
-			$this->template->icon = Group::getImage($session->data['object_id'], 'icon');
-			$this->template->large_icon = Group::getImage($session->data['object_id'], 'large_icon');
 			
-			$group_object = Group::create($session->data['object_id']);
-			$user         = NEnvironment::getUser()->getIdentity();
+			if (!empty($data['object_data'])) {
+				$data['object_data']['group_id'] = $session->data['object_id'];
 
-			if (!empty($group_object)) {
-				$owner = $group_object->getOwner();
-				if (!is_null($owner)) {
-					$owner_data            = $owner->getUserData();
-					$this->template->owner = array(
-						'owner_id' => $owner->getUserId(),
-						'owner_name' => $owner_data['user_login']
-					);
+				$this->template->img = Group::getImage($session->data['object_id'], 'img');
+				$this->template->icon = Group::getImage($session->data['object_id'], 'icon');
+				$this->template->large_icon = Group::getImage($session->data['object_id'], 'large_icon');
+			
+				$group_object = Group::create($session->data['object_id']);
+				$user         = NEnvironment::getUser()->getIdentity();
+
+				if (!empty($group_object)) {
+					$owner = $group_object->getOwner();
+					if (!is_null($owner)) {
+						$owner_data            = $owner->getUserData();
+						$this->template->owner = array(
+							'owner_id' => $owner->getUserId(),
+							'owner_name' => $owner_data['user_login']
+						);
 					
-					if (!empty($user)) {
-						if ($user->getUserId() == $owner->getUserId()) {
-							$this->template->iamowner = true;
+						if (!empty($user)) {
+							if ($user->getUserId() == $owner->getUserId()) {
+								$this->template->iamowner = true;
+							}
 						}
 					}
-				}
 				
-			}
-			if (!empty($user)) {
-				if ($group_object->userIsRegistered($user->getUserId())) {
-					$data['object_data']['logged_user_member'] = 1;
-				} else {
-					$data['object_data']['logged_user_member'] = 0;
 				}
-				$this->template->logged_user = $user->getUserId();
-			} else {
-				$data['object_data']['logged_user_member'] = -1;
+				if (!empty($user)) {
+					if ($group_object->userIsRegistered($user->getUserId())) {
+						$data['object_data']['logged_user_member'] = 1;
+					} else {
+						$data['object_data']['logged_user_member'] = 0;
+					}
+					$this->template->logged_user = $user->getUserId();
+				} else {
+					$data['object_data']['logged_user_member'] = -1;
+				}
+				$this->template->default_data = $data;
 			}
-			$this->template->default_data = $data;
-			
 		}
 		
 		if (isset($data) && isset($data['object_data']['group_language'])) {
@@ -501,6 +503,7 @@ final class GroupPresenter extends BasePresenter
 		$language   = Language::getArray();
 		if (!empty($this->group)) {
 			$group_data = $this->group->getGroupData();
+			$group_data['group_hash'] = $this->group->getGroupHash();
 			$group_id   = $this->group->getGroupId();
 		}
 		$form = new NAppForm($this, 'updateform');
@@ -510,7 +513,7 @@ final class GroupPresenter extends BasePresenter
 		$form->addTextArea('group_description', _t('Description:'), 50, 10)->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Describe in few sentences what this group is about.'))->id("help-name"));
 		$form->addFile('group_avatar', _t('Upload group image:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(sprintf(_t('Avatars are small images that will be visible with your group. Here you can upload an avatar for your group (min. %s, max. %s). In the next step you can crop it.'), "120x150px","2500x2500px"))->id("help-name"))->addCondition(NForm::FILLED)->addRule(NForm::MIME_TYPE, _t('Image must be in JPEG or PNG format.'), 'image/jpeg,image/png')->addRule(NForm::MAX_FILE_SIZE, sprintf(_t('Maximum image size is %s'),"2MB"), 2 * 1024 * 1024);
 		
-		if ($group_data['group_visibility_level'] == 3) {
+		if (isset($group_data['group_visibility_level']) && $group_data['group_visibility_level'] == 3) {
 			$form->addText('group_hash', _t('Group key:'))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('Enter a key that will be used for inviting members into this group. Use letters, numbers and "-", with a minimum lenght of 5.'))->id("help-name"))->addRule($form::REGEXP, _t("Only letters, numbers and '-', with a minimum lenght of 5."), '/^[a-zA-Z0-9\-]{5,}$/');
 		}
 		
@@ -730,6 +733,9 @@ final class GroupPresenter extends BasePresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagegrouplister")));
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedgrouplister")));
 
+					// add activity to chat
+					$group->addActivityToChat($user_id, 1, 'join');
+		
 					print "true";
 				}
 			}
@@ -767,6 +773,9 @@ final class GroupPresenter extends BasePresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagegrouplister")));
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedgrouplister")));
 
+					// add activity to chat
+					$group->addActivityToChat($user_id, 1, 'leave');
+
 					print "true";
 				}
 			}
@@ -774,6 +783,7 @@ final class GroupPresenter extends BasePresenter
 		
 		$this->terminate();
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -789,16 +799,53 @@ final class GroupPresenter extends BasePresenter
 			'object_id' => $object_id,
 			'object_data' => $data
 		);
-		
+
 		$session       = NEnvironment::getSession()->getNamespace($this->name);
 		$session->data = array(
 			'object_type' => $object_type,
 			'object_id' => $object_id
 		);
 		
-		$this->redirect("this");
-		//$this->presenter->terminate();
+		if ($this->isAjax()) {
+			$this->actionDefault();
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		} else {
+		  	$this->redirect('this');
+		}
 	}
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public function handleDetailPage($object_type, $object_id)
+	{
+		$this->group                  = Group::create($object_id);
+		$data                         = $this->group->getGroupData();
+		$this->template->default_data = array(
+			'object_type' => $object_type,
+			'object_id' => $object_id,
+			'object_data' => $data
+		);
+
+		$session       = NEnvironment::getSession()->getNamespace($this->name);
+		$session->data = array(
+			'object_type' => $object_type,
+			'object_id' => $object_id
+		);
+		
+		if ($this->isAjax()) {
+			$this->actionDefault($object_id);
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		} else {
+		  	$this->redirect('this');
+		}
+	}
+
 
 	/**
 	 *	@todo ### Description
@@ -831,7 +878,7 @@ final class GroupPresenter extends BasePresenter
                     'hide_filter'=>1,
                     'reply_enabled'=>1
                     ),
-            'cache_tags' => array("group_id/".$this->group->getGroupId())
+            'cache_tags' => array("group_id/".$this->group->getGroupId(), "name/chatlistergroup")
 		);
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		
@@ -1005,10 +1052,11 @@ final class GroupPresenter extends BasePresenter
 		}
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Prepares the form to send group messages to all group members
+	 *	@param void
+	 *	@return object
 	 */
 	protected function createComponentNotifyform()
 	{
@@ -1030,10 +1078,11 @@ final class GroupPresenter extends BasePresenter
 		return $form;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sends a group message to all group members
+	 *	@param object $form
+	 *	@return void
 	 */
 	public function notifyformSubmitted(NAppForm $form)
 	{
@@ -1052,7 +1101,7 @@ final class GroupPresenter extends BasePresenter
 		$URI = NEnvironment::getVariable("URI");
 		foreach ($users_a as $user_a) {
 			if ($values['notification_type'] == 'email') {
-				Cron::addCron(time() + 60, 1, $user_a['user_id'], sprintf(_t('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
+				Cron::addCron(time(), 1, $user_a['user_id'], sprintf(_t('A message from your group %s'),'"'.$group_name.'" ('.$URI.'/group/?group_id='.$this->group->getGroupId().')').":\r\n\r\n".$values['notification_text'], 2, $this->group->getGroupId());
 			} else {
 				$resource                          = Resource::create();
 				$data                              = array();
@@ -1086,10 +1135,11 @@ final class GroupPresenter extends BasePresenter
 		$this->redirect("this");
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Only the default page is fully accessible for guests
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function isAccessible()
 	{
@@ -1098,6 +1148,7 @@ final class GroupPresenter extends BasePresenter
 		}
 		return false;
 	}
+
 
 	/**
 	*	Form on group detail pages that lists the subscribed resources and offers to unsubscribe.
@@ -1135,17 +1186,12 @@ final class GroupPresenter extends BasePresenter
 		
 		return $form;
 	}
-	
+
+
 	/**
 	*	Processing and receiving return values to unsubscribe from resource.
 	*
 	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function unsubscriberesourceformSubmitted(NAppForm $form)
 	{
 	
@@ -1173,16 +1219,20 @@ final class GroupPresenter extends BasePresenter
 
 		$this->group->setLastActivity();
 
+		// add activity to chat
+		$this->group->addActivityToChat($values['resource_id'], 3, 'unsubscribe');
+
 		$this->redirect("Group:default", array(
 				'group_id' => $this->group->getGroupId()
 			));
 		
 	}
-	
+
+
 	/**
-	*	Doing the actual unsubscription from resource for unsubscriberesourceformSubmitted().
-	*
-	*/
+	 *	Doing the actual unsubscription from resource for unsubscriberesourceformSubmitted().
+	 *	@param int $resource_id
+	 */
 	private function unsubscribefromresource($resource_id) {
 
 		$group_id = $this->group->getGroupId();
@@ -1223,10 +1273,11 @@ final class GroupPresenter extends BasePresenter
 	
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Removes the group avatar
+	 *	@param int $group_id
+	 *	@return void
 	 */
 	public function handleRemoveAvatar($group_id = null)
 	{
@@ -1251,11 +1302,15 @@ final class GroupPresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	Crops and resizes the group avatar
+	 *	@param int $group_id
+	 *	@param int $x
+	 *	@param int $y
+	 *	@param int $w
+	 *	@param int $h
+	 *	@return
+	*/
 	public function handleCrop() {
 		$request = NEnvironment::getHttpRequest();
 		$factor = $request->getQuery("factor");
@@ -1295,10 +1350,11 @@ final class GroupPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Checks if key to closed group is correct and user may join
+	 *	@param int $group_id
+	 *	$param string $key
 	 *	@return
-	*/
+	 */
 	public function handleInvitation() {
 	
 		$query = NEnvironment::getHttpRequest();
@@ -1351,17 +1407,29 @@ final class GroupPresenter extends BasePresenter
 		
 			$this->flashMessage(_t("You have joined the group."));
 		
-			$this->redirect("Group:default",$group_id);
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/detailgroupuserlister")));
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/defaultgroupuserlister")));
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/detailusergrouplister")));
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/defaultusergrouplister")));
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagegrouplister")));
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedgrouplister")));
+
+			// add activity to chat
+			$group->addActivityToChat($user_id, 1, 'join');
 		
+			$this->redirect("Group:default",$group_id);
+			
 		}
 	}
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	*/
+	 *	Triggered by clicking on a tag; sets filter to this tag
+	 *	@param int $tag_id
+	 *	@return void
+	 */
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='grouplister';

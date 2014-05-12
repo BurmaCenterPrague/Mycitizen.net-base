@@ -275,7 +275,8 @@ class Image extends BaseModel
 
 		$width = $this->defined_width[$size];
 		
-		if (!empty($src) && (Auth::isAuthorized($this->type, $this->id) > Auth::UNAUTHORIZED)) {
+//		if (!empty($src) && (Auth::isAuthorized($this->type, $this->id) > Auth::UNAUTHORIZED)) {
+		if (!empty($src)) {
 			$hash = md5($src);
 			$link = NEnvironment::getVariable("URI") . '/images/cache/'.$this->name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg';
 			if (file_exists(WWW_DIR . '/images/cache/'.$this->name.'/'.$this->id.'-'.$size.'-'.$hash.'.jpg')) {
@@ -287,7 +288,7 @@ class Image extends BaseModel
 				if ($img !== false) {
 					$image_o = new NImage($img);
 					$avatar = base64_encode($image_o->resize($avatar_w, $avatar_h)->toString(IMAGETYPE_JPEG,90));
-					$image = '<img src="data:'.$this->mime_type.';base64,'.$avatar.'"/>';
+					$image = '<img src="data:'.$this->mime_type.';base64,'.$avatar.'" '.$title_tag.'/>';
 				} else {
 					// default image
 					$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';

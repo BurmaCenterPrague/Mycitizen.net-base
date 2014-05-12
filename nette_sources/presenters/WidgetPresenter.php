@@ -84,6 +84,7 @@ final class WidgetPresenter extends BasePresenter
 							'id'=>$group_id
 						)
 					),
+					'order_by' => 'ORDER BY resource_creation_date DESC',
 					'status' => 1
 			),
 			'template_body'=>'ChatLister_ajax.phtml',
@@ -97,7 +98,7 @@ final class WidgetPresenter extends BasePresenter
 					'is_member' => $group->isMember($user_id),
 					'group_id' => $group_id
 					),
-			'cache_tags' => array("group_id/$group_id")
+			'cache_tags' => array("group_id/$group_id", "name/chatwidget")
         );
 
 		$control = new ListerControlMain($this, $name, $options);		
@@ -176,7 +177,7 @@ final class WidgetPresenter extends BasePresenter
 				'logged_user_id' => $logged_user_id
 			),
 			'refresh_path' => 'User:messages',
-			'cache_tags' => array("user_id/$logged_user_id")
+			'cache_tags' => array("user_id/$logged_user_id", "name/pmwidget")
 		);
 		
 		
@@ -228,7 +229,7 @@ final class WidgetPresenter extends BasePresenter
 		if ($trash == NULL) {
 			if (!isset($session['filterdata']['trash'])) {
 				if (is_array($session->filterdata)) {
-					$session->filterdata = array_merge(array('trash' => 2), $session->filterdata);
+					$session->filterdata = array_merge($session->filterdata, array('trash' => 2));
 				} else {
 					$session->filterdata = array('trash' => 2);
 				}
@@ -271,6 +272,219 @@ final class WidgetPresenter extends BasePresenter
 
 
 	/**
+	 *	For the popup chat: show just the basic information
+	 *	
+	 *	@return
+	 */
+	public function handleChatabstract()
+	{
+		$request = NEnvironment::getHttpRequest();
+		$last_modified_header = $request->getHeader('if-modified-since');
+		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
+		
+		$options = array(
+			'itemsPerPage' => 20,
+			'lister_type' => array(
+				ListerControlMain::LISTER_TYPE_RESOURCE
+			),
+			'template_body' => 'PMLister_ajax_slim_abstract.phtml',
+			'filter' => array(
+				'status' => 1,
+				'page' => 1,
+				'all_members_only' => array(
+						array(
+							'type' => 1,
+							'id' => $logged_user_id
+						)
+					),
+				'type' => array(
+					1, // private messages
+					9, // system messages
+					10 // friendship requests
+				)
+			),
+			'template_variables' => array(
+				'messages' => true,
+				'message_lister' => true,
+				'hide_filter' => true,
+				'logged_user_id' => $logged_user_id
+			),
+			'cache_tags' => array("user_id/$logged_user_id", "name/pmwidget"),
+			'cache_expiry' => 60
+		);
+		
+		$control = new ListerControlMain($this, 'pmabstract', $options);
+		
+		// retrieve time of most recent post for http header
+		$data = $control->getPageData($control->getFilterArray($options['filter']));
+		$row = reset($data);
+		$res = Resource::Create($row['id']);
+		$r_data = $res->getResourceData();
+		$httpResponse = NEnvironment::getHttpResponse();
+		if (isset($r_data)) {
+			$date=(array)$r_data['resource_creation_date'];
+			date_default_timezone_set($date['timezone']);
+			$timestamp = strtotime($date['date']);
+			$date_formatted = gmstrftime('%a, %d %b %Y %T %Z',$timestamp);
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+		}
+		
+		if (isset($timestamp) && $timestamp <= strtotime($last_modified_header)) {
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+			$httpResponse->setHeader('Cache-Control', 'no-cache');
+			$this->terminate();
+		}
+
+		$httpResponse->setHeader('Cache-Control', 'no-cache');
+
+		$control->renderBody();
+		
+		$this->terminate();
+	}
+
+
+	/**
+	 *	Prepares the window content for the PM popup chat to be loaded with AJAX.
+	 *	@param string $name namespace
+	 *	@return
+	 */
+	protected function createComponentPmwidgetslim($name)
+	{
+		$request = NEnvironment::getHttpRequest();
+		$last_modified_header = $request->getHeader('if-modified-since');
+		$user_id = $request->getQuery('user_id');
+		$owner_name = $request->getQuery('owner');
+		$page = $request->getQuery('page');
+		$trash = $request->getQuery('trash');
+
+		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
+		
+		if (!empty($owner_name)) {
+			$owner_ids = User::getOwnerIdsFromLogin($owner_name);
+			$owner_ids_with_logged = $owner_ids;
+			$owner_ids_with_logged[] = $logged_user_id;
+		} else {
+			$owner_ids = null;
+			$owner_ids_with_logged = null;
+		}
+		
+		$options = array(
+			'itemsPerPage' => 10,
+			'lister_type' => array(
+				ListerControlMain::LISTER_TYPE_RESOURCE
+			),
+			'template_body' => 'PMLister_ajax_slim.phtml',
+			'refresh_path'=>'User:messages',
+			'filter' => array(
+				'page' => $page,
+				'owner' => $owner_ids_with_logged,
+				'status' => 1
+			),
+			'template_variables' => array(
+				'trash_enabled' => true,
+				'mark_read_enabled' => true,
+                'reply_enabled'=>true,
+				'messages' => true,
+				'message_lister' => true,
+				'hide_apply' => true,
+				'hide_reset' => true,
+				'logged_user_id' => $logged_user_id
+			),
+			'refresh_path' => 'User:messages',
+			'cache_tags' => array("user_id/$logged_user_id", "name/pmwidgetslim")
+		);
+		
+		
+		if ($user_id == NULL ) {
+			if ($owner_ids != NULL) {
+				$options['filter']['all_members_only'] = array(
+						array(
+							'type' => 1,
+							'id' => $logged_user_id
+						),
+						array(
+							'type' => 1,
+							'id' => $owner_ids
+						)
+					);
+			} else {
+				$options['filter']['all_members_only'] = array(
+						array(
+							'type' => 1,
+							'id' => $logged_user_id
+						)
+					);			
+			}
+			$options['filter']['type'] = array(
+					1, // private messages
+					9, // system messages
+					10 // friendship requests
+				);
+		} else {
+			// User detail page
+			$options['filter']['all_members_only'] = array(
+					array(
+						'type' => 1,
+						'id' => NEnvironment::getUser()->getIdentity()->getUserId()
+					),
+					array(
+						'type' => 1,
+						'id' => $user_id
+					)
+				);
+			$options['filter']['type'] = array(
+					1, // private messages
+					10 // friendship requests
+				);
+		}
+
+		$session = NEnvironment::getSession()->getNamespace($name);
+		
+		if ($trash == NULL) {
+			if (!isset($session['filterdata']['trash'])) {
+				if (is_array($session->filterdata)) {
+					$session->filterdata = array_merge($session->filterdata, array('trash' => 2));
+				} else {
+					$session->filterdata = array('trash' => 2);
+				}
+			}
+		} else {
+			if (is_array($session->filterdata)) {
+				$session->filterdata = array_merge($session->filterdata, array('trash' => $trash));
+			} else {
+				$session->filterdata = array('trash' => $trash);
+			}
+		}
+		
+		$control = new ListerControlMain($this, $name, $options);
+
+		// retrieve time of most recent post for http header
+		$data = $control->getPageData($control->getFilterArray($options['filter']));
+		$row = reset($data);
+		$res = Resource::Create($row['id']);
+		$r_data = $res->getResourceData();
+		$httpResponse = NEnvironment::getHttpResponse();
+		if (isset($r_data)) {
+			$date=(array)$r_data['resource_creation_date'];
+			date_default_timezone_set($date['timezone']);
+			$timestamp = strtotime($date['date']);
+			$date_formatted = gmstrftime('%a, %d %b %Y %T %Z',$timestamp);
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+		}
+		
+		if (isset($timestamp) && $timestamp <= strtotime($last_modified_header)) {
+			$httpResponse->setHeader('Last-Modified', $date_formatted);
+			$httpResponse->setHeader('Cache-Control', 'no-cache');
+			die();
+		}
+
+		$httpResponse->setHeader('Cache-Control', 'no-cache');
+
+		return $control;
+	}
+
+
+	/**
 	 *	@todo Prepares the window content for image browser (called by ckeditor).
 	 *	@param void
 	 *	@return void
@@ -282,7 +496,7 @@ final class WidgetPresenter extends BasePresenter
 		$CKEditorFuncNum = $query->getQuery("CKEditorFuncNum");
 		$this->template->CKEditorFuncNum = (int)$CKEditorFuncNum;
 		$user = NEnvironment::getUser()->getIdentity();
-		if ($user && $user->getAccessLevel() > 0) {
+		if (isset($user) && $user->getAccessLevel() > 0) {
 			$user_id = $user->getUserId();
 		} else {
 			$this->flashMessage('Access denied. Did you sign in?');
@@ -445,5 +659,8 @@ final class WidgetPresenter extends BasePresenter
 		}
 
 	}
+
+
+
 
 }

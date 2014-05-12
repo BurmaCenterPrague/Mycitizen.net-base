@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.8 Beta : 3 May 2014
+0.9 Beta : 12 May 2014
 
 
 authors
@@ -38,6 +38,7 @@ included packages
 - [Mobile-Detect](http://mobiledetect.net) 2.7.6 (MIT License)
 - [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GPL version 2 or 3)
 - [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
+- [PHPMailer](https://raw.github.com/PHPMailer/PHPMailer/master/examples/images/phpmailer.png) 5.2.7, (LGPL 2.1 License)
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
 - [Treeview 1.4.1](http://docs.jquery.com/Plugins/Treeview) (MIT license or GPL)
 - [zxcvbn](https://github.com/lowe/zxcvbn) 1.0 [license](https://github.com/lowe/zxcvbn/blob/master/LICENSE.txt)
@@ -46,6 +47,8 @@ other credits
 -------------
 - [map icon](http://www.iconsdb.com/gray-icons/world-map-icon.html) Creative Commons Attribution-NoDerivs 3.0 Unported
 - [icons for mime types in file browser](http://teambox.com/) MIT license
+- [Email Boilerplate](http://htmlemailboilerplate.com/license.html) MIT license
+- [Premailer](http://premailer.dialect.ca/)
 
 system requirements
 -------------------

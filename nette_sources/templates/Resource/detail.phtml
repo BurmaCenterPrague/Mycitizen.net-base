@@ -16,11 +16,11 @@
 
 <div class="back">
 	{if isset($_SERVER['HTTP_REFERER']) && preg_match('/messages/',$_SERVER['HTTP_REFERER'])}
-	<a href="{link User:messages}" title="{_"Back to the list of messages"}" class="list"><b class="icon-list"></b></a>
+	<a href="{link User:messages}" title="{_"Back to the list of messages"}" class="list ajax"><b class="icon-list"></b></a>
 	{elseif isset($_SERVER['HTTP_REFERER']) && preg_match('/reports/',$_SERVER['HTTP_REFERER'])}
-	<a href="{link Administration:reports}" title="{_"Back to the list of reports"}" class="list"><b class="icon-list"></b></a>
+	<a href="{link Administration:reports}" title="{_"Back to the list of reports"}" class="list ajax"><b class="icon-list"></b></a>
 	{else}
-	<a href="{link Resource:default}" title="{_"Back to the list of resources"}" class="list"><b class="icon-list"></b></a>
+	<a href="{link Resource:default}" title="{_"Back to the list of resources"}" class="list ajax"><b class="icon-list"></b></a>
 	{/if}
 </div>
 
@@ -58,7 +58,7 @@
 	<h2>
 	{ifset $default_data}
 		{if Auth::ADMINISTRATOR == Auth::isAuthorized(3,$default_data['object_data']["resource_id"])}
-			<a href="{link Resource:edit, $default_data['object_data']["resource_id"]}"><b class="icon-resource-edit" title="{_"edit"}"></b></a>
+			<a href="{link Resource:edit, $default_data['object_data']["resource_id"]}"><b class="icon-resource-edit edit" title="{_"edit"}"></b></a>
 		{else}
 			{ifset $logged_user}	
 			<a  href="#report_form" id="report_box"><b class="icon-warning" title="{_"Report resource"}"></b></a>

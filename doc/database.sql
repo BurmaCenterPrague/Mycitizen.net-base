@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS `system` (
 
 INSERT INTO `system` (`id`, `name`, `value`) VALUES
 (1, 'cron_last_run', '0'),
-(2, 'database_version', '0.7');
+(2, 'database_version', '0.9');
 
 CREATE TABLE IF NOT EXISTS `tag` (
   `tag_id` int(11) NOT NULL AUTO_INCREMENT,

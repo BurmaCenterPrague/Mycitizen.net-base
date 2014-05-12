@@ -15,7 +15,7 @@
 {block content}
 
 <div class="back">
-	<a href="{link Group:default}" title="{_"Back to list of groups."}" class="list"><b class="icon-list"></b></a>
+	<a href="{link Group:default}" title="{_"Back to list of groups."}" class="list ajax"><b class="icon-list"></b></a>
 </div>
 
 <div class="about">
@@ -133,8 +133,8 @@
 		<div class="group-invite-link">
 		<h3>{_"Link to invite new members"}</h3>
 		<p>{_"This group can only be viewed by members. Users need to have the key below to become members."}</p>
-				{if $hash}
-		<form><input type="text" name="invite_link" id="invite_link" readonly="readonly" value="{$URI}{plink Group:default, $group_id}&do=invitation&key={$hash}" size=30 onlick="this.style.borderColor = 'lightred'; this.select();" title="{_"Copy this link and send it to people who you would like to join. This link is like a key to this group."}"/></form>
+				{ifset $key_link}
+		<form><input type="text" name="invite_link" id="invite_link" readonly="readonly" value="{$key_link}" size=30 onlick="this.style.borderColor = 'lightred'; this.select();" title="{_"Copy this link and send it to people who you would like to join. This link is like a key to this group."}"/></form>
 				{else}
 					{_"Please go to the edit screen and generate a link."}
 				{/if}

@@ -16,7 +16,7 @@
 <div class="user_edit_updateform">	
 	{control updateform error}
 	{control updateform begin}
-	<div class="back"><a href="{plink User:default, $user_id}" title="{_"cancel and return"}"><b class="icon-cancel"></b></a></div>
+	<div class="back"><a href="{plink User:default, $user_id}" title="{_"cancel and return"}" class="ajax"><b class="icon-cancel"></b></a></div>
 <div class="edit-primary">
 {if !isset($image_too_large) && !isset($image_props_wrong)}
 	<h2>{_"Basic Information"}</h2>
@@ -41,7 +41,7 @@
 			<input type="hidden" id="w" name="w" />
 			<input type="hidden" id="h" name="h" />
 			<input type="hidden" id="factor" value="{$factor}" />
-			<a href="javascript:void(0);" id="crop_button" onClick="doCrop(); return false;" class="button" />crop and resize</a>
+			<a href="javascript:void(0);" id="crop_button" onClick="doCrop(); return false;" class="button">{_"crop and resize"}</a>
 		</div>
 	</div>
 {/if}

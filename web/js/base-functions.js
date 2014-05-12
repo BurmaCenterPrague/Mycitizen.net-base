@@ -1,4 +1,8 @@
-// (c) 2013 mycitizen.net, GPLv3-----
+/**
+ * @copyright 2013 mycitizen.net, GPLv3-----
+ * @author Mycitizen.net
+ */
+ 
 function updateUser(user_id) {
 	var enabled = 1;
 	if($("#enabled-"+user_id).attr('checked')) {
@@ -15,16 +19,28 @@ function updateUser(user_id) {
     });
 }
 
-function showGroupDetail(object_type,object_id) {
-	$.getJSON("?do=defaultPage",{ "object_type":object_type,"object_id":object_id },function(payload){
-		$.nette.success(payload);
-    });
+function showObjectDefault(object_type,object_id) {
+	$.getJSON("?do=defaultPage",{ "object_type":object_type,"object_id":object_id });
 }
 
-function showObjectDetail(object_type,object_id) {
-   $.getJSON("?do=defaultPage",{ "object_type":object_type,"object_id":object_id },function(payload){
-      $.nette.success(payload);
-    });
+function showObjectDetail(object_type,object_id,url) {
+	window.history.pushState("void", "Title", url);
+	$.getJSON("?do=detailPage",{ "object_type":object_type,"object_id":object_id });
+}
+
+function toggleChat(url) {
+	$.getJSON("/?toggleChat");
+}
+
+function changePageUrl(name,page,url) {
+	var urlq = url + (url.split('?')[1] ? '&':'?') + "do=changePage";
+	$.getJSON(urlq,{ "name": name, "page": page },function(payload){
+		if (payload) {
+			for (var id in payload.snippets) {
+				$("#" + id).html(payload.snippets[id]);
+			}
+		}
+	});
 }
 
 function addNewTag_User(user_id,tag_id) {
@@ -147,15 +163,15 @@ function visit(type_id,object_id) {
 }
 
 function moveToTrash(resource_id) {
-   if(resource_id != null) {
-   	$.post("?do=moveToTrash&resource_id="+resource_id);
-   }
+	if(resource_id != null) {
+		$.post("?do=moveToTrash&resource_id="+resource_id);
+	}
 }
 
 function moveFromTrash(resource_id) {
-   if(resource_id != null) {
-      $.post("?do=moveFromTrash&resource_id="+resource_id);
-   }
+	if(resource_id != null) {
+    	$.post("?do=moveFromTrash&resource_id="+resource_id);
+	}
 }
 
 function markRead(resource_id) {
@@ -253,3 +269,4 @@ function readCookie(name) {
 	}
 	return null;
 }
+

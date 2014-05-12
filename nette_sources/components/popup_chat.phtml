@@ -1,0 +1,393 @@
+<div id="toggle_open" style="position:fixed; top:1px; right:20px; width:20px; height:20px; padding:10px 0; z-index:1000; cursor:pointer;"><b class="icon-resource-edit"></b></div>
+
+<div id="chat_abstract" style="width:70px; position:fixed; top:1px; right:1px; text-align:left; background-color:white; box-shadow:-1px 1px 10px #666; padding:10px 0px 10px 10px; height:100%; overflow:hidden; border-radius:10px 0 0 10px;">
+	<div style="margin:0 0 25px;">
+		<b id="pmpop_abstract_reload_button" class="icon-reload" style="cursor:pointer;"  title="{_"Reload"}"></b>
+	</div>
+	<div id="chat_abstract_container">
+	</div>
+</div>
+
+<div id="chat_overlay" style="width:800px;position:fixed;top:1px;right:1px;text-align:left;background-color:white; padding:20px 10px 20px; box-shadow:-1px 1px 10px #666; height:99%; border-radius:0 0 0 20px; overflow:auto; display:none;">
+	<div id="chat_top_anchor"></div>
+	{control popupmessageform begin}
+	<h1>{_"Your messages"}</h1>
+	<div id="send_a_message_body" style="display:none;padding:10px 0;">
+		{ifset $nofriends}
+		<p>{_"You have no friends yet. You can start sending messages only after someone has accepted your friendship request."}</p>
+		{else}
+		<div style="padding:10px 0;">
+			{$control['popupmessageform']['friend_id']->control}
+		</div>
+		<textarea placeholder="{_"Type your text here."}" id="pmpop_message_text" name="pmpop_message_text"></textarea>
+		<div style="padding:10px;">
+			<a href="javascript:void(0);" class="button" id="pmpop_chat_submit" style="font-size:1.3em; margin:2em 0px;">{_"Send"}</a>
+		</div>
+		{/if}
+	</div>
+<script>
+$(document).ready(function(){
+	$('#send_a_message_header').click(function(){
+		$('#send_a_message_body').slideToggle(500);
+	});
+
+	$('#toggle_open').click(function(){
+		$('#chat_overlay').fadeToggle(500, function(){
+			$('#chat_abstract').show();
+			if ($(this).is(":visible")) {
+				$('#chat_abstract').hide();
+				pmpop_reloadChat();
+			} else {
+				
+			}
+		});
+	});
+
+});
+</script>
+{control popupmessageform end}
+
+	<div class="filter-block">
+		<input type="text" class="text" name="name" id="pmpop_search_name" value="{ifset $value}{$value}{/if}" placeholder="{_"Filter by name"}" title="{_"Show only messages by senders with matching names.<ul><li>Type to search only on this page.</li><li>Type and press enter to search on all pages.</li></ul>"}" autocomplete="off"/>
+		<a href="javascript:void(0);" id="clear_button" class="button" name="clear" >{_"Clear"}</a>
+	</div>
+	<span id="send_a_message_header" style="cursor:pointer; margin:10px 30px 10px 385px;" class="button">{_"Compose"}</span>
+
+	<div class="reload-chat">
+		<b id="pmpop_reload_button" class="icon-reload" style="cursor:pointer;"  title="{_"Reload the chat."}"></b>
+		<label for="auto_reload" title="{_"Automatically reload in regular intervals if something new has been posted."}">{_"auto reload"}</label><input id="auto_reload" type="checkbox" checked value="1"  title="{_"Automatically reload in regular intervals if something new has been posted."}" />
+	</div>
+
+	<div class="user-messages">
+		<div id="popup_message_list_anchor"></div>
+		<div id="chat_container">
+		{_"Loading chat.."}
+		{ifset $currentpage}
+			<input type="hidden" id="pmpop_currentpage" value="{$currentpage}" />
+		{else}
+			<input type="hidden" id="pmpop_currentpage" value="1" />
+		{/if}
+		{ifset $trash}
+			<input type="hidden" id="pmpop_trash" value="{$trash}" />
+		{else}
+			<input type="hidden" id="pmpop_trash" value="0" />
+		{/if}
+		</div>
+	</div>
+</div>
+
+<script>
+	var text = '';
+	var search = '';
+	var pmpop_interval;
+	var modifiedDate;
+	var searchedOnServer = false;
+	
+	$(document).ready(function() {
+		$("#pmpop_search_name").keyup(function(event){
+			if(event.keyCode == 13){
+				// submit as search
+				pmpop_reloadChat();
+				searchedOnServer = true;
+			} else {
+				// search on page only
+				textChanged();
+			}
+		});
+		
+		$('#pmpop_reload_button,#pmpop_abstract_reload_button').click(function(){
+		   pmpop_reloadChat();
+		});
+
+		
+		$('#clear_button').click(function(){
+			$('#pmpop_search_name').val('');
+			if (searchedOnServer) {
+				searchedOnServer = false;
+				pmpop_reloadChat();
+			} else {
+				showAll();
+			}
+		});
+	});
+
+	
+	function textChanged() {
+		search = $('#pmpop_search_name').val();
+		if (search == text) {
+			return false;
+		}
+		search = search.trim();
+		filter();
+		text = search;
+	}
+	
+	$.extend($.expr[":"], {
+		"containsNC": function(elem, i, match, array) {
+			return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+		}
+	});
+
+	function showAll() {
+		$('.chat-author').parent().parent().parent().slideDown(600);
+	}
+	
+	function filter() {
+		if (search.length<text.length) {
+			$('.chat-author').parent().parent().parent().slideDown(600);
+			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
+		}
+		else if (search!='') {
+			$('.chat-author:not(:containsNC('+search+'))').parent().parent().parent().slideUp(600);
+		}
+	}
+
+	$(document).ready(function() {
+		pmpop_interval = setInterval("pmpop_chatTimer()",30*1000);
+	});
+	
+	function pmpop_chatTimer() {
+		reloadAbstractIfModified();
+		if ($("#auto_reload").prop("checked")) {
+			pmpop_reloadChatIfModified();
+		} else {
+			return false;
+		}
+	}
+
+	function changePage(page) {
+		$("#pmpop_reload_button").attr("class", "icon-reload-disabled");
+		$("#pmpop_currentpage").val(page);
+		pmpop_reloadChat();
+		$('#chat_overlay').animate({
+			scrollTop: $("#popup_message_list_anchor").offset().top
+		}, 2000);
+	}
+	
+	function pmpop_reloadChat() {
+		var currentpage = $("#pmpop_currentpage").val();
+		var name = $("#pmpop_search_name").val();
+		var trash = $("#pmpop_trash").val();
+		$("#pmpop_reload_button").attr("class", "icon-reload-disabled");
+		$("#pmpop_abstract_reload_button").attr("class", "icon-reload-disabled");
+		$.ajax({
+			url:"{!$baseUri}widget/privatemessagesslim/?page="+currentpage+"&owner="+name+"&trash="+trash,
+			dataType:"html",
+			ifModified:false,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				modifiedDate = hdr.getResponseHeader('Last-Modified');
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+				$("#chat_container").animate({ opacity:0.7},function(){
+					$("#chat_container").html(payload);
+					$("#chat_container").animate({ opacity:1},function(){
+						$("#pmpop_reload_button").attr("class", "icon-reload");
+					});
+				});
+			},
+		});
+		$.ajax({
+			url:"{!$baseUri}widget/privatemessagesslim/?do=chatabstract",
+			dataType:"html",
+			ifModified:false,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_abstract_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				modifiedDate = hdr.getResponseHeader('Last-Modified');
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_abstract_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+				$("#chat_abstract_container").animate({ opacity:0.7},function(){
+					$("#chat_abstract_container").html(payload);
+					$("#chat_abstract_container").animate({ opacity:1},function(){
+						$("#pmpop_abstract_reload_button").attr("class", "icon-reload");
+					});
+				});
+				clearInterval(pmpop_interval);
+				pmpop_interval = setInterval("pmpop_chatTimer()",30*1000);
+			},
+		});
+	}
+	
+	function pmpop_reloadChatIfModified() {
+		var currentpage=$("#pmpop_currentpage").val();
+		var name = $("#pmpop_search_name").val();
+		var trash = $("#pmpop_trash").val();
+		$.ajax({
+			url:"{!$baseUri}widget/privatemessagesslim/?page="+currentpage+"&owner="+name+"&trash="+trash,
+			dataType:"html",
+			ifModified:true,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				if(status=="notmodified"){
+					return false;
+				}
+				
+				// for cloudflare: check change of date
+				var newModifiedDate = hdr.getResponseHeader('Last-Modified');
+				if (modifiedDate == newModifiedDate) {
+					return false;
+				} else {
+					modifiedDate = newModifiedDate;
+				}
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+				$("#pmpop_reload_button").attr("class", "icon-reload-disabled");
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+				$("#chat_container").animate({ opacity:0.7},function(){
+					$("#chat_container").html(payload);
+					$("#pmpop_reload_button").attr("class", "icon-reload");
+					$("#chat_container").animate({ opacity:1},200);
+				});
+				clearInterval(pmpop_interval);
+				pmpop_interval = setInterval("pmpop_chatTimer()",30*1000);
+			},
+		});
+	}
+		
+	function reloadAbstractIfModified() {		
+		$.ajax({
+			url:"{!$baseUri}widget/privatemessagesslim/?do=chatabstract",
+			dataType:"html",
+			ifModified:true,
+			headers: {
+					Pragma: "no-cache"
+				},
+			statusCode: {
+				301: function(){
+					$("#chat_abstract_container").html("Error loading chat.");
+				}
+			},
+			success:function(payload,status,hdr){
+				if(status=="notmodified"){
+					return false;
+				}
+				
+				// for cloudflare: check change of date
+				var newModifiedDate = hdr.getResponseHeader('Last-Modified');
+				if (modifiedDate == newModifiedDate) {
+					return false;
+				} else {
+					modifiedDate = newModifiedDate;
+				}
+				
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_abstract_container").html({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+				$("#pmpop_abstract_reload_button").attr("class", "icon-reload-disabled");
+
+				if (payload.indexOf('{"redirect":')>-1){
+					$("#chat_abstract_container").replaceWith({_"Error loading chat. Are you logged in?"});
+					return false;
+				}
+
+
+				$("#chat_abstract_container").animate({ opacity:0.7},function(){
+					$("#chat_abstract_container").html(payload);
+					$("#pmpop_abstract_reload_button").attr("class", "icon-reload");
+					$("#chat_abstract_container").animate({ opacity:1},200);
+				});
+
+			},
+		});
+	}
+	
+{if !isset($nofriends)}
+	$(document).ready(function() {
+		CKEDITOR.replace( 'pmpop_message_text', {
+			height: '150px',
+			width: '700px',
+			filebrowserUploadUrl: '{!baseUri}?do=upload',
+			filebrowserBrowseUrl: '{!baseUri}widget/browse/',
+			allowedContent: 'h2 h3 h4 h5 strong em; hr; a[!href,target]; del ins s; ul ol li; img(left,right)[!src,alt,width,height]; blockquote[id]; p{ text-align}; span(marker){ color,background-color}; iframe[!src,width,height,frameborder,allowfullscreen]',
+			toolbarGroups: [
+				{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+				{ name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ]},
+				{ name: 'links'},
+				{ name: 'insert', groups: [ 'image', 'symbol', 'smiley']},
+				{ name: 'styles'},
+				{ name: 'colors'}
+			]
+		});
+
+		$('#pmpop_chat_submit').click(function(){
+			var instance_name = 'pmpop_message_text';
+			var editorContent = CKEDITOR.instances[instance_name].getData();
+			editorContent = $.trim(editorContent);
+			if (editorContent == '' || editorContent == null) {
+				alert({_'Please enter some text.'});
+				return false;
+			} else {
+				CKEDITOR.instances[instance_name].updateElement();
+				var serialized = $("#pmpop_message_text").serialize();
+				var recipient_id = $('#frmpopupmessageform-friend_id option:selected').val();
+				if (recipient_id == 0) {
+					alert({_'Please select a recipient'});
+					return false;
+				}
+				$.post('{!$baseUri}?do=submitpmpopchat&recipient_id='+recipient_id, serialized, function(result) {
+					if (result == 'true') {
+						CKEDITOR.instances[instance_name].setData('');
+						pmpop_reloadChatIfModified();
+						reloadAbstractIfModified();
+					} else {
+						alert(result);
+					}
+				}, "json");
+			}
+		});
+
+	});
+{/if}
+	
+	$(document).ready(function(){
+		$(function(){
+			document.body.onbeforeunload = function() {
+				for(editorName in CKEDITOR.instances) {
+					if (CKEDITOR.instances[editorName].checkDirty()) {
+						return "Unsaved changes present!"
+					}
+				}
+			}
+		});
+
+		$("a.image-fancybox").fancybox();
+		pmpop_reloadChat();
+	});
+</script>

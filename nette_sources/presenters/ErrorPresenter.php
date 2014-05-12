@@ -34,7 +34,7 @@ class ErrorPresenter extends BasePresenter
 			$language          = $session->language;
 		}
 
-		$this->template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$this->template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 
 	
 		if ($this->isAjax()) { // AJAX request? Just note this error in payload.

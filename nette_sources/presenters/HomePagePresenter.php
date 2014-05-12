@@ -16,6 +16,7 @@
 final class HomepagePresenter extends BasePresenter
 {
 
+	
 	/**
 	 *	Some basics done by parent class.
 	 *	@param void
@@ -25,6 +26,7 @@ final class HomepagePresenter extends BasePresenter
 	{
 		parent::startup();
 	}
+
 
 	/**
 	 *	Some preparations before rendering default.phtml.
@@ -39,7 +41,6 @@ final class HomepagePresenter extends BasePresenter
 		if ($detect->isMobile()) $this->template->mobile = true;
 		unset($detect);
 */	
-
 		$this->template->load_fullcalendar = true;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 

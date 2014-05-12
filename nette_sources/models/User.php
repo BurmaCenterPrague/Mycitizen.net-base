@@ -40,7 +40,7 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_hash`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` as user_portrait FROM `user` WHERE `user_id` = %i", $user_id); // user_largeicon` as user_portrait
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` as user_portrait FROM `user` WHERE `user_id` = %i", $user_id); // ,`user_hash`
 			if (sizeof($result) > 2) {
 				return false;
 				throw new Exception(_t("More than one user with the same id found."));
@@ -67,6 +67,11 @@ class User extends BaseModel implements IIdentity
 		foreach ($data as $key => $value) {
 			$this->user_data[$key] = $value;
 		}
+    	// User hash is not part of data so that it is not exposed through API. It should not even be displayed to other users with permission to view, e.g. friends, who could use it to change the password.
+		if (isset($data['user_hash'])) {
+			$this->user_data['user_hash'] = $data['user_hash'];
+		}
+
 	}
 
 	/**
@@ -445,14 +450,16 @@ class User extends BaseModel implements IIdentity
 		if ($answer && $this->getCaptchaOk() == false) {
 			$link  = NEnvironment::getVariable("URI") . "/widget/mobilecaptcha/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;		
 		} else {
-//			$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 			$link  = NEnvironment::getVariable("URI") . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 		}
-		$body  = sprintf(_t("Hello %s,\nthank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\n\nThank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
 		
+/*
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		
 		return mail($email, '=?UTF-8?B?' . base64_encode(_t('Finish your registration at Mycitizen.net')) . '?=', $body, $headers);
+*/
+		return StaticModel::send_email($name, $email, _t('Finish your registration at Mycitizen.net'), $body);
 	}
 
 
@@ -532,7 +539,6 @@ class User extends BaseModel implements IIdentity
 	public function sendLostpasswordEmail()
 	{
 		$hash = self::generateHash();
-		
 		$this->user_data['user_hash'] = $hash;
 		$this->save();
 		$name =  $this->user_data['user_login'];
@@ -540,14 +546,19 @@ class User extends BaseModel implements IIdentity
 		$id    = $this->numeric_id;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = Language::getId($session->language);
+		
 
 		$link  = NEnvironment::getVariable("URI") . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 		
-		$body  = sprintf(_t("Hello %s,\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\n\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
 		
+/*
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_t('Password change on Mycitizen.net')) . '?=', $body, $headers);
 		return $body;
+*/	
+		return StaticModel::send_email($name, $email, _t('Password change on Mycitizen.net'), $body);
+
 	}
 
 
@@ -595,14 +606,22 @@ class User extends BaseModel implements IIdentity
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = Language::getId($session->language);
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
-		$body  = sprintf(_t("Hello %s,\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\n\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
+		
+/*
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 		mail($email, '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
+*/
+		StaticModel::send_email($name, $email, _t('Email change on Mycitizen.net'), $body);
+		
 		if ($email != $this->user_data['user_email']) {
 			$support_url = NEnvironment::getVariable("SUPPORT_URL");
-			$body  = sprintf(_t("Hello %s,\nSomebody has requested an email change on Mycitizen.net. The new email will be: %s\nIf you think that this is wrong, please contact the support at %s."), $name, $email, $support_url ) . "\n\n " . $link;
+			$body  = sprintf(_t("Hello %s,\n\nSomebody has requested an email change on Mycitizen.net. The new email will be: %s\n\nIf you think that this is wrong, please contact the support at %s."), $name, $email, $support_url ) . "\n\n " . $link;
+/*
 			$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 			mail($this->user_data['user_email'], '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
+*/
+			StaticModel::send_email($name, $this->user_data['user_email'], _t('Email change on Mycitizen.net'), $body);
 		}
 		return $body;
 	}
@@ -892,8 +911,9 @@ class User extends BaseModel implements IIdentity
 	public static function getFullName($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT CONCAT(`user_name`,' ',`user_surname`) FROM `user` WHERE `user_id` = %i", $user_id);
+		
 		if (empty($result)) {
-			return User::getUserLogin($user_id);
+			return self::getUserLogin($user_id);
 		}
 		return trim($result);
 	}
@@ -1252,10 +1272,9 @@ class User extends BaseModel implements IIdentity
 	 */
 	public static function getAllUsersForCron()
 	{
-		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email`, `user_language` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
+		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email`, `user_language`, `user_send_notifications`, `user_last_notification`, `user_last_activity` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
 		if (sizeof($result) < 1) {
 			return false;
-			throw new Exception(_t("Specified user not found."));
 		}
 		foreach($result as $user_array)	{	
 			$result_array[] = $user_array->toArray();
@@ -1277,9 +1296,9 @@ class User extends BaseModel implements IIdentity
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the number of private messages that are marked as unread.
+	 *	@param int $user_id
+	 *	@return int
 	 */
 	public static function getUnreadMessages($user_id)
 	{

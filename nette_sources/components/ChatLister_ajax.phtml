@@ -26,6 +26,7 @@
 	{? $date=(array)$r_data['resource_creation_date']}
 	{? date_default_timezone_set($date['timezone'])}
 	{? $date_formatted = strftime('%e.%m.%Y %H:%I:%S',strtotime($date['date']))}
+	{var $res_owner_id => $res->getOwner()->getUserId()}
 
         	<div class="chat-item" id="chat_message_{$id}">
         	<table>
@@ -46,7 +47,7 @@
 					
 					{if ($template_variables['is_member']) && ($r_author['user_login'] != $template_variables['user_login'])}
 					<div class="chat-reply">
-						{if $res->getOwner()->isActive()}
+						{if $res->getOwner()->isActive() || $res_owner_id == 0}
 						<a href="javascript:void(0);" id="reply_0000{$id}" class="button">
 							{_"reply"}
 						</a>
@@ -58,24 +59,44 @@
         	</tr>
         	<tr>
 	        	<td style="vertical-align:top; padding-top:7px; width:80px;">
+	        	{if $res_owner_id == 0}
+	        		<div class="chat-avatar avatar-left">
+	        		{? $group_image = Group::getImage($template_variables['group_id'],'icon', Group::getName($template_variables['group_id']))}
+	        		{!group_image}
+					</div>
+					{var $group_name => Group::getName($template_variables['group_id'])}
+					{ifset $group_name}
+					<div id="{$id}_author" class="chat-author" style="display:none;">
+						{$group_name}
+					</div>
+					{/if}
+				{else}
 					<div class="chat-avatar avatar-left">
-						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_login']}">{!$icon}</a>{else}{!$icon}{/if}
+						{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res_owner_id)}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_login']}" class="ajax">{!$icon}</a>{else}{!$icon}{/if}
 					</div><br/>
 					<div id="{$id}_author" class="chat-author" style="display:none;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}">{$r_author['user_login']}</a>{else}{$r_author['user_login']}{/if}
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res_owner_id)}<a href="{plink User:default, $r_data['resource_author']}" title="{$r_author['user_name']}" class="ajax">{$r_author['user_login']}</a>
+					{else}{$r_author['user_login']}{/if}
 					</div>
 					{if $r_author['user_access_level']>1}
 					<div><b class="icon-moderator" title="{_"moderator"}"></b></div>
 					{/if}
+				{/if}
     	    	</td>
         		<td>
 				<div id="{$id}_text" class="chat-text balloon-right">
 				<div class="arrow"></div>
-				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res->getOwner()->getUserId())}
-					{if !$res->getOwner()->isActive()}
+				{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$res_owner_id) ||  $res_owner_id == 0 }
+					{if !$res->getOwner()->isActive() && $res_owner_id != 0}
 					<p class="chat-inactive" style="color:#C00;">{_"User has been deactivated"}</p>
 					{/if}
+					{if $res_owner_id==0}
+					<div style="margin:0; padding:15px; background-color:#f6f6f6; box-shadow:inset 1px 1px 4px #999; border-radius:3px;">
+						{!$r_data['message_text']|htmlpurify}
+					</div>
+					{else}
 					{!$r_data['message_text']|htmlpurify}
+					{/if}
 					<div class="cleaner"></div>
 				{else}
 					<span class="chat-inactive" style="color:#CCC;">{_"Message not displayed because the user has been deactivated."}</span>
@@ -102,7 +123,7 @@
 
 	<div class="pager">
 	   {if $max_page > 1}
-			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
 	   {/if}
    
 	   {if $max_page > 7}
@@ -114,18 +135,18 @@
 	   {if $max_page > 2}
 	   {if $max_page < 8}
 	   {for $i = 2; $i <= $max_page-1; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
 	   {/for}   
 	   {else}
 	   {if $currentpage <= 5}
 	   {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
 	   {for $i = 2; $i <= $end; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
 	   {/for}
 	   {else}
 	   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
 	   {for $i = $currentpage-2; $i <= $end; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
 	   {/for}
 	   {/if}
 	   {/if}
@@ -138,7 +159,7 @@
 	   {/if}
    
 	   {if $max_page > 1}
-			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
 	   {/if}
 	</div>
 

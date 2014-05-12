@@ -363,4 +363,181 @@ class StaticModel extends BaseModel {
 		return $text;
 	}
 
+
+
+   /**
+    *	Sends email with PHPMailer
+    *	@param string $to_name Name of recipient
+    *	@param string $to_email Email address of recipient
+    *	@param string $subject Subject in email
+    *	@param string $text Main text in body
+    *	@param string $template Optional file name in folder /templates/Email/
+    *	@param string $additional_footer_text Optional additional text for footer
+    *	@return bool
+    */
+	public static function send_email($to_name, $to_email, $subject, $text, $additional_footer_text = null, $template = 'default.html') {
+		require_once(LIBS_DIR.'/PHPMailer/PHPMailerAutoload.php');
+ 		
+ 		$deployment_name = NEnvironment::getVariable("PROJECT_NAME");
+ 		$from_email = Settings::getVariable("from_email");
+ 		$from_name = $deployment_name;
+ 		$uri = NEnvironment::getVariable("URI");
+ 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+ 		$language = $session->language;
+		$footer_text = _t("You receive this email because you have signed up at %s.", $uri);
+ 		if (isset($additional_footer_text)) {
+ 			$footer_text .= "\n". $additional_footer_text;
+ 		}
+
+ 		// check if text is html formatted
+		if (strip_tags($text) != $text) {
+			// html
+	 		$text .= "<br>Yours,<br><br>".$deployment_name."<br><br>";
+			$html_text = $text;
+		} else {
+			// convert line breaks to <br> tag
+	 		$text .= "\r\n\r\nYours,\r\n\r\n".$deployment_name."\r\n\r\n";
+			$html_text = nl2br($text);
+			$html_text = self::markup_links($html_text);
+			// convert tabs to &nbsp;
+			$html_text = preg_replace("/\t/", " &nbsp;&nbsp;&nbsp;&nbsp;", $html_text);
+			$html_text = preg_replace("/----/", "<hr>", $html_text);
+			$html_text = self::make_links_clickable($html_text);
+		}
+
+ 		// check if text is html formatted
+		if (strip_tags($footer_text) != $footer_text) {
+			// html
+			$html_footer_text = $footer_text;
+		} else {
+			// convert line breaks to <br> tags
+			$html_footer_text = nl2br($footer_text);
+			$html_footer_text = self::markup_links($html_footer_text);
+			// convert tabs to &nbsp;
+			$html_footer_text = preg_replace("/\t/", " &nbsp;&nbsp;&nbsp;&nbsp;", $html_footer_text);
+			$html_footer_text = preg_replace("/----/", "<hr>", $html_footer_text);
+			$html_footer_text = self::make_links_clickable($html_footer_text);
+		}
+
+		$body = file_get_contents(APP_DIR.'/templates/Email/'.$template);
+
+		$replace = array(
+				'%FROM_EMAIL%' => $deployment_name,
+				'%FROM_NAME%' => $from_name,
+				'%DEPLOYMENT_NAME%' => $deployment_name,
+				'%SUBJECT%' => $subject,
+				'%URI%' => $uri,
+				'%LOGO_URI%' => $uri.'/images/logo.png',
+				'%TEXT%' => $html_text,
+				'%FOOTER_TEXT%' => $html_footer_text
+			);
+		$body = strtr($body, $replace);
+
+		$smileys = array(
+				':-o' => 'omg_smile.png',
+				':-O' => 'omg_smile.png',
+				':-)' => 'regular_smile.png',
+				':)' => 'regular_smile.png',
+				';-)' => 'wink_smile.png',
+				';)' => 'wink_smile.png',
+				':-(' => 'sad_smile.png',
+				':(' => 'sad_smile.png',
+				':-D' => 'teeth_smile.png',
+				':D' => 'teeth_smile.png',
+				':-P' => 'tongue_smile.png',
+				':P' => 'tongue_smile.png',
+				'(n)' => 'thumbs_down.png',
+				'(y)' => 'thumbs_up.png',
+				'8-)' => 'shades_smile.png',
+				'<3' => 'heart.png'
+			);
+		array_walk($smileys, function(&$value, $key){
+			$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+		});
+		$body = strtr($body, $smileys);
+
+		$mail = new PHPMailer;	
+
+		if (NEnvironment::getVariable("SMTP_HOST")) {
+			$mail->isSMTP();
+			$mail->Host = NEnvironment::getVariable("SMTP_HOST");
+			$mail->SMTPAuth = true;
+			$mail->Username = NEnvironment::getVariable("SMTP_USERNAME");
+			$mail->Password = NEnvironment::getVariable("SMTP_PASSWORD");
+			$mail->SMTPSecure = NEnvironment::getVariable("SMTP_ENCRYPTION"); // 'tls' or 'ssl'
+		}
+
+
+		$mail->AltBody = strip_tags($text."\r\n\r\n".$footer_text);
+		$mail->SetFrom($from_email, $from_name);
+		$mail->AddAddress($to_email, $to_name);
+		$mail->Subject = $subject;
+		$mail->MsgHTML($body);
+		$mail->CharSet = mb_detect_encoding($body); //'UTF-8';
+//		$mail->addAttachment("email/attachment.pdf");
+
+		if($mail->Send()) {
+		  return true;
+		} else {
+		  return false; // echo "Mailer Error: " . $mail->ErrorInfo;
+		}
+	}
+
+
+	/**
+	 * converts links in markup format to html
+	 *	@param string $input
+	 *	@return string
+	 */
+	public static function markup_links($input) {
+		$input = preg_replace('/\[([^\]]+)\]\s*\((https?:\/\/[^)]+)\)/', '<a href="$2" target="_blank">$1</a>', $input); // [abc] (http://www.example.com)
+		$input = preg_replace('/"([^"]+)"\s*\((https?:\/\/[^)]+)\)/', '<a href="$2" target="_blank">$1</a>', $input); // "abc" (http://www.example.com)
+		return $input;
+	}
+
+   /**
+    *	Makes links (with protocol) clickable
+    *	@param string $input
+    *	@return string
+    */
+	public static function make_links_clickable($input) {
+			// make links clickable
+			// credits: http://stackoverflow.com/a/1188652 (modified)
+			$output = '';
+			$validTlds = array_fill_keys(explode(" ", ".aero .asia .biz .cat .com .coop .edu .gov .info .int .jobs .mil .mobi .museum .name .net .org .pro .tel .travel .ac .ad .ae .af .ag .ai .al .am .an .ao .aq .ar .as .at .au .aw .ax .az .ba .bb .bd .be .bf .bg .bh .bi .bj .bm .bn .bo .br .bs .bt .bv .bw .by .bz .ca .cc .cd .cf .cg .ch .ci .ck .cl .cm .cn .co .cr .cu .cv .cx .cy .cz .de .dj .dk .dm .do .dz .ec .ee .eg .er .es .et .eu .fi .fj .fk .fm .fo .fr .ga .gb .gd .ge .gf .gg .gh .gi .gl .gm .gn .gp .gq .gr .gs .gt .gu .gw .gy .hk .hm .hn .hr .ht .hu .id .ie .il .im .in .io .iq .ir .is .it .je .jm .jo .jp .ke .kg .kh .ki .km .kn .kp .kr .kw .ky .kz .la .lb .lc .li .lk .lr .ls .lt .lu .lv .ly .ma .mc .md .me .mg .mh .mk .ml .mm .mn .mo .mp .mq .mr .ms .mt .mu .mv .mw .mx .my .mz .na .nc .ne .nf .ng .ni .nl .no .np .nr .nu .nz .om .pa .pe .pf .pg .ph .pk .pl .pm .pn .pr .ps .pt .pw .py .qa .re .ro .rs .ru .rw .sa .sb .sc .sd .se .sg .sh .si .sj .sk .sl .sm .sn .so .sr .st .su .sv .sy .sz .tc .td .tf .tg .th .tj .tk .tl .tm .tn .to .tp .tr .tt .tv .tw .tz .ua .ug .uk .us .uy .uz .va .vc .ve .vg .vi .vn .vu .wf .ws .ye .yt .yu .za .zm .zw .xn--0zwm56d .xn--11b5bs3a9aj6g .xn--80akhbyknj4f .xn--9t4b11yi5a .xn--deba0ad .xn--g6w251d .xn--hgbk6aj7f53bba .xn--hlcj6aya9esc7a .xn--jxalpdlp .xn--kgbechtv .xn--zckzah .arpa"), true);
+
+			$position = 0;
+			$rexProtocol = '(https?://)'; //'(https?://)?'
+			$rexDomain   = '((?:[-a-zA-Z0-9]{1,63}\.)+[-a-zA-Z0-9]{2,63}|(?:[0-9]{1,3}\.){3}[0-9]{1,3})';
+			$rexPort     = '(:[0-9]{1,5})?';
+			$rexPath     = '(/[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]*?)?';
+			$rexQuery    = '(\?[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+			$rexFragment = '(#[!$-/0-9:;=@_\':;!a-zA-Z\x7f-\xff]+?)?';
+			while (preg_match("{([^\"'>])$rexProtocol$rexDomain$rexPort$rexPath$rexQuery$rexFragment(?=[?.!,;:]?(\s|$|\)|\.))}i", $input, $match, PREG_OFFSET_CAPTURE, $position))
+			{
+				list($url, $urlPosition) = $match[0];
+
+				$output .= substr($input, $position, $urlPosition - $position);
+
+				$domain = $match[3][0];
+				$port   = $match[4][0];
+				$path   = $match[5][0];
+				$query	= $match[6][0];
+				
+				$tld = strtolower(strrchr($domain, '.'));
+				if (preg_match('{\.[0-9]{1,3}}', $tld) || isset($validTlds[$tld]))
+				{
+					$completeUrl = $match[2][0] ? $url : "http://$url";
+					$output .= $match[1][0].sprintf('<a href="%s" target="_blank">%s</a>', htmlspecialchars($completeUrl), htmlspecialchars("$domain$port$path$query"));
+				}
+				else
+				{
+					$output .= htmlspecialchars($url);
+				}
+				$position = $urlPosition + strlen($url);
+			}
+			$output .= substr($input, $position);
+			
+			return $output;
+		}
 }

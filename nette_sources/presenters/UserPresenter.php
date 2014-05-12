@@ -17,6 +17,7 @@ final class UserPresenter extends BasePresenter
 	protected $user;
 	protected $user_id;
 	protected $control_key;
+	private $ajax = false;
 
 /**
  *	runs startup in BasePresenter
@@ -76,7 +77,8 @@ final class UserPresenter extends BasePresenter
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 				
 		if (!is_null($user_id)) {
-			$this->template->load_js_css_editor = true;
+//			$this->template->load_js_css_editor = true;
+			unset($this->template->popup_chat);
 			$this->setView('detail');
 			$this->user = User::create($user_id);
 			$d          = $this->user->getUserData();
@@ -91,7 +93,6 @@ final class UserPresenter extends BasePresenter
 			
 			$this->template->last_activity = $this->user->getLastActivity();
 			$this->template->format_date = _t("j.n.Y");
-//			$this->template->last_activity_status = User::getRelativeLastActivity($user_id);
 			
 			$this->visit(1, $user_id);
 			$this->template->user_id = $user_id;
@@ -160,7 +161,7 @@ final class UserPresenter extends BasePresenter
 		
 		if (isset($data)) {
 			$languages = Language::getArray();
-			if (isset($languages[$data['object_data']['user_language']])) $this->template->object_language = $languages[$data['object_data']['user_language']];
+			if (isset($data['object_data']['user_language']) && isset($languages[$data['object_data']['user_language']])) $this->template->object_language = $languages[$data['object_data']['user_language']];
 		}
 
 	}
@@ -326,7 +327,9 @@ final class UserPresenter extends BasePresenter
 		if (count($friends) < 1) {
 			$this->template->nofriends = true;
 		}
-		$this->template->load_js_css_editor = true;
+//		$this->template->load_js_css_editor = true;
+		
+		unset($this->template->popup_chat);
 	}
 
 
@@ -1349,10 +1352,7 @@ final class UserPresenter extends BasePresenter
 				'show_extended_columns' => true,
 				'connection_columns' => true
 			),
-			'refresh_path' => 'User:default',
-			'refresh_path_params' => array(
-				'user_id' => $this->user->getUserId()
-			),
+			'refresh_path' => 'User:default'
 		);
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
@@ -1360,6 +1360,7 @@ final class UserPresenter extends BasePresenter
 				'user_id' => $session->data['object_id']
 			);
 			$options['cache_tags'] = array("user_id/".$session->data['object_id']);
+			$options['refresh_path_params'] = array('user_id' => $session->data['object_id']);
 		}
 		
 		$control = new ListerControlMain($this, $name, $options);
@@ -1578,9 +1579,47 @@ final class UserPresenter extends BasePresenter
 			'object_id' => $object_id
 		);
 		
-		
-		$this->redirect("this");
+		if ($this->isAjax()) {
+			$this->actionDefault();
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		} else {
+		  	$this->redirect('this');
+		}
 	}
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
+	public function handleDetailPage($object_type, $object_id)
+	{
+		$this->user_id                = $object_id;
+		$this->user                   = User::create($object_id);
+		$data                         = $this->user->getUserData();
+		$this->template->default_data = array(
+			'object_type' => $object_type,
+			'object_id' => $object_id,
+			'object_data' => $data
+		);
+		
+		$session       = NEnvironment::getSession()->getNamespace($this->name);
+		$session->data = array(
+			'object_type' => $object_type,
+			'object_id' => $object_id
+		);
+		
+		if ($this->isAjax()) {
+			$this->actionDefault($object_id);
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+		} else {
+		  	$this->redirect('this');
+		}
+	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1835,103 +1874,6 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	click on move-to-trash icon in message list
-	 *	@param
-	 *	@return
-	*/
-	public function handleMoveToTrash($resource_id)
-	{
-		$user     = NEnvironment::getUser()->getIdentity();
-		$resource = Resource::create($resource_id);
-		
-		if (!empty($resource)) {
-			if (!empty($user)) {
-				if ($resource->userIsRegistered($user->getUserId())) {
-					Resource::moveToTrash($resource_id);
-					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage);
-					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
-				}
-			}
-		}
-		$this->terminate();
-	}
-
-
-	/**
-	 *	click on restore-from-trash icon in message list
-	 *	@param
-	 *	@return
-	*/
-	public function handleMoveFromTrash($resource_id)
-	{
-		$user     = NEnvironment::getUser()->getIdentity();
-		$resource = Resource::create($resource_id);
-
-		if (!empty($resource)) {
-			if (!empty($user)) {
-				if ($resource->userIsRegistered($user->getUserId())) {
-					Resource::moveFromTrash($resource_id);
-					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage);
-					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
-				}
-			}
-		}
-		$this->terminate();
-	}
-
-
-	/**
-	*	Marks message as read
-	 *	@param
-	 *	@return
-	 */
-	public function handleMarkRead($resource_id)
-	{
-		$user     = NEnvironment::getUser()->getIdentity();
-		$resource = Resource::create($resource_id);
-		if (!empty($resource)) {
-			if (!empty($user)) {
-				if ($resource->userIsRegistered($user->getUserId())) {
-					$resource->setOpened($user->getUserId(),$resource_id);
-					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage);
-					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
-				}
-			}
-		}
-		$this->terminate();
-	}
-
-
-	/**
-	 *	Marks message as unread
-	 *	@param
-	 *	@return
-	 */
-	public function handleMarkUnread($resource_id)
-	{
-		$user     = NEnvironment::getUser()->getIdentity();
-		$resource = Resource::create($resource_id);
-		
-		// cannot mark own messages as unread?
-		
-		if (!empty($resource)) {
-			if (!empty($user)) {
-				if ($resource->userIsRegistered($user->getUserId())) {
-					$resource->setUnopened($user->getUserId(),$resource_id);
-					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage);
-					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
-				}
-			}
-		}
-		$this->terminate();
-	}
-
-
-	/**
 	 *	@todo ### Description
 	 *	@param
 	 *	@return
@@ -1975,10 +1917,10 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	*/
+	 *	Triggered by clicking on a tag; sets filter to this tag
+	 *	@param int $tag_id
+	 *	@return void
+	 */
 	public function handleSearchTag($tag_id)
 	{
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) $name='defaultresourceresourcelister' ; else $name='userlister';
@@ -2035,17 +1977,16 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
+	 *	Receives the PM
 	 *	@param
 	 *	@return
 	*/
 	public function handleSubmitPMChat($message_text = '', $recipient_id)
 	{
-		
 		$logged_user = NEnvironment::getUser()->getIdentity();
 		
-		if ($recipient_id == 0 || !$logged_user->friendshipIsRegistered($recipient_id)) {
-			die("false");
+		if ($recipient_id == 0 || !$logged_user->friendshipIsRegistered($recipient_id) || empty($message_text)) {
+			echo json_encode(_t("Error sending message.")); die();
 		}
 
 		$resource                          = Resource::create();
@@ -2060,7 +2001,7 @@ final class UserPresenter extends BasePresenter
 		$resource->setResourceData($data);
 		$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
 		if ($check === true) {
-			die("false");
+			echo json_encode(_t("You have just said that.")); die();
 		}		
 		$resource->save();
 		$resource->updateUser($recipient_id, array(
@@ -2076,9 +2017,17 @@ final class UserPresenter extends BasePresenter
 		$cache = new NCache($storage);
 		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidget")));
 		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmwidget")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidgetslim")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmwidgetslim")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/messagelisteruser")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/messagelisteruser")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmabstract")));
+		$cache->clean(array(NCache::TAGS => array("user_id/$recipient_id", "name/pmabstract")));
 
-		die("true");
+		echo json_encode("true");
+		die();
 	}
+
 
 	/**
 	 *	Authentication via Facebook API. Returns $url to FB API for login, true if login succeeded or false if login not yet completed.
@@ -2275,5 +2224,6 @@ final class UserPresenter extends BasePresenter
 			
 		}
 	}
+
 
 }

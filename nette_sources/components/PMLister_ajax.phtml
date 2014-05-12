@@ -16,7 +16,18 @@
    {snippet list_body}
 
 <div id="empty-trash">
-	{control emptytrashform}
+	{* control emptytrashform *}
+	<a id="empty_trash_button" href="javascript:void(0);" class="button">{_"Empty Trash"}</a>
+<script>
+	$(document).ready(function(){
+		$('#empty_trash_button').click(function(){
+			$.ajax("{!$baseUri}chat/?do=emptyTrash").done(function() {
+    			alert( {_"Trash emptied."});
+    			reloadChat();
+  			})
+		});
+	});
+</script>
 </div>
 
 
@@ -126,12 +137,12 @@
 				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" class="ajax">{? echo User::getImage($sender_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
 {ifset $wanttoshowname}
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}" class="ajax">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
 					{/if}
 {else}
 					{$user_data['user_login']}
@@ -247,7 +258,7 @@
 				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
 					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="{!$baseUri}user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="{!$baseUri}user/?user_id={$recipient_id}" class="ajax">{? echo User::getImage($recipient_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}">
@@ -318,7 +329,7 @@
 
 	<div class="pager">
 	   {if $max_page > 1}
-			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
 	   {/if}
    
 	   {if $max_page > 7}
@@ -330,18 +341,18 @@
 	   {if $max_page > 2}
 	   {if $max_page < 8}
 	   {for $i = 2; $i <= $max_page-1; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
 	   {/for}   
 	   {else}
 	   {if $currentpage <= 5}
 	   {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
 	   {for $i = 2; $i <= $end; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
 	   {/for}
 	   {else}
 	   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
 	   {for $i = $currentpage-2; $i <= $end; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
 	   {/for}
 	   {/if}
 	   {/if}
@@ -354,7 +365,7 @@
 	   {/if}
    
 	   {if $max_page > 1}
-			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
 	   {/if}
 	</div>
    {/snippet}
@@ -383,6 +394,7 @@
 				$('html,body').animate({
 					scrollTop: $("#chat_top_anchor").offset().top
 				}, 2000, function(){
+					$('#send_a_message_body').show();
 					CKEDITOR.instances[instance_name].insertHtml(content);
 					content = '';
 					CKEDITOR.instances[instance_name].focus();				

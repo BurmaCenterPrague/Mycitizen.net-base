@@ -117,7 +117,7 @@ class ExternalFilter extends NControl
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-		$template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		
 		$template->setFile(dirname(__FILE__) . '/ExternalFilter.phtml');
 		$template->name = $this->name;
@@ -211,7 +211,10 @@ class ExternalFilter extends NControl
 		if (isset($logged_user)) {
 			$logged_user_id = $logged_user->getUserId();
 			$count_unread = User::getUnreadMessages($logged_user_id);
-			if ($count_unread) $trash['2'] = _t('Unread');
+			if ($count_unread) {
+				$trash['2'] = _t('Unread');
+				$defaults['trash'] = '2';
+			}
 		}
 		$trash['0'] = _t('Mailbox');
 		$trash['1'] = _t('Trash');
@@ -240,15 +243,16 @@ class ExternalFilter extends NControl
 		$form->addSubmit('reset', _t('Clear Filter'));
 		$form->addSubmit('filter', _t('Apply Filter'));
 		$form->addSubmit('suggest', _t('Similar to me'));
+//		$form->getElementPrototype()->class[] = "ajax";
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'
 		);
 
-		$user = NEnvironment::getUser()->getIdentity();
+//		$user = NEnvironment::getUser()->getIdentity(); // ?????
 		$defaults['tags']['all'] = 1;
 		$defaults['filter_pairing'] = 'and';
-		$defaults['trash'] = '2';
+		
 		$form->setDefaults($defaults);
 
 		return $form;

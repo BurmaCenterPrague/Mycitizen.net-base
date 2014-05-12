@@ -59,7 +59,7 @@
 	<div id="topheader">
 		<div style="padding:20px 20px 0 250px;">
 			<h1>{_"Please select a file"}</h1>
-			<h2>{_"Files of %s", $user_name}</h2>
+			{ifset $user_name}<h2>{_"Files of %s", $user_name}</h2>{/if}
 		</div>
 		<div style="float:right;">
 			<a href="javascript:void(0);" onclick="window.close()" class="button" style="text-decoration:none;">{_"close"}</a>

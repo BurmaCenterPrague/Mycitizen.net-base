@@ -39,23 +39,68 @@ class Cron extends BaseModel
 			echo date("r").': '.'Queuing notifications to be sent ...<br/>';
 		}
 
+		$uri = NEnvironment::getVariable("URI");
 		$users_a = User::getAllUsersForCron();
 		if (is_array($users_a)) {
 			foreach ($users_a as $user_a) {
-				if (User::getUnreadMessages($user_a['user_id'])) {
-					$language = Language::getFlag($user_a['user_language']);
-					if (empty($language)) {
-						$language = 'en_US';
+				$new_messages = false;
+				$new_activity = false;
+				$language = Language::getFlag($user_a['user_language']);
+				if (empty($language)) {
+					$language = 'en_US';
+				}
+				_t_set($language);
+				$language_id = User::getUserLanguage($user_a['user_id']);
+				
+				$email_text = '';
+
+				// unread private messages
+				$number = User::getUnreadMessages($user_a['user_id']);
+				if ($number > 0) {
+					// TO DO: option for counting in other languages
+					if ($number == 1) {
+						$email_text .= _t("You have 1 unread message!");
+					} else {
+						$email_text .= _t("You have %d unread messages!", $number);
 					}
-					_t_set($language);
-					$email_text = _t("Dear %s", $user_a['user_login']). ",\n\n";
-					$email_text .= _t("You have unread messages!");
-					Cron::addCron(time() - 1, 1, $user_a['user_id'], $email_text, 0, 0);
-					User::setUserCronSent($user_a['user_id']);
+					$link = $uri.'/user/messages/?language='.$language_id;
+					$email_text .= "\r\n<p>".StaticModel::markup_links( _t('Read your messages in your [inbox] (%s).', $link))."</p>\r\n";
+					$new_messages = true;
 					if (isset($this->verbose)) {
 						echo date("r").': '.'User with id '.$user_a['user_id'].' will receive a notification about unread messages.<br/>';
 					}
 				}
+
+				// sending activity only for time since last logout
+				$min_time = ($user_a['user_last_notification'] > strtotime($user_a['user_last_activity'])) ? $user_a['user_last_notification'] : strtotime($user_a['user_last_activity']);
+
+				// new activity
+				$data = Activity::getActivities($user_a['user_id'], $min_time);
+				if (!empty($data)) {
+					if (!empty($email_text)) {
+						$email_text .= "<p>&nbsp;</p>\r\n"; //'<hr><p>&nbsp;</p>';
+					}
+					$email_text .= '<p>'._t('Here is an overview of what has happened since your last visit:').'</p>';
+					$email_text .= Activity::renderList($data, $user_a['user_id'], true);
+					$link = $uri.'&language='.$language_id;
+					$email_text .= "\r\n<p>".StaticModel::markup_links(_t('Find a list of your activities [on your home page] (%s).', $link))."</p>\r\n";
+					$new_activity = true;
+					if (isset($this->verbose)) {
+						echo date("r").': '.'User with id '.$user_a['user_id'].' will receive a list of activities.<br/>';
+					}
+				}
+					
+				if ($new_messages || $new_activity) {
+					$email_text = _t("Dear %s", User::getFullName($user_a['user_id'])).",<br>\r\n<br>\r\n".$email_text;
+					if ($new_messages) {
+						Cron::addCron(time() - 1, 1, $user_a['user_id'], $email_text, 0, 0);
+					} else {
+						Cron::addCron(time() - 1, 1, $user_a['user_id'], $email_text, 4, 0);
+					}
+
+					User::setUserCronSent($user_a['user_id']);
+				}
+
 			}
 		}
 
@@ -83,26 +128,41 @@ class Cron extends BaseModel
 			case '1': // user
 				$email = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $task['recipient_id']);
 
+				$mail_body = $task['text'];
+				$footer_note = null;
+
+				$profile_url = $uri.'/user/edit/?user_id='.$task['recipient_id'];		
+				
 				switch ($task['object_type']) {
 					case 0:
 						$language_id = User::getUserLanguage($task['recipient_id']);
 						$link = $uri.'/user/messages/?language='.$language_id;
+						$footer_note = _t('Too many emails? You can change the schedule on your [profile page](%s).', $profile_url);
+						$mail_subject = _t('You have unread messages at %s', $sender_name);
 					break;
 					case 1:
 						$language_id = User::getUserLanguage($task['recipient_id']);
 						$link = $uri.'/user/?user_id='.$task['object_id']. '&language='.$language_id;
+						$mail_body .= "\r\n\r\n"._t('Continue to this [user] (%s).', $link)."\r\n";
+						$mail_subject = sprintf(_t('Notification from %s'), $sender_name);
 					break;
 					case 2:
 						$language_id = User::getUserLanguage($task['recipient_id']);
 						$link = $uri.'/group/?group_id='.$task['object_id']. '&language='.$language_id;
+						$mail_body .= "\r\n\r\n"._t('Continue to this [group] (%s).', $link)."\r\n";
+						$mail_subject = sprintf(_t('Notification from %s'), $sender_name);
 					break;
 					case 3:
 						$language_id = User::getUserLanguage($task['recipient_id']);
 						$link = $uri.'/resource/?resource_id='.$task['object_id'].'&language='.$language_id;
+						$mail_body .= "\r\n\r\n"._t('Continue to this [resource] (%s).', $link)."\r\n";
+						$mail_subject = sprintf(_t('Notification from %s'), $sender_name);
 					break;
-					default:
+					case 4:
 						$language_id = User::getUserLanguage($task['recipient_id']);
 						$link = $uri.'&language='.$language_id;
+						$footer_note = _t('Too many emails? You can change the schedule on your [profile page](%s).', $profile_url);
+						$mail_subject = sprintf(_t('Recent activity at %s'), $sender_name);
 					break;
 				}
 			
@@ -112,21 +172,15 @@ class Cron extends BaseModel
 				}
 				_t_set($language);
 
-				$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
+				$fullname = User::getFullName($task['recipient_id']);
 
-				$mail_body = $task['text'];
-				$mail_body .= "\r\n\n"._t('Find more information at:')."\r\n";
-				$mail_body .= $link;
-				$mail_body .= "\r\n\r\n".$sender_name."\r\n\r\n";
-			
-				if (mail($email, $mail_subject, $mail_body, $options)) {
-			
+				if (StaticModel::send_email($fullname, $email, $mail_subject, $mail_body, $footer_note)) {
 					if (isset($this->verbose)) {
 						echo date("r").': '.'Cron task #'.$task['cron_id'].': Email sent to '.$email.'<br/>';
 					}
 					dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
 				
-					} else {
+				} else {
 					
 					if (isset($this->verbose)) {
 						echo date("r").': '.'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.'<br/>';
@@ -172,31 +226,25 @@ class Cron extends BaseModel
 				}
 				_t_set($language);
 				
-				$mail_subject = '=?UTF-8?B?' . base64_encode(sprintf(_t('Notification from %s'), $sender_name)) . '?=';
-		
+				$mail_subject = _t('A message from your group %s at %s', $group_name, $sender_name);
 				$mail_body = $task['text'];
 				$mail_body .= "\r\n\r\n".sprintf(_t('You receive this message as a member of the group "%s".'),$group_name);
-				$mail_body .= "\r\n\r\n"._t('Find more information at:')."\r\n";
-				$mail_body .= $link;
-				$mail_body .= "\r\n\r\nYours,\r\n\r\n".$sender_name."\r\n\r\n";
+				$mail_body .= "\r\n\r\n"._t('Find more information [on the page of the group] (%s).', $link)."\r\n";
 
 				// send emails				
 				foreach ($users_a as $user_a) {
-				
 					$email = $user_a['user_email'];
-
-					if (mail($email, $mail_subject, $mail_body, $options)) {
-			
+					$fullname = User::getFullName($task['recipient_id']);
+					$profile_url = $uri.'/user/edit/?user_id='.$task['recipient_id'];		
+					$footer_note = "\n"._t('Too many messages? You can change the schedule on your [profile page](%s).', $profile_url);
+					if (StaticModel::send_email($fullname, $email, $mail_subject, $mail_body, $footer_note)) {
 						if (isset($this->verbose)) {
 							echo date("r").': '.'Cron task #'.$task['cron_id'].': Email sent to '.$email.' (member of group '.$group_name.')<br/>';
 						}
-
 						dibi::query("UPDATE `cron` SET `executed_time` = %i WHERE `cron_id` = %i", time(), $task['cron_id']);
-				
 					} elseif (isset($this->verbose)) {
 						echo date("r").': '.'Cron task #'.$task['cron_id'].': Problem sending email to '.$email.' (member of group '.$group_name.')<br/>';
 					}
-					
 				}
 								
 			break;

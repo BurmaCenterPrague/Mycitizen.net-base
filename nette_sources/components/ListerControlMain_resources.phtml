@@ -90,7 +90,7 @@
 			{? $id=$row['id']}
         	{? $color='transparent'}    
         	<div class="item{ifset $template_variables['selected_row']}{if $template_variables['selected_row'] == $row['id']} selected_row{/if}{/if}"
-			{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}{* Top on front page*} onClick="window.location = '{!$baseUri}resource/?resource_id={$row['id']}'"{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *} onClick="showObjectDetail({$row['type']},{$row['id']})"{/if}>
+			{if isset($template_variables['front_page']) || isset($template_variables['connection_columns']) || isset($template_variables['friend_lister'])}{* Top on front page*} onClick="showObjectDetail(3,{$row['id']},'{!$baseUri}resource/?resource_id={$row['id']}')"{elseif isset($template_variables['user_group_resource_page'])}{* user, group, resource lists *} onClick="showObjectDefault(3,{$row['id']})"{/if}>
 						{? $resource_type=''}
 						{var $res => Resource::Create($row['id'])}
 						{var $resdata => $res->getResourceData()}
@@ -275,34 +275,33 @@
 	{/if}
 {/if}
 
-
 {if isset($template_variables['detail']) || isset($template_variables['your_connections']) || isset($template_variables['membership_detail']) || isset($template_variables['connection_columns'])}
 <div class="pager">
    {if $max_page > 1}
-   		<a href="{if $currentpage==1}#{else}{link changePage, page => 1}{/if}" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+   		<a href="javascript:void(0)" {if $currentpage!=1}onclick="changePageUrl({$template_variables['name']}, 1, {link this});"{/if} class="pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
    {/if}
    
    {if $max_page > 7}
    {if $currentpage > 5}
-    	<a href="{link changePage, page => $currentpage - 1}" class="pager-minus"><</a>
+    	<a href="javascript:void(0)" onclick="changePageUrl({$template_variables['name']}, {$currentpage - 1}, {link this});" class="pager-minus"><</a>
    {/if}
    {/if}
    
    {if $max_page > 2}
    {if $max_page < 8}
    {for $i = 2; $i <= $max_page-1; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
    {/for}   
    {else}
    {if $currentpage <= 5}
    {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = 2; $i <= $end; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
    {/for}
    {else}
    {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
    {/for}
    {/if}
    {/if}
@@ -310,12 +309,12 @@
 
    {if $max_page > 7}
    {if ($currentpage + 4) < $max_page}
-		<a href="{link changePage, page => $currentpage + 1}" class="pager-plus">></a>
+		<a href="javascript:void(0)" onclick="changePageUrl({$template_variables['name']}, {$currentpage + 1}, {link this});" class="pager-plus">></a>
    {/if}
    {/if}
    
    {if $max_page > 1}
-   		<a href="{link changePage, page => $max_page}" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+   		<a href="javascript:void(0)" onclick="changePageUrl({$template_variables['name']}, {$max_page}, {link this});" class="pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
    {/if}
 </div>
 
@@ -326,7 +325,7 @@
 	{/if}
 {else}
 {if !isset($template_variables["persistent_filter"])}
-	<a href="{plink Resource:default}" class="show-more">+ {_"more resources"}</a>
+	<a href="{plink Resource:default}" class="ajax show-more">+ {_"more resources"}</a>
 {/if}
 {/if}
 {/snippet}

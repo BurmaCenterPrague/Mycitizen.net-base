@@ -100,6 +100,7 @@ class ListerControlMain extends NControl
 			}
 		}
 
+		$this->template_variables['name'] = $this->name;
 		$this->registerHelpers();
 	}
 
@@ -116,11 +117,35 @@ class ListerControlMain extends NControl
 		require_once LIBS_DIR . '/HTMLPurifier/HTMLPurifier.auto.php';
 
 		$this->template->registerHelper('htmlpurify', function ($dirty_html) {
+		
+			$smileys = array(
+					':-o' => 'omg_smile.png',
+					':-O' => 'omg_smile.png',
+					':-)' => 'regular_smile.png',
+					':)' => 'regular_smile.png',
+					';-)' => 'wink_smile.png',
+					';)' => 'wink_smile.png',
+					':-(' => 'sad_smile.png',
+					':(' => 'sad_smile.png',
+					':-D' => 'teeth_smile.png',
+					':D' => 'teeth_smile.png',
+					':-P' => 'tongue_smile.png',
+					':P' => 'tongue_smile.png',
+					'(n)' => 'thumbs_down.png',
+					'(y)' => 'thumbs_up.png',
+					'8-)' => 'shades_smile.png',
+					'<3' => 'heart.png'
+				);
+			array_walk($smileys, function(&$value, $key){
+				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+			});
+			$dirty_html = strtr($dirty_html, $smileys);
+			
 			$config = HTMLPurifier_Config::createDefault();
 			$config->set('Attr.EnableID', true);
 			$config->set('Attr.IDBlacklistRegexp', '/^(?!((quoting_\d+)|(reply\d+))).*/'); // blacklisting all id attributes that don't start with "quoting_" followed by a number
 			$config->set('HTML.Nofollow', true);
-			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,div,br,img[src|alt|height|width|style],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b[class|title],div,br,img[src|alt|height|width|style|title],dir,span[style],blockquote[id],ol,ul,li[type],pre,u,hr,code,strike,sub,sup,p[style],table,tr,td[colspan],th,iframe[src|width|height|frameborder]');
 			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$config->set('HTML.SafeIframe', true);
 			$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www.youtube.com/embed/.*)|(player.vimeo.com/video/)%'); //allow YouTube and Vimeo
@@ -131,7 +156,7 @@ class ListerControlMain extends NControl
 			// converting references
 			$pattern = array(
 				'/(\s|^|>)(@{1,3}[^@\s<>"\'!?,:;()]+@?)([!?.,:;()\Z\s<])/u',
-				'/(\s|^|\W)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
+				'/(\s|^|>)(#[^#\s<>"\'!?,:;()]+#?)([!\?\,:;()\Z\s<])/u'
 			);
 			$text = preg_replace_callback(
 				$pattern,
@@ -168,7 +193,7 @@ class ListerControlMain extends NControl
 					return $lighter[1].'<a href="'.NEnvironment::getVariable("URI").'/'.$link.'" title="'.$title.'">'.$label.'</a>'.$lighter[3];
 				},
 				$text);
-			
+
 			return $text;
 		});
 		
@@ -221,11 +246,34 @@ class ListerControlMain extends NControl
 
 			// purify with simple options
 			$config = HTMLPurifier_Config::createDefault();
-			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b,br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
+			$config->set('HTML.Allowed', 'h2,h3,h4,a[href|target|rel],strong,b[class|title],br,dir,span[style],ol,ul,li[type],pre,u,hr,strike,sub,sup');
 			$config->set('Attr.AllowedFrameTargets', array('_blank', '_top'));
 			$purifier = new HTMLPurifier($config);
 			$output = $purifier->purify($output);
 
+			$smileys = array(
+					':-o' => 'omg_smile.png',
+					':-O' => 'omg_smile.png',
+					':-)' => 'regular_smile.png',
+					':)' => 'regular_smile.png',
+					';-)' => 'wink_smile.png',
+					';)' => 'wink_smile.png',
+					':-(' => 'sad_smile.png',
+					':(' => 'sad_smile.png',
+					':-D' => 'teeth_smile.png',
+					':D' => 'teeth_smile.png',
+					':-P' => 'tongue_smile.png',
+					':P' => 'tongue_smile.png',
+					'(n)' => 'thumbs_down.png',
+					'(y)' => 'thumbs_up.png',
+					'8-)' => 'shades_smile.png',
+					'<3' => 'heart.png'
+				);
+			array_walk($smileys, function(&$value, $key){
+				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+			});
+			$output = strtr($output, $smileys);
+			
 			return $output;
 		});
 	}
@@ -382,7 +430,7 @@ class ListerControlMain extends NControl
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-		$template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		
 		$template->setFile(dirname(__FILE__) . '/' . $this->template_filter);
 		if ($this->getParent()->name !== $this->presenter->name) {
@@ -409,7 +457,7 @@ class ListerControlMain extends NControl
 	 *	@param
 	 *	@return
 	 */
-	public function renderBody()
+	public function renderBody($output=true)
 	{
 		$template = $this->template;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -462,7 +510,6 @@ class ListerControlMain extends NControl
 			$template->render();
 			$output = ob_get_contents();
 			ob_end_clean();
-			echo $output;
 			if (isset($this->cache_expiry)) {
 				$settings = array(NCache::EXPIRE => time()+$this->cache_expiry);
 			} else {
@@ -474,6 +521,11 @@ class ListerControlMain extends NControl
 			}
 			$settings[NCache::TAGS][] = "name/$this->name";
 			$cache->save($cache_key, $output, $settings);
+			if ($output) {
+				echo $output;
+			} else {
+				return $output;
+			}
 		}
 	}
 
@@ -746,10 +798,9 @@ class ListerControlMain extends NControl
 		$this->setCurrentPage($page);
 		$filter['page'] = $this->currentpage;
 		$this->setFilterArray($filter);
-		$this->invalidateControl('list_body');
-		$this->invalidateControl('list_pager');
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -878,6 +929,7 @@ class ListerControlMain extends NControl
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -903,6 +955,7 @@ class ListerControlMain extends NControl
 		));
 		return $form;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1143,15 +1196,13 @@ class ListerControlMain extends NControl
 	 */
 	public function emptytrashformSubmitted(NAppForm $form)
 	{
-		$user = NEnvironment::getUser()->getIdentity();
-		
 		Resource::emptyTrash();
-		
+
+		$user = NEnvironment::getUser()->getIdentity();
+				
 		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Lister.messagelisteruser");
-		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId())));
-		$cache = new NCache($storage, "Lister.render.messagelisteruser");
-		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId())));
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
 		$this->flashMessage(_t("Trash emptied."));
 		$this->handleChangePage(1);
 	}

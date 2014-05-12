@@ -18,68 +18,75 @@
     	<meta name="description" content="{$PROJECT_DESCRIPTION}" />
     	<meta name="robots" content="{$robots}" n:ifset="$robots" />
     	<meta http-equiv="Content-Language" content="{$language_code}" />
-		<link rel="shortcut icon" type="image" href="{$baseUri}images/favicon.ico" />
+		<link rel="shortcut icon" type="image" href="{$baseUri_np}images/favicon.ico" />
 
-    	<link rel="stylesheet" media="screen" href="{$baseUri}css/mycitizen.min.css" />
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.fancybox.min.css" />
-	
-{ifset $load_js_css_tree}
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.tree.css" />
-{/if}
-{ifset $load_js_css_datetimepicker}
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery.calendarPicker.min.css" />
-{/if}
-		<link type="text/css" rel="stylesheet" href="{$baseUri}css/jquery.qtip.min.css" />
-{ifset $load_js_css_jcrop}
-{ifset $load_external_js_css}
-		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css" type="text/css" />
-{else}
-		<link rel="stylesheet" href="{$baseUri}css/jquery.Jcrop.min.css" type="text/css" />
-{/if}
-{/if}
+    	<link rel="stylesheet" media="screen" href="{$baseUri_np}css/mycitizen.min.css" />
+		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery.fancybox.min.css" />
 {ifset $load_external_js_css}
 		<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
 		<link href='//fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
 {else}
-		<script type="text/javascript" src="{$baseUri}js/jquery-1.10.2.min.js"></script>
-		<link href='{$baseUri}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
+		<script type="text/javascript" src="{$baseUri_np}js/jquery-1.10.2.min.js"></script>
+		<link href='{$baseUri_np}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
 {/if}
-		<script type="text/javascript" src="{$baseUri}js/jquery.nette.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/base-functions.min.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/jquery.json-2.2.min.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/jquery.fancybox.min.js"></script>
+
+{ifset $logged}
+		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery.tree.css" />
+		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery.calendarPicker.min.css" />
+{/if}
+{ifset $load_external_js_css}
+		<link rel="stylesheet" href="//cdn.jsdelivr.net/qtip2/2.2.0/jquery.qtip.min.css">
+		<script src="//cdn.jsdelivr.net/qtip2/2.2.0/jquery.qtip.min.js"></script>
+{else}
+		<link type="text/css" rel="stylesheet" href="{$baseUri_np}css/jquery.qtip.min.css" />
+		<script type="text/javascript" src="{$baseUri_np}js/jquery.qtip.min.js"></script>
+{/if}
+{ifset $logged}
+{ifset $load_external_js_css}
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css" type="text/css" />
+{else}
+		<link rel="stylesheet" href="{$baseUri_np}css/jquery.Jcrop.min.css" type="text/css" />
+{/if}
+{/if}
+		<script type="text/javascript" src="{$baseUri_np}js/jquery.nette.js"></script>
+		<script type="text/javascript" src="{$baseUri_np}js/base-functions.min.js"></script>
+		<script type="text/javascript" src="{$baseUri_np}js/jquery.json-2.2.min.js"></script>
+		<script type="text/javascript" src="{$baseUri_np}js/jquery.fancybox.min.js"></script>
 {ifset $load_js_css_zxcvbn}
 	{ifset $load_external_js_css}
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn-async.min.js"></script>
 	{else}
-		<script type="text/javascript" src="{$baseUri}js/zxcvbn-async.js"></script>	
+		<script type="text/javascript" src="{$baseUri_np}js/zxcvbn-async.js"></script>	
 	{/if}
 {/if}
 
-		<script type="text/javascript" src="{$baseUri}js/jquery-ui-1.10.4.custom.min.js"></script>
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/jquery-ui-1.10.4.custom.min.css" />
-{ifset $load_fullcalendar}
+		<script type="text/javascript" src="{$baseUri_np}js/jquery-ui-1.10.4.custom.min.js"></script>
+		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery-ui-1.10.4.custom.min.css" />
+{ifset $logged}
 	{ifset $load_external_js_css}
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/gcal.js"></script>
 		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />		
 	{else}
-		<script type="text/javascript" src="{$baseUri}js/fullcalendar.min.js"></script>
-		<script type="text/javascript" src="{$baseUri}js/gcal.js"></script>
-		<link rel="stylesheet" media="screen" href="{$baseUri}css/fullcalendar.css" />		
+		<script type="text/javascript" src="{$baseUri_np}js/fullcalendar.min.js"></script>
+		<script type="text/javascript" src="{$baseUri_np}js/gcal.js"></script>
+		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/fullcalendar.css" />		
 	{/if}
 {/if}
-		
-{ifset $load_js_css_editor}
-		<script src="{$baseUri}js/ckeditor/ckeditor.js"></script>
+{ifset $logged}
+		<script src="{$baseUri_np}js/ckeditor/ckeditor.js"></script>
 {/if}
 
-{ifset $load_js_css_jcrop}
+{ifset $logged}
 {ifset $load_external_js_css}
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.min.js"></script>
 {else}
-<script src="{$baseUri}js/jquery.Jcrop.min.js"></script>
+<script src="{$baseUri_np}js/jquery.Jcrop.min.js"></script>
 {/if}
+
+<script type="text/javascript" src="{$baseUri_np}js/jquery.calendarPicker.min.js"></script>
+<script type="text/javascript" src="{$baseUri_np}js/jquery.tree.min.js"></script>
+
 <script>
     function enableCrop(c) {
     	$('#x').val(c.x);
@@ -97,76 +104,12 @@
     	if (w==0 || h==0) { alert({_"Please select first a part of the image."}); return false };
 		window.location=this.location+'&do=crop&x='+x+'&y='+y+'&w='+w+'&h='+h+'&factor='+factor;	
     }
-</script>
-{/if}
-
-<script>
-	$(document).ready(function(){
-		$("a.active").prop("href", "javascript:void(0);");
-		$("a.active").css("cursor", "default");
-		
-		$('[title!=""]').qtip({
-			style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
-			show: { delay: 800 },
-			position: {
-        		my: 'top left',
-		        at: 'bottom right',// {$tooltip_position},
-		        target: 'mouse',
-		        adjust: {
-                	x: 15,
-                	y: 5
-            	}
-			}
-		});
-	});
-
-
-	$(document).ready(function() {
-		$(".tags-fancybox").fancybox({
-			closeBtn : true,
-			leftRatio: 0.15,
-			topRatio: 0,
-			maxWidth: 500,
-			helpers : {
-				overlay : {
-					css: {'background' : 'rgba(200, 200, 200, .5)'}
-				},
-				title : null
-			},
-		});
-	});
-	
-	$(document).ready(function() {
-		$(".fancybox").fancybox({
-			closeBtn : true,
-			helpers : {
-				overlay : {
-					css: {'background' : 'rgba(200, 200, 200, .5)'}
-				},
-				title : null
-			},
-		});
-	});
-	
-	function loadActivity(where, id, latest) {
-		$(where).animate({ opacity:0},function() {
-			$(this).load("{!$baseUri}?do=activity&id="+id+"&latest="+latest,function() {
-				$(this).animate({ opacity:1});
-				$('.fancybox-inner').animate({
-					scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
-				}, 2000);
-			});
-		});
-	}
-
-{ifset $logged}
+    
 	$(document).ready(function() {
 		$('.trash-radio').change(function(){
 			$('#frmfilter-filter').click();
 		});
-	});
-	
-	$(document).ready(function() {
+
 		setInterval("reloadMessages()",60*1000);
 		setInterval("onlineStatus()",65*1000);
 		onlineStatus();
@@ -174,7 +117,7 @@
 	
 	function reloadMessages() {
 		$.ajax({
-				url:"{!$baseUri}?do=reloadStatusBar",
+				url:"{!$baseUri_np}?do=reloadStatusBar",
 				dataType:"json"
 			}).done(function(payload){
 				$("#messages").html(payload['message_indicator']);
@@ -213,7 +156,7 @@
 			$(".online-status").promise().done(function() {
 				var json = JSON.stringify(status);
 				$.ajax({
-					url:"{!$baseUri}?do=onlineStatus&show_date=1",
+					url:"{!$baseUri_np}?do=onlineStatus&show_date=1",
 					dataType:"json",
 					data: {'data':json}
 				}).done(function(status_output){
@@ -227,7 +170,7 @@
 			$(".online-status-small").promise().done(function(){
 				var json = JSON.stringify(status_small);
 				$.ajax({
-					url:"{!$baseUri}?do=onlineStatus&show_date=0",
+					url:"{!$baseUri_np}?do=onlineStatus&show_date=0",
 					dataType:"json",
 					data: {'data':json}
 				}).done(function(status_output){
@@ -241,7 +184,7 @@
 			$(".online-status-title").promise().done(function(){
 				var json = JSON.stringify(status_title);
 				$.ajax({
-					url:"{!$baseUri}?do=onlineStatus&span=0",
+					url:"{!$baseUri_np}?do=onlineStatus&span=0",
 					dataType:"json",
 					data: {'data':json}
 				}).done(function(status_output){
@@ -254,8 +197,85 @@
 			});
 		}
 	}
+</script>
 {/if}
 
+
+<script>
+	$(document).ready(function(){
+		$("a.active").prop("href", "javascript:void(0);");
+		$("a.active").css("cursor", "default");
+
+		$(".tags-fancybox").fancybox({
+			closeBtn : true,
+			leftRatio: 0.15,
+			topRatio: 0,
+			maxWidth: 500,
+			helpers : {
+				overlay : {
+					css: {'background' : 'rgba(200, 200, 200, .5)'}
+				},
+				title : null
+			},
+		});
+
+	$(".fancybox").fancybox({
+			closeBtn : true,
+			helpers : {
+				overlay : {
+					css: {'background' : 'rgba(200, 200, 200, .5)'}
+				},
+				title : null
+			},
+		});
+	});
+	
+	function loadActivity(where, id, latest) {
+		$(where).animate({ opacity:0},function() {
+			$(this).load("{!$baseUri_np}?do=activity&id="+id+"&latest="+latest,function() {
+				$(this).animate({ opacity:1});
+				$('.fancybox-inner').animate({
+					scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
+				}, 2000);
+			});
+		});
+	}
+</script>
+<script>
+	$(document).ready(function(){
+		$('.user-info').mouseenter(function(){
+			$('.hidden-menu').filter(":hidden").slideDown("normal", function(){ //fade
+        		$(this).fadeTo("normal", 1.00, function() { //slide up
+         		});
+     		});
+		});
+	
+		$('.header').mouseleave(function(){
+			$('.hidden-menu').filter(":visible").fadeTo("normal", 0.00, function(){ //fade
+        		$(this).slideUp("normal", function() { //slide up
+         		});
+     		});
+     		$(this).clearQueue();
+		});
+	});
+</script>
+<script>
+$(document).ready(function() {
+    $(document).on('click', 'a.ajax', function(){
+    	var url = this.href;
+	    var urlq = url + (this.href.split('?')[1] ? '&':'?') + "do=clickLink";
+    	$.ajax(urlq,
+    		function(payload){
+    		if (payload) {
+				for (var id in payload.snippets) {
+					$("#" + id).html(payload.snippets[id]);
+				}
+			}
+    	});
+	    window.history.pushState("object or string", "Title", url);
+    	return false;
+    });
+});
 </script>
 <title>{$PROJECT_NAME} | {include #title}</title>
 </head>
@@ -278,12 +298,18 @@
 				<div class="login" style="{ifset $logged}min-height:70px;{/if}min-width:170px;">
 				{ifset $logged}
 					<a href="{link User:default, $my_id}" class="user-info" title="{_"go to your profile"}">{!$image} {$username}</a>
-					<div>
+					<div><a href="?toggleChat=toggle" target="_top" id="external_chat" title="{_"chat window"}"><img src="{!$baseUri_np}/images/new-window.png" style="float:right; padding-top:6px; cursor:pointer;"/></a>
+				<script>
+					$(document).ready(function(){
+						if (top.location != location) {
+							$('#external_chat').attr('href',location);
+						}
+					});
+				</script>
 						<a href="{link User:messages}" title="{_"read or write messages"}"><span id="messages">{!$messages}</span></a>
 						<div class="hidden-menu" style="display:none; opacity:0.00;">
 						<div class="fading">
-							<a href="{link User:edit, $my_id}"  class="button" >{_"Edit profile"}</a>
-{if !isset($homepage) || !$homepage}
+							<a href="{link User:edit, $my_id}" class="button" >{_"Edit profile"}</a>
 							<a href="#activity_box" class="button" id="show_activity">{_"Recent activity"}</a>
 <script type="text/javascript">
 $(function() {
@@ -310,7 +336,6 @@ $(document).ready(function(){
 	});
 });
 </script>
-{/if}
 							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
 						</div>
 						</div>
@@ -322,36 +347,19 @@ $(document).ready(function(){
 					<div id="load-more-1">
 					</div>
 				</div>
-			{else}
+				{else}
 				<div>
 					<a href="{link User:login}" class="button" >{_"Sign in"}</a>
 					<a href="{link User:register}" class="button" >{_"Sign up"}</a>
 				</div>
-			{/if}
+				{/if}
 
 			</div>
 
 			</div> <!-- header -->
-<script>
-	$(document).ready(function(){
-		$('.user-info').mouseenter(function(){
-			$('.hidden-menu').filter(":hidden").slideDown("normal", function(){ //fade
-        		$(this).fadeTo("normal", 1.00, function() { //slide up
-         		});
-     		});
-		});
-	
-		$('.header').mouseleave(function(){
-			$('.hidden-menu').filter(":visible").fadeTo("normal", 0.00, function(){ //fade
-        		$(this).slideUp("normal", function() { //slide up
-         		});
-     		});
-     		$(this).clearQueue();
-		});
-	});
-</script>
+
 			<div class="logo">
-				<h1><a href="{link Homepage:default}"><img src="{$baseUri}images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
+				<h1><a href="{link Homepage:default}" class="ajax"><img src="{$baseUri_np}images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
 			</div>
 			<div class="language">
 				<form>
@@ -365,7 +373,9 @@ $(document).ready(function(){
 			</div>
 		
 			<div class="main_menu">
+			{snippet mainMenu}
 				{control menu}
+			{/snippet}
 			</div> <!-- main menu -->
 
 			<div class="messages">
@@ -375,7 +385,27 @@ $(document).ready(function(){
 		</div> <!-- topheader -->
 
 		<div class="content" style="margin-top:30px;">
-			@{include #content}
+{snippet mainContent}
+	@{include #content}
+
+<script>
+	$(document).ready(function(){
+		$('[title!=""]').qtip({
+			style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
+			show: { delay: 800 },
+			position: {
+        		my: 'top left',
+		        at: 'bottom right',
+		        target: 'mouse',
+		        adjust: {
+                	x: 15,
+                	y: 5
+            	}
+			}
+		});
+	});
+</script>
+{/snippet}
 			<div class="cleaner"></div>
 		</div>
 
@@ -383,32 +413,27 @@ $(document).ready(function(){
 			{include $footer}
 
 			<div class="rules-and-conditions">
-			{? $terms_link = '<a href='.$TC_URL.' target="_blank">'._t("Terms of Use").'</a>'}
-			{? $pp_link = '<a href='.$PP_URL.' target="_blank">'._t("Privacy policy").'</a>'}
-				{!_"By using this platform you accept our %s and our %s.", $terms_link, $pp_link}
+				{_"By using this platform you accept our Terms of Use and our Privacy policy."}
+				<ul>
+				<li><a href="{$TC_URL}" target="_blank">{_"Terms of Use"}</a></li>
+				<li><a href="{$PP_URL}" target="_blank">{_"Privacy policy"}</a></li>
+				</ul>
 			</div>			
 			<div class="software-info">
 				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
 				<div class="cleaner"></div>
 				<h4>Stay Connected</h4>
-				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="{$baseUri}/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
-				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="{$baseUri}/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="{$baseUri_np}/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="{$baseUri_np}/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
 			</div>
 			<div class="sponsor-credits">
-				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="{$baseUri}/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
+				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="{$baseUri_np}/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
 			</div>
 			<div class="cleaner"></div>
 		</div> <!-- footer -->
 		
 	</div> <!-- layout -->
 
-	<script type="text/javascript" src="{$baseUri}js/jquery.qtip.min.js"></script>
-{ifset $load_js_css_datetimepicker}
-	<script type="text/javascript" src="{$baseUri}js/jquery.calendarPicker.min.js"></script>
-{/if}
-{ifset $load_js_css_tree}
-	<script type="text/javascript" src="{$baseUri}js/jquery.tree.min.js"></script>
-{/if}
 
 {ifset $piwik_url_bare}
 <!-- Piwik -->
@@ -430,5 +455,12 @@ $(document).ready(function(){
 </script>
 <!-- End Piwik Code -->
 {/if}
+{snippet popupchat}
+{ifset $logged}
+{ifset $popup_chat}
+	{include $popup_chat}
+{/if}
+{/if}
+{/snippet}
 	</body>
 </html>

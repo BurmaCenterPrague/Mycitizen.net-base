@@ -70,7 +70,7 @@ class TagListerControl extends NControl
 			$session->language = 'en_US';
 			$language = $session->language;
 		}
-		$template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		
 		$template->setFile(dirname(__FILE__) . '/TagListerControl_filter.phtml');
 		$template->data = $this->data;
@@ -93,7 +93,7 @@ class TagListerControl extends NControl
 			$session->language = 'en_US';
 			$language = $session->language;
 		}
-		$template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		
 		$template->setFile(dirname(__FILE__) . '/TagListerControl.phtml');
 		if ($this->getParent()->name !== $this->presenter->name) {
@@ -106,40 +106,7 @@ class TagListerControl extends NControl
 		$template->data        = $this->data;
 		$template->currentpage = $this->currentpage;
 		$template->max_page    = $this->getMaxPage();
-/*
-		if ($this->currentpage - $this->itemsonbar < 1) {
-			$template->start = 1;
-			$correction      = 1 - ($this->currentpage - $this->itemsonbar);
-			if ($this->currentpage + $this->itemsonbar > $this->getMaxPage()) {
-				$template->end = $this->getMaxPage();
-			} else {
-				$template->end = $this->currentpage + $this->itemsonbar;
-			}
-			
-			if ($template->end + $correction <= $this->getMaxPage()) {
-				$template->end += $correction;
-			} else {
-				$template->end = $this->getMaxPage();
-			}
-		} else {
-			$template->start = $this->currentpage - $this->itemsonbar;
-		}
-		if ($this->currentpage + $this->itemsonbar > $this->getMaxPage()) {
-			$template->end = $this->getMaxPage();
-			$correction    = $this->getMaxPage() - ($this->currentpage + $this->itemsonbar);
-			if ($template->start + $correction >= 1) {
-				$template->start += $correction;
-			} else {
-				$template->start = 1;
-			}
-		} else {
-			if ($this->currentpage + $this->itemsonbar < (2 * $this->itemsonbar + 1)) {
-				
-			} else {
-				$template->end = $this->currentpage + $this->itemsonbar;
-			}
-		}
-*/
+
 		
 		$template->render();
 		

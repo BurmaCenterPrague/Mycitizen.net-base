@@ -139,12 +139,12 @@
 				<td style="vertical-align:top; padding-top:7px; width:80px;">
 				{if !isset($template_variables['logged_user_id']) || $sender_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}">{? echo User::getImage($sender_id, 'icon')}</a>
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" class="ajax">{? echo User::getImage($sender_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
 {ifset $wanttoshowname}
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" title="{$user_data['user_name']} {$user_data['user_surname']}" class="ajax">{$user_data['user_login']}</a>{else}{$user_data['user_login']}
 					{/if}
 {else}
 					{$user_data['user_login']}
@@ -283,7 +283,7 @@
 				{if isset($recipient_data['member_name']) && $recipient_id != $sender_id}
 					{if isset($template_variables['logged_user_id']) && $recipient_id != $template_variables['logged_user_id']}
 				<div class="chat-avatar avatar-left" title="{$recipient_data['member_name']}" style="display:block;">
-					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="{!$baseUri}user/?user_id={$recipient_id}">{? echo User::getImage($recipient_id, 'icon')}</a>
+					{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$recipient_id)}<a href="{!$baseUri}user/?user_id={$recipient_id}" class="ajax">{? echo User::getImage($recipient_id, 'icon')}</a>
 					{else}{? echo User::getImage($sender_id, 'icon')}{/if}
 				</div><br/>
 				<div class="chat-author" id="{$id}_author" rel="{$sender_id}" style="display:none;">
@@ -372,30 +372,30 @@
 
 <div class="pager">
    {if $max_page > 1}
-   		<a href="{if $currentpage==1}#{else}{link changePage, page => 1}{/if}" class="pager-start{if $currentpage == 1} active{/if}">1</a>
+   		<a href="{if $currentpage==1}#{else}{link changePage, page => 1}{/if}" class="ajax pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
    {/if}
    
    {if $max_page > 7}
    {if $currentpage > 5}
-    	<a href="{link changePage, page => $currentpage - 1}" class="pager-minus"><</a>
+    	<a href="{link changePage, page => $currentpage - 1}" class="ajax pager-minus"><</a>
    {/if}
    {/if}
    
    {if $max_page > 2}
    {if $max_page < 8}
    {for $i = 2; $i <= $max_page-1; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
    {/for}   
    {else}
    {if $currentpage <= 5}
    {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = 2; $i <= $end; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
    {/for}
    {else}
    {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
    {/for}
    {/if}
    {/if}
@@ -403,12 +403,12 @@
 
    {if $max_page > 7}
    {if ($currentpage + 4) < $max_page}
-		<a href="{link changePage, page => $currentpage + 1}" class="pager-plus">></a>
+		<a href="{link changePage, page => $currentpage + 1}" class="ajax pager-plus">></a>
    {/if}
    {/if}
    
    {if $max_page > 1}
-   		<a href="{link changePage, page => $max_page}" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
+   		<a href="{link changePage, page => $max_page}" class="ajax pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
    {/if}
 </div>
 

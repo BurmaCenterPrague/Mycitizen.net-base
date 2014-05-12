@@ -223,6 +223,21 @@ class API_Base extends API implements iAPI
                } else {
                   $data['logged_user_member'] = 0;
                }
+/* begin changed */
+			if (isset($data['media_type']) && $data['media_type'] == 'media_youtube') {
+				$data['media_link'] = 'https://www.youtube.com/watch?v='.$data['media_link'];
+			}
+			if (isset($data['media_type']) && $data['media_type'] == 'media_vimeo') {
+				$data['media_link'] = 'http://vimeo.com/'.$data['media_link'];
+			}
+			if (isset($data['media_type']) && $data['media_type'] == 'media_soundcloud') {
+				$data['media_link'] = 'http://w.soundcloud.com/player/?url=www.soundcloud.com/tracks/'.$data['media_link'];
+			}
+			if (isset($data['media_type']) && $data['media_type'] == 'media_bambuser') {
+				$data['media_link'] = 'http://bambuser.com/v/'.$data['media_link'];
+			}
+/* end changed */
+
 
       	return $data;
 		} else {

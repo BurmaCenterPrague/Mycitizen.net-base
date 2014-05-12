@@ -26,7 +26,7 @@ $homepage = true;
 	<h4>{$access_level_welcome}<h4>
 	{/if}
 	{ifset $reports_pending}
-	<h4>{_"There are unread reports:"} <a href="{!$reports_url}" class="button">{$reports_pending}</a><h4>
+	<h4>{_"There are unread reports:"} <a href="{!$reports_url}" class="button ajax">{$reports_pending}</a><h4>
 	{/if}
 	{ifset $incomplete_profile}
 	<h4>{_"Now is the best time to complete your profile. You can enter your name, your location and tags for your interests."}</h4><p><a href="{link User:edit, $my_id}" class="button">{_"Click here to continue"}</a></p>
@@ -66,21 +66,21 @@ $homepage = true;
 			<h2>{_"My Friends"}</h2>
 				{control homepagefriendlister:body}
 			<div class="discover_new_users">
-				<a href="{link User:default}">{_"Discover new users"}</a>
+				<a href="{link User:default}" class="ajax">{_"Discover new users"}</a>
 			</div>
 		</div>
 		<div class="top-groups">
 			<h2>{_"My Groups"}</h2>
 				{control homepagegrouplister:body}
 			<div class="discover_new_groups">
-				<a href="{link Group:default}">{_"Discover new groups"}</a>
+				<a href="{link Group:default}" class="ajax">{_"Discover new groups"}</a>
 			</div>
 		</div>
 		<div class="top-resources">
 			<h2>{_"My Resources"}</h2>
 				{control homepageresourcelister:body}
 			<div class="discover_new_resources">
-				<a href="{link Resource:default}">{_"Discover new resources"}</a>
+				<a href="{link Resource:default}" class="ajax">{_"Discover new resources"}</a>
 			</div>
 		</div>
 	</div>
@@ -93,21 +93,21 @@ $homepage = true;
 			<h2>{_"Recommended Users"}</h2>
 				{control homepagerecommendeduserlister:body}
 			<div class="discover_new_users">
-				<a href="{link User:default}">{_"Discover new users"}</a>
+				<a href="{link User:default}" class="ajax">{_"Discover new users"}</a>
 			</div>
 		</div>
 		<div class="top-groups">
 			<h2>{_"Recommended Groups"}</h2>
 				{control homepagerecommendedgrouplister:body}
 			<div class="discover_new_groups">
-				<a href="{link Group:default}">{_"Discover new groups"}</a>
+				<a href="{link Group:default}" class="ajax">{_"Discover new groups"}</a>
 			</div>
 		</div>
 		<div class="top-resources">
 			<h2>{_"Recommended Resources"}</h2>
 				{control homepagerecommendedresourcelister:body}
 			<div class="discover_new_resources">
-				<a href="{link Resource:default}">{_"Discover new resources"}</a>
+				<a href="{link Resource:default}" class="ajax">{_"Discover new resources"}</a>
 			</div>
 		</div>
 		<div class="cleaner"></div>
@@ -250,7 +250,7 @@ $(function() {
 });
 </script>
 <!-- END Filter for my connections -->
-	
+
 {else}{* Users who are not logged in see "top" items. *}
 <div class="wrapper-home-B">
 	<div class="homepage_default_users">

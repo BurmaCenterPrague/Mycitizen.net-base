@@ -15,7 +15,7 @@
 {block content}
 
 <div class="back">
-	<a href="{link User:default}" title="{_"Back to list of users."}" class="list"><b class="icon-list"></b></a>
+	<a href="{link User:default}" title="{_"Back to list of users."}" class="list ajax"><b class="icon-list"></b></a>
 </div>
 
 <div class="about">
@@ -463,8 +463,12 @@
 				CKEDITOR.instances[instance_name].updateElement();
 				var serialized = $("#message_text").serialize();
 				$.post( '{!$baseUri}user/messages/?do=submitpmchat&recipient_id={!$default_data["object_data"]["user_id"]}', serialized, function(result) {
-					CKEDITOR.instances[instance_name].setData('');
-					reloadChatIfModified();
+					if (result == 'true') {
+						CKEDITOR.instances[instance_name].setData('');
+						reloadChatIfModified();
+					} else {
+						alert(result);
+					}
 				}, "json");
 			}
 		});

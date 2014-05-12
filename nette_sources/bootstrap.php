@@ -1,7 +1,7 @@
 <?php
 // about this version
-define('PROJECT_VERSION', '0.8');
-define('PROJECT_DATE', '20140503');
+define('PROJECT_VERSION', '0.9');
+define('PROJECT_DATE', '20140512');
 
 session_set_cookie_params(1209600);
 
@@ -81,6 +81,11 @@ $router[] = new NRoute($rewrite_base . 'browse/', array(
 $router[] = new NRoute($rewrite_base . 'mobilecaptcha/', array(
     'presenter' => 'Widget',
     'action' => 'mobilecaptcha',
+    ),$flag_all);
+
+$router[] = new NRoute($rewrite_base . 'chat/', array(
+    'presenter' => 'Widget',
+    'action' => 'messagepopup',
     ),$flag_all);
 
 $router[] = new NRoute($rewrite_base . '<presenter>/<action>/', array(

@@ -36,7 +36,7 @@ class Group extends BaseModel {
 	public function __construct($group_id) {
 		if(!empty($group_id)) {
 //			$result = dibi::fetchAll("SELECT * FROM `group` WHERE `group_id` = %i",$group_id);
-			$result = dibi::fetchAll("SELECT `group_id`, `group_author`, `group_name`, `group_description`, `group_language`, `group_visibility_level`, `group_access_level`, `group_status`, `group_viewed`, `group_position_x`, `group_position_y`, `group_last_activity`, `group_portrait`, `group_largeicon`, `group_icon`, `group_hash` FROM `group` WHERE `group_id` = %i",$group_id);  
+			$result = dibi::fetchAll("SELECT `group_id`, `group_author`, `group_name`, `group_description`, `group_language`, `group_visibility_level`, `group_access_level`, `group_status`, `group_viewed`, `group_position_x`, `group_position_y`, `group_last_activity`, `group_portrait`, `group_largeicon`, `group_icon` FROM `group` WHERE `group_id` = %i",$group_id); // , `group_hash`
 			if(sizeof($result) > 2) {
 				return false;
 				throw new Exception("More than one group with the same id found.");
@@ -64,6 +64,11 @@ class Group extends BaseModel {
 		foreach($data as $key=>$value) {
      		$this->group_data[$key] = $value;
     	}
+    	
+    	// Group hash (key) is not part of data so that it is not exposed through API. Additional security measure to showing group data only to people with sufficient permissions.
+		if (isset($data['group_hash'])) {
+			$this->group_data['group_hash'] = $data['group_hash'];
+		}
 	}
 
 
@@ -82,11 +87,11 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getGroupData() {
 		$data = $this->group_data;
 		
@@ -105,11 +110,11 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function save() {
 		try {
 			dibi::begin();
@@ -140,26 +145,28 @@ class Group extends BaseModel {
 		dibi::query("DELETE FROM `group` WHERE `group_id` = %i",$group_id);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the group id
+	 *	@param void
+	 *	@return int
 	 */
 	public function getGroupId() {
 		return $this->numeric_id;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the visibility level: 1: world, 2: deplyoment, 3: connections
+	 *	@param void
+	 *	@return int
 	 */
 	public function getVisibilityLevel() {
       return $this->group_data['group_visibility_level'];
    }
 
 	/**
-	 *	@todo ### Description
+	 *	@todo Returns the access level
 	 *	@param
 	 *	@return
 	 */
@@ -311,9 +318,9 @@ class Group extends BaseModel {
    }
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the access level of a particular user at that group. (1: member, 2: group moderator, 3: group adiminstrator/owner)
+	 *	@param int $user_id
+	 *	@return int
 	 */
 	public function getUserAccessLevel($user_id) {
 		$result = dibi::fetchAll("SELECT `group_user_access_level` FROM `group_user` WHERE `group_id` = %i AND `user_id` = %i",$this->numeric_id,$user_id);
@@ -387,7 +394,7 @@ class Group extends BaseModel {
 
 
 	/**
-	 *	@todo ### Description
+	 *	Returns the type of this item
 	 *	@param
 	 *	@return
 	 */
@@ -493,32 +500,32 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getLastActivity() {
       $result = dibi::fetchSingle("SELECT `group_last_activity` FROM `group` WHERE `group_id` = %i",$this->numeric_id);
       return $result;
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
    public function setLastActivity() {
       dibi::query("UPDATE `group` SET `group_last_activity` = NOW() WHERE `group_id` = %i",$this->numeric_id);
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getSubscribedResources() {
 		$group_id = $this->numeric_id;
         $result = dibi::fetchAll("SELECT * FROM `resource_user_group` LEFT JOIN `resource` ON `resource_user_group`.`resource_id` = `resource`.`resource_id` WHERE `resource`.`resource_type` IN (2,3,4,5,6) AND `resource`.`resource_status` = '1' AND `resource_user_group`.`member_id` = %i AND `resource_user_group`.`member_type` = 2",$group_id);
@@ -526,11 +533,11 @@ class Group extends BaseModel {
    }
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
 	public function getAvatar()
 	{
 		$portrait = dibi::fetchSingle("SELECT `group_portrait` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
@@ -548,11 +555,11 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function groupHasIcon()
 	{
 		$result = dibi::fetchSingle("SELECT `group_icon` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
@@ -563,11 +570,11 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getIcon()
 	{
 		$portrait = dibi::fetchSingle("SELECT `group_icon` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
@@ -585,6 +592,7 @@ class Group extends BaseModel {
 		return $portrait;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -595,6 +603,7 @@ class Group extends BaseModel {
 		$hash = dibi::fetchSingle("SELECT `group_hash` FROM `group` WHERE `group_id` = %i", $this->numeric_id);
 		return $hash;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -662,5 +671,105 @@ class Group extends BaseModel {
 
 	}
 
+
+	public function addActivityToChat($object_ids, $object_type, $reason) {
+
+		if (empty($object_ids)) return false;
+		
+		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$prev_language = $session->language;
+		_t_set(Language::getFlag($this->group_data['group_language']));
+
+		$resource_name = array(
+			1=>'1',
+			2=>'event',
+			3=>'org',
+			4=>'doc',
+			6=>'website',
+			7=>'7',
+			8=>'8',
+			9=>'friendship',
+			'media_soundcloud'=>'audio',
+			'media_youtube'=>'video',
+			'media_vimeo'=>'video',
+			'media_bambuser'=>'live-video'
+			);
+		$resource_type_labels = array(
+			1=>_t('message'),
+			2=>_t('event'),
+			3=>_t('organization'),
+			4=>_t('document'),
+			6=>_t('link to external resource'),
+			7=>'7',
+			8=>'8',
+			9=>'friendship',
+			'media_soundcloud'=>_t('sound on Soundcloud'),
+			'media_youtube'=>_t('video on YouTube'),
+			'media_vimeo'=>_t('video on Vimeo'),
+			'media_bambuser'=>_t('live-video on Bambuser')
+			);
+			
+		if (!is_array($object_ids)) {
+			if ($object_type == 1) {
+				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/user/?user_id='.$object_ids.'">'.User::getImage($object_ids, 'icon', User::getFullname($object_ids)).' </a>';
+			} elseif ($object_type == 3) {
+				$resource_type = Resource::getResourceType($object_ids);
+				$resource_type_icon = $resource_type == 5 ? $resource_name[Resource::getMediaType($object_ids)] : $resource_name[$resource_type];
+				$resource_type_label = $resource_type == 5 ? $resource_type_labels[Resource::getMediaType($object_ids)] : $resource_type_labels[$resource_type];
+				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_ids.'"><b class="icon-'.$resource_type_icon.'" title="'.$resource_type_label.'" style="margin-top:-5px;"></b>'.Resource::getName($object_ids)."</a>";
+			}
+			switch ($reason) {
+				case 'subscribe': $message_text = _t("The group has subscribed to the resource %s.", $item_info); break;
+				case 'join': $message_text = _t("Please welcome our new member: %s has joined this group.", $item_info); break;
+				case 'leave': $message_text = _t("%s has left the group. Good-bye!", $item_info); break;
+				default: return false; break;
+			}
+		} else {
+			foreach ($object_ids as $object_id) {
+				switch ($reason) {
+					case 'unsubscribe': $text = _t("The group has unsubscribed from the following resources:"); break;
+					default: return false; break;
+				}
+
+				$message_text = "<p>".$text."</p>";
+				if ($object_type == 1) {
+					$message_text .= "\n".'<p><a href="'.NEnvironment::getVariable("URI").'/user/?user_id='.$object_id.'">'.User::getImage($object_id, 'icon', User::getFullname($object_id)).' </a></p>';
+				} elseif ($object_type == 3) {
+					$resource_type = Resource::getResourceType($object_id);
+					$resource_type_icon = $resource_type == 5 ? $resource_name[Resource::getMediaType($object_id)] : $resource_name[$resource_type];
+					$resource_type_label = $resource_type == 5 ? $resource_type_labels[Resource::getMediaType($object_id)] : $resource_type_labels[$resource_type];
+					$message_text .= "\n".'<p><a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_id.'"><b class="icon-'.$resource_type_icon.'" title="'.$resource_type_label.'"></b>'.Resource::getName($object_id)."</a></p>";
+				}
+			}
+		}
+		
+		
+//		$message_text .= "\n</ul>";
+		
+		$resource                = Resource::create();
+		$data                    = array();
+		$data['resource_author'] = 0;
+		$data['resource_type']   = 8;
+		$data['resource_data']   = json_encode(array(
+			'message_text' => $message_text
+		));
+		$resource->setResourceData($data);
+		$resource->save();
+
+		$resource->updateGroup($this->numeric_id, array(
+			'resource_user_group_access_level' => 1
+		));
+
+		### clear cache for $group_id
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("group_id/".$this->numeric_id, "name/chatwidget")));
+		$cache->clean(array(NCache::TAGS => array("group_id/".$this->numeric_id, "name/chatlistergroup")));
+
+		// reset language
+		_t_set($prev_language);
+		
+		return true;
+	}
 
 }

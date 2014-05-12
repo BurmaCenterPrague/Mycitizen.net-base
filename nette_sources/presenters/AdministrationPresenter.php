@@ -170,7 +170,7 @@ final class AdministrationPresenter extends BasePresenter
 			$language          = $session->language;
 		}
 		
-		$this->template->setTranslator(new GettextTranslator('../locale/' . $language . '/LC_MESSAGES/messages.mo', $language));
+		$this->template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		$this->template->PROJECT_VERSION = NEnvironment::getVariable("PROJECT_VERSION");
 	
 		# workaround to get labels of settings into GetText:
@@ -1105,7 +1105,7 @@ final class AdministrationPresenter extends BasePresenter
 		
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.");
-		$cache->clean(array(NCache::TAGS => array("name/noticeboard")));
+		$cache->clean(array(NCache::TAGS => array("name/noticeboardlister")));
 		$cache->clean(array(NCache::TAGS => array("name/activity")));
 				
 		$this->redirect("Administration:noticeboard");
@@ -1133,7 +1133,8 @@ final class AdministrationPresenter extends BasePresenter
 			'template_variables' => array(
                     'hide_filter' => true,
                     'remove_enabled' => true
-                    )
+                    ),
+            'cache_tags' => array("name/noticeboardlister")
 		);
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
@@ -1159,7 +1160,7 @@ final class AdministrationPresenter extends BasePresenter
 				echo "true";
 				$storage = new NFileStorage(TEMP_DIR);
 				$cache = new NCache($storage);
-				$cache->clean(array(NCache::TAGS => array("name/noticeboard")));
+				$cache->clean(array(NCache::TAGS => array("name/noticeboardlister")));
 				$cache->clean(array(NCache::TAGS => array("name/activity")));
 
 			} else {
