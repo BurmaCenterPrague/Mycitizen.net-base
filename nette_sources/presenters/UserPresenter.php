@@ -19,11 +19,11 @@ final class UserPresenter extends BasePresenter
 	protected $control_key;
 	private $ajax = false;
 
-/**
- *	runs startup in BasePresenter
- *	@param void
- *	@return void
-*/
+	/**
+	 *	runs startup in BasePresenter
+	 *	@param void
+	 *	@return void
+	*/
 	public function startup()
 	{
 		parent::startup();
@@ -31,9 +31,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks if page is accessible without login.
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function isAccessible()
 	{
@@ -50,9 +50,6 @@ final class UserPresenter extends BasePresenter
 			return true;
 		}
 		if ($this->getAction() == "lostpassword") {
-			return true;
-		}
-		if ($this->getAction() == "changepassword") {
 			return true;
 		}
 		if ($this->getAction() == "changelostpassword") {
@@ -77,8 +74,6 @@ final class UserPresenter extends BasePresenter
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 				
 		if (!is_null($user_id)) {
-//			$this->template->load_js_css_editor = true;
-			unset($this->template->popup_chat);
 			$this->setView('detail');
 			$this->user = User::create($user_id);
 			$d          = $this->user->getUserData();
@@ -123,18 +118,15 @@ final class UserPresenter extends BasePresenter
 		
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
-			$data['object_data']            = User::create($session->data['object_id'])->getUserData();
+			$viewed_user = User::create($session->data['object_id']);
+			$data['object_data']            = $viewed_user->getUserData();
 			$data['object_data']['user_id'] = $session->data['object_id'];
 			
-			$friend_object = User::create($session->data['object_id']);
-			$user = NEnvironment::getUser()->getIdentity();
-			if (!empty($user) && !empty($friend_object) && $user->getUserId() != $friend_object->getUserId()) {
-				$friend_user_relationship = $friend_object->friendsStatus($user->getUserId());
-				$user_friend_relationship = $user->friendsStatus($friend_object->getUserId());
-				
-				$data['object_data']['user_friend_relationship'] = $user_friend_relationship;
-				$data['object_data']['friend_user_relationship'] = $friend_user_relationship;
-				$this->template->logged_user = $user->getUserId();
+			$logged_user = NEnvironment::getUser()->getIdentity();
+			if (!empty($logged_user) && !empty($viewed_user) && $logged_user->getUserId() != $data['object_data']['user_id']) {
+				$data['object_data']['user_friend_relationship'] = $logged_user->friendsStatus($viewed_user->getUserId());
+				$data['object_data']['friend_user_relationship'] = $viewed_user->friendsStatus($logged_user->getUserId());
+				$this->template->logged_user = $logged_user->getUserId();
 			} else {
 				$data['object_data']['user_friend_relationship'] = -1;
 			}
@@ -142,8 +134,8 @@ final class UserPresenter extends BasePresenter
 			
 			if (!empty($this->user)) {
 				if($this->user->thatsMe()) $this->template->thats_me=true;
-			} elseif (!empty($friend_object)) {
-				if($friend_object->thatsMe()) $this->template->thats_me=true;
+			} elseif (!empty($viewed_user)) {
+//				if($viewed_user->thatsMe()) $this->template->thats_me=true;
 			}
 			
 			$image = Image::createimage($session->data['object_id'],1);
@@ -167,11 +159,11 @@ final class UserPresenter extends BasePresenter
 	}
 
 
-/**
- *	Prepares sign up (register) page
- *	@param void
- *	@return void
-*/
+	/**
+	 *	Prepares sign up (register) page
+	 *	@param void
+	 *	@return void
+	*/
 	public function actionRegister()
 	{
 		if (Settings::getVariable('sign_up_disabled')) {
@@ -253,6 +245,7 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 
+
 	/**
 	 *	Landing page after clicking the confirmation link to change the email.
 	 *	@param int $user_id
@@ -293,14 +286,19 @@ final class UserPresenter extends BasePresenter
 		}
 	}
 
+
 	/**
-	 *	Effects the change of a user's email without need of confirm the new email. Operated by admins and mods.
+	 *	Effects the change of a user's email without need to confirm the new email. Operated by admins and mods.
 	 *	@param int $user_id
 	 *	@param int $user_email
 	 *	@return void
 	 */
 	public function emailchangeAdmin($user_id, $user_email)
 	{
+		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()<2) {
+			$this-redirect("this");
+		}
+		
 		if (User::finishEmailChangeAdmin($user_id,$user_email)) {
 			$this->flashMessage(_t("Email has been succesfully changed."));			
 			$this->redirect("this");
@@ -327,9 +325,6 @@ final class UserPresenter extends BasePresenter
 		if (count($friends) < 1) {
 			$this->template->nofriends = true;
 		}
-//		$this->template->load_js_css_editor = true;
-		
-		unset($this->template->popup_chat);
 	}
 
 
@@ -467,7 +462,7 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	Prepares sign our (log out) page
+	 *	Prepares sign out (log out) page
 	 *	@param void
 	 *	@return void
 	 */
@@ -541,267 +536,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	Creates form for settings whether to be notified on unread messages. (overlay)
-	 *	@param void
-	 *	@return array
-	 */
-	protected function createComponentNotificationsform()
-	{
-		$user = NEnvironment::getUser()->getIdentity();
-		$notification_setting = $user->getNotificationSetting();
-	
-		$form = new NAppForm($this, 'notificationsform');
-		$form->addSelect('user_send_notifications', _t('Emails on unread messages:'), array('0'=>_t('off'), '1'=>_t('max. once per hour'), '24'=>_t('max. once per day'), '168'=>_t('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
-		$form->addProtection(_t('Error submitting form.'));
-		$form->addSubmit('send', _t('Update'));
-
-		$form->onSubmit[] = array(
-			$this,
-			'notificationsformSubmitted'
-		);
-		$form->setDefaults(array('user_send_notifications' => $notification_setting));
-		return $form;
-	}
-
-
-	/**
-	 *	Handles submitted notification form.
-	 * @todo
+	 *	Processes return values of signin / login.
 	 *	@param object $form
 	 *	@return void
-	 */
-	public function notificationsformSubmitted(NAppForm $form)
-	{
-		$values = $form->getValues();
-		$logged_user   = NEnvironment::getUser()->getIdentity();
-		if (isset($this->user) && !is_null($this->user->getUserId()) && Auth::isAuthorized(1,$logged_user->getUserId()) >= 2) {
-			$user = $this->user;
-		} elseif (!is_null($logged_user)) {
-			$user = $logged_user;
-		}
-		$user->setNotificationSetting($values['user_send_notifications']);
-		$this->redirect("this");
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentChangelostpasswordform()
-	{
-		$form = new NAppForm($this, 'changelostpasswordform');
-		$form->addPassword('user_password', _t('Password:'))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
-		$form->addPassword('user_password_again', _t('Password again:'))->addRule(NForm::EQUAL, _t("Entered passwords are not the same."), $form['user_password']);
-		$form->addSubmit('send', _t('Change password'));
-		$form->addProtection(_t('Error submitting form.'));
-		$form->onSubmit[] = array(
-			$this,
-			'changelostpasswordformSubmitted'
-		);
-		
-		return $form;
-	}
-
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	*/
-	public function changelostpasswordformSubmitted(NAppForm $form)
-	{
-
-		$values = $form->getValues();
-		if (User::finishPasswordchange($this->user_id, $this->control_key, $values['user_password'])) {
-			Activity::addActivity(Activity::USER_PW_CHANGE, $this->user_id, 1);
-			$this->flashMessage(_t("Your password has been successfully changed, you can now log in."));
-			
-			$this->redirect('User:login');
-		} else {
-			$this->flashMessage(_t("Password couldn't be changed! Try again later."), 'error');
-			
-			$this->redirect('Homepage:default');
-		}
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentChangepasswordform()
-	{
-		$query = NEnvironment::getHttpRequest();
-		$user_id = $query->getQuery("user_id");
-		$form = new NAppForm($this, 'changepasswordform');
-		$form->addPassword('user_password', _t('Password:'))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
-		$form->addPassword('user_password_again', _t('Password again:'))->addRule(NForm::EQUAL, _t("Entered passwords are not the same."), $form['user_password']);
-		$form->addHidden('user_id',$user_id);
-		$form->addSubmit('send', _t('Change password'));
-		$form->addProtection(_t('Error submitting form.'));
-		$form->onSubmit[] = array(
-			$this,
-			'changepasswordformSubmitted'
-		);
-		
-		return $form;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function changepasswordformSubmitted(NAppForm $form)
-	{
-		$values = $form->getValues();
-		if (User::changePassword($values['user_id'], $values['user_password'])) {
-			Activity::addActivity(Activity::USER_PW_CHANGE, $values['user_id'], 1);
-			$this->flashMessage(_t("Your password has been successfully changed."));
-			$this->redirect('User:edit', $values['user_id']);
-		} else {
-			$this->flashMessage(_t("Password couldn't be changed! Try again later."), 'error');
-			$this->redirect('User:edit', $values['user_id']);
-		}
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentReportform()
-	{
-		$types = array(
-			'0' => _t('This is not a real person but spam.'),
-			'1' => _t('This person was created by mistake.'),
-			'2' => _t('This person violates the rules of conduct.')
-		);
-		$form  = new NAppForm($this, 'reportform');
-		$form->addRadioList('report_type', _t('Reason:'), $types);
-		$form->addTextarea('report_text', _t('Tell us why you report this user, including examples:'))->addRule(NForm::FILLED, _t('Please give us some details.'));
-		$form->addSubmit('send', _t('Send'));
-		$form->addProtection(_t('Error submitting form.'));
-		$form->onSubmit[] = array(
-			$this,
-			'reportformSubmitted'
-		);
-		
-		return $form;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentMapedit($name)
-	{
-		if (!isset($this->user)) {
-			$this->user = NEnvironment::getUser()->getIdentity();
-		}
-		
-		$data    = array(
-			array(
-				'type' => 'user',
-				'id' => $this->user->getUserId()
-			)
-		);
-		
-		$control = new MapControl($this, $name, $data, array(
-			'type' => 'edit',
-			'object' => array(
-				'type' => 'user',
-				'id' => $this->user->getUserId()
-			)
-		));
-		
-		return $control;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function reportformSubmitted(NAppForm $form)
-	{
-		if (!empty($this->user)) {
-			$user                    = NEnvironment::getUser()->getIdentity();
-			$values                  = $form->getValues();
-			$resource_data           = array(
-				'report_type' => $values['report_type'],
-				'reported_object' => 'user',
-				'reported_id' => $this->user->getUserId()
-			);
-			
-			$types = array(
-				'0' => _t('(spam)'),
-				'1' => _t('(error)'),
-				'2' => _t('(inappropriate language)')
-			);
-			
-			$reported_user_data      = $this->user->getUserData();
-			$data                    = array(
-				'resource_name' => sprintf(_t("Report about user %s, reason: %s"), $reported_user_data['user_login'], $types[$resource_data['report_type']]),
-				'resource_type' => 7,
-				'resource_visibility_level' => 3,
-				'resource_description' => $values['report_text'],
-				'resource_data' => json_encode($resource_data)
-			);
-			$data['resource_author'] = $user->getUserId();
-			$resource                = Resource::Create();
-			$resource->setResourceData($data);
-			$resource->save();
-			$resource_id = $resource->getResourceId();
-			$this->flashMessage(_t("Your report has been received."));
-		}
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	protected function createComponentLostpasswordform()
-	{
-		$form = new NAppForm($this, 'lostpasswordform');
-		$form->addText('user_email', _t('Your email:'));
-		$form->addSubmit('send', _t('Request new password'));
-		$form->addProtection(_t('Error submitting form.'));
-		$form->onSubmit[] = array(
-			$this,
-			'lostpasswordformSubmitted'
-		);
-		
-		return $form;
-	}
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function lostpasswordformSubmitted(NAppForm $form)
-	{
-
-		$values = $form->getValues();
-		$user   = User::getEmailOwner($values['user_email']);
-		if (!empty($user)) {
-			$user->sendLostpasswordEmail();
-			$this->flashMessage(_t("An email has been sent to you with further instructions."));
-			
-		} else {
-			$this->flashMessage(_t("This email is not registered in our system!"), 'error');
-		}
-	}
-
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
 	 */
 	public function loginformSubmitted(NAppForm $form)
 	{
@@ -817,7 +554,7 @@ final class UserPresenter extends BasePresenter
 		try {
 			if (isset($values['remember_me']) && $values['remember_me'] == 1) {
 				$_SESSION['remember'] = true;
-				$user_e->setExpiration(0);
+				$user_e->setExpiration(0); // 0 = Session expires when user closes the browser.
 			}
 
 			// allow email address
@@ -855,9 +592,288 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates form for settings whether to be notified on unread messages. (overlay)
+	 *	@param void
+	 *	@return array
+	 */
+	protected function createComponentNotificationsform()
+	{
+		$user = NEnvironment::getUser()->getIdentity();
+		$notification_setting = $user->getNotificationSetting();
+	
+		$form = new NAppForm($this, 'notificationsform');
+		$form->addSelect('user_send_notifications', _t('Emails on unread messages:'), array('0'=>_t('off'), '1'=>_t('max. once per hour'), '24'=>_t('max. once per day'), '168'=>_t('max. once per week')))->setOption('description', NHtml::el('img')->src(NEnvironment::getVariable("URI") . '/'  . 'images/help.png')->class('help-icon')->title(_t('You can receive an email when you have unread messages in your inbox.'))->id("help-name"));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->addSubmit('send', _t('Update'));
+
+		$form->onSubmit[] = array(
+			$this,
+			'notificationsformSubmitted'
+		);
+		$form->setDefaults(array('user_send_notifications' => $notification_setting));
+		return $form;
+	}
+
+
+	/**
+	 *	Handles submitted notification form.
+	 *	@param object $form
+	 *	@return void
+	 */
+	public function notificationsformSubmitted(NAppForm $form)
+	{
+		$values = $form->getValues();
+		$logged_user   = NEnvironment::getUser()->getIdentity();
+		if (isset($this->user) && !is_null($this->user->getUserId()) && Auth::isAuthorized(1,$logged_user->getUserId()) >= 2) {
+			$user = $this->user;
+		} elseif (!is_null($logged_user)) {
+			$user = $logged_user;
+		} else {
+			die('no permission');
+		}
+		$user->setNotificationSetting($values['user_send_notifications']);
+		$this->redirect("this");
+	}
+
+
+	/**
+	 *	Prepares form to request link on email for password change
+	 *	@param void
+	 *	@return object
+	 */
+	protected function createComponentLostpasswordform()
+	{
+		$form = new NAppForm($this, 'lostpasswordform');
+		$form->addText('user_email', _t('Your email:'));
+		$form->addSubmit('send', _t('Request new password'));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->onSubmit[] = array(
+			$this,
+			'lostpasswordformSubmitted'
+		);
+		
+		return $form;
+	}
+
+
+	/**
+	 *	Processes request for link to change password.
+	 *	@param object $form
+	 *	@return void
+	 */
+	public function lostpasswordformSubmitted(NAppForm $form)
+	{
+		// no authentication because user is not logged in
+		$values = $form->getValues();
+		$user   = User::getEmailOwner($values['user_email']);
+		if (!empty($user)) {
+			$user->sendLostpasswordEmail();
+			$this->flashMessage(_t("An email has been sent to you with further instructions."));
+			
+		} else {
+			$this->flashMessage(_t("This email is not registered in our system!"), 'error');
+		}
+	}
+
+
+	/**
+	 *	Prepares form where users can set a new password without having to be logged in. (via link)
+	 *	@param void
+	 *	@return $object
+	 */
+	protected function createComponentChangelostpasswordform()
+	{
+		$form = new NAppForm($this, 'changelostpasswordform');
+		$form->addPassword('user_password', _t('Password:'))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password_again', _t('Password again:'))->addRule(NForm::EQUAL, _t("Entered passwords are not the same."), $form['user_password']);
+		$form->addSubmit('send', _t('Change password'));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->onSubmit[] = array(
+			$this,
+			'changelostpasswordformSubmitted'
+		);
+		
+		return $form;
+	}
+
+
+	/**
+	 *	Processes submitted new password (after clicking link).
+	 *	@param object $form
+	 *	@return void
+	*/
+	public function changelostpasswordformSubmitted(NAppForm $form)
+	{
+		// no authentication because user is not logged in
+		$values = $form->getValues();
+		if (User::finishPasswordchange($this->user_id, $this->control_key, $values['user_password'])) {
+			Activity::addActivity(Activity::USER_PW_CHANGE, $this->user_id, 1);
+			$this->flashMessage(_t("Your password has been successfully changed, you can now log in."));
+			
+			$this->redirect('User:login');
+		} else {
+			$this->flashMessage(_t("Password couldn't be changed! Try again later."), 'error');
+			
+			$this->redirect('Homepage:default');
+		}
+	}
+
+
+	/**
+	 *	Prepares form where logged-in users can change their password.
+	 *	@param void
+	 *	@return object $form
+	 */
+	protected function createComponentChangepasswordform()
+	{
+		$query = NEnvironment::getHttpRequest();
+		$user_id = $query->getQuery("user_id");
+		$form = new NAppForm($this, 'changepasswordform');
+		$form->addPassword('user_password', _t('Password:'))->addRule(NForm::MIN_LENGTH, _t("Your password must contain at least %s characters."), 8)->addRule($form::REGEXP, _t("Your password must contain at least one lower-case letter."), '/[a-z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one upper-case letter."), '/[A-Z]+/')->addRule($form::REGEXP, _t("Your password must contain at least one number."), '/\d+/');
+		$form->addPassword('user_password_again', _t('Password again:'))->addRule(NForm::EQUAL, _t("Entered passwords are not the same."), $form['user_password']);
+		$form->addHidden('user_id',$user_id);
+		$form->addSubmit('send', _t('Change password'));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->onSubmit[] = array(
+			$this,
+			'changepasswordformSubmitted'
+		);
+		
+		return $form;
+	}
+
+
+	/**
+	 *	Processes submitted new password (logged-in user)
+	 *	@param object $form
+	 *	@return void
+	 */
+	public function changepasswordformSubmitted(NAppForm $form)
+	{
+		// authentication because user is supposed to be logged in
+		if (Auth::isAuthorized(1, $values['user_id']) < 2) {
+			die('no permission');
+		}
+
+		$values = $form->getValues();
+		if (User::changePassword($values['user_id'], $values['user_password'])) {
+			Activity::addActivity(Activity::USER_PW_CHANGE, $values['user_id'], 1);
+			if ($this->user_id == $values['user_id']) {
+				$this->flashMessage(_t("The password has been successfully changed."));
+			} else { // different message for change by mod?
+				$this->flashMessage(_t("The password has been successfully changed."));
+			}
+			$this->redirect('User:edit', $values['user_id']);
+		} else {
+			$this->flashMessage(_t("The password couldn't be changed! Please try again later."), 'error');
+			$this->redirect('User:edit', $values['user_id']);
+		}
+	}
+
+
+	/**
+	 *	Creates the form where users can be reported.
+	 *	@param void
+	 *	@return object $form
+	 */
+	protected function createComponentReportform()
+	{
+		$types = array(
+			'0' => _t('This is not a real person but spam.'),
+			'1' => _t('This person was created by mistake.'),
+			'2' => _t('This person violates the rules of conduct.')
+		);
+		$form  = new NAppForm($this, 'reportform');
+		$form->addRadioList('report_type', _t('Reason:'), $types);
+		$form->addTextarea('report_text', _t('Tell us why you report this user, including examples:'))->addRule(NForm::FILLED, _t('Please give us some details.'));
+		$form->addSubmit('send', _t('Send'));
+		$form->addProtection(_t('Error submitting form.'));
+		$form->onSubmit[] = array(
+			$this,
+			'reportformSubmitted'
+		);
+		
+		return $form;
+	}
+
+
+	/**
+	 *	Processes reports about users.
+	 *	@param object $form
+	 *	@return void
+	 */
+	public function reportformSubmitted(NAppForm $form)
+	{
+		if (!empty($this->user)) {
+			if (Auth::isAuthorized(1, $this->user->getUserId()) < 2) {
+				die('error');
+			}
+
+			$values                  = $form->getValues();
+			$resource_data           = array(
+				'report_type' => $values['report_type'],
+				'reported_object' => 'user',
+				'reported_id' => $this->user->getUserId()
+			);
+			
+			$types = array(
+				'0' => _t('(spam)'),
+				'1' => _t('(error)'),
+				'2' => _t('(inappropriate language)')
+			);
+			
+			$reported_user_data      = $this->user->getUserData();
+			$data                    = array(
+				'resource_name' => sprintf(_t("Report about user %s, reason: %s"), $reported_user_data['user_login'], $types[$resource_data['report_type']]),
+				'resource_type' => 7,
+				'resource_visibility_level' => 3,
+				'resource_description' => $values['report_text'],
+				'resource_data' => json_encode($resource_data)
+			);
+			$data['resource_author'] = $user->getUserId();
+			$resource                = Resource::Create();
+			$resource->setResourceData($data);
+			$resource->save();
+			$resource_id = $resource->getResourceId();
+			$this->flashMessage(_t("Your report has been received."));
+		}
+	}
+
+
+	/**
+	 *	Prepares map for Edit User page
+	 *	@param string $name
+	 *	@return object
+	 */
+	protected function createComponentMapedit($name)
+	{
+		if (!isset($this->user)) {
+			$this->user = NEnvironment::getUser()->getIdentity();
+		}
+		
+		$data    = array(
+			array(
+				'type' => 'user',
+				'id' => $this->user->getUserId()
+			)
+		);
+		
+		$control = new MapControl($this, $name, $data, array(
+			'type' => 'edit',
+			'object' => array(
+				'type' => 'user',
+				'id' => $this->user->getUserId()
+			)
+		));
+		
+		return $control;
+	}
+
+
+	/**
+	 *	Creates the form where new users can sign up.
+	 *	@param void
+	 *	@return object $form
 	 */
 	protected function createComponentRegisterform()
 	{
@@ -882,11 +898,11 @@ final class UserPresenter extends BasePresenter
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	Processes the return values from the sign up form.
+	 *	@param object $form
+	 *	@return void
+	 */
 	public function registerformSubmitted(NAppForm $form)
 	{
 
@@ -925,33 +941,38 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+			// check if IP is actually from Cloudflare
+			if (file_exists(LIBS_DIR.'/proxy_ips/cloudflare.txt')) {
+				// create array with valid IPs
+				$valid_ips = array();
+				$rows = explode("\n", file_get_contents(LIBS_DIR.'/proxy_ips/cloudflare.txt'));
+				foreach ($rows as $row) {
+					if (substr($row,0,1) == '#') continue; // skip comments
+					if (preg_match('#^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$#', $row, $matches)) {
+						 // one address
+						$valid_ips[] = $matches[1];
+					} elseif (preg_match('#^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)(\d{1,3})\/(\d{1,3})$#', $row, $matches)) {
+						// range of addresses
+						for ($i=$matches[2]; $i<=$matches[3]; $i++) {
+							$valid_ips[] = $matches[1].$i;
+						}
+					}
+				}
+				if (in_array($_SERVER["REMOTE_ADDR"], $valid_ips)) {
+					$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+				} else {
+					$this->flashMessage(_t("Invalid IP address."), 'error');
+					$this->redirect('User:register');
+				}
 
-// check if IP is actually from Cloudflare and header HTTP_CF_CONNECTING_IP not faked
-// https://www.cloudflare.com/ips
-/*
-			$cf_valid_ips = array(
-			'199.27.128.0',
-			'173.245.48.0',
-			'103.21.244.0',
-			'103.22.200.0',
-			'103.31.4.0',
-			'141.101.64.0',
-			'108.162.192.0',
-			'190.93.240.0',
-			'188.114.96.0',
-			'197.234.240.0',
-			'198.41.128.0',
-			'162.158.0.0');
-			if (in_array($_SERVER["REMOTE_ADDR"],$cf_valid_ips)) {
+			} else {
+				// having now data to check
 				$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 			}
-*/
-				$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-			
 		}
 		
 		if (!StaticModel::validEmail($values['user_email'])) {
-			$this->flashMessage(_t("Email is not valid. Check it and try again."), 'error');
+			$this->flashMessage(_t("The email address is not valid. Please check it and try again."), 'error');
 			$this->redirect('User:register');
 		}
 		
@@ -989,9 +1010,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates form where to answer the security question (captcha). Needed for sign up via mobile or Facebook.
+	 *	@param void
+	 *	@return object
 	 */
 	protected function createComponentSecurityquestionform()
 	{
@@ -1011,10 +1032,11 @@ final class UserPresenter extends BasePresenter
 		return $form;	
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Processes the return values of the security question.
+	 *	@param object $form
+	 *	@return void
 	 */
 	public function securityquestionformSubmitted(NAppForm $form)
 	{
@@ -1034,7 +1056,7 @@ final class UserPresenter extends BasePresenter
 				$this->redirect('User:register');
 			}
 		} else {
-			// answer not set
+			// answer not required
 			$this->redirect('User:register');
 		}
 
@@ -1054,9 +1076,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates the form to add tags to a user profile.
+	 *	@param void
+	 *	@return object
 	 */
 	protected function createComponentTagform()
 	{
@@ -1076,9 +1098,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates the form to update user information.
+	 *	@param void
+	 *	@return object
 	 */
 	protected function createComponentUpdateform()
 	{
@@ -1146,8 +1168,8 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Processes the return values after editing the user profile.
+	 *	@param object $form
 	 *	@return
 	 */
 	public function updateformSubmitted(NAppForm $form)
@@ -1222,12 +1244,13 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
+	 *	@todo ### Description ???
 	 *	@param
 	 *	@return
 	 */
 	public function handleUserAdministration($user_id, $values)
 	{
+		if (Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 		$user = User::create($user_id);
 		
 		$user->setUserData($values);
@@ -1237,9 +1260,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Lists all joined groups on the User Default page.
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentDefaultusergrouplister($name)
 	{
@@ -1269,9 +1292,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Lister of subscribed resources on User Default page.
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentDefaultuserresourcelister($name)
 	{
@@ -1301,9 +1324,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Lister of joined groups on User Default page.
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentDetailusergrouplister($name)
 	{
@@ -1336,9 +1359,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Lister of joined groups on User Detail page.
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentDetailuserresourcelister($name)
 	{
@@ -1369,7 +1392,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	Default page, left column
+	 *	Lister of users on User Default page, left column; filtered
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentUserlister($name)
 	{
@@ -1405,9 +1430,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	List of friends
+	 *	@param string @name
+	 *	@return object
 	 */
 	protected function createComponentFriendlister($name)
 	{
@@ -1441,9 +1466,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Removes a user's avatar, including cached versions.
+	 *	@param int $user_id
+	 *	@return void
 	 */
 	public function handleRemoveAvatar($user_id = null)
 	{
@@ -1452,7 +1477,7 @@ final class UserPresenter extends BasePresenter
 			if (Auth::isAuthorized(1,$user->getUserId()) >= 2) {
 				$user = User::Create($user_id);
 			} else {
-				$this->redirect("User:default");
+				die('no permission');
 			}
 		}
 		
@@ -1478,20 +1503,19 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Adds a tag to a user profile.
+	 *	@param int $tag_id
+	 *	@param int $user_id
+	 *	@return void
 	 */
 	public function handleInsertTag($tag_id, $user_id = null)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!is_null($user_id) ){
 			if (Auth::isAuthorized(1,$user->getUserId()) >= 2) {
-
 				$user = User::Create($user_id);
-		
 			} else {
-				$this->redirect("User:default");
+				die('no permission');
 			}
 		}
 		
@@ -1506,19 +1530,19 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Removes a tag from a user profile.
+	 *	@param int $tag_id
+	 *	@param int $user_id
+	 *	@return void
 	 */
 	public function handleRemoveTag($tag_id, $user_id = null)
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		if (!is_null($user_id)) {
 			if (Auth::isAuthorized(1,$user->getUserId()) >= 2) {
-			
 				$user = User::Create($user_id);
 			} else {
-				$this->redirect("User:default");
+				die('no permission');
 			}
 		}
 		if (empty($user)) {
@@ -1532,23 +1556,30 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	Removing messages with friendship requests
-	 *	@param
-	 *	@return
+	 *	Removes messages with friendship requests
+	 *	@param int $message_id
+	 *	@return void
 	 */
 	public function handleRemoveMessage($message_id)
 	{
+		if (Auth::isAuthorized(3,$message_id) < Auth::MODERATOR) {
+			die('no permission');
+		}
+
+		// check if it is a message
+		$resource_type = Resource::getResourceType($message_id);
+		if ($resource_type != 1 && $resource_type != 9) {
+			echo "false";
+			$this->terminate();
+		}
+
 		$user_id = NEnvironment::getUser()->getIdentity()->getUserId();
-		$resource = Resource::create($message_id);
-		if (!empty($resource)) {
-			if ($resource->remove_message(1, $user_id)) {
-				$storage = new NFileStorage(TEMP_DIR);
-				$cache = new NCache($storage);
-				$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/messagelisteruser")));
-				echo "true";
-			} else {
-				echo "false";
-			}
+
+		if (Resource::removeMessage($message_id)) {
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/messagelisteruser")));
+			echo "true";
 		} else {
 			echo "false";
 		}
@@ -1558,9 +1589,10 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Change to a User Default page via Ajax
+	 *	@param int $object_type #### needed?
+	 *	@param int $object_id
+	 *	@return void
 	*/
 	public function handleDefaultPage($object_type, $object_id)
 	{
@@ -1590,9 +1622,10 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Change to a User Detail page via Ajax
+	 *	@param int $object_type #### needed?
+	 *	@param int $object_id
+	 *	@return void
 	*/
 	public function handleDetailPage($object_type, $object_id)
 	{
@@ -1622,9 +1655,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Create the component for the small map on User details.
+	 *	@param string $name
+	 *	@return array
 	 */
 	protected function createComponentMap($name)
 	{
@@ -1643,51 +1676,16 @@ final class UserPresenter extends BasePresenter
 		return $control;
 	}
 
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public function handleUserFriendInsert($friend_id)
-	{
-		if (empty($friend_id)) {
-			print "false";
-			$this->terminate();
-		} else {
-			$user   = NEnvironment::getUser()->getIdentity();
-			$user_id = $user->getUserId();
-			$friend = User::create($friend_id);
-			
-			if (!empty($friend)) {
-				$friend_id = $friend->getUserId();
-				if (!empty($friend_id)) {
-					$user->updateFriend($friend_id, array());
-					
-					$storage = new NFileStorage(TEMP_DIR);
-					$cache = new NCache($storage);
-					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/friendlister")));
-					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagefriendlister")));
-					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedfriendlister")));
-					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/friendlister")));
-					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagefriendlister")));
-					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagerecommendedfriendlister")));
-
-					print "true";
-				}
-			}
-		}
-		
-		$this->terminate();
-	}
-
 
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Cancel a friendship
+	 *	@param int $friend_id
 	 *	@return
 	 */
 	public function handleUserFriendRemove($friend_id)
 	{
+		if (Auth::isAuthorized(1, $user_id) < 1) die('no permission');
+		
 		if (empty($friend_id)) {
 			print "false";
 			$this->terminate();
@@ -1720,7 +1718,7 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	Creates the form to send off messages; no processig of results, submitted by own AJAX
+	 *	Create the form to send off messages; no processig of results, submitted by own AJAX
 	 *	@param
 	 *	@return
 	 */
@@ -1744,54 +1742,18 @@ final class UserPresenter extends BasePresenter
 	}
 
 
-
-/*	public function messageformSubmitted(NAppForm $form)
-	{
-		$user = NEnvironment::getUser()->getIdentity();
-		
-		$values                            = $form->getValues();
-		if ($values['friend_id']==0) {
-			$this->flashMessage(_t('Please select a recipient.'), 'error');
-			$this->redirect("User:messages");
-		}
-		$resource                          = Resource::create();
-		$data                              = array();
-		$data['resource_author']           = $user->getUserId();
-		$data['resource_type']             = 1;
-		$data['resource_visibility_level'] = 3;
-		$data['resource_name']             = '<private message>';
-		$data['resource_data']             = json_encode(array(
-			'message_text' => $values['message_text']
-		));
-		if (strip_tags($values['message_text']) == '') {
-			$this->flashMessage(_t("Your message was empty."), 'error');
-			$this->redirect("User:messages");
-		}
-		$resource->setResourceData($data);
-		$resource->save();
-		$resource->updateUser($values['friend_id'], array(
-			'resource_user_group_access_level' => 1
-		));
-		
-		$resource->updateUser($user->getUserId(), array(
-			'resource_user_group_access_level' => 1,
-			'resource_opened_by_user' => 1
-		));
-		$this->flashMessage(_t("Your message has been sent."));
-		$this->redirect("User:messages");
-	}
-*/
-
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Form where the user role can be changed
+	 *	@param void
+	 *	@return array
 	 */
 	public function createComponentUseradministrator()
 	{
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
 			$user_id = $session->data['object_id'];
+		} else {
+			return;
 		}
 		
 		$logged_user = NEnvironment::getUser()->getIdentity();
@@ -1836,9 +1798,9 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Process return values of adminUserForm
+	 *	@param array $form
+	 *	@return void
 	 */
 	public function adminUserFormSubmitted(NAppForm $form)
 	{
@@ -1852,8 +1814,13 @@ final class UserPresenter extends BasePresenter
 				$this->redirect("User:default");
 			}
 			$values = $form->getValues();
-			$user   = User::create($user_id);
 			
+			if (Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) {
+				die('error');
+			}			
+			$user   = User::create($user_id);
+			// authentication because user is supposed to be logged in
+
 			foreach ($values as $key => $value) {
 				$values["user_" . $key] = $value;
 				unset($values[$key]);
@@ -1874,12 +1841,16 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Does the actual cropping of the user avatar.
+	 *	@param int $x
+	 *	@param int $y
+	 *	@param int $w
+	 *	@param int $h
+	 *	@param int $user_id
 	 *	@return
 	*/
 	public function handleCrop() {
-
+		if (Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 		$request = NEnvironment::getHttpRequest();
 
 		$factor = $request->getQuery("factor");
@@ -1977,15 +1948,16 @@ final class UserPresenter extends BasePresenter
 
 
 	/**
-	 *	Receives the PM
-	 *	@param
+	 *	Receives a sent PM
+	 *	@param string $message_text
+	 *	@param string $recipient_id
 	 *	@return
 	*/
 	public function handleSubmitPMChat($message_text = '', $recipient_id)
 	{
 		$logged_user = NEnvironment::getUser()->getIdentity();
 		
-		if ($recipient_id == 0 || !$logged_user->friendshipIsRegistered($recipient_id) || empty($message_text)) {
+		if ($recipient_id == 0 || !$logged_user->isFriendOf($recipient_id) || empty($message_text)) {
 			echo json_encode(_t("Error sending message.")); die();
 		}
 
@@ -1999,7 +1971,7 @@ final class UserPresenter extends BasePresenter
 			'message_text' => $message_text
 		));
 		$resource->setResourceData($data);
-		$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+		$check = $resource->check_doublette($data, $recipient_id, 1);
 		if ($check === true) {
 			echo json_encode(_t("You have just said that.")); die();
 		}		
@@ -2221,9 +2193,7 @@ final class UserPresenter extends BasePresenter
 				}
 				return $fb_login_url;
 			}
-			
 		}
 	}
-
 
 }

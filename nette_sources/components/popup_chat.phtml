@@ -1,4 +1,4 @@
-<div id="toggle_open" style="position:fixed; top:1px; right:20px; width:20px; height:20px; padding:10px 0; z-index:1000; cursor:pointer;"><b class="icon-resource-edit"></b></div>
+<div id="toggle_open" style="position:fixed; top:1px; right:20px; width:20px; height:20px; padding:10px 0; z-index:10000; cursor:pointer;"><b class="icon-resource-edit"></b></div>
 
 <div id="chat_abstract" style="width:70px; position:fixed; top:1px; right:1px; text-align:left; background-color:white; box-shadow:-1px 1px 10px #666; padding:10px 0px 10px 10px; height:100%; overflow:hidden; border-radius:10px 0 0 10px;">
 	<div style="margin:0 0 25px;">
@@ -35,10 +35,16 @@ $(document).ready(function(){
 		$('#chat_overlay').fadeToggle(500, function(){
 			$('#chat_abstract').show();
 			if ($(this).is(":visible")) {
+				if ($('#no_popup_chat').val() != 'undefined') {
+					// We are closing the chat in the main window
+					var url = location.href;
+					var urlq = url + (url.split('?')[1] ? '&':'?') + "do=clicklink&nochat=1";
+					$.getJSON(urlq);
+				}
+
 				$('#chat_abstract').hide();
+				pmpop_loadEditor();
 				pmpop_reloadChat();
-			} else {
-				
 			}
 		});
 	});
@@ -60,7 +66,7 @@ $(document).ready(function(){
 
 	<div class="user-messages">
 		<div id="popup_message_list_anchor"></div>
-		<div id="chat_container">
+		<div id="pmppop_chat_container">
 		{_"Loading chat.."}
 		{ifset $currentpage}
 			<input type="hidden" id="pmpop_currentpage" value="{$currentpage}" />
@@ -81,6 +87,7 @@ $(document).ready(function(){
 	var search = '';
 	var pmpop_interval;
 	var modifiedDate;
+	var abstractModifiedDate;
 	var searchedOnServer = false;
 	
 	$(document).ready(function() {
@@ -179,25 +186,31 @@ $(document).ready(function(){
 				},
 			statusCode: {
 				301: function(){
-					$("#chat_container").html("Error loading chat.");
+					$("#pmppop_chat_container").html("Error loading chat.");
 				}
 			},
 			success:function(payload,status,hdr){
 				modifiedDate = hdr.getResponseHeader('Last-Modified');
 				
 				if (payload.indexOf('{"redirect":')>-1){
-					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					$("#pmppop_chat_container").html({_"Error loading chat. Are you logged in?"});
 					return false;
 				}
 
-				$("#chat_container").animate({ opacity:0.7},function(){
-					$("#chat_container").html(payload);
-					$("#chat_container").animate({ opacity:1},function(){
+				$("#pmppop_chat_container").animate({ opacity:0.7},function(){
+					$("#pmppop_chat_container").html(payload);
+					$("#pmppop_chat_container").animate({ opacity:1},function(){
 						$("#pmpop_reload_button").attr("class", "icon-reload");
 					});
 				});
+				clearInterval(pmpop_interval);
+				pmpop_interval = setInterval("pmpop_chatTimer()",30*1000);
 			},
 		});
+		reloadAbstract();
+	}
+	
+	function reloadAbstract() {	
 		$.ajax({
 			url:"{!$baseUri}widget/privatemessagesslim/?do=chatabstract",
 			dataType:"html",
@@ -211,7 +224,7 @@ $(document).ready(function(){
 				}
 			},
 			success:function(payload,status,hdr){
-				modifiedDate = hdr.getResponseHeader('Last-Modified');
+				abstractModifiedDate = hdr.getResponseHeader('Last-Modified');
 				
 				if (payload.indexOf('{"redirect":')>-1){
 					$("#chat_abstract_container").html({_"Error loading chat. Are you logged in?"});
@@ -224,8 +237,6 @@ $(document).ready(function(){
 						$("#pmpop_abstract_reload_button").attr("class", "icon-reload");
 					});
 				});
-				clearInterval(pmpop_interval);
-				pmpop_interval = setInterval("pmpop_chatTimer()",30*1000);
 			},
 		});
 	}
@@ -243,7 +254,7 @@ $(document).ready(function(){
 				},
 			statusCode: {
 				301: function(){
-					$("#chat_container").html("Error loading chat.");
+					$("#pmppop_chat_container").html("Error loading chat.");
 				}
 			},
 			success:function(payload,status,hdr){
@@ -260,19 +271,19 @@ $(document).ready(function(){
 				}
 				
 				if (payload.indexOf('{"redirect":')>-1){
-					$("#chat_container").html({_"Error loading chat. Are you logged in?"});
+					$("#pmppop_chat_container").html({_"Error loading chat. Are you logged in?"});
 					return false;
 				}
 				$("#pmpop_reload_button").attr("class", "icon-reload-disabled");
 				if (payload.indexOf('{"redirect":')>-1){
-					$("#chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
+					$("#pmppop_chat_container").replaceWith({_"Error loading chat. Are you logged in?"});
 					return false;
 				}
 
-				$("#chat_container").animate({ opacity:0.7},function(){
-					$("#chat_container").html(payload);
+				$("#pmppop_chat_container").animate({ opacity:0.7},function(){
+					$("#pmppop_chat_container").html(payload);
 					$("#pmpop_reload_button").attr("class", "icon-reload");
-					$("#chat_container").animate({ opacity:1},200);
+					$("#pmppop_chat_container").animate({ opacity:1},200);
 				});
 				clearInterval(pmpop_interval);
 				pmpop_interval = setInterval("pmpop_chatTimer()",30*1000);
@@ -299,11 +310,11 @@ $(document).ready(function(){
 				}
 				
 				// for cloudflare: check change of date
-				var newModifiedDate = hdr.getResponseHeader('Last-Modified');
-				if (modifiedDate == newModifiedDate) {
+				var newAbstractModifiedDate = hdr.getResponseHeader('Last-Modified');
+				if (abstractModifiedDate == newAbstractModifiedDate) {
 					return false;
 				} else {
-					modifiedDate = newModifiedDate;
+					abstractModifiedDate = newAbstractModifiedDate;
 				}
 				
 				if (payload.indexOf('{"redirect":')>-1){
@@ -329,7 +340,7 @@ $(document).ready(function(){
 	}
 	
 {if !isset($nofriends)}
-	$(document).ready(function() {
+	function pmpop_loadEditor() {
 		CKEDITOR.replace( 'pmpop_message_text', {
 			height: '150px',
 			width: '700px',
@@ -344,8 +355,10 @@ $(document).ready(function(){
 				{ name: 'styles'},
 				{ name: 'colors'}
 			]
-		});
+		})
+	};
 
+	$(document).ready(function() {
 		$('#pmpop_chat_submit').click(function(){
 			var instance_name = 'pmpop_message_text';
 			var editorContent = CKEDITOR.instances[instance_name].getData();

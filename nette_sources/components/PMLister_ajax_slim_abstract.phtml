@@ -13,7 +13,6 @@
 
 ?>
 <div class="lister-body">
-   {snippet list_body}
 {if !empty($data)}
 	{foreach $data as $row}
     {var $res => Resource::Create($row['id'])}
@@ -22,35 +21,58 @@
 
 	{? $user_data = $res->getOwner()->getUserData()}
 	{? $sender_id = $res->getOwner()->getUserId()}
-	{? $sender_image = User::getImage($sender_id, 'icon')}		
+	{? $sender_image = User::getImage($sender_id, 'icon')}	
+	{? $sender_full_name = User::getFullName($sender_id)}	
 	{? $date=(array)$r_data['resource_creation_date']}
 	{? date_default_timezone_set($date['timezone'])}
 	{? $date_formatted = strftime('%e.%m.%Y %H:%M:%S',strtotime($date['date']))}
 
 {? $in_trash = $res->inTrash()}
 {if !$in_trash}
-	<div style="display:block; margin:4px 0; padding:15px 5px 7px; background-color:{if $opened == 1}#EAE9E3{else}#F05A28{/if}; border-radius:10px 0 0 10px; font-size:10px; text-align:center;">
+{if $sender_id != $template_variables['logged_user_id']}
+	{? $r_data['message_text'] = StaticModel::makeAbstract($r_data['message_text'])}
+	<div style="display:block; margin:4px 0; padding:15px 5px 7px; background-color:{if $opened == 1}#EAE9E3{else}#f05a28{/if}; border-radius:10px 0 0 10px; font-size:10px; text-align:center;" left-tooltip="<h4>{$sender_full_name}</h4>{$r_data['message_text']}">
 		{if $r_data['resource_type'] == 9 || $r_data['resource_type'] == 10}
 		<div style="padding:5px;">
 			<b class="icon-warning" title="system message"></b>
 		</div>
 		{else}
-		<div class="chat-avatar avatar-left" title="{$user_data['user_login']}" style="display:block;">
+		<div class="chat-avatar avatar-left" style="display:block;">
 		{if (!(isset($template_variables['logged_user_id']) && $sender_id == $template_variables['logged_user_id'])) || $r_data['resource_type'] == 9}
 			{if $res->getOwner()->isActive() || Auth::MODERATOR<=Auth::isAuthorized(1,$sender_id)}<a href="{!$baseUri}user/?user_id={$sender_id}" class="ajax">{!$sender_image}</a>
 			{else}{!$sender_image}{/if}	
 		{else}
-			<a href="{!$baseUri}user/?user_id={$sender_id}" class="ajax">{!$sender_image}</a>
+{* display own??? *}			<a href="{!$baseUri}user/?user_id={$sender_id}" class="ajax">{!$sender_image}</a>
 		{/if}
 		</div>
 		{/if}
 		{$date_formatted}
 	</div>
 {/if}
+{/if}
     {/foreach}
 {else}
-	<h3>{_"Nothing to display"}</h3>
+	<h5>{_"Nothing to display"}</h5>
 {/if}
 <div class="cleaner"></div>
- {/snippet}
+
 </div>
+<script>
+	$(document).ready(function(){
+		$('[left-tooltip!=""]').qtip({
+			content: {
+        		attr: 'left-tooltip'
+    		},
+			style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
+			show: { delay: 800 },
+			position: {
+        		my: 'middle right',
+		        at: 'middle left',
+		        adjust: {
+                	x: -15,
+                	y: 0
+            	}
+			}
+		});
+	});
+</script>

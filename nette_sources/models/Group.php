@@ -716,7 +716,7 @@ class Group extends BaseModel {
 				$resource_type = Resource::getResourceType($object_ids);
 				$resource_type_icon = $resource_type == 5 ? $resource_name[Resource::getMediaType($object_ids)] : $resource_name[$resource_type];
 				$resource_type_label = $resource_type == 5 ? $resource_type_labels[Resource::getMediaType($object_ids)] : $resource_type_labels[$resource_type];
-				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_ids.'"><b class="icon-'.$resource_type_icon.'" title="'.$resource_type_label.'" style="margin-top:-5px;"></b>'.Resource::getName($object_ids)."</a>";
+				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_ids.'"><b class="icon-'.$resource_type_icon.'" title="'.$resource_type_label.'" style="float:none; margin:-5px 0 0 10px;" style="margin-top:-5px;"></b>'.Resource::getName($object_ids)."</a>";
 			}
 			switch ($reason) {
 				case 'subscribe': $message_text = _t("The group has subscribed to the resource %s.", $item_info); break;

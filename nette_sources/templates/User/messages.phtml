@@ -14,7 +14,13 @@
 {block title}{_"Your messages"}{/block}
 {block content}
 <div class="wrapper-text">
+	{ifset $nochat}
 	<div id="chat_top_anchor"></div>
+	<div class="user-detail-pm">
+		<h3>{_"Private messaging has been disabled by the chat window. Reload page to re-enable"}</h3>
+	</div>
+	{else}
+
 	{control messageform begin}
 	<div class="about">
 		<h1>{_"Send a message to a friend"}</h1>
@@ -326,8 +332,9 @@
 	</script>
 
 </div>
-
 		</div>
+{/if}
 	</div>
+	<input type="hidden" id="no_popup_chat" value="1" />
 </div>
 {/block}

@@ -100,7 +100,7 @@
 		"/></td>
 	</tr>
 	<tr>
-		<td><b>{_"Cron URL:"}</b></td><td><a href="https://4development.mycitizen.net//?do=cron&token=a163ac5b0a4b8cea4da4747a823c05d9&verbose=1" target="_blank">{$baseUri}/?do=cron&token={!$token}</a><p>(Click to test in verbose mode.)</p></td>
+		<td><b>{_"Cron URL:"}</b></td><td><a href="{$baseUri}/?do=cron&token=a163ac5b0a4b8cea4da4747a823c05d9&verbose=1" target="_blank">{$baseUri}/?do=cron&token={!$token}</a><p>(Click to test in verbose mode.)</p></td>
 	</tr>
 	<tr>
 		<td><b>{_"Set up a cron on an external service:"}</b></td><td>
@@ -136,6 +136,14 @@
 	</tr>
 {/if}
 {/if}
+	<tr>
+		<td>
+			<p><a href="?do=purgecache"  class="button">{_"Purge entire cache"}</a></p>
+		</td>
+		<td><img src="{$baseUri}/images/help.png" class="help-icon" title="Purges the entire cache and forces mycitizen.net to rebuild it next time it is used."/>
+		</td>
+	</tr>
+
 	<tr>
 		<td>
 			<h4>{_"Purge unconfirmed users"}</h4>

@@ -54,7 +54,7 @@
 	{foreach $data as $row}
 	{? $number_displayed++}
 
-    {if $number_displayed==1 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    {if $number_displayed==1 && isset($template_variables['top'])}
     	<div class="list-body-top-wrapper">
     {/if}
 
@@ -216,11 +216,11 @@
 					{/if}
 				{/if}
 			</div>	
-    {if $number_displayed==3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    {if $number_displayed==3 && isset($template_variables['top'])}
     	</div>
     {/if}
     {/foreach}
-    {if $number_displayed<3 && !isset($template_variables['detail']) && !isset($template_variables["persistent_filter"]) }
+    {if $number_displayed<3 && isset($template_variables['top'])}
     	</div>
     {/if}
 
@@ -249,7 +249,7 @@
 {if isset($template_variables['detail']) || isset($template_variables['your_connections']) || isset($template_variables['membership_detail']) || isset($template_variables['connection_columns'])}
 <div class="pager">
    {if $max_page > 1}
-   		<a href="javascript:void(0)" {if $currentpage!=1}onclick="changePageUrl({$template_variables['name']}, 1, {link this});"{/if} class="pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
+   		<a href="javascript:void(0)" {if $currentpage!=1}onclick="changePageUrl({$template_variables['name']}, 1, {link this});"{/if} class="pager-start{if $currentpage == 1} active{/if}">1</a>
    {/if}
    
    {if $max_page > 7}
@@ -261,18 +261,18 @@
    {if $max_page > 2}
    {if $max_page < 8}
    {for $i = 2; $i <= $max_page-1; $i++}
-    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}   
    {else}
    {if $currentpage <= 5}
    {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = 2; $i <= $end; $i++}
-    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {else}
    {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
-    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+    	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {/if}
    {/if}
@@ -285,7 +285,7 @@
    {/if}
    
    {if $max_page > 1}
-   		<a href="javascript:void(0)" onclick="changePageUrl({$template_variables['name']}, {$max_page}, {link this});" class="pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
+   		<a href="javascript:void(0)" onclick="changePageUrl({$template_variables['name']}, {$max_page}, {link this});" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
    {/if}
 </div>
 

@@ -53,7 +53,6 @@ class MapContainer extends NFormControl {
 		$template->data = array();
 
       $template->name = $control->name;
-//      var_dump($this->defaults);die('2');
     	if ($this->defaults!='"null"') {
       		$template->defaults = $this->defaults;
       	}

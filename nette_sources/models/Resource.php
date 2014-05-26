@@ -374,6 +374,7 @@ class Resource extends BaseModel {
       return $members;
    }
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -387,6 +388,7 @@ class Resource extends BaseModel {
 		}
 		return 0;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -539,6 +541,33 @@ class Resource extends BaseModel {
 	}
 
 
+	public static function getIconClass($resource_id) {
+		$resource_name = array(
+			1=>'message',
+			2=>'event',
+			3=>'org',
+			4=>'doc',
+			6=>'website',
+			7=>'report',
+			8=>'message',
+			9=>'friendship',
+			'media_soundcloud'=>'audio',
+			'media_youtube'=>'video',
+			'media_vimeo'=>'video',
+			'media_bambuser'=>'live-video',
+			10 => '',
+			11 => ''
+			);
+		$resource = self::create($resource_id);
+		$data = $resource->getResourceData();
+		if (!empty($resource)) {
+			$resource_type = $data['resource_type']==5 ? $resource_name[$data['media_type']] : $resource_name[$data['resource_type']];
+			return "icon-".$resource_type;
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -639,7 +668,7 @@ class Resource extends BaseModel {
 	 *	@return
 	 */
 	public static function getMediaType($resource_id) {
-		$resource = Ressource::create($resource_id);
+		$resource = self::create($resource_id);
 		if (empty($resource)) {
 			return false;
 		}
@@ -819,6 +848,24 @@ class Resource extends BaseModel {
 
 
 	/**
+	 *	Immediately removes a message (chat, comment or noticeboard)
+	 *	@param int $resource_id of message 
+	 *	@return bool
+	 */
+	public static function removeMessage($resource_id) {
+		if (isset($resource_id)) {
+			$result = dibi::query("UPDATE `resource_user_group` SET `resource_user_group_status` = 0 WHERE `resource_id` = %i", $resource_id);
+			if ($result) {
+				dibi::query("UPDATE `resource` SET `resource_status` = '0' WHERE `resource_id` = %i", $resource_id);		
+				return true;
+			}
+		}
+		return false;
+   }
+
+
+
+	/**
 	 *	@todo ### Description
 	 *	@param
 	 *	@return
@@ -847,6 +894,7 @@ class Resource extends BaseModel {
 	public function getThumbnailUrl() {
 	
 		$url = '';
+		$final_url = '';
 		$data = $this->getResourceData();
 		
 		switch ($data['resource_type']) {
@@ -855,9 +903,9 @@ class Resource extends BaseModel {
 			case 4: if (isset($data['text_information_url']) && !empty($data['text_information_url'])) $url = $data['text_information_url']; break;
 			case 5: if (isset($data['media_link']) && !empty($data['media_link'])) {
 						switch ($data['media_type']) {
-							case 'media_soundcloud':  $url = 'http://soundcloud.com/'.$data['media_link']; break;
-							case 'media_youtube': $url = 'https://img.youtube.com/vi/'.$data['media_link'].'/1.jpg'; break;
-							case 'media_vimeo': $tmp = unserialize(@file_get_contents("http://vimeo.com/api/v2/video/".$data['media_link'].".php"));$url = $tmp[0]['thumbnail_medium']; break;
+							case 'media_soundcloud':  $final_url = 'http://soundcloud.com/'.$data['media_link']; break;
+							case 'media_youtube': $final_url = 'https://img.youtube.com/vi/'.$data['media_link'].'/1.jpg'; break;
+							case 'media_vimeo': $tmp = unserialize(@file_get_contents("http://vimeo.com/api/v2/video/".$data['media_link'].".php"));$final_url = $tmp[0]['thumbnail_medium']; break;
 							case 'media_bambuser': break;
 							// 'http://static.bambuser.com/modules/b/ui/bambuser_ui/no-preview-140x115.png'
 							// 'http://bambuser.com/v/'.$data['media_link']
@@ -866,7 +914,15 @@ class Resource extends BaseModel {
 			break;			case 6: if (isset($data['other_url']) && !empty($data['other_url'])) $url = $data['other_url']; break;
 		}
 
-		return $url;
+		if (empty($final_url)) {
+			$md5 = md5($url);
+			$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';	
+			$filepath = WWW_DIR.$link;
+			if (file_exists($filepath)) {
+				$final_url = NEnvironment::getVariable("URI") . $link;
+			}
+		}
+		return $final_url;
 	
 	}
 
@@ -877,32 +933,32 @@ class Resource extends BaseModel {
 	 *	@param boolean $placeholder
 	 *	@return string
 	*/
-	public function getScreenshot($title=null, $placeholder=false) {
+	public function getScreenshot($title=null, $placeholder=false, $size=250) {
 		$image = '';
 		$url = $this->getThumbnailUrl();
 		if (!empty($url)) {
-			$md5 = md5($url);
-			$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';
-			$filepath = WWW_DIR.$link;
-			
-			if (file_exists($filepath)) {
-				if (isset($title)) {
-					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;" title="'.$title.'"/></a></div>';
-				} else {
-					$image = '<div class="screenshot" style="padding:5px;background:#fff;width:260px;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="'.NEnvironment::getVariable("URI") . $link.'" style="width:250px;border:solid 1px #ccc;"/></a></div>';
-				}
-			} elseif ($placeholder) {
-				if (isset($title)) {
-					$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$link.'" target="_blank" class="fancybox"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;" title="'.$title.'"/></a></div>';
-				} else {
-					$image = '<div class="screenshot" style="padding:5px;background:#fff;"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$link.'" style="max-width:250px;"/></div>';
-				}
+			$size_div = $size+10;
+			if (isset($title)) {
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:'.$size_div.'px;"><a href="'.$url.'" target="_blank" class="fancybox"><img id="screenshot" src="'.$url.'" style="width:'.$size.'px;border:solid 1px #ccc;" title="'.$title.'"/></a></div>';
+			} else {
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:'.$size_div.'px;"><a href="'.$url.'" target="_blank" class="fancybox"><img id="screenshot" src="'.$url.'" style="width:'.$size.'px;border:solid 1px #ccc;"/></a></div>';
+			}
+		} elseif ($placeholder) {
+			if (isset($title)) {
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$url.'" target="_blank" class="fancybox"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$url.'" style="max-width:250px;" title="'.$title.'"/></a></div>';
+			} else {
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$url.'" style="max-width:250px;"/></div>';
 			}
 		}
 
 		return $image;
 	}
 
+
+	/**
+	 *	Cleans cache of particular name space.
+	 *
+	 */
 	private function cleanCache($name, $resource_id = null)
 	{
 		$storage = new NFileStorage(TEMP_DIR);

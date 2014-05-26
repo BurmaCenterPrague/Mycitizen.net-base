@@ -31,25 +31,23 @@ final class ResourcePresenter extends BasePresenter
 		$app_secret = NEnvironment::getVariable("GRABZIT_SECRET");
 		
 		if (!empty($app_key) && !empty($app_secret)) {
-			include(LIBS_DIR.'/GrabzIt/GrabzItClient.class.php');
+			include_once(LIBS_DIR.'/GrabzIt/GrabzItClient.class.php');
 			$this->grabzIt = new GrabzItClient($app_key, $app_secret);
 		}
-		
-		
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Prepares pages default and detail (if $resource_id is given)
+	 *	@param int $resource_id
 	 *	@return
 	 */
 	public function actionDefault($resource_id = null)
 	{
 		// prevent Ajax calls on /resource/ pages to be redirected
-		$query = NEnvironment::getHttpRequest();
-		$do = $query->getQuery("do");
-
-		if ($this->isAjax() && $do!='defaultPage' && $do!='detailPage' && $do!='changePage' && $do!='clickLink') return;
+//		$query = NEnvironment::getHttpRequest();
+//		$do = $query->getQuery("do");
+//		if ($this->isAjax() && $do!='defaultPage' && $do!='detailPage' && $do!='changePage' && $do!='clickLink') return;
 		
 		$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
@@ -270,9 +268,263 @@ final class ResourcePresenter extends BasePresenter
 			3600*24 => '24 h',
 			3600*24*7 => _t('1 week')
 		);
+		}	
+	}
+
+
+	/**
+	 *	Prepares pages default and detail (if $resource_id is given)
+	 *	@param int $resource_id
+	 *	@return
+	 */
+	public function actionBrowse()
+	{
+		
+		$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
+		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+
+		$resource_name = array(
+			1=>'1',
+			2=>'event',
+			3=>'org',
+			4=>'doc',
+			6=>'website',
+			7=>'7',
+			8=>'8',
+			9=>'friendship',
+			'media_soundcloud'=>'audio',
+			'media_youtube'=>'video',
+			'media_vimeo'=>'video',
+			'media_bambuser'=>'live-video'
+			);
+
+		$resource_type_labels = array(
+			1=>_t('message'),
+			2=>_t('event'),
+			3=>_t('organization'),
+			4=>_t('document'),
+			6=>_t('link to external resource'),
+			7=>'7',
+			8=>'8',
+			9=>'friendship',
+			10=>'friendship request',
+			11=>'noticeboard message',
+			'media_soundcloud'=>_t('sound on Soundcloud'),
+			'media_youtube'=>_t('video on YouTube'),
+			'media_vimeo'=>_t('video on Vimeo'),
+			'media_bambuser'=>_t('live-video on Bambuser')
+			);
+		
+		$tag_tree = Tag::getTreeArray();
+		$tags = array();
+		foreach ($tag_tree as $tag) {
+			if (!in_array($tag['tag_name'], $tags)) {
+				$tags[] = $tag['tag_name'];
+			}
 		}
+		$this->template->available_tags = '"'.implode('","', $tags).'"';
+		if (count($tags) < 35) {
+			$this->template->showAutocompleteOnFocus = true;
+		} else {
+			$this->template->showAutocompleteOnFocus = false;
+		}
+
+//		$session = NEnvironment::getSession()->getNamespace($this->name);
+
+		$user = NEnvironment::getUser()->getIdentity();
+		if (!empty($user)) {
+			$this->template->logged_user = $user->getUserId();
+		}
+
 		
 	}
+
+
+	/**
+	 *	Retrieves filter criteria via Ajax, sends items to resource Browser
+	 *	@return string (json)
+	 **/
+	public function handleBrowseresources()
+	{
+		$user_o = NEnvironment::getUser()->getIdentity();
+		if (empty($user_o)) die();
+		$logged_user_id = $user_o->getUserId();
+		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$httpRequest = NEnvironment::getHttpRequest();
+		$post = $httpRequest->getPost();
+		$tags = $post['tags'];
+		$sort = isset($post['sort']) ? $post['sort'] : '';
+		$type = isset($post['type']) ? $post['type'] : array(2, 3, 4, 5, 6);
+		if ($type == 'all' || !in_array($type, array(2, 3, 4, 5, 6))) {
+			$type = array(2, 3, 4, 5, 6);
+		}
+		$name = isset($post['name']) ? $post['name'] : '';
+		$map = isset($post['map']) ? json_decode($post['map'], true) : NULL;
+
+		// retrieve ids and sort out non-existing tags
+		$tag_ids = array();
+		if (isset($tags) && is_array($tags)) {
+			foreach ($tags as $key => $tag_name) {
+				$ids = Tag::ids_from_name($tag_name);
+				foreach ($ids['tag_ids'] as $id) {
+					$tag_ids[$id] = 1;
+				}
+			}
+		}
+		if (empty($tag_ids)) {
+			$return_array['message'] = '<h2>'._t("Nothing found").'</h2><h4>'._t('Please enter some tags.').'</h4>';
+			$return_array['data'] = array();
+			echo json_encode($return_array);
+			$this->terminate();
+		}
+
+		ksort($tag_ids);
+
+		$key = md5(json_encode($tag_ids).'-'.$name.'-'.$sort.'-'.$post['map'].'-'.$type.'-'.$session->language);
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Resource.browse");
+		$cache->clean();
+		if ($cache->offsetExists($key)) {
+			$return_array = $cache->offsetGet($key);
+			echo json_encode($return_array);
+			$this->terminate();
+		}
+		
+		if (empty($map)) {
+			$filter['mapfilter']	= NULL;
+		} else {
+			$filter['mapfilter']	= $map;
+		}
+		$filter['tags']           = $tag_ids;
+		$filter['name']           = $name;
+		
+		$filter['filter_pairing'] = "and";
+		$filter['status']         = "1";
+		$filter['type']           = $type;
+
+		if ($sort == 'name') {
+			$filter['order_by'] = 'ORDER BY resource_name ASC';
+		} elseif ($sort == 'date') {
+			$filter['order_by'] = 'ORDER BY `resource`.`resource_last_activity` DESC';
+		} elseif ($sort == 'links') {
+			$filter['order_by'] = 'ORDER BY links DESC';
+		}
+
+		$data = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter);
+
+		$results = array();
+		foreach ($data as $item) {
+			$result = array();
+			$result['id'] = $item['id'];
+			$result['name'] = $item['name'];
+			$result['url'] = $this->link('Resource:default', array('resource_id' => $item['id']));
+
+			$result['description'] = StaticModel::imagifySmileys(StaticModel::make_links_clickable(StaticModel::purify_and_convert($item['description'])));
+
+			$result['last_activity'] = $item['last_activity']->__toString(); // #### need to add time zone?
+			$result['author'] = $item['author'];
+			$resource = Resource::create($item['id']);
+			
+			// get visibility icon
+			switch ($item['visibility_level']) {
+				case 1: $result['visibility_icon'] = '<b class="icon-world" title="'._t("visible to the world").'"></b>'; break;
+				case 2: $result['visibility_icon'] = '<b class="icon-registered" title="'._t("only visible to registered users").'"></b>'; break;
+				case 3: $result['visibility_icon'] = '<b class="icon-person" title="'._t("only visible to subscribers").'"></b>'; break;
+			}
+			
+			// get thumbnail
+			$result['screenshot'] = $resource->getScreenshot('', false, 100);
+
+			// get external link
+			switch ($item['type']) {
+				case 2: if (isset($item['resource_data']['event_url']) && !empty($item['resource_data']['event_url'])) $result['external_link'] = $item['resource_data']['event_url']; break;
+				case 3: if (isset($item['resource_data']['organization_url']) && !empty($item['resource_data']['organization_url'])) $result['external_link'] = $item['resource_data']['organization_url']; break;
+				case 4: if (isset($item['resource_data']['text_information_url']) && !empty($item['resource_data']['text_information_url'])) $result['external_link'] = $item['resource_data']['text_information_url']; break;
+				case 5:
+					if (isset($item['resource_data']['media_type']) && $item['resource_data']['media_type'] == 'media_youtube') {
+						$result['external_link'] = 'https://www.youtube.com/watch?v='.$item['resource_data']['media_link'];
+					} elseif (isset($item['resource_data']['media_type']) && $item['resource_data']['media_type'] == 'media_vimeo') {
+						$result['external_link'] = 'http://vimeo.com/'.$item['resource_data']['media_link'];
+					} elseif (isset($item['resource_data']['media_type']) && $item['resource_data']['media_type'] == 'media_soundcloud') {
+						$result['external_link'] = 'http://w.soundcloud.com/player/?url=www.soundcloud.com/tracks/'.$item['resource_data']['media_link'];
+					} elseif (isset($item['resource_data']['media_type']) && $item['resource_data']['media_type'] == 'media_bambuser') {
+						$result['external_link'] = 'http://bambuser.com/v/'.$item['resource_data']['media_link'];
+					}
+				break;
+				case 6: if (isset($item['resource_data']['other_url']) && !empty($item['resource_data']['other_url'])) $result['external_link'] = $item['resource_data']['other_url']; break;
+			}
+			
+			// get edit link
+			if (Auth::isAuthorized(3,$item['id']) > Auth::USER) {
+				$result['edit_url'] = $this->link("Resource:edit", array('resource_id' => $item['id']));
+			}			
+
+			// get map url
+			if ($resource->hasPosition()) {
+				$data = $resource->getResourceData();
+				$result['map'] = '<a href="https://maps.googleapis.com/maps/api/staticmap?zoom=12&size=700x700&markers=color:red|label:R|'.$data['resource_position_x'].','.$data['resource_position_y'].'&sensor=false" class="fancybox-image" style="padding-top:5px;"><img src="https://maps.googleapis.com/maps/api/staticmap?zoom=5&size=100x80&markers=color:red|label:R|'.$data['resource_position_x'].','.$data['resource_position_y'].'&sensor=false" style="width:100px;height:80px;border:solid 1px #CCC;border-radius:5px;" class="browse-map"/></a>';
+			} else {
+				$result['map'] = '';
+			}
+			
+			// get subscriber status
+			if ($resource->userIsRegistered($logged_user_id)) {
+				$result['subscribed'] = true;
+			} else {
+				$result['subscribed'] = false;
+			}
+			
+			// get number of subscribers
+			$result['links'] = $item['links'];
+			
+			// get tags
+			$tags = $resource->groupSortTags($resource->getTags());
+			$tag_html = '';
+			if (!empty($tags)) {
+				foreach ($tags as $tag) {
+					$tag_html .= '<div style="display:inline-block;"><b class="icon-tag" style="width:15px;"></b>'.$tag->getName().'</div> ';
+				}
+				$result['tags'] = $tag_html;
+			} else {
+				$result['tags'] = '';
+			}
+			
+			// get icon
+			$result['icon'] = '<b class="'.Resource::getIconClass($item['id']).'"></b>';
+			
+			$results[] = $result;
+		}
+		
+
+		
+		$return_array['data'] = $results;
+		if (empty($results)) {
+			$return_array['message'] = '<h2>'._t("Nothing found").'</h2>';
+		} else {
+			$return_array['message'] = '<h2>'._t("%d result(s) found", count($results)).'</h2>';
+		}
+
+		$cache->save($key, $return_array, array(NCache::EXPIRE => time()+300));
+		
+		echo json_encode($return_array);
+		$this->terminate();
+	}
+
+
+	/**
+	 *	Creates the map component on the Resource Browser
+	 *	@param
+	 *	@return
+	 */
+	protected function createComponentMapfilter($name)
+	{
+		$control = new MapControl($this, $name, array(), array(
+			'type' => 'radius'
+			)
+		);
+		return $control;
+	}
+
 
 	/**
 	 *	@todo ### Description
@@ -577,6 +829,7 @@ final class ResourcePresenter extends BasePresenter
 		
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -604,9 +857,10 @@ final class ResourcePresenter extends BasePresenter
 			),
 			'cache_tags' => array("resource_id/$resource_id")
 		);
-		$control     = new ListerControlMain($this, $name, $options);
+		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -960,6 +1214,8 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleResourceAdministration($resource_id, $values)
 	{
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR) die('no permission');
+
 		$resource = Resource::create($resource_id);
 		
 		$resource->setResourceData($values);
@@ -999,14 +1255,14 @@ final class ResourcePresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
 	 *	@return
 	 */
 	protected function createComponentDefaultresourcegrouplister($name)
-	{
-		
+	{	
 		$options = array(
 			'itemsPerPage' => 5,
 			'lister_type' => array(
@@ -1029,6 +1285,7 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1064,6 +1321,7 @@ final class ResourcePresenter extends BasePresenter
 		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1142,6 +1400,8 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleInsertTag($resource_id, $tag_id)
 	{
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR) die('no permission');
+
 		$this->resource = Resource::create($resource_id);
 		if (!empty($this->resource)) {
 			$resource_id = $this->resource->getResourceId();
@@ -1163,6 +1423,8 @@ final class ResourcePresenter extends BasePresenter
 	*/
 	public function handleRemoveTag($resource_id, $tag_id)
 	{
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR) die('no permission');
+
 		$this->resource = Resource::create($resource_id);
 		if (!empty($this->resource)) {
 			$resource_id = $this->resource->getResourceId();
@@ -1246,6 +1508,8 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleUserResourceInsert($user_id, $resource_id)
 	{
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) > 2) die('no permission');
+
 		if (empty($resource_id) || empty($user_id)) {
 			print "false";
 			$this->terminate();
@@ -1291,6 +1555,8 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleUserResourceRemove($user_id, $resource_id)
 	{
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) > 2) die('no permission');
+
 		if (empty($resource_id) || empty($user_id)) {
 			print "false";
 			$this->terminate();
@@ -1320,7 +1586,8 @@ final class ResourcePresenter extends BasePresenter
 		
 		$this->terminate();
 	}
-	
+
+
 	/**
 	*	Chat on resource detail pages
 	*/
@@ -1356,6 +1623,7 @@ final class ResourcePresenter extends BasePresenter
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1377,6 +1645,7 @@ final class ResourcePresenter extends BasePresenter
 		));
 		return $control;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1411,6 +1680,8 @@ final class ResourcePresenter extends BasePresenter
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
 			$resource_id = $session->data['object_id'];
+		} else {
+			return;
 		}
 		$form = new NAppForm($this, 'resourceadministrator');
 		$resource      = Resource::create($resource_id);
@@ -1590,7 +1861,7 @@ final class ResourcePresenter extends BasePresenter
 
 	
 	/**
-	 *	For the moderation of chat messages
+	 *	For the moderation of comments
 	 *	@param
 	 *	@return
 	*/
@@ -1599,14 +1870,17 @@ final class ResourcePresenter extends BasePresenter
 		if (Auth::isAuthorized(3,$resource_id) < Auth::MODERATOR) {
 			print 'false';
 			$this->terminate();
-		}		
-
-		$message_o = Resource::create($message_id);
-		if (!empty($message_o)) {
-			$result = $message_o->remove_message(3, $resource_id);
+		}
+		
+		// check if it is a message
+		$resource_type = Resource::getResourceType($message_id);
+		if ($resource_type != 8) {
+			echo "false";
+			$this->terminate();
 		}
 
-		if ($result) {
+
+		if (Resource::removeMessage($message_id)) {
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage);
 			$cache->clean(array(NCache::TAGS => array("resource_id/$resource_id", "name/chatlisterresource")));

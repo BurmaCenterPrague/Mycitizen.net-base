@@ -452,7 +452,7 @@ class User extends BaseModel implements IIdentity
 		} else {
 			$link  = NEnvironment::getVariable("URI") . "/user/confirm/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 		}
-		$body  = sprintf(_t("Hello %s,\n\nThank you for signing up at Mycitizen.net!\nTo finish your registration click on the following link."), $name ). "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\n\nThank you for signing up at Mycitizen.net!\nTo finish your registration click [here] (%s), or copy the following link to your browser:\n\n%s"), $name, $link, $link );
 		
 /*
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("from_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
@@ -548,9 +548,9 @@ class User extends BaseModel implements IIdentity
 		$language = Language::getId($session->language);
 		
 
-		$link  = NEnvironment::getVariable("URI") . "/user/changepassword/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
+		$link  = NEnvironment::getVariable("URI") . "/user/changelostpassword/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 		
-		$body  = sprintf(_t("Hello %s,\n\nYou have requested a password change on Mycitizen.net.\nTo finish your request click on the following link."), $name) . "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\n\nYou have requested a password change on Mycitizen.net.\nTo finish your request click [here] (%s), or copy the following link to your browser:\n\n%s"), $name, $link, $link);
 		
 /*
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
@@ -606,7 +606,7 @@ class User extends BaseModel implements IIdentity
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = Language::getId($session->language);
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
-		$body  = sprintf(_t("Hello %s,\n\nYou have requested an email change on Mycitizen.net.\nTo finish your request click on the following link."), $name ) . "\n\n " . $link;
+		$body  = sprintf(_t("Hello %s,\n\nYou have requested an email change on Mycitizen.net.\nTo finish your request click [here] (%s), or copy the following link to your browser:\n\n%s"), $name, $link, $link );
 		
 /*
 		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
@@ -616,7 +616,7 @@ class User extends BaseModel implements IIdentity
 		
 		if ($email != $this->user_data['user_email']) {
 			$support_url = NEnvironment::getVariable("SUPPORT_URL");
-			$body  = sprintf(_t("Hello %s,\n\nSomebody has requested an email change on Mycitizen.net. The new email will be: %s\n\nIf you think that this is wrong, please contact the support at %s."), $name, $email, $support_url ) . "\n\n " . $link;
+			$body  = sprintf(_t("Hello %s,\n\nSomebody has requested an email change on Mycitizen.net. The new email will be: %s\n\nIf you think that this is wrong, please [contact the support] (%s)."), $name, $email, $support_url ) . "\n\n " . $link;
 /*
 			$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
 			mail($this->user_data['user_email'], '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
@@ -725,6 +725,22 @@ class User extends BaseModel implements IIdentity
 		}
 		return false;
 	}
+
+
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	 */
+	public function isFriendOf($user_id)
+	{
+		if ($this->friendsStatus($user_id) == 2 && $this->reverseFriendsStatus($user_id) ==2) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 
 	/**
 	 *	@todo ### Description
@@ -910,12 +926,12 @@ class User extends BaseModel implements IIdentity
 	 */
 	public static function getFullName($user_id)
 	{
-		$result = dibi::fetchSingle("SELECT CONCAT(`user_name`,' ',`user_surname`) FROM `user` WHERE `user_id` = %i", $user_id);
-		
+		$result = trim(dibi::fetchSingle("SELECT CONCAT(`user_name`,' ',`user_surname`) FROM `user` WHERE `user_id` = %i", $user_id)); // trim here to catch the space added with concat
+
 		if (empty($result)) {
 			return self::getUserLogin($user_id);
 		}
-		return trim($result);
+		return $result;
 	}
 
 
@@ -928,7 +944,7 @@ class User extends BaseModel implements IIdentity
 	{
 		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_id` = %i", $user_id);
 		if (empty($result)) {
-			return "";
+			return "unknown";
 		}
 		return trim($result);
 	}

@@ -126,7 +126,8 @@ final class HomepagePresenter extends BasePresenter
 			'refresh_path' => 'Homepage:default',
 			'template_variables' => array(
 				'show_extended_columns' => true,
-				'front_page' => true
+				'front_page' => true,
+				'top' => true
 			),
 			'cache_expiry' => 1200
 		);
@@ -151,7 +152,8 @@ final class HomepagePresenter extends BasePresenter
 			'refresh_path' => 'Homepage:default',
 			'template_variables' => array(
 				'show_extended_columns' => true,
-				'front_page' => true
+				'front_page' => true,
+				'top' => true
 			),
 			'cache_expiry' => 1200
 		);
@@ -176,7 +178,8 @@ final class HomepagePresenter extends BasePresenter
 			'refresh_path' => 'Homepage:default',
 			'template_variables' => array(
 				'show_extended_columns' => true,
-				'front_page' => true
+				'front_page' => true,
+				'top' => true
 			),
 			'cache_expiry' => 1200
 		);

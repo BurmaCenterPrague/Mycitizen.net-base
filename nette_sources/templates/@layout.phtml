@@ -18,91 +18,126 @@
     	<meta name="description" content="{$PROJECT_DESCRIPTION}" />
     	<meta name="robots" content="{$robots}" n:ifset="$robots" />
     	<meta http-equiv="Content-Language" content="{$language_code}" />
-		<link rel="shortcut icon" type="image" href="{$baseUri_np}images/favicon.ico" />
-
-    	<link rel="stylesheet" media="screen" href="{$baseUri_np}css/mycitizen.min.css" />
-		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery.fancybox.min.css" />
+		<link rel="shortcut icon" type="image" href="{$CDN}images/favicon.ico" />
+    	<link rel="stylesheet" media="screen" href="{$CDN}css/mycitizen.min.css" />
+		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.fancybox.min.css" />
 {ifset $load_external_js_css}
 		<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
 		<link href='//fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
 {else}
-		<script type="text/javascript" src="{$baseUri_np}js/jquery-1.10.2.min.js"></script>
-		<link href='{$baseUri_np}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
+		<script type="text/javascript" src="{$CDN}js/jquery-1.10.2.min.js"></script>
+		<link href='{$CDN}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
 {/if}
 
-{ifset $logged}
-		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery.tree.css" />
-		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery.calendarPicker.min.css" />
-{/if}
-{ifset $load_external_js_css}
+{ifset $load_external_js_css_deactivated}
 		<link rel="stylesheet" href="//cdn.jsdelivr.net/qtip2/2.2.0/jquery.qtip.min.css">
 		<script src="//cdn.jsdelivr.net/qtip2/2.2.0/jquery.qtip.min.js"></script>
 {else}
-		<link type="text/css" rel="stylesheet" href="{$baseUri_np}css/jquery.qtip.min.css" />
-		<script type="text/javascript" src="{$baseUri_np}js/jquery.qtip.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="{$CDN}css/jquery.qtip.min.css" />
+		<script type="text/javascript" src="{$CDN}js/jquery.qtip.min.js"></script>
 {/if}
-{ifset $logged}
-{ifset $load_external_js_css}
-		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css" type="text/css" />
-{else}
-		<link rel="stylesheet" href="{$baseUri_np}css/jquery.Jcrop.min.css" type="text/css" />
-{/if}
-{/if}
-		<script type="text/javascript" src="{$baseUri_np}js/jquery.nette.js"></script>
-		<script type="text/javascript" src="{$baseUri_np}js/base-functions.min.js"></script>
-		<script type="text/javascript" src="{$baseUri_np}js/jquery.json-2.2.min.js"></script>
-		<script type="text/javascript" src="{$baseUri_np}js/jquery.fancybox.min.js"></script>
+		<script type="text/javascript" src="{$CDN}js/jquery.nette.js"></script>
+		<script type="text/javascript" src="{$CDN}js/base-functions.min.js"></script>
+		<script type="text/javascript" src="{$CDN}js/jquery.json-2.2.min.js"></script>
+		<script type="text/javascript" src="{$CDN}js/jquery.fancybox.min.js"></script>
+		<script type="text/javascript" src="{$CDN}js/jquery-ui-1.10.4.min.js"></script>
 {ifset $load_js_css_zxcvbn}
 	{ifset $load_external_js_css}
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn-async.min.js"></script>
 	{else}
-		<script type="text/javascript" src="{$baseUri_np}js/zxcvbn-async.js"></script>	
+		<script type="text/javascript" src="{$CDN}js/zxcvbn-async.js"></script>	
 	{/if}
 {/if}
-
-		<script type="text/javascript" src="{$baseUri_np}js/jquery-ui-1.10.4.custom.min.js"></script>
-		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/jquery-ui-1.10.4.custom.min.css" />
 {ifset $logged}
 	{ifset $load_external_js_css}
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/gcal.js"></script>
-		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />		
+		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css" type="text/css" />
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.min.js"></script>	
 	{else}
-		<script type="text/javascript" src="{$baseUri_np}js/fullcalendar.min.js"></script>
-		<script type="text/javascript" src="{$baseUri_np}js/gcal.js"></script>
-		<link rel="stylesheet" media="screen" href="{$baseUri_np}css/fullcalendar.css" />		
+		<script type="text/javascript" src="{$CDN}js/fullcalendar.min.js"></script>
+		<script type="text/javascript" src="{$CDN}js/gcal.js"></script>
+		<link rel="stylesheet" media="screen" href="{$CDN}css/fullcalendar.css" />
+		<script src="{$CDN}js/jquery.Jcrop.min.js"></script>
+		<link rel="stylesheet" href="{$CDN}css/jquery.Jcrop.min.css" type="text/css" />
 	{/if}
+		<script type="text/javascript" src="{$CDN}js/tag-it.min.js"></script>
+		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.tagit.css" />
+		<link rel="stylesheet" media="screen" href="{$CDN}css/tagit.ui-zendesk.css" />
+		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.tree.css" />
+		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.calendarPicker.min.css" />
+		<script src="{$CDN}js/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" src="{$CDN}js/jquery.calendarPicker.min.js"></script>
+		<script type="text/javascript" src="{$CDN}js/jquery.tree.min.js"></script>
+
 {/if}
-{ifset $logged}
-		<script src="{$baseUri_np}js/ckeditor/ckeditor.js"></script>
-{/if}
+
+	<script>
+    {* Functions that require Latte and must therefore remain in the template *}
+	
+		function loadActivity(where, id, latest) {
+			$(where).animate({ opacity:0},function() {
+				$(this).load("{!$baseUri_np}?do=activity&id="+id+"&latest="+latest,function() {
+					$(this).animate({ opacity:1});
+					$('.fancybox-inner').animate({
+						scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
+					}, 2000);
+				});
+			});
+		}
 
 {ifset $logged}
-{ifset $load_external_js_css}
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.min.js"></script>
-{else}
-<script src="{$baseUri_np}js/jquery.Jcrop.min.js"></script>
-{/if}
+		function doCrop() {
+			var x = $('#x').val();
+			var y = $('#y').val();
+			var w = $('#w').val();
+			var h = $('#h').val();
+			var factor = $('#factor').val();
+			if (w==0 || h==0) { alert({_"Please select first a part of the image."}); return false };
+			window.location=this.location+'&do=crop&x='+x+'&y='+y+'&w='+w+'&h='+h+'&factor='+factor;	
+		}
+	
+		function reloadMessages() {
+			$.ajax({
+					url:"{!$baseUri_np}?do=reloadStatusBar",
+					dataType:"json"
+				}).done(function(payload){
+					$("#messages").html(payload['message_indicator']);
+					$(document).attr("title", payload['title']+{$PROJECT_NAME}+" | {include #title}");				
+			});
+		}
+		
+	function PMPOPMoveToTrash(resource_id) {
+		if(resource_id != null) {
+			$.post("{!$baseUri}?do=moveToTrash&resource_id="+resource_id);
+		}
+	}
+	
+	function PMPOPMoveFromTrash(resource_id) {
+		if(resource_id != null) {
+			$.post("{!$baseUri}?do=moveFromTrash&resource_id="+resource_id);
+		}
+	}
 
-<script type="text/javascript" src="{$baseUri_np}js/jquery.calendarPicker.min.js"></script>
-<script type="text/javascript" src="{$baseUri_np}js/jquery.tree.min.js"></script>
+	function PMPOPMarkRead(resource_id) {
+		if(resource_id != null) {
+			$.post("{!$baseUri}?do=markRead&resource_id="+resource_id);
+		}
+	}
 
-<script>
+	function PMPOPMarkUnread(resource_id) {
+		if(resource_id != null) {
+			$.post("{!$baseUri}?do=markUnread&resource_id="+resource_id);
+		}
+	}
+
+
     function enableCrop(c) {
     	$('#x').val(c.x);
 		$('#y').val(c.y);
     	$('#w').val(c.w);
 		$('#h').val(c.h);
-    }
-    
-    function doCrop() {
-    	var x = $('#x').val();
-    	var y = $('#y').val();
-    	var w = $('#w').val();
-    	var h = $('#h').val();
-    	var factor = $('#factor').val();
-    	if (w==0 || h==0) { alert({_"Please select first a part of the image."}); return false };
-		window.location=this.location+'&do=crop&x='+x+'&y='+y+'&w='+w+'&h='+h+'&factor='+factor;	
     }
     
 	$(document).ready(function() {
@@ -114,16 +149,7 @@
 		setInterval("onlineStatus()",65*1000);
 		onlineStatus();
 	});
-	
-	function reloadMessages() {
-		$.ajax({
-				url:"{!$baseUri_np}?do=reloadStatusBar",
-				dataType:"json"
-			}).done(function(payload){
-				$("#messages").html(payload['message_indicator']);
-				$(document).attr("title", payload['title']+{$PROJECT_NAME}+" | {include #title}");				
-		});
-	}
+
 
 	var status = {};
 	var status_small = {};
@@ -197,89 +223,34 @@
 			});
 		}
 	}
-</script>
 {/if}
-
-
-<script>
-	$(document).ready(function(){
-		$("a.active").prop("href", "javascript:void(0);");
-		$("a.active").css("cursor", "default");
-
-		$(".tags-fancybox").fancybox({
-			closeBtn : true,
-			leftRatio: 0.15,
-			topRatio: 0,
-			maxWidth: 500,
-			helpers : {
-				overlay : {
-					css: {'background' : 'rgba(200, 200, 200, .5)'}
-				},
-				title : null
-			},
-		});
-
-	$(".fancybox").fancybox({
-			closeBtn : true,
-			helpers : {
-				overlay : {
-					css: {'background' : 'rgba(200, 200, 200, .5)'}
-				},
-				title : null
-			},
-		});
-	});
-	
-	function loadActivity(where, id, latest) {
-		$(where).animate({ opacity:0},function() {
-			$(this).load("{!$baseUri_np}?do=activity&id="+id+"&latest="+latest,function() {
-				$(this).animate({ opacity:1});
-				$('.fancybox-inner').animate({
-					scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
-				}, 2000);
-			});
-		});
-	}
-</script>
-<script>
-	$(document).ready(function(){
-		$('.user-info').mouseenter(function(){
-			$('.hidden-menu').filter(":hidden").slideDown("normal", function(){ //fade
-        		$(this).fadeTo("normal", 1.00, function() { //slide up
-         		});
-     		});
-		});
-	
-		$('.header').mouseleave(function(){
-			$('.hidden-menu').filter(":visible").fadeTo("normal", 0.00, function(){ //fade
-        		$(this).slideUp("normal", function() { //slide up
-         		});
-     		});
-     		$(this).clearQueue();
-		});
-	});
-</script>
-<script>
-$(document).ready(function() {
-    $(document).on('click', 'a.ajax', function(){
-    	var url = this.href;
-	    var urlq = url + (this.href.split('?')[1] ? '&':'?') + "do=clickLink";
-    	$.ajax(urlq,
-    		function(payload){
-    		if (payload) {
-				for (var id in payload.snippets) {
-					$("#" + id).html(payload.snippets[id]);
-				}
-			}
-    	});
-	    window.history.pushState("object or string", "Title", url);
-    	return false;
-    });
-});
-</script>
-<title>{$PROJECT_NAME} | {include #title}</title>
+	</script>
+	<script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
+	<style>
+	 .sortable-placeholder { height: 10px; line-height: 1.2em; background-color:#D0CCC3; width:430px; margin:10px; border-radius:5px;}
+	 
+@media print {
+  #mobile_alert, #mobile_alert *, #topheader, #topheader *, .footer, .footer *, .resource-browser-actions, .resource-browser-filter {
+    visibility: hidden;
+    height:0;
+  }
+  
+  .layout {
+  	width: 100%;
+  }
+  
+  .resource-browser-container {
+  	position: absolute;
+    left: 0;
+    top: 0;
+  }
+  }
+}
+	</style>
+	<title>{$PROJECT_NAME} | {include #title}</title>
 </head>
 <body>
+<input id="baseUri" type="hidden" value="{!$baseUri}" />
 {ifset $mobile}
 	<div id="mobile_alert">
 		<!-- mobile phone detected. -->
@@ -298,7 +269,7 @@ $(document).ready(function() {
 				<div class="login" style="{ifset $logged}min-height:70px;{/if}min-width:170px;">
 				{ifset $logged}
 					<a href="{link User:default, $my_id}" class="user-info" title="{_"go to your profile"}">{!$image} {$username}</a>
-					<div><a href="?toggleChat=toggle" target="_top" id="external_chat" title="{_"chat window"}"><img src="{!$baseUri_np}/images/new-window.png" style="float:right; padding-top:6px; cursor:pointer;"/></a>
+					<div><a href="?toggleChat=toggle" target="_top" id="external_chat" title="{_"chat window"}"><img src="{!$CDN}images/new-window.png" style="float:right; padding-top:6px; cursor:pointer;"/></a>
 				<script>
 					$(document).ready(function(){
 						if (top.location != location) {
@@ -311,31 +282,7 @@ $(document).ready(function() {
 						<div class="fading">
 							<a href="{link User:edit, $my_id}" class="button" >{_"Edit profile"}</a>
 							<a href="#activity_box" class="button" id="show_activity">{_"Recent activity"}</a>
-<script type="text/javascript">
-$(function() {
-	$("#show_activity").fancybox({
-		minWidth:800,
-		minHeight:500,
-		closeBtn : true,
-		helpers : {
-			overlay : {
-				css: {'background' : 'rgba(200, 200, 200, .5)'}
-			},
-			title : null
-		},
-		afterLoad: function() {
-			var latest = $("input[name='latest_items']").prop('checked')?'1':'0';
-			loadActivity("#load-more-1", 2, latest);
-		}
-	});
-});
-$(document).ready(function(){
-	$("input[name='latest_items']").change(function(){
-		var latest = $(this).prop('checked')?'1':'0';
-		loadActivity("#load-more-1", 2, latest);
-	});
-});
-</script>
+
 							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
 						</div>
 						</div>
@@ -359,7 +306,7 @@ $(document).ready(function(){
 			</div> <!-- header -->
 
 			<div class="logo">
-				<h1><a href="{link Homepage:default}" class="ajax"><img src="{$baseUri_np}images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
+				<h1><a href="{link Homepage:default}" class="ajax"><img src="{$CDN}images/logo.png" alt="{$PROJECT_NAME}" width="120" title="{_"Return to the home screen."}"/></a></h1>
 			</div>
 			<div class="language">
 				<form>
@@ -387,9 +334,11 @@ $(document).ready(function(){
 		<div class="content" style="margin-top:30px;">
 {snippet mainContent}
 	@{include #content}
-
+<div id="progressbar" class="progressbar" style="display:none;"/></div>
 <script>
+{* These scripts need to relad with the mainContent snippet. *}
 	$(document).ready(function(){
+		$('[title!=""]').qtip('destroy');
 		$('[title!=""]').qtip({
 			style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
 			show: { delay: 800 },
@@ -403,11 +352,23 @@ $(document).ready(function(){
             	}
 			}
 		});
+		
+		$('form input[type=submit]').click(function(){
+        	$(this).attr("clicked", "true");
+	    });
 	});
 </script>
 {/snippet}
 			<div class="cleaner"></div>
 		</div>
+
+{snippet popupchat}
+{ifset $logged}
+{ifset $popup_chat}
+	{include $popup_chat}
+{/if}
+{/if}
+{/snippet}
 
 		<div class="footer">
 			{include $footer}
@@ -423,11 +384,11 @@ $(document).ready(function(){
 				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
 				<div class="cleaner"></div>
 				<h4>Stay Connected</h4>
-				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="{$baseUri_np}/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
-				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="{$baseUri_np}/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="{$CDN}/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
+				<a href="https://twitter.com/mycitizennet" target="_blank"><img src="{$CDN}/images/twitter_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>
 			</div>
 			<div class="sponsor-credits">
-				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="{$baseUri_np}/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
+				<a href="http://www.mzv.cz/jnp/en/foreign_relations/human_rights/transition_promotion_program/index.html" target="_blank"><img src="{$CDN}/images/transition-200px.gif" class="logo_sponsor" alt="logo of sponsor" style="float:right;"/></a>This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
 			</div>
 			<div class="cleaner"></div>
 		</div> <!-- footer -->
@@ -455,12 +416,5 @@ $(document).ready(function(){
 </script>
 <!-- End Piwik Code -->
 {/if}
-{snippet popupchat}
-{ifset $logged}
-{ifset $popup_chat}
-	{include $popup_chat}
-{/if}
-{/if}
-{/snippet}
 	</body>
 </html>

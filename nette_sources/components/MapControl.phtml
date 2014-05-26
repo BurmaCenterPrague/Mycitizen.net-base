@@ -16,7 +16,6 @@
 *	Displays the map to show the location of items
 */
 ?>
-<script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
 <script>
 var map = null;
 var mapcenter = new google.maps.LatLng({$default_latitude},{$default_longitude});
@@ -93,7 +92,7 @@ function findLocation(address) {
 }
 
 var active_center = null;
-
+{if $type == "edit" || $type == "radius"}
 function clearMap() {
 	firstclick = false;
 	$('#item_location').hide('normal');
@@ -109,9 +108,14 @@ function clearMap() {
 		points[i].setMap(null);
 	}
 	points = [];
+{if $type == "edit"}
 	$.getJSON({link mapEdit!},{ "{!$name}-latitude":null,"{!$name}-longitude":null },function(payload){
    });
+{else}
+	refreshItems();
 
+	loadData();
+{/if}
 }
 
 function updateZoneFormCircle(center,radius) {
@@ -125,7 +129,11 @@ function updateZoneFormCircle(center,radius) {
       json += '"radius":{"lat":"'+radius.position.lat()+'","lng":"'+radius.position.lng()+'","length":"'+google.maps.geometry.spherical.computeDistanceBetween(center.position,radius.position)+'"}';
    }
    json += '}';
-   $("#"+{$container_id}).val(json);
+   $("#mapcontainer").val(json);
+   
+   if(radius) {
+	   refreshItems();
+   }
 }
 
 
@@ -171,7 +179,7 @@ function loadCircle() {
 
                       });
 }
-
+{/if}
 
 function loadData() {
 	
@@ -185,7 +193,7 @@ function loadData() {
    };
 
 	map = new google.maps.Map(document.getElementById("map_canvas_control"),mapOptions);
-	
+
 	{if $type == "radius"}
 	google.maps.event.addListener(map,'mousemove',function(event){
       if(firstclick) {
@@ -202,7 +210,7 @@ function loadData() {
                        radius: google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,event.latLng)
 
                       });
-
+		$('#item_location').show('normal');
       }
    });
 	{/if}
@@ -246,6 +254,7 @@ function loadData() {
                      map:map,
                      rad:0
                   });
+         /* circle center changed */
          google.maps.event.addListener(circle_center,'drag',function(event){
                 if(circle_center.rad == 1) {
                 var proj = this.map.getProjection();
@@ -257,29 +266,30 @@ function loadData() {
                 var newradius = new google.maps.Point(oldradius.x + newp.x,oldradius.y + newp.y);
                 circle_radius.setPosition(proj.fromPointToLatLng(newradius));
                 } else {
-                   circle.setCenter(event.latLng);
+                	circle.setCenter(event.latLng);
                 }
-					 updateZoneFormCircle(circle_center,circle_radius);
+				updateZoneFormCircle(circle_center,circle_radius);
          });
 
       } else if(firstclick) {
-         firstclick = false;
+    	/* circle set */
+        firstclick = false;
          
-         circle_radius = new google.maps.Marker({
-            position:event.latLng,
-            draggable:true,
-            map:map
-         }
-         );
-         circle_center.setOptions({ rad:1 });
-         google.maps.event.addListener(circle_radius,'drag',function(event){
+    	circle_radius = new google.maps.Marker({
+        	position:event.latLng,
+        	draggable:true,
+        	map:map
+        });
+        circle_center.setOptions({ rad:1 });
+        /* circle size changed */
+    	google.maps.event.addListener(circle_radius,'drag',function(event){
             circle.setRadius(google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,event.latLng));
 				updateZoneFormCircle(circle_center,circle_radius);
-				});
-      }
+			});
+      	}
 
-      if(circle_center && circle_radius) {
-         circle.setOptions({
+    	if(circle_center && circle_radius) {
+    		circle.setOptions({
 				strokeColor: "#3399FF",
                   strokeOpacity: 0.8,
                   strokeWeight: 2,
@@ -289,12 +299,14 @@ function loadData() {
                   center: circle_center.position,
                   radius: google.maps.geometry.spherical.computeDistanceBetween(circle_center.position,circle_radius.position)
                  });
-      }
+
+    	}
 		updateZoneFormCircle(circle_center,circle_radius);
    });
 	{/if}
 
-	$.getJSON({plink this, do =>$name.'-mapData'},{ },function(payload){
+{if $type != "radius"}
+	$.getJSON({$json_link_view},{ },function(payload){
     	for (var i = 0; i < payload.length;i++) {
 			if(payload[i].location != undefined && payload[i].location.longitude != null && payload[i].location.latitude != null) {
 				$('#item_location').show('normal');
@@ -312,7 +324,6 @@ function loadData() {
                				$.getJSON({link mapEdit!},{ "{!$name}-latitude":event.latLng.lat(),"{!$name}-longitude":event.latLng.lng() },function(payload){
 						});
             		});
-
 				{else}
 					itemPosition = new google.maps.LatLng(parseFloat(payload[i].location.latitude,10),parseFloat(payload[i].location.longitude,10));
 					points.push(new google.maps.Marker({
@@ -327,7 +338,7 @@ function loadData() {
          }
 		}
    });
-   
+{/if}
 	findme();
 }
 
@@ -389,6 +400,11 @@ $(document).ready(function() {
 </div>
 <input id="search" type="text" value="" placeholder="{_"Search for a place"}" />
 
+{if $type == "radius"}
+<input id="mapcontainer" name="{$name}[mapdata]" type="hidden" value='{if isset($defaults) && !is_array($defaults)}{$defaults}{/if}'>
+<a href="javascript:void(0);" onClick="$('#mapcontainer').val('');clearMap(); $('#item_location').hide('normal');"><b class="icon-clear" title="{_"clear map"}"></b></a>
+{/if}
+
 {if $type == "edit"}
 <a href="javascript:void(0);" onClick="clearMap();"><b class="icon-clear" title="{_"clear map"}"></b></a>
 <img src="{$baseUri}/images/help.png" class="help-icon" title="{_"Click inside the map to set the location. If the location is already set, you first need to clear the map: <b class='icon-clear'></b>."}" style="margin-bottom:-8px;"/>
@@ -398,7 +414,7 @@ $(document).ready(function() {
 
 <table class="map-legend" onmouseover="$('.zoom').show()" onmouseout="$('.zoom').hide()" style="width:100%;">
 <tr id="own_location" style="display:none;cursor:pointer;">
-	<td onclick="map.setCenter(mycenter); active_center = 0;" style="width:20px;" title="{_"Show the location where you are right now."}"><img src="{$baseUri}/images/blue-pin.png"/></td>
+	<td onclick="map.setCenter(mycenter); active_center = 0;" style="width:20px;" title="{_"Show the location where you are right now."}"><img src="{$baseUri}images/blue-pin.png"/></td>
 	<td onclick="map.setCenter(mycenter); active_center = 0"><span class="button" title="{_"Show the location where you are right now."}">{_"My Location"}</span></td>
 	<td class="zoom" style="display:none;"><span class="button" onclick="map.setCenter(mycenter); zoomIn(); active_center = 0" title="{_"zoom in"}">+</span><span class="button" onclick="map.setCenter(mycenter); zoomOut(); active_center = 0" title="{_"zoom out"}">-</span></td>
 </tr>

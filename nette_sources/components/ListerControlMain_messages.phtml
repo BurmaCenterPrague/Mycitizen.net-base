@@ -75,56 +75,18 @@
 					{ifset $template_variables['moderation_enabled']}
 					{if Auth::MODERATOR<=Auth::isAuthorized(3,$template_variables['resource_id'])}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessage({$id});" title="{_"Remove this message."}"><b class="icon-message-to-trash"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessageNow({$id});" title="{_"Remove this message."}"><b class="icon-message-to-trash"></b></a>	
 						</div>
 					{/if}
 					{/if}
-					
-					{ifset $template_variables['trash_enabled']}
-						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
-						</div>
 
-						<div class="restore-from-trash">
-							<a id="fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#fromtrash-{$id}').hide();$('#totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
-						</div>
-
-						<script>
-							$(document).ready(function(){
-							{if $res->inTrash()}
-								$("#totrash-{$id}").hide();
-							{else}
-								$("#fromtrash-{$id}").hide();
-							{/if}
-							});
-						</script>
-					{/if}
 
 					{ifset $template_variables['remove_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessage({$id});"><b class="icon-message-to-trash" title="{_"Remove this message."}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessageNow({$id});"><b class="icon-message-to-trash" title="{_"Remove this message."}"></b></a>	
 						</div>
 					{/if}
 					
-					{ifset $template_variables['mark_read_enabled']}
-						<div class="read-status">
-							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
-							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
-						</div>
-			
-						<script>
-							$(document).ready(function(){
-							{if $res->isOpened()}
-								$("#markread-{$id}").hide();
-							{else}
-								$("#markunread-{$id}").hide();
-							{/if}
-							{if $own_message}
-								$("#markunread-{$id}").hide();
-							{/if}
-							});
-						</script>
-					{/if}
 
 				{if isset($own_message) && !$own_message && isset($template_variables['reply_enabled']) && $res->getOwner()->isActive() && $isfriend == true}
 				<div class="chat-reply">
@@ -218,50 +180,11 @@
 					{ifset $template_variables['moderation_enabled']}
 					{if Auth::MODERATOR<=Auth::isAuthorized(3,$template_variables['resource_id'])}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessage({$id});" title="{_"Remove this message."}"><b class="icon-message-to-trash"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="removeMessageNow({$id});" title="{_"Remove this message."}"><b class="icon-message-to-trash"></b></a>	
 						</div>
 					{/if}
-					{/if}
-					
-					{ifset $template_variables['trash_enabled']}
-						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
-						</div>
-
-						<div class="restore-from-trash">
-							<a id="fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#fromtrash-{$id}').hide();$('#totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
-						</div>
-
-						<script>
-							$(document).ready(function(){
-							{if $res->inTrash()}
-								$("#totrash-{$id}").hide();
-							{else}
-								$("#fromtrash-{$id}").hide();
-							{/if}
-							});
-						</script>
 					{/if}
 
-					{ifset $template_variables['mark_read_enabled']}
-						<div class="read-status">
-							<a id="markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#markread-{$id}').hide();$('#markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2) { $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
-							<a id="markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#markunread-{$id}').hide();$('#markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
-						</div>
-			
-						<script>
-							$(document).ready(function(){
-							{if $res->isOpened()}
-								$("#markread-{$id}").hide();
-							{else}
-								$("#markunread-{$id}").hide();
-							{/if}
-							{if $own_message}
-								$("#markunread-{$id}").hide();
-							{/if}
-							});
-						</script>
-					{/if}
 
 				{if isset($own_message) && !$own_message && isset($template_variables['reply_enabled']) && $res->getOwner()->isActive() && $isfriend == true}
 				<div class="chat-reply">
@@ -341,15 +264,18 @@
 
 {ifset $template_variables['moderation_enabled']}
 <script>
-	function removeMessage(id) {
+	function removeMessageNow(id) {
 		$('#chat_message_'+id).css({'background-color':'#E30'});
 		var resource_id={$template_variables['resource_id']};
 		setTimeout( function(){
 			reply=confirm({_"Do you really want to delete this message?"});
 			if (reply==true) {
-				$.post("{!$baseUri}?message_id="+id+"&resource_id="+resource_id+"&do=removeMessage");
-					$('#totrash-'+id).hide();
-					$('#chat_message_'+id).slideUp('normal');
+				$.post("?message_id="+id+"&resource_id="+resource_id+"&do=removeMessage", function(payload){
+					if (payload = 'true') {
+						$('#totrash-'+id).hide();
+						$('#chat_message_'+id).slideUp('normal');
+					}
+				});
 			} else {
 				$('#chat_message_'+id).css({'background-color':'transparent'});
 			}	
@@ -358,21 +284,12 @@
 </script>
 {/if}
 
-<script>
-	function removeMessageNow(id) {
-		var user_id={$recipient_id};
-		$.post("{!$baseUri}?message_id="+id+"&user_id="+user_id+"&do=removeMessage");
-		$('#totrash-'+id).hide();
-		$('#chat_message_'+id).slideUp('normal');
-	}
-</script>
-
 <div class="lister-footer">
 {snippet list_pager}
 
 <div class="pager">
    {if $max_page > 1}
-   		<a href="{if $currentpage==1}#{else}{link changePage, page => 1}{/if}" class="ajax pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
+   		<a href="{if $currentpage==1}#{else}{link changePage, page => 1}{/if}" class="ajax pager-start{if $currentpage == 1} active{/if}">1</a>
    {/if}
    
    {if $max_page > 7}
@@ -384,18 +301,18 @@
    {if $max_page > 2}
    {if $max_page < 8}
    {for $i = 2; $i <= $max_page-1; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}   
    {else}
    {if $currentpage <= 5}
    {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = 2; $i <= $end; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {else}
    {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
-    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+    	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {/if}
    {/if}
@@ -408,7 +325,7 @@
    {/if}
    
    {if $max_page > 1}
-   		<a href="{link changePage, page => $max_page}" class="ajax pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
+   		<a href="{link changePage, page => $max_page}" class="ajax pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
    {/if}
 </div>
 

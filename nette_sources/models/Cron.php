@@ -82,7 +82,7 @@ class Cron extends BaseModel
 					}
 					$email_text .= '<p>'._t('Here is an overview of what has happened since your last visit:').'</p>';
 					$email_text .= Activity::renderList($data, $user_a['user_id'], true);
-					$link = $uri.'&language='.$language_id;
+					$link = $uri.'?language='.$language_id;
 					$email_text .= "\r\n<p>".StaticModel::markup_links(_t('Find a list of your activities [on your home page] (%s).', $link))."</p>\r\n";
 					$new_activity = true;
 					if (isset($this->verbose)) {
@@ -160,7 +160,7 @@ class Cron extends BaseModel
 					break;
 					case 4:
 						$language_id = User::getUserLanguage($task['recipient_id']);
-						$link = $uri.'&language='.$language_id;
+						$link = $uri.'?language='.$language_id;
 						$footer_note = _t('Too many emails? You can change the schedule on your [profile page](%s).', $profile_url);
 						$mail_subject = sprintf(_t('Recent activity at %s'), $sender_name);
 					break;
@@ -216,7 +216,7 @@ class Cron extends BaseModel
 					break;
 					default:
 						$language_id = Group::getGroupLanguage($task['recipient_id']);
-						$link = $uri.'&language='.$language_id;
+						$link = $uri.'?language='.$language_id;
 					break;
 				}
 

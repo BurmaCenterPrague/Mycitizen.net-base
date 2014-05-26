@@ -713,4 +713,18 @@ class API_Base extends API implements iAPI
 
         }
 
+		/**
+         * Comment
+         *
+         * @url POST    /UnreadMessages
+         */
+        public function getUnreadMessages() {
+                if(!$this->isLoggedIn()) {
+                        throw new RestException('401',null);
+                }
+                $messages = Resource::getUnreadMessages();
+
+                return array('result'=>true, 'unread_messages'=>$messages);//Allready checked by common authorize function in rest server
+        }
+
 }

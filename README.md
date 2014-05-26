@@ -9,7 +9,7 @@ license
 
 latest version
 --------------
-0.9 Beta : 12 May 2014
+0.10 Beta : 26 May 2014
 
 
 authors
@@ -33,14 +33,15 @@ included packages
     License)
 - [jCrop](https://github.com/tapmodo/Jcrop) 0.9.12 (MIT License)
 - [jQuery](http://jquery.com/) 1.10.1 (MIT License)
-- [jQuery UI, jQuery UI Datepicker](http://jqueryui.com ) 1.10.3 (MIT License)
+- [jQuery UI, jQuery UI Datepicker](http://jqueryui.com ) 1.10.4 (MIT License)
 - [jQuery UI Fancybox](http://fancyapps.com/fancybox/) 2.1.5, [license](http://www.fancyapps.com/fancybox/#license)
 - [Mobile-Detect](http://mobiledetect.net) 2.7.6 (MIT License)
 - [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GPL version 2 or 3)
 - [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
 - [PHPMailer](https://raw.github.com/PHPMailer/PHPMailer/master/examples/images/phpmailer.png) 5.2.7, (LGPL 2.1 License)
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
-- [Treeview 1.4.1](http://docs.jquery.com/Plugins/Treeview) (MIT license or GPL)
+- [Tag-it](http://aehlke.github.com/tag-it/) 2.0 (MIT License)
+- [Treeview](http://docs.jquery.com/Plugins/Treeview) 1.4.1 (MIT license or GPL)
 - [zxcvbn](https://github.com/lowe/zxcvbn) 1.0 [license](https://github.com/lowe/zxcvbn/blob/master/LICENSE.txt)
 
 other credits

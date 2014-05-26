@@ -65,8 +65,11 @@ class MapControl extends NControl
 				case 'user': $template->item_location_label = _t('user');break;
 				case 'group': $template->item_location_label = _t('group');break;
 				case 'resource': $template->item_location_label = _t('resource');break;
+				default: $template->item_location_label = _t('center'); break;
 			}
 		}
+		// link generated here because Latte is not aware of query parameters after page change with Ajax
+		$this->template->json_link_view = NEnvironment::getVariable("URI") . '/' . $this->object['type'].'/?do='.$this->name.'-mapData&'.$this->object['type'].'_id='.$this->object['id'];
 		if (isset($this->options['external_container'])) {
 			$template->container_id = $this->options['external_container'];
 		} else {

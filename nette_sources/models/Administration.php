@@ -497,7 +497,7 @@ class Administration extends BaseModel
 			}
 		}
 		
-		if (isset($filter['mapfilter']) && $filter['mapfilter'] != 'null' && is_array($filter['mapfilter']['center']) && is_array($filter['mapfilter']['radius'])) {
+		if (isset($filter['mapfilter']) && $filter['mapfilter'] != 'null' && isset($filter['mapfilter']['center']) && isset($filter['mapfilter']['radius']) && is_array($filter['mapfilter']['center']) && is_array($filter['mapfilter']['radius'])) {
 			$R         = 6371; // km
 			$latitude  = $filter['mapfilter']['center']['lat'];
 			$longitude = $filter['mapfilter']['center']['lng'];
@@ -753,6 +753,9 @@ class Administration extends BaseModel
 					if ($counter_mode) {
 						$sql .= " )";
 					} else {
+						if (isset($filter['type']) && !is_array($filter['type'])) {
+							$filter['type'] = array(2, 3, 4, 5, 6);
+						}
 						if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
 							$sql .= " GROUP BY `id` ORDER BY `resource`.`resource_creation_date` DESC)";
 						} else {

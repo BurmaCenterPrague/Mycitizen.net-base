@@ -476,16 +476,19 @@ final class AdministrationPresenter extends BasePresenter
 
 
 	/**
-	 *	Delete reports
+	 *	Delete reports on admin page
 	 *	@param int $report_id
 	 *	@return void
 	*/
 	public function handleDeleteReport($report_id) {
 		if (NEnvironment::getUser()->getIdentity()->getAccessLevel()>1 && !empty($report_id)) {
-			Resource::delete($report_id);
-			echo "true";
-			$storage = new NFileStorage(TEMP_DIR);
-			$cache = new NCache($storage);
+			if (Resource::getResourceType($report_id) == 7) {
+				Resource::delete($report_id);
+				echo "true";
+				$storage = new NFileStorage(TEMP_DIR);
+				$cache = new NCache($storage);
+				$cache->clean(array(NCache::TAGS => array("name/reportlister")));
+			}
 		}
 		
 		$this->terminate();
@@ -820,7 +823,7 @@ final class AdministrationPresenter extends BasePresenter
 		
 		$path_file = WWW_DIR.'/files/'.$file_name;
 		
-		$fp = fopen($path_file,'r');
+		$fp = @fopen($path_file,'r');
 		
 		$delimiter_display = ( $delimiter == "\t" ) ? '<tab>' : $delimiter;
 		$messages[] = 'Using file at '.$path_file;
@@ -953,7 +956,7 @@ final class AdministrationPresenter extends BasePresenter
 			$messages[] = $count.' resources processed. Please don\'t process again lines that were successfully imported. It is recommended to remove the source file.';
 			
 		} else {
-			$messages[] = 'Error opening file for writing.';
+			$messages[] = 'Error opening file for writing: '.$path_file;
 		}
 		$messages[] = '### '.date("Y-m-d H:i:s").' ###';
 		
@@ -1007,6 +1010,7 @@ final class AdministrationPresenter extends BasePresenter
 	 *	@return
 	 */
 	public function handleMove($tag_id, $direction) {
+	## move to model
 		$result = dibi::fetchAll("SELECT * FROM `tag` WHERE `tag_parent_id` = 0 ORDER BY `tag_position`,`tag_id`");
 		$tags = array();
 		
@@ -1017,7 +1021,7 @@ final class AdministrationPresenter extends BasePresenter
 		if ($direction == 'down') {
 			$tags = array_reverse($tags, true);
 		}
-//var_dump($tags);die();
+
 			// find the one above
 			$id_above = 0;
 			foreach($tags as $tag) {
@@ -1171,4 +1175,25 @@ final class AdministrationPresenter extends BasePresenter
 		}
 		$this->terminate();	
 	}
+	
+	
+	/**
+	 *	purges all caches
+	 *	@param void
+	 *	@return
+	*/
+	public function handlePurgeCache()
+	{
+		if (NEnvironment::getUser()->getIdentity()->getAccessLevel() < 3) {
+			echo "false";
+			$this->terminate();
+		}
+
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::ALL));
+		
+		$this->flashMessage("Cache purged.");		
+		$this->reload('this');
+	}	
 }

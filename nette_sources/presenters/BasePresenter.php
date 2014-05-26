@@ -27,20 +27,29 @@ abstract class BasePresenter extends NPresenter
 	{
 		parent::startup();
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
-		$query = NEnvironment::getHttpRequest();
-		$lang = $query->getQuery("language");
-		if (isset($lang) && !empty($lang)) {
+		$request = NEnvironment::getHttpRequest();
+		
+		// we are making history
+		if ($this->isAjax()){
+			if ($request->getQuery('do') != 'historyback' && $request->getQuery('go') != 'back') {
+				if (!isset($session->history)) $session->history = array();	
+				$session->history[] = array( 'presenter_name' => $this->presenter->getName(), 'presenter_view' => $this->presenter->getView(), 'object_id' => $session->data['object_id'], 'query' => $request->getQuery());
+			}
+		} elseif ($request->getQuery('go') != 'back') {
+			unset($session->history);
+		}
+		
+		$lang = $request->getQuery("language");
+		if (isset($lang) && !empty($lang) && !$this->isAjax()) {
 			$flag = Language::getFlag($lang);
 			if (!empty($flag)) $language = $flag;
 			$session->language = $language;
 		}
-
 		if (empty($language)) $language = $session->language;
 		if (empty($language)) {
 			$session->language = 'en_US';
 			$language          = $session->language;
 		}
-
 		$this->template->setTranslator(new GettextTranslator(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo', $language));
 		$this->template->language = $language;
 		$language_id = Language::getId($language);
@@ -58,8 +67,9 @@ abstract class BasePresenter extends NPresenter
 		} else {
 			$this->template->footer = '';
 		}
-		
-		$toggleChat = $query->getQuery("toggleChat");
+
+		$this->template->nochat = $request->getQuery("nochat");		
+		$toggleChat = $request->getQuery("toggleChat");
 		if (isset($toggleChat)) {
 				$session = NEnvironment::getSession()->getNamespace("GLOBAL");
 				if (isset($session->chat)) {
@@ -86,6 +96,7 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		$this->template->baseUri_np = preg_replace('#^https?://#', '//', NEnvironment::getVariable("URI") . '/');
+		$this->template->CDN = NEnvironment::getVariable("CDN") . '/';
 		$this->template->TC_URL = NEnvironment::getVariable("TC_URL");
 		$this->template->PP_URL = NEnvironment::getVariable("PP_URL");
 		$this->template->PIWIK_URL = NEnvironment::getVariable("PIWIK_URL");
@@ -127,31 +138,32 @@ abstract class BasePresenter extends NPresenter
 		}
 		
 		
-		$user = NEnvironment::getUser();
-		if ($user->isLoggedIn()) {
-			if (!$user->getIdentity()->isActive()) {
-				if ($user->getIdentity()->isConfirmed()) {
+		$user_env = NEnvironment::getUser();
+		if ($user_env->isLoggedIn()) {
+			$user = $user_env->getIdentity();
+			if (!$user->isActive()) {
+				if ($user->isConfirmed()) {
 					$this->flashMessage(sprintf(_t("Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
-					$user->logout();
+					$user_env->logout();
 					$this->redirect("User:login");
 				} else {
 					$this->flashMessage(sprintf(_t("You first need to confirm your registration. Please check your email account and click on the link of the confirmation email."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
 					
-					if ($user->getIdentity()->sendConfirmationEmail()) {
+					if ($user->sendConfirmationEmail()) {
 						$this->flashMessage(_t("We have resent your confirmation email - just in case you didn't get it before."));
 					}
 
-					$user->logout();
+					$user_env->logout();
 					$this->redirect("User:login");					
 				}
 			} else {
 				// nothing
 			}
-			$user->getIdentity()->setLastActivity();
+			$user->setLastActivity();
 			$this->template->logged   = true;
-			$userdata                 = $user->getIdentity()->getUserData();
+			$userdata                 = $user->getUserData();
 			$this->template->username = $userdata['user_login'];
-			$this->template->my_id	= $user->getIdentity()->getUserId();
+			$this->template->my_id	= $user->getUserId();
 			$this->template->fullname = trim($userdata['user_name'].' '.$userdata['user_surname']);
 			$this->template->image = User::getImage($this->template->my_id,'icon'); // don't use 2nd param because tooltip interferes with mouseover to keep drawer open
 
@@ -387,8 +399,8 @@ abstract class BasePresenter extends NPresenter
 			'parameters' => array(),
 			'parent' => 0
 		);
-		$user      = NEnvironment::getUser();
-		if ($user->isLoggedIn()) {
+		$user_env = NEnvironment::getUser();
+		if ($user_env->isLoggedIn()) {
 			$userObject = NEnvironment::getUser()->getIdentity();
 			if ($userObject->hasRightsToCreate() || $userObject->getAccessLevel() >= 2) {
 				$menu[3] = array(
@@ -406,23 +418,32 @@ abstract class BasePresenter extends NPresenter
 			'parameters' => array(),
 			'parent' => 0
 		);
-		if ($user->isLoggedIn()) {
+		
+		if ($user_env->isLoggedIn()) {
 			$userObject = NEnvironment::getUser()->getIdentity();
 			if ($userObject->hasRightsToCreate() || $userObject->getAccessLevel() >= 2) {
-				$menu[5] = array(
+				$menu[6] = array(
 					'title' => _t('create'),
 					'presenter' => 'resource',
 					'action' => 'create',
 					'parent' => 4
 				);
 			}
+
+			$menu[5] = array(
+				'title' => _t('browse'),
+				'presenter' => 'resource',
+				'action' => 'browse',
+				'parent' => 0
+			);
+
 		}
 		
-		if ($user->isLoggedIn()) {
+		if ($user_env->isLoggedIn()) {
 			$userObject = NEnvironment::getUser()->getIdentity();
 			$access_level = $userObject->getAccessLevel();
 			if ($access_level == 3 || $access_level == 2) {
-				$menu[6] = array('title'=>_t('Administration'),
+				$menu[7] = array('title'=>_t('Administration'),
 				'presenter'=>'administration',
 				'action'=>'default',
 				'parameters'=>array(),
@@ -453,6 +474,8 @@ abstract class BasePresenter extends NPresenter
 	 */
 	public function handleReloadStatusBar()
 	{
+		$user_env = NEnvironment::getUser();
+		if (!$user_env->isLoggedIn()) die('no permission');
 		$data = array();
 		$messages = Resource::getUnreadMessages();
 		$data['message_indicator'] = $messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->translate_number($messages) : '<b class="icon-no-message"></b>'._t("New messages").': '._t("0");
@@ -497,7 +520,8 @@ abstract class BasePresenter extends NPresenter
 		if (!empty($flag)) {
 			$session->language = $flag;
 		}
-		$this->redirect("this");
+		echo 'true';
+		$this->terminate();
 	}
 
 
@@ -650,8 +674,8 @@ abstract class BasePresenter extends NPresenter
 	 *	@return void
 	*/
 	public function handleUpload() {
-		$user = NEnvironment::getUser();
-		if (!$user->isLoggedIn()) die('You are not logged in.');
+		$user_env = NEnvironment::getUser();
+		if (!$user_env->isLoggedIn()) die('no permission');
 		
 		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
 		$allowed_types = array('image/jpeg', 'image/gif', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation', 'application/vnd.oasis.opendocument.spreadsheet');
@@ -738,7 +762,7 @@ abstract class BasePresenter extends NPresenter
 		}
 		$user_env = NEnvironment::getUser();		
 		if (!$user_env->isLoggedIn()) {
-			die('You are not logged in.');
+			die('no permission');
 		}
 		$user = $user_env->getIdentity();
 		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) {
@@ -779,7 +803,7 @@ abstract class BasePresenter extends NPresenter
 		}
 		$user_env = NEnvironment::getUser();		
 		if (!$user_env->isLoggedIn()) {
-			die('You are not logged in.');
+			die('no permission');
 		}
 		$user = $user_env->getIdentity();
 		if ($user->getUserId() != $user_id && $user->getAccessLevel() < 2) {
@@ -821,9 +845,9 @@ abstract class BasePresenter extends NPresenter
 	 *	@return void
 	 */
 	public function handleActivity($id = 2, $latest = 0) {
-		$user = NEnvironment::getUser()->getIdentity();
-		if (!isset($user)) $this->terminate();
-		
+		$user_env = NEnvironment::getUser();
+		if (!$user_env->isLoggedIn()) die('no permission');
+		$user = $user_env->getIdentity();
 		$user_id = $user->getUserId();
 
 		$storage = new NFileStorage(TEMP_DIR);
@@ -886,7 +910,7 @@ abstract class BasePresenter extends NPresenter
 	 */
 	public function handleGetevents($start=null,$end=null) {
 		$user_env = NEnvironment::getUser();		
-		if (!$user_env->isLoggedIn()) die('You are not logged in.');
+		if (!$user_env->isLoggedIn()) die('no permission');
 		$user_id = $user_env->getIdentity()->getUserId();
 		
 		$storage = new NFileStorage(TEMP_DIR);
@@ -982,8 +1006,9 @@ abstract class BasePresenter extends NPresenter
 	 *  @param bool $allday
 	 *	@return void
 	 */
-	public function handleChangeevent($changed,$resource_id,$day_delta=0,$minute_delta=0,$allday=null) {
-		if (Auth::isAuthorized(3,$resource_id)<Auth::MODERATOR) die('You are not authorized.');
+	public function handleChangeevent($changed,$resource_id,$day_delta=0,$minute_delta=0,$allday=null)
+	{
+		if (Auth::isAuthorized(3,$resource_id) < Auth::MODERATOR) die('no permission');
 		$resource = Resource::create($resource_id);
 		$resource_data = $resource->getResourceData();
 
@@ -1048,7 +1073,10 @@ abstract class BasePresenter extends NPresenter
 	 *	@param int $span Whether to show the date wrapped in a span
 	 *	@return json object/array of user_id => text 
 	 */
-	public function handleOnlineStatus($show_date = 1, $span = 1) {
+	public function handleOnlineStatus($show_date = 1, $span = 1)
+	{
+		$user = NEnvironment::getUser();
+		if (!$user->isLoggedIn()) die('no permission');
 		$queries = NEnvironment::getHttpRequest()->getQuery();
 		if (!isset($queries['data'])) {
 			echo "false";
@@ -1172,6 +1200,7 @@ abstract class BasePresenter extends NPresenter
 	}
 
 
+
 	/**
 	 *	receives request to change content of page via Ajax
 	 */
@@ -1181,14 +1210,34 @@ abstract class BasePresenter extends NPresenter
 			$session = NEnvironment::getSession()->getNamespace($this->name);
 			$data = $session->data;
 
-/*
-			if (!empty($data) && isset($data["object_id"])) {
-			
-				$this->presenter->actionDefault($data["object_id"]);
-			} else {
-				$this->presenter->actionDefault();
-			}
-*/
+			$this->presenter->actionDefault();
+            $this->invalidateControl('mainContent');
+            $this->invalidateControl('mainMenu');
+            $this->invalidateControl('activityMenu');
+		} else {
+		  	$this->redirect('this');
+		}
+    }
+
+
+	/**
+	 *	receives request to change content of page via Ajax
+	 */
+    public function handleAjaxFilter()
+    {
+		if ($this->isAjax()) {
+			switch ($this->name) {
+			case 'Homepage': $options['components'] = array(
+				'homepagefriendlister',
+				'homepagegrouplister',
+				'homepageresourcelister'); break;
+			case 'Resource': $options['components'] = array('defaultresourceresourcelister'); break;
+			case 'User': $options['components'] = array('userlister'); break;
+			case 'Group': $options['components'] = array('grouplister'); break;
+    		}
+			$filter = new ExternalFilter($this, 'filter', $options);
+			$filter->clearFilterArray();
+			$filter->ajaxFilterSubmitted();
 
 			$this->presenter->actionDefault();
             $this->invalidateControl('mainContent');
@@ -1212,10 +1261,12 @@ abstract class BasePresenter extends NPresenter
 			$session = NEnvironment::getSession()->getNamespace($name);
 			if (!empty($session->filterdata)) {
 				$filter = $session->filterdata;
-				$filter['page'] = $page;
-				$session->filterdata = $filter;
 			}
+			$filter['page'] = $page;
+			$session->filterdata = $filter;
+
 			$data = $session->data;
+
 /*
 			if (!empty($data) && isset($data["object_id"])) {
 				$this->presenter->actionDefault($data["object_id"]);
@@ -1237,8 +1288,10 @@ abstract class BasePresenter extends NPresenter
 	*/
 	public function handleSubmitPMPOPChat($pmpop_message_text = '', $recipient_id)
 	{
-		$logged_user = NEnvironment::getUser()->getIdentity();
-		
+		$user_env = NEnvironment::getUser();
+		if (!$user_env->isLoggedIn()) die('no permission');
+		$logged_user = $user_env->getIdentity();
+
 		if ($recipient_id == 0 || !$logged_user->friendshipIsRegistered($recipient_id) || empty($pmpop_message_text)) {
 			echo json_encode(_t("Error sending message.")); die();
 		}
@@ -1253,7 +1306,7 @@ abstract class BasePresenter extends NPresenter
 			'message_text' => $pmpop_message_text
 		));
 		$resource->setResourceData($data);
-		$check = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+		$check = $resource->check_doublette($data, $recipient_id, 1);
 		if ($check === true) {
 			echo json_encode(_t("You have just said that.")); die();
 		}		
@@ -1314,8 +1367,11 @@ abstract class BasePresenter extends NPresenter
 	*/
 	public function handleMoveToTrash($resource_id)
 	{
+		if (!Auth::isAuthorized(3, $resource_id)) die('no permission');
+
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
+
 		if (!empty($resource)) {
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
@@ -1340,6 +1396,8 @@ abstract class BasePresenter extends NPresenter
 	*/
 	public function handleMoveFromTrash($resource_id)
 	{
+		if (!Auth::isAuthorized(3, $resource_id)) die('no permission');
+
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
 
@@ -1415,6 +1473,11 @@ abstract class BasePresenter extends NPresenter
 	}
 
 
+	/**
+	 *	Empties the trash.
+	 *	@param
+	 *	@return
+	 */
 	public function handleEmptyTrash()
 	{
 		Resource::emptyTrash();
@@ -1427,6 +1490,74 @@ abstract class BasePresenter extends NPresenter
 		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
 		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
 		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+	}
+
+
+
+	/**
+	 *	Experimental; handles back in history while respecting changes by Ajax
+	 *	@param
+	 *	@return
+	 */
+	public function handleHistoryBack()
+	{
+		$allowed_queries = array('group_id', 'user_id', 'resource_id', 'object_type', 'object_id');
+		if ($this->isAjax()) {
+			$session = NEnvironment::getSession()->getNamespace('GLOBAL');
+			
+			if (!empty($session->history) && is_array($session->history)) {
+
+//				$this->invalidateControl('mainContent');
+//				$this->invalidateControl('mainMenu');
+				$history = array_pop($session->history);
+				$history = array_pop($session->history);
+//				$view = $history['presenter_view'];
+
+				$query = array_intersect_key($history['query'],$allowed_queries);
+				$query['go'] = 'back';
+				$this->redirect($history['presenter_name'].':'.$history['presenter_view'], $query);
+//				$this->presenter->setView($view);
+
+
+			}
+		}
+	}
+
+	/**
+	 *	Asking for friendship, or confirming
+	 *	@param
+	 *	@return
+	 */
+	public function handleUserFriendInsert($friend_id)
+	{
+		if (empty($friend_id)) {
+			print "false";
+			$this->terminate();
+		} else {
+			$user   = NEnvironment::getUser()->getIdentity();
+			$user_id = $user->getUserId();
+			$friend = User::create($friend_id);
+			
+			if (!empty($friend)) {
+				$friend_id = $friend->getUserId();
+				if (!empty($friend_id)) {
+					$user->updateFriend($friend_id, array());
+					
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/friendlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagefriendlister")));
+					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedfriendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/friendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagefriendlister")));
+					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagerecommendedfriendlister")));
+
+					print "true";
+				}
+			}
+		}
+		
+		$this->terminate();
 	}
 
 }

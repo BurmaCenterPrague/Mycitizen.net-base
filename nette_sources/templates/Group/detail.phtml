@@ -145,12 +145,12 @@
 	
 	{ifset $logged_user}
 	<div class="group_actions">
-         {ifset $default_data}
-            {ifset $default_data['object_data']['logged_user_member']}
-               {if $default_data['object_data']['logged_user_member'] == 0}
+    	{ifset $default_data}
+        	{ifset $default_data['object_data']['logged_user_member']}
+            	{if $default_data['object_data']['logged_user_member'] == 0}
                      <a href="javascript:void(0);" onClick='groupInsert_User({$default_data['object_data']["group_id"]},{$logged_user},{link Group:default, $default_data['object_data']["group_id"]});' class="button">{_"Join group"}</a>
-               {/if}
-               {if $default_data['object_data']['logged_user_member'] == 1}
+            	{/if}
+            	{if $default_data['object_data']['logged_user_member'] == 1}
 					{if !isset($iamowner)}
                         <a href="javascript:void(0);" onClick='groupRemove_User({$default_data['object_data']["group_id"]},{$logged_user},{link Group:default,$default_data['object_data']["group_id"]});' class="button">{_"Leave group"}</a>
 					{/if}
@@ -187,14 +187,14 @@
 	
 	{ifset $default_data}
 	<div class="administration">
-	{if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
+		{if Auth::MODERATOR <= Auth::isAuthorized(2,$default_data['object_data']["group_id"])}
 	   <h3>{_"Administration"}</h3>
 	   {control groupadministrator begin}
 		<label>{_"Enabled"}</label>{$control['groupadministrator']['status']->control}
 		{$control['groupadministrator']['send']->control}
 	   {control groupadministrator end}
 		<div style="text-align:center"><a href="{!$baseUri}?do=image&id={$default_data['object_data']["group_id"]}&type=2" class="button">{_"regenerate image"}</a></div>
-	{/if}
+		{/if}
 	</div>
 	{/if}
 </div> 
@@ -202,25 +202,25 @@
 <div class="detail-right">
 	<div class="group-details-connections">
 		<div class="group_detail_users">
-		{ifset $default_data}
+	{ifset $default_data}
 			<h2>{_"Group members"}</h2>
-			{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
+		{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
 			{control detailgroupuserlister:body}
-			{else}
+		{else}
 				<p>{_"You are not allowed to see the members."}</p>
-			{/if}
 		{/if}
+	{/if}
 		</div>
 
 		<div class="group_detail_resources">
-		{ifset $default_data}
+	{ifset $default_data}
 			<h2>{_"Group resources"}</h2>
-			{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
+		{if Auth::isAuthorized(2,$default_data['object_data']['group_id'])>0 }
 			{control detailgroupresourcelister:body}
-			{else}
+		{else}
 				<p>{_"You are not allowed to see the subscriptions."}</p>
-			{/if}
 		{/if}
+	{/if}
 		</div>
 		<div class="cleaner"></div>
 	</div>
@@ -256,8 +256,8 @@
 		<h2>{_"Group chat"}</h2>
 		<div class="group-detail-chatform">
 		{ifset $default_data}
-		{ifset $default_data['object_data']['logged_user_member']}
-		{if $default_data['object_data']['logged_user_member'] == 1}
+			{ifset $default_data['object_data']['logged_user_member']}
+				{if $default_data['object_data']['logged_user_member'] == 1}
 			{*control chatform *}
 			<table>
 			<tr><td>
@@ -317,16 +317,17 @@
 	});
 </script>
 
-		{ifset $default_data['object_data']['group_id']}
+					{ifset $default_data['object_data']['group_id']}
 		<input type="hidden" id="group_id" value="{$default_data['object_data']['group_id']}" />
-		{/if}
+					{/if}
 			<div id="message_list_anchor"></div>
 			{control chatlistergroup}
-		{else}
+				{else}
 			<p>{_"The chat is only visible to group members."}</p>
+				{/if}
+			{/if}
 		{/if}
-		{/if}
-		{/if}
+
 		</div>	
 	</div>
 </div>

@@ -618,6 +618,8 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleGroupAdministration($group_id, $values)
 	{
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR) die('no permission');
+		
 		$group = Group::create($group_id);
 		
 		$group->setGroupData($values);
@@ -667,6 +669,8 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleInsertTag($group_id, $tag_id)
 	{
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR) die('no permission');
+		
 		$this->group = Group::create($group_id);
 		if (!empty($this->group)) {
 			$group_id = $this->group->getGroupId();
@@ -688,6 +692,8 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleRemoveTag($group_id, $tag_id)
 	{
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR) die('no permission');
+
 		$this->group = Group::create($group_id);
 		if (!empty($this->group)) {
 			$group_id = $this->group->getGroupId();
@@ -709,6 +715,8 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleGroupUserInsert($group_id, $user_id)
 	{
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
+		
 		if (empty($group_id) || empty($user_id)) {
 			print "false";
 			$this->terminate();
@@ -751,6 +759,8 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleGroupUserRemove($group_id, $user_id)
 	{
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
+
 		if (empty($group_id) || empty($user_id)) {
 			print "false";
 			$this->terminate();
@@ -932,8 +942,7 @@ final class GroupPresenter extends BasePresenter
 		));
 		return $control;
 	}
-	
-### needed?
+
 
 /**
  *	@todo ### Description
@@ -945,6 +954,8 @@ final class GroupPresenter extends BasePresenter
 		$session = NEnvironment::getSession()->getNamespace($this->name);
 		if (!empty($session->data)) {
 			$group_id = $session->data['object_id'];
+		} else {
+			return;
 		}
 		$form = new NAppForm($this, 'groupadministrator');
 		
@@ -1157,7 +1168,7 @@ final class GroupPresenter extends BasePresenter
 	protected function createComponentUnsubscriberesourceform()
 	{
 		$resource_selection = array();
-		
+
 		$form = new NAppForm($this, 'unsubscriberesourceform');		
 		$user = NEnvironment::getUser()->getIdentity();
 		$group_resources = $this->group->getSubscribedResources();
@@ -1281,6 +1292,8 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleRemoveAvatar($group_id = null)
 	{
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR) die('no permission');
+
 		if (Auth::isAuthorized(Auth::TYPE_GROUP, $group_id) < 2) {
 			$this->terminate();
 		}
@@ -1358,53 +1371,31 @@ final class GroupPresenter extends BasePresenter
 	public function handleInvitation() {
 	
 		$query = NEnvironment::getHttpRequest();
-		
 		$group_id = $query->getQuery("group_id");
-		
 		$key = trim($query->getQuery("key"));
-		
 		$user = NEnvironment::getUser()->getIdentity();
-		
 		$user_id = $user->getUserId();
 
-		
 		if ($group_id == 0 || $user_id == 0) {
-			
 			$this->redirect("Group:default");
-			
 		}
 
 		$group = new Group($group_id);
-		
 		if ($group->isMember($user_id)) {
-			
 			$this->flashMessage(_t("You are already a member."), 'error');
-			
 			$this->redirect("Group:default",$group_id);
-			
 		}
-		
 
 		$hash = $group->getGroupHash();
-		
 		if (empty($hash)) {
-		
 			$this->flashMessage(_t("This group doesn't have a key."), 'error');
-			
 			$this->redirect("Group:default");
-		
 		} elseif ($key != $hash ) {
-			
 			$this->flashMessage(_t("You have entered a wrong key."), 'error');
-			
 			sleep(5);
-		
 			$this->redirect("Group:default");
-		
 		} else {
-		
 			$group->setMember($user_id);
-		
 			$this->flashMessage(_t("You have joined the group."));
 		
 			$storage = new NFileStorage(TEMP_DIR);
@@ -1420,7 +1411,6 @@ final class GroupPresenter extends BasePresenter
 			$group->addActivityToChat($user_id, 1, 'join');
 		
 			$this->redirect("Group:default",$group_id);
-			
 		}
 	}
 
@@ -1462,26 +1452,24 @@ final class GroupPresenter extends BasePresenter
 	*/
 	public function handleRemoveMessage($message_id, $group_id)
 	{
-		if (Auth::isAuthorized(2,$group_id) < Auth::MODERATOR) {
+		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR) die('no permission');
+
+		// check if it is a message
+		$resource_type = Resource::getResourceType($message_id);
+		if ($resource_type != 8) {
 			echo "false";
 			$this->terminate();
 		}
 
-		$resource = Resource::create($message_id);
-		if (!empty($resource)) {
-			if ($resource->remove_message(2, $group_id)) {
-				echo "true";
-
-				$storage = new NFileStorage(TEMP_DIR);
-				$cache = new NCache($storage);
-				$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/chatwidget")));
-
-			} else {
-				echo "false";
-			}
+		if (Resource::removeMessage($message_id)) {
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("group_id/$group_id", "name/chatwidget")));
+			echo "true";
 		} else {
 			echo "false";
 		}
+
 		$this->terminate();	
 	}
 
@@ -1493,6 +1481,8 @@ final class GroupPresenter extends BasePresenter
 	*/
 	public function handleSubmitGroupChat($message_text = '',$group_id)
 	{
+
+		if (Auth::isAuthorized(2, $group_id) < Auth::USER) die('no permission');
 
 		$user = NEnvironment::getUser()->getIdentity();
 		$group = new Group($group_id);

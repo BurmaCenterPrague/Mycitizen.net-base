@@ -291,12 +291,12 @@ class Image extends BaseModel
 					$image = '<img src="data:'.$this->mime_type.';base64,'.$avatar.'" '.$title_tag.'/>';
 				} else {
 					// default image
-					$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
+					$image = '<img src="' . NEnvironment::getVariable("CDN") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
 				}
 			}
 		} else {
 			// default image
-			$image = '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
+			$image = '<img src="' . NEnvironment::getVariable("CDN") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
 		}
 		return $image;
 	}
@@ -314,6 +314,6 @@ class Image extends BaseModel
 			);
 		$width = $defined_width[$size];
 		if (isset($title)) $title_tag =' title="'.$title.'"'; else $title_tag='';
-		return '<img src="' . NEnvironment::getVariable("URI") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
+		return '<img src="' . NEnvironment::getVariable("CDN") . '/images/user-'.$size.'.png" width="'.$width.'"'.$title_tag.'/>';
 	}
 }

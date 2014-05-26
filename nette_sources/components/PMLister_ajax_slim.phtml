@@ -81,11 +81,11 @@
 				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="pmpop_totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#pmpop_totrash-{$id}').hide();$('#pmpop_fromtrash-{$id}').show(); markRead({$id});$('#pmpop_markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="pmpop_totrash-{$id}" href="javascript:void(0);" onClick="PMPOPMoveToTrash({$id});$('#pmpop_totrash-{$id}').hide();$('#pmpop_fromtrash-{$id}').show(); PMPOPMarkRead({$id});$('#pmpop_markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
 						</div>
 
 						<div class="restore-from-trash">
-							<a id="pmpop_fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#pmpop_fromtrash-{$id}').hide();$('#pmpop_totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+							<a id="pmpop_fromtrash-{$id}" href="javascript:void(0);" onClick="PMPOPMoveFromTrash({$id});$('#pmpop_fromtrash-{$id}').hide();$('#pmpop_totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
 						</div>
 
 						<script>
@@ -101,8 +101,8 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="pmpop_markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#pmpop_markread-{$id}').hide();$('#pmpop_markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
-							<a id="pmpop_markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#pmpop_markunread-{$id}').hide();$('#pmpop_markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+							<a id="pmpop_markread-{$id}" href="javascript:void(0);" onClick="PMPOPMarkRead({$id});$('#pmpop_markread-{$id}').hide();$('#pmpop_markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2){ $('#chat_message_{$id}').slideUp('normal');} reloadAbstract();"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="pmpop_markunread-{$id}" href="javascript:void(0);" onClick="PMPOPMarkUnread({$id});$('#pmpop_markunread-{$id}').hide();$('#pmpop_markread-{$id}').show(); reloadAbstract();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			
 						<script>
@@ -174,8 +174,8 @@
 					{elseif $r_data['resource_type'] == 10}
 				<p>{!$r_data['message_text']|htmlpurify}</p>
 				<p>
-					<a href="javascript:void(0);" onClick="markRead({$id}); removeMessageNow({$id}); userInsert_Friend({$sender_id},'');" class="button">{_"Accept friendship request"}</a>
-					<a href="javascript:void(0);" onClick="markRead({$id}); removeMessageNow({$id}); userRemove_Friend({$sender_id},'');" class="button">{_"Reject friendship request"}</a>
+					<a href="javascript:void(0);" onClick="PMPOPMarkRead({$id}); removeMessageNow({$id}); userInsert_Friend({$sender_id},'');" class="button">{_"Accept friendship request"}</a>
+					<a href="javascript:void(0);" onClick="PMPOPMarkRead({$id}); removeMessageNow({$id}); userRemove_Friend({$sender_id},'');" class="button">{_"Reject friendship request"}</a>
 				</p>
 					{else}
 				{!$r_data['message_text']|htmlpurify}
@@ -213,11 +213,11 @@
 				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>					
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="pmpop_totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#pmpop_totrash-{$id}').hide();$('#pmpop_fromtrash-{$id}').show(); markRead({$id});$('#pmpop_markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
+							<a id="pmpop_totrash-{$id}" href="javascript:void(0);" onClick="PMPOPMoveToTrash({$id});$('#pmpop_totrash-{$id}').hide();$('#pmpop_fromtrash-{$id}').show(); PMPOPMarkRead({$id});$('#pmpop_markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>
 						</div>
 
 						<div class="restore-from-trash">
-							<a id="pmpop_fromtrash-{$id}" href="javascript:void(0);" onClick="moveFromTrash({$id});$('#pmpop_fromtrash-{$id}').hide();$('#pmpop_totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
+							<a id="pmpop_fromtrash-{$id}" href="javascript:void(0);" onClick="PMPOPMoveFromTrash({$id});$('#pmpop_fromtrash-{$id}').hide();$('#pmpop_totrash-{$id}').show();$('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-from-trash" title="{_"restore from trash"}"></b></a>
 						</div>
 
 						<script>
@@ -233,8 +233,8 @@
 
 					{ifset $template_variables['mark_read_enabled']}
 						<div class="read-status">
-							<a id="pmpop_markread-{$id}" href="javascript:void(0);" onClick="markRead({$id});$('#pmpop_markread-{$id}').hide();$('#pmpop_markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
-							<a id="pmpop_markunread-{$id}" href="javascript:void(0);" onClick="markUnread({$id});$('#pmpop_markunread-{$id}').hide();$('#pmpop_markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
+							<a id="pmpop_markread-{$id}" href="javascript:void(0);" onClick="PMPOPMarkRead({$id});$('#pmpop_markread-{$id}').hide();$('#pmpop_markunread-{$id}').show(); if ($('#frmfilter-trash-0:checked').val() == 2){ $('#chat_message_{$id}').slideUp('normal');}"><b class="icon-message-unread" title="{_"mark as read"}"></b></a>							
+							<a id="pmpop_markunread-{$id}" href="javascript:void(0);" onClick="PMPOPMarkUnread({$id});$('#pmpop_markunread-{$id}').hide();$('#pmpop_markread-{$id}').show();"><b class="icon-message-read" title="{_"mark as unread"}"></b></a>
 						</div>
 			
 						<script>
@@ -331,7 +331,7 @@
 
 	<div class="pager">
 	   {if $max_page > 1}
-			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{else}noclick{/if}">1</a>
+			<a href="javascript:changePage(1)" class="pager-start{if $currentpage == 1} active{/if}">1</a>
 	   {/if}
    
 	   {if $max_page > 7}
@@ -343,18 +343,18 @@
 	   {if $max_page > 2}
 	   {if $max_page < 8}
 	   {for $i = 2; $i <= $max_page-1; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
 	   {/for}   
 	   {else}
 	   {if $currentpage <= 5}
 	   {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
 	   {for $i = 2; $i <= $end; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
 	   {/for}
 	   {else}
 	   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
 	   {for $i = $currentpage-2; $i <= $end; $i++}
-			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{else}noclick{/if}">{$i}</a>
+			<a href="javascript:changePage({$i})" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
 	   {/for}
 	   {/if}
 	   {/if}
@@ -367,13 +367,13 @@
 	   {/if}
    
 	   {if $max_page > 1}
-			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{else}noclick{/if}">{$max_page}</a>
+			<a href="javascript:changePage({$max_page})" class="pager-end{if $currentpage == $max_page} active{/if}">{$max_page}</a>
 	   {/if}
 	</div>
    {/snippet}
 </div>
 
-<script>
+<script>			
 		$(document).ready(function(){
 
 			if ($('.trash-radio:not([value=1])').is(':checked')) $('#pmpop-empty-trash').hide();
@@ -389,7 +389,7 @@
 				var date = $('[id$='+id+'_date]').html();
 				var quote_shortened = quote.substr(0,300);
 				if (quote_shortened != quote ) { quote_shortened += '...'; }
-				$('#frmmessageform-friend_id').val(author_id);
+				$('#frmpopupmessageform-friend_id').val(author_id);
 				var content = '<br/><br/><blockquote id="quoting_0000'+id+'"><b><span style="color:#999;">{!_"Quote"}: '+author_name+'</span></b>, <span style="color:#333;"><b>'+date+'</b></span>:<br />'+quote_shortened+'</blockquote>';
 				var s = CKEDITOR.instances[instance_name].getSelection();
 				var selected_ranges = s.getRanges(); // save selected range
@@ -402,7 +402,7 @@
 					CKEDITOR.instances[instance_name].focus();				
 					s.selectRanges(selected_ranges); // restore it
 				});
-				markRead(id);
+				PMPOPMarkRead(id);
 				$('#pmpop_markread-'+id).hide();
 				$('#pmpop_markunread-'+id).show();
 			});
@@ -429,7 +429,8 @@
 				var id = parseInt($(this).attr('id').substr(-5,5));
 				$("#chat_message_"+id).css({ "border-left":"inherit", "padding-left":"0"});
 			});
-		
+
+
 			$('.trash-radio').click(function(){
 				var trash = $(this).val();
 				$('#pmpop_trash').val(trash);

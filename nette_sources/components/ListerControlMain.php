@@ -359,7 +359,7 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	Returns summary of used filter criteria
+	 *	Returns summary of used filter criteria for HTML output
 	 *	@param void
 	 *	@return string
 	 */
@@ -367,6 +367,14 @@ class ListerControlMain extends NControl
 	{
 		$output = array();
 		$length = 0;
+		$resource_type_icon = array(
+			2 => '<b class="icon-event" title="'._t('event').'" style="vertical-align:-4px;"></b>',
+			3 => '<b class="icon-org" title="'._t('organization').'" style="vertical-align:-4px;"></b>',
+			4 => '<b class="icon-doc" title="'._t('document').'" style="vertical-align:-4px;"></b>',
+			5 => '<b class="icon-video" title="'._t('video').'" style="vertical-align:-4px;"></b><b class="icon-audio" title="'._t('audio').'" style="vertical-align:-4px;"></b>',
+			6 => '<b class="icon-website" title="'._t('link to external resource').'" style="vertical-align:-4px;"></b>'
+		);
+
 		$filter = $this->getFilterArray();
 		if (isset($filter['name']) && strlen($filter['name']) > 0) {
 			$name = _t('Name');
@@ -374,10 +382,11 @@ class ListerControlMain extends NControl
 			$length += strlen(_t('Name').$filter['name']);
 		}
 		if (!empty($filter['type']) && !is_array($filter['type']) && (($this->name == 'defaultresourceresourcelister') || ($this->name == 'homepageresourcelister'))) {
-			$name_a = Resource::getTypeArray();
-			$name = $name_a[$filter['type']];
-			$output[] = '<span style="color:#777;">'._t('Type').':</span> '.$name;
-			$length += strlen(_t('Type').$name);
+//			$name_a = Resource::getTypeArray();
+//			$name = $name_a[$filter['type']];
+			
+			$output[] = $resource_type_icon[$filter['type']];
+			$length += 5;
 		}
 		if (isset($filter['language']) && $filter['language'] > 0) {
 			$name = Language::getLanguageName($filter['language']);
@@ -392,12 +401,12 @@ class ListerControlMain extends NControl
 				foreach ($filter['tags'] as $key => $value) {
 					if ($key != 'all' && $value == true) {
 						if ($length > 80) {
-							$output_temp[] = '<b class="icon-tag" title="'._t('More tags').'" style="width:17px;"></b>...';
+							$output_temp[] = '<b class="icon-tag" title="'._t('More tags').'" style="width:17px; vertical-align:-3px;"></b>...';
 							break;
 						}
 						$tag = Tag::create($key);
 						$name = _t_tags($tag->getName());
-						$output_temp[] = '<b class="icon-tag" title="'._t('Tag').'" style="width:17px;"></b>'.preg_replace('/[\r\n]+/', '', $name);
+						$output_temp[] = '<b class="icon-tag" title="'._t('Tag').'" style="width:17px; vertical-align:-3px;"></b>'.preg_replace('/[\r\n]+/', '', $name);
 						$length += strlen($name);
 					}
 				}
@@ -407,10 +416,10 @@ class ListerControlMain extends NControl
 			}
 		}
 		if (isset($filter['mapfilter']) && $filter['mapfilter'] != 'null') {
-			$output[] = '<img src="'.NEnvironment::getVariable("URI").'/images/icon-map.png" title="'._t('Map').'" style="vertical-align:middle;"/>';
+			$output[] = '<img src="'.NEnvironment::getVariable("URI").'/images/icon-map.png" title="'._t('Map').'" style="vertical-align:-4px;"/>';
 		}
 		
-		return '<span style="margin: 0 5px; padding:5px 7px; background-color:#EAE9E3;">'.implode(' | ', $output).'</span><b class="icon-cancel" onclick="$(\'#filter_box_a\').attr(\'id\',\'\');$(\'#frmfilter-reset\').click();" title="'._t("Reset the filter and show the entire list.").'" style="height:17px;"></b>';
+		return '<span style="margin: 0 5px; padding:5px 7px; background-color:#EAE9E3;">'.implode(' | ', $output).'</span><b class="icon-cancel" onclick="$(\'#filter_box_a\').attr(\'id\',\'\');$(\'#frmfilter-reset\').click();" title="'._t("Reset the filter and show the entire list.").'" style="vertical-align:-5px;"></b>';
 		
 	}
 
@@ -493,7 +502,7 @@ class ListerControlMain extends NControl
 		$cache->clean();
 		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
 		if (in_array($this->name, $no_filter)) {
-			$cache_key = 'general';
+			$cache_key = $language.'-general';
 		} else {
 			$filter = $this->getFilterArray();
 			$cache_key = $language.'-'.md5(json_encode($filter).json_encode($this->template_variables));
@@ -641,14 +650,21 @@ class ListerControlMain extends NControl
 			}
 		}
 
+		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$language = $session->language;
+		if (empty($language)) {
+			$session->language = 'en_US';
+			$language          = $session->language;
+		}
+		
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$this->name);
 		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
 		$cache->clean();
 		if (in_array($this->name, $no_filter)) {
-			$cache_key = 'general';
+			$cache_key = $language.'-general';
 		} else {
-			$cache_key = md5(json_encode($filter));
+			$cache_key = $language.'-'.md5(json_encode($filter));
 		}
 		if ($cache->offsetExists($cache_key)) {
 			$this->data = $cache->offsetGet($cache_key);
@@ -1094,6 +1110,13 @@ class ListerControlMain extends NControl
 			
 			if (isset($this->template_variables['hide_reset'])) {
 				$options['hide_reset'] = true;
+			}
+
+			if (isset($this->template_variables['resource_browser'])) {
+				unset($options['include_type']);
+				unset($options['include_tags']);
+				$options['hide_reset'] = true;
+				$options['hide_apply'] = true;
 			}
 
 		}

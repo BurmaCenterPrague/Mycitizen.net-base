@@ -38,7 +38,6 @@ class ExternalFilter extends NControl
 	public function __construct($parent, $name, $options = array())
 	{
 		parent::__construct($parent, $name);
-		
 		if (isset($options['refresh_path'])) {
 			$this->refresh_path = $options['refresh_path'];
 			if (isset($options['refresh_path_params'])) {
@@ -100,7 +99,8 @@ class ExternalFilter extends NControl
 		}		
 
 	}
-	
+
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -243,13 +243,11 @@ class ExternalFilter extends NControl
 		$form->addSubmit('reset', _t('Clear Filter'));
 		$form->addSubmit('filter', _t('Apply Filter'));
 		$form->addSubmit('suggest', _t('Similar to me'));
-//		$form->getElementPrototype()->class[] = "ajax";
 		$form->onSubmit[] = array(
 			$this,
 			'filterFormSubmitted'
 		);
-
-//		$user = NEnvironment::getUser()->getIdentity(); // ?????
+		$form->getElementPrototype()->class('ajax');
 		$defaults['tags']['all'] = 1;
 		$defaults['filter_pairing'] = 'and';
 		
@@ -273,10 +271,11 @@ class ExternalFilter extends NControl
 		return $control;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the filter to the settings in the popup window; fallback if Ajax doesn't work.
+	 *	@param object $form
+	 *	@return void
 	 */
 	public function filterFormSubmitted(NAppForm $form)
 	{
@@ -301,7 +300,6 @@ class ExternalFilter extends NControl
 			
 			$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 		} else if ($form['reset']->isSubmittedBy()) {
-			$user                    = NEnvironment::getUser()->getIdentity();
 			$defaults['tags']['all'] = 1;
 			foreach (Tag::getTreeArray() as $key => $row) {
 				$defaults['tags'][$row['tag_id']] = 0;
@@ -407,11 +405,11 @@ class ExternalFilter extends NControl
 	}
 
 
-/**
- *	Synchronizes the three separate filters for user, group and resource category pages. (Invoked if variable.GLOBAL_FILTER is set in config.ini)
- *	@param	array $filter optional filter to merge other session filter into
- *	@return	array resulting filter
-*/
+	/**
+	 *	Synchronizes the three separate filters for user, group and resource category pages. (Invoked if variable.GLOBAL_FILTER is set in config.ini)
+	 *	@param	array $filter optional filter to merge other session filter into
+	 *	@return	array resulting filter
+	*/
 	public function syncFilterArray($filter=array()) {
 
 		$sync = array('userlister', 'grouplister', 'defaultresourceresourcelister');
@@ -451,12 +449,18 @@ class ExternalFilter extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Sets session filter to given array
+	 *	@param array $filter
 	 *	@return
 	 */
 	public function setFilterArray($filter)
 	{
+		if (NEnvironment::getVariable("GLOBAL_FILTER") && !count(array_intersect($this->components, array("homepagefriendlister", "homepagegrouplister", "homepageresourcelister")))) {
+			$this->components[]='defaultresourceresourcelister';
+			$this->components[]='userlister';
+			$this->components[]='grouplister';
+		}
+
 		foreach ($this->components as $component_name) {
 			$old_filter = array();
 			$session    = NEnvironment::getSession()->getNamespace($component_name);
@@ -467,7 +471,7 @@ class ExternalFilter extends NControl
 			if (count($old_filter) > 1000) $old_filter = array();
 			
 
-			if (is_array($old_filter)) { //var_dump($old_filter);
+			if (is_array($old_filter)) {
 				$old_filter = array_merge($old_filter, $filter);
 			} else {
 				$old_filter = $filter;
@@ -490,8 +494,8 @@ class ExternalFilter extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
+	 *	Clears sesssion filter key/value pairs, if given by new array
+	 *	@param array $filter
 	 *	@return
 	 */
 	public function clearFilterArray($filter = null)
@@ -505,6 +509,15 @@ class ExternalFilter extends NControl
 		foreach ($this->components as $component_name) {
 			$session = NEnvironment::getSession()->getNamespace($component_name);
 			$session->data['object_id'] = NULL;
+			
+			if ($component_name == 'userlister') $name = 'User';
+			if ($component_name == 'grouplister') $name = 'Group';
+			if ($component_name == 'defaultresourceresourcelister') $name = 'Resource';
+		
+			if (isset($name)) {
+				$user_session = NEnvironment::getSession()->getNamespace($name);
+				$user_session->data = NULL;
+			}
 			
 			if (is_null($filter)) {
 				unset($session->filterdata['name']);
@@ -523,10 +536,11 @@ class ExternalFilter extends NControl
 		}
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns filter array from session.
+	 *	@param void
+	 *	@return array
 	 */
 	public function getFilterArray()
 	{
@@ -542,5 +556,122 @@ class ExternalFilter extends NControl
 		return $filter;
 	}
 	
+	
+	/**
+	 *	Sets the filter according to the settings in the overlay window if transmitted by Ajax.
+	 *	@param void
+	 *	@return boolean
+	 */
+	public function ajaxFilterSubmitted()
+	{
+		$request = NEnvironment::getHttpRequest();
+		$submitted_by = $request->getPost('submittedby');
+		
+		$session = NEnvironment::getSession()->getNamespace($this->name);
+	
+		if ($submitted_by == 'filter') {
+			unset($session->data);
+			$values     = $request->getPost();
+			$filter     = $this->getFilterArray();
+			$this->clearFilterArray();
+
+			unset($values['mapfilter']);
+			unset($values['submittedby']);
+			if (isset($values['mapdata']) && !empty($values['mapdata'])) {
+				$values['mapfilter'] = json_decode($values['mapdata'], true);
+			}
+			unset($values['mapdata']);
+
+			if (NEnvironment::getVariable("GLOBAL_FILTER")) $filter=$this->syncFilterArray($values);
+
+			if ($values['tags']['all']==1) {
+				foreach (Tag::getTreeArray() as $key => $row) {
+					$values['tags'][$row['tag_id']] = 0;
+				}
+			} else {
+				$values['tags']['all']=0;
+			}
+			$new_filter = array_merge($filter, $values);
+			$this->setFilterArray($new_filter);
+			return true;
+		
+		} else if ($submitted_by == 'reset') {
+			unset($session->data);
+			$defaults['tags']['all'] = 1;
+			foreach (Tag::getTreeArray() as $key => $row) {
+				$defaults['tags'][$row['tag_id']] = 0;
+			}
+		
+			$defaults['mapfilter']      = NULL;
+			$defaults['filter_pairing'] = "and";
+			$defaults['name']           = "";
+			$defaults['status']         = NULL;
+			$defaults['trash']          = NULL;
+			$defaults['language']       = 0;
+			$defaults['type']           = "all";
+		
+			$filter     = $this->getFilterArray();
+		
+			$new_filter = array_merge($filter, $defaults);
+		
+			if (NEnvironment::getVariable("GLOBAL_FILTER")) $this->syncFilterArray($new_filter);
+		
+			$this->setFilterArray($new_filter);
+			return true;
+			
+		} else if ($submitted_by == 'suggest') {
+			unset($session->data);
+			$user = NEnvironment::getUser()->getIdentity();
+			if (!empty($user)) {
+				$ud   = $user->getUserData();
+				$t = $user->getTags();
+				$defaults['tags']['all'] = 0;
+				foreach ($t as $t_row) {
+					if ($t_row->getTagId() != "") {
+						$defaults['tags'][$t_row->getTagId()] = 1;
+					}
+				}
+			} else {
+				$defaults['tags']['all'] = 1;
+			}
+		
+			if (!empty($user) && $user->hasPosition()) {
+			
+				$position = $user->getPosition();
+
+				$distance = NEnvironment::getVariable("MAP_SUGGEST_DST");
+				$distance_lat = $distance/111.111;
+				$r_x = $position['user_position_x'] + $distance_lat;
+				$r_y = $position['user_position_y'] + $distance/(111.111*cos($distance_lat));
+				$defaults['mapfilter']['type'] = 'circle';
+				$defaults['mapfilter']['center'] = array(
+					'lat' => $position['user_position_x'],
+					'lng' => $position['user_position_y']
+				);
+				$defaults['mapfilter']['radius'] = array(
+					'lat' => $r_x,
+					'lng' => $r_y,
+					'length' => $this->haversineGreatCircleDistance($position['user_position_x'],$position['user_position_y'],$r_x,$r_y)
+					);			
+			} else {
+				$defaults['mapfilter']      = NULL;
+			}
+
+			$defaults['filter_pairing'] = "and";
+			$defaults['name']           = "";
+			$defaults['status']         = NULL;
+			$defaults['trash']          = NULL;
+			$defaults['language']       = $ud['user_language'];
+			$defaults['type']           = "all";
+		
+			$filter     = $this->getFilterArray();
+			$new_filter = array_merge($filter, $defaults);
+		
+			if (NEnvironment::getVariable("GLOBAL_FILTER")) $this->syncFilterArray($new_filter);
+			$this->setFilterArray($new_filter);
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
-?>

@@ -282,8 +282,10 @@ final class WidgetPresenter extends BasePresenter
 		$last_modified_header = $request->getHeader('if-modified-since');
 		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 		
+		if (empty($logged_user_id)) die('no permission');
+		
 		$options = array(
-			'itemsPerPage' => 20,
+			'itemsPerPage' => 30,
 			'lister_type' => array(
 				ListerControlMain::LISTER_TYPE_RESOURCE
 			),

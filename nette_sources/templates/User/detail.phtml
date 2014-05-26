@@ -262,6 +262,11 @@
 	</div>
 
 {if !isset($thats_me)}
+	{ifset $nochat}
+	<div class="user-detail-pm">
+		<h3>{_"Private messaging has been disabled by the chat window. Reload page to re-enable"}</h3>
+	</div>
+	{else}
 	<div class="user-detail-pm">
 		<div class="user-detail-pm-send">
 			<div id="chat_top_anchor"></div>
@@ -503,13 +508,14 @@
 <script>
 	reloadChat();
 </script>
+<input type="hidden" id="no_popup_chat" value="1" />
 				</div>
 			</div>
 		</div>
 		{/if}
 	</div>
+	{/if}
 {/if}
-
 
 </div>
 {/block}

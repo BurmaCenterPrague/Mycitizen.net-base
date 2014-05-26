@@ -1,0 +1,254 @@
+<?php
+/**
+ * mycitizen.net - Social networking for civil society
+ *
+ *
+ * @author http://mycitizen.org
+ * @copyright  Copyright (c) 2013, 2014 Burma Center Prague (http://www.burma-center.org)
+ * @link http://mycitizen.net
+ * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ *
+ * @package mycitizen.net
+ */
+?>
+{block title}{_"Browse Resources"}{/block}
+{block content}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#listOfTags").tagit({
+			availableTags: [{!$available_tags}],
+			placeholderText: {_"tag1, tag2, ..."},
+			afterTagAdded: refreshItems,
+			afterTagRemoved: refreshItems,
+			allowSpaces: true,
+			tagLimit: 20,
+			onTagLimitExceeded: function(){
+				alert({_"Maximum number of tags is %d.", 20});
+			},
+			showAutocompleteOnFocus: {$showAutocompleteOnFocus}
+		});
+		
+		$(document).on('click', 'b.close-item', function() {
+			var $container = $(this).parent().parent();
+			if ($container.css('opacity') < 1) {
+				$container.animate({ opacity:1});
+			} else {
+				$container.animate({ opacity:0.2});
+			}
+		});
+		
+		$('#cleanup').click(function(){
+			$('.browse-item').each(function(){
+				if ($(this).css('opacity') < 1) {
+					$(this).slideUp();
+				}
+			});
+		});
+		
+
+	});
+
+	var timeoutId;
+	function refreshItems() {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(refreshItemsLastRequest, 1000);
+	}
+	
+	function refreshItemsLastRequest() {
+		var tags = [];
+		
+		$('#listOfTags li').each(function(){
+			tags.push($(this).text().slice(0,-1));
+		});
+		tags = tags.slice(0,-1);
+		if (tags.length == 0) return false;
+		var sort = $('#sort_order').val();
+		var map = $('#mapcontainer').val();
+		var type = $('#type').val();
+		var name = $('#name').val();
+		var data = { 'tags':tags, 'type':type, 'name':name, 'sort':sort, 'map':map };
+		$("#progressbar").delay(2000).fadeIn(1000);
+		
+		$.post('?do=browseresources',
+			data,
+			function(payload) {
+				if (payload) {
+					$('#item_header').html(payload.message);
+					var content1 = '';
+					var content2 = '';
+					var item;
+					var i=0;
+					for (key in payload.data) {
+						i++;
+item = '<div class="browse-item"><div style="float:left; padding:10px;">';
+item += payload.data[key].icon+'</div><div style="float:right;">';
+item += '<div class="browse-subscribers" title={_"number of susbcribers"}>'+payload.data[key].links+'</div>';
+item += payload.data[key].visibility_icon;
+if (payload.data[key].subscribed) {
+item += '<b id="icon-unsubscribe-'+payload.data[key].id+'" class="icon-subscriber" title={_"Click to unsubscribe."} style=" cursor:pointer;" onClick="unsubscribe({$logged_user},'+payload.data[key].id+');"></b><b id="icon-subscribe-'+payload.data[key].id+'" class="icon-no-subscriber" title={_"Click to subscribe."} style="display:none; cursor:pointer;" onClick="subscribe({$logged_user},'+payload.data[key].id+');"></b>';
+} else {
+item += '<b id="icon-unsubscribe-'+payload.data[key].id+'" class="icon-subscriber" title={_"Click to unsubscribe."} style="display:none; cursor:pointer;" onClick="unsubscribe({$logged_user},'+payload.data[key].id+');"></b><b id="icon-subscribe-'+payload.data[key].id+'" class="icon-no-subscriber" title={_"Click to subscribe."} style="cursor:pointer;" onClick="subscribe({$logged_user},'+payload.data[key].id+');"></b>';
+}
+if (payload.data[key].edit_url) {
+item += '<a href="'+payload.data[key].edit_url+'" target="_blank" title={_"edit"}><b class="icon-resource-edit" style="cursor:pointer;"></b></a>';
+}
+item += '&nbsp;&nbsp;&nbsp;<b class="icon-cancel close-item" title={_"fade or unfade"}></b>';
+item += '</div><a href="'+payload.data[key].url+'" target="_blank" title="'+payload.data[key].last_activity+'"><h4>'+payload.data[key].name+'</h4></a><table>';
+item += '<tr><td colspan="3" style="padding:10px 0;">'+payload.data[key].description;
+item += '<div style="float:right; padding: 5px 0 0 5px;">';
+if (payload.data[key].external_link) {
+item += '<a href="'+payload.data[key].external_link+'" target="_blank" title={_"external link"}><b class="icon-www" style="cursor:pointer;"></b></a>';
+}
+item += '</div></td></tr><tr>';
+item += '<td class="browse-cell"><div>'+payload.data[key].tags+'</div></td>';
+item += '<td class="browse-cell">'+payload.data[key].screenshot+'</td>';
+item += '<td class="browse-cell">'+payload.data[key].map+'</td></tr></table></div>';
+						if ((i % 2) == 1) {
+							content1 += item;
+						} else {
+							content2 += item;
+						}
+					}
+					content1 += '<div class="cleaner"></div>';
+					content2 += '<div class="cleaner"></div>';
+					$('#item_container_1').html(content1);
+					$('#item_container_2').html(content2);
+					positionBlocks(1);
+					positionBlocks(2);
+					$('#item_container_1, #item_container_2').sortable({
+						connectWith: ".items",
+						placeholder: "sortable-placeholder",
+						start: function( event, ui ) {
+							$(ui.item).css('box-shadow','5px 5px 10px #666');
+						},
+						stop: function( event, ui ) {
+							$(ui.item).css('box-shadow','1px 1px 2px #666');
+						},
+
+					}).disableSelection();
+
+					$("#progressbar").clearQueue().fadeOut(1000);
+
+					$('[title!=""]').qtip('destroy');
+					$('[title!=""]').qtip({
+						style: { classes: 'qtip-light qtip-rounded qtip-shadow' },
+						show: { delay: 800 },
+						position: {
+							my: 'top left',
+							at: 'bottom right',
+							target: 'mouse',
+							adjust: {
+								x: 15,
+								y: 5
+							}
+						}
+					});
+
+				}
+			}
+		).fail(function(){
+			$("#progressbar").clearQueue().fadeOut(1000);
+		});
+	}
+
+	function positionBlocks(n) {
+		var y = $('#item_header').offset().top-50;
+		var margin = 20;
+		$('#item_container_'+n+' .browse-item').each(function(){
+			y = Math.round(y);
+			$(this).css({
+				'top':y+'px'
+			});
+			y += $(this).outerHeight()+margin;
+		});
+	}
+	
+	function subscribe(user_id, resource_id) {
+		userInsert_Resource(user_id, resource_id, '');
+		$("#icon-unsubscribe-"+resource_id).show();
+		$("#icon-subscribe-"+resource_id).hide();
+	}
+	function unsubscribe(user_id, resource_id) {
+		userRemove_Resource(user_id, resource_id, '');
+		$("#icon-subscribe-"+resource_id).show();
+		$("#icon-unsubscribe-"+resource_id).hide();
+	}
+
+</script>
+<div class="resource-browser-container">
+<div class="resource-browser-filter">
+<h1>{_"Browse Resources"}</h1>
+<div style="display:inline-block; width:650px;">
+	<div class="resource-browser-tags">
+    <ul id="listOfTags">
+    </ul>
+	</div>
+
+	<div class="resource-browser-type">
+	<select id="type" onchange="refreshItems()">
+	<option value="all">{_"all"}</option>
+	<option value="2">{_"Event"}</option>
+	<option value="3">{_"Organization"}</option>
+	<option value="4">{_"Document"}</option>
+	<option value="5">{_"Video/Audio"}</option>
+	<option value="6">{_"Other"}</option>
+	</select>
+	</div>
+	
+	<div class="resource-browser-name">
+		<input id="name" placeholder="Name" onblur="refreshItems()"/>
+	</div>
+
+	<div class="resource-browser-sort">
+	<select id="sort_order" onchange="refreshItems()">
+	<option value="name">{_"Sort by Name"}</option>
+	<option value="date">{_"Sort by Last Activity"}</option>
+	<option value="links">{_"Sort by Subscribers"}</option>
+	</select>
+	</div>
+
+	<div class="resource-browser-save" style="display:none; padding:10px; vertical-align:top;">
+	<b>{_"Save as view"}:</b>
+		<input placeholder="name of view" />
+		<a href="#" class="button">{_"save"}</a>
+	</div>
+</div>
+
+<div id="toggle_map" title="{_"Map"}"><img src="{$CDN}images/icon-map.png"/></div>
+<div id="map_toggle_container" class="resource-browser-map">
+{control mapfilter}
+</div>
+<script>
+$(document).ready(function(){
+	$('#toggle_map').click(function(){
+		$('#map_toggle_container').slideToggle(function(){
+			if ($('#map_toggle_container').is(':visible')) {
+      			$('#map_toggle_container').css('display','inline-block');
+				loadData();
+			} else {
+				clearMap();
+				$('#mapcontainer').val('');
+			}
+		});
+		$('#map_toggle_container').css('display','inline-block');
+	});
+});
+</script>
+
+
+</div>
+	<div class="resource-browser-actions">
+		<a href="javascript:window.print()" id="print" class="button">{_"print"}</a>
+		<a href="javascript:void(0)" id="cleanup" class="button" title="{_"Remove all faded items."}">{_"clean up"}</a>
+	</div>
+
+<div id="item_header">
+</div>
+<div id="item_container_1" class="items">
+<h4>{_"Please enter some tags."}</h4>
+</div>
+<div id="item_container_2" class="items">
+</div>
+<div class="cleaner"></div>
+</div>
+{/block}
