@@ -41,44 +41,45 @@ final class HomepagePresenter extends BasePresenter
 		if ($detect->isMobile()) $this->template->mobile = true;
 		unset($detect);
 */	
-		$this->template->load_fullcalendar = true;
+
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 
 		$user_o = NEnvironment::getUser()->getIdentity();
 		if (!empty($user_o)) {
-		$access_level = $user_o->getAccessLevel();
-		switch ($access_level) {
-			case 1: break;
-			case 2: $this->template->access_level_welcome =_t('You are a moderator on this platform.');break;
-			case 3: $this->template->access_level_welcome =_t('You are an administrator on this platform.');break;
-		}
-		if ($access_level == 3 || $access_level == 2) {
-			$this->template->admin = true;
-		}
-		$this->template->access_level = $access_level;
-		
-		if ($access_level > 1) {
-			$filter = array(
-					'type' => 7
-				);
-			$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
-			if ($number > 0) {
-				$this->template->reports_pending = $number;
-				$this->template->reports_url = NEnvironment::getVariable("URI") . '/administration/reports/';
+			$access_level = $user_o->getAccessLevel();
+			switch ($access_level) {
+				case 1: break;
+				case 2: $this->template->access_level_welcome =_t('You are a moderator on this platform.');break;
+				case 3: $this->template->access_level_welcome =_t('You are an administrator on this platform.');break;
 			}
-		}
-		}
-		
-		if (file_exists(WWW_DIR . '/files/xml-calendars.txt')) {
-			$xml_events = file(WWW_DIR . '/files/xml-calendars.txt', FILE_IGNORE_NEW_LINES);
-			if (!empty($xml_events)) {
-				$this->template->xml_events = $xml_events;
+			if ($access_level == 3 || $access_level == 2) {
+				$this->template->admin = true;
 			}
-		}
-		if (file_exists(WWW_DIR . '/files/home-tabs.txt')) {
-			$home_tabs = file(WWW_DIR . '/files/home-tabs.txt', FILE_IGNORE_NEW_LINES);
-			if (!empty($home_tabs)) {
-				$this->template->home_tabs = $home_tabs;
+			$this->template->access_level = $access_level;
+		
+			if ($access_level > 1) {
+				$filter = array(
+						'type' => 7
+					);
+				$number = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
+				if ($number > 0) {
+					$this->template->reports_pending = $number;
+					$this->template->reports_url = NEnvironment::getVariable("URI") . '/administration/reports/';
+				}
+			}
+		
+			$this->template->load_fullcalendar = true;
+			if (file_exists(WWW_DIR . '/files/xml-calendars.txt')) {
+				$xml_events = file(WWW_DIR . '/files/xml-calendars.txt', FILE_IGNORE_NEW_LINES);
+				if (!empty($xml_events)) {
+					$this->template->xml_events = $xml_events;
+				}
+			}
+			if (file_exists(WWW_DIR . '/files/home-tabs.txt')) {
+				$home_tabs = file(WWW_DIR . '/files/home-tabs.txt', FILE_IGNORE_NEW_LINES);
+				if (!empty($home_tabs)) {
+					$this->template->home_tabs = $home_tabs;
+				}
 			}
 		}
 

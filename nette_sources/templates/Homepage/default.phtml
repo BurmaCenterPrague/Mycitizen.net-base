@@ -115,15 +115,15 @@ $homepage = true;
 
 	<div id="activity">
 	<div id="activity_box_home" class="activity-box">
-		<input id="latest_items" type="checkbox" name="latest_items"></input>{_"Include all new users, groups and resources that you are allowed to view."}
+		<input id="latest_items_home" type="checkbox" name="latest_items_home"></input>{_"Include all new users, groups and resources that you are allowed to view."}
 		<div id="load-more-home-1">
 		</div>
 	</div>
 	<script>
 		$(document).ready(function(){
-			$("input[name='latest_items']").change(function(){
+			$("input[name='latest_items_home']").change(function(){
 				var latest = $(this).prop('checked')?'1':'0';
-				loadActivity("#load-more-home-1", 2, latest);
+				loadActivity("#load-more-home-1", 2, latest, 'home');
 			});
 
 		});
@@ -204,8 +204,8 @@ $homepage = true;
 					$('#calendar').fullCalendar( 'render' );
 				}
 				if (ui.newTab.attr('id') == 'tab_activity') {
-					var latest = $("input[name='latest_items']").prop('checked')?'1':'0';
-					loadActivity("#load-more-home-1", 2, latest);
+					var latest = $("input[name='latest_items_home']").prop('checked')?'1':'0';
+					loadActivity("#load-more-home-1", 2, latest, 'home');
 				}
 {ifset $home_tabs}{foreach $home_tabs as $home_tab}{? $home_tab_data = explode(",", $home_tab)}
 				if (ui.newTab.attr('id') == "tab_{!$home_tab_data[0]}") {

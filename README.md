@@ -1,7 +1,7 @@
 mycitizen.net
 =============
 
-(c) 2012 Burma Center Prague - more information at http://www.mycitizen.org
+(c) 2012ff. Burma Center Prague - more information at http://www.mycitizen.org
 
 license
 -------

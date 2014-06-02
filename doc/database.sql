@@ -38,6 +38,14 @@ CREATE TABLE IF NOT EXISTS `cron` (
   PRIMARY KEY (`cron_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
+CREATE TABLE IF NOT EXISTS `failed_logins` (
+  `failed_logins_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip` bigint(20) NOT NULL,
+  `time` int(16) NOT NULL,
+  PRIMARY KEY (`ip`),
+  UNIQUE KEY `failed_logins_id` (`failed_logins_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
 CREATE TABLE IF NOT EXISTS `group` (
   `group_id` int(11) NOT NULL AUTO_INCREMENT,
   `group_author` int(11) NOT NULL,
@@ -175,7 +183,10 @@ INSERT INTO `settings` (`variable_name`, `variable_value`, `variable_display_lab
 ('signup_answer', '', 'Correct answer for signup'),
 ('signup_question', '', 'Question that needs to be answered for signup'),
 ('sign_in_disabled', '0', 'Sign in disabled (0 or 1)'),
-('sign_up_disabled', '0', 'Sign up disabled (0 or 1)');
+('sign_up_disabled', '0', 'Sign up disabled (0 or 1)'),
+('ip_max_failed_logins', '5', 'Tolerated number of failed logins from the same IP address without one hour.'),
+('ip_blocking_time_hours', '1', 'How long to block an IP after too many failed logins'),
+('ip_failure_time_minutes', '10', 'Time in minutes during which failed logins are counted.');
 
 CREATE TABLE IF NOT EXISTS `status` (
   `status_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -198,7 +209,7 @@ CREATE TABLE IF NOT EXISTS `system` (
 
 INSERT INTO `system` (`id`, `name`, `value`) VALUES
 (1, 'cron_last_run', '0'),
-(2, 'database_version', '0.9');
+(2, 'database_version', '0.11');
 
 CREATE TABLE IF NOT EXISTS `tag` (
   `tag_id` int(11) NOT NULL AUTO_INCREMENT,

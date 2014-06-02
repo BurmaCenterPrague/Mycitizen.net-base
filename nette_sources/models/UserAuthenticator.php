@@ -36,6 +36,7 @@ class UserAuthenticator extends BaseModel implements IAuthenticator {
 		
 			if( !$hash->CheckPassword($password, $result[0]->user_password)) {
 				Activity::addActivity(Activity::LOGIN_FAILED, $result[0]->user_id, 1);
+				StaticModel::addLoginFailure();
 				throw new NAuthenticationException(_t("The password is wrong."), self::INVALID_CREDENTIAL);
 			}
         }

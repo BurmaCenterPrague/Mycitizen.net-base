@@ -10,3 +10,5 @@ web/images/cache/user/*.jpg
 web/images/cache/resource/*.jpg
 nette_sources/log
 nette_sources/temp
+web/js/combined-*.js
+web/css/combined-*.css

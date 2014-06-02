@@ -2088,6 +2088,32 @@ width:60px;
 	vertical-align:top;
 }
 
+.sortable-placeholder {
+	height:10px;
+	line-height:1.2em;
+	background-color:#D0CCC3;
+	width:430px;
+	margin:10px;
+	border-radius:5px;
+}
+
+@media print {
+	#mobile_alert, #mobile_alert *, #topheader, #topheader *, .footer, .footer *, .resource-browser-actions, .icon-cancel, .icon-resource-edit {
+		visibility: hidden;
+		height:0;
+	}
+	body {
+		background: none;
+	}
+	.layout {
+		width: 100%;
+	}
+	.resource-browser-container {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+}
 /* ------------------------ */
 
 

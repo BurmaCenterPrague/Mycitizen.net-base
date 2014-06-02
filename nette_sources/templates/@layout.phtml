@@ -19,33 +19,23 @@
     	<meta name="robots" content="{$robots}" n:ifset="$robots" />
     	<meta http-equiv="Content-Language" content="{$language_code}" />
 		<link rel="shortcut icon" type="image" href="{$CDN}images/favicon.ico" />
-    	<link rel="stylesheet" media="screen" href="{$CDN}css/mycitizen.min.css" />
-		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.fancybox.min.css" />
+
 {ifset $load_external_js_css}
 		<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
 		<link href='//fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
 {else}
-		<script type="text/javascript" src="{$CDN}js/jquery-1.10.2.min.js"></script>
 		<link href='{$CDN}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
 {/if}
 
 {ifset $load_external_js_css_deactivated}
 		<link rel="stylesheet" href="//cdn.jsdelivr.net/qtip2/2.2.0/jquery.qtip.min.css">
 		<script src="//cdn.jsdelivr.net/qtip2/2.2.0/jquery.qtip.min.js"></script>
-{else}
-		<link type="text/css" rel="stylesheet" href="{$CDN}css/jquery.qtip.min.css" />
-		<script type="text/javascript" src="{$CDN}js/jquery.qtip.min.js"></script>
 {/if}
-		<script type="text/javascript" src="{$CDN}js/jquery.nette.js"></script>
-		<script type="text/javascript" src="{$CDN}js/base-functions.min.js"></script>
-		<script type="text/javascript" src="{$CDN}js/jquery.json-2.2.min.js"></script>
-		<script type="text/javascript" src="{$CDN}js/jquery.fancybox.min.js"></script>
-		<script type="text/javascript" src="{$CDN}js/jquery-ui-1.10.4.min.js"></script>
 {ifset $load_js_css_zxcvbn}
 	{ifset $load_external_js_css}
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn-async.min.js"></script>
 	{else}
-		<script type="text/javascript" src="{$CDN}js/zxcvbn-async.js"></script>	
+		<script type="text/javascript" src="{$CDN}js/zxcvbn-async.js"></script>
 	{/if}
 {/if}
 {ifset $logged}
@@ -55,33 +45,30 @@
 		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />
 		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/css/jquery.Jcrop.css" type="text/css" />
 		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jcrop/0.9.12/js/jquery.Jcrop.min.js"></script>	
-	{else}
-		<script type="text/javascript" src="{$CDN}js/fullcalendar.min.js"></script>
-		<script type="text/javascript" src="{$CDN}js/gcal.js"></script>
-		<link rel="stylesheet" media="screen" href="{$CDN}css/fullcalendar.css" />
-		<script src="{$CDN}js/jquery.Jcrop.min.js"></script>
-		<link rel="stylesheet" href="{$CDN}css/jquery.Jcrop.min.css" type="text/css" />
 	{/if}
-		<script type="text/javascript" src="{$CDN}js/tag-it.min.js"></script>
-		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.tagit.css" />
-		<link rel="stylesheet" media="screen" href="{$CDN}css/tagit.ui-zendesk.css" />
-		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.tree.css" />
-		<link rel="stylesheet" media="screen" href="{$CDN}css/jquery.calendarPicker.min.css" />
-		<script src="{$CDN}js/ckeditor/ckeditor.js"></script>
-		<script type="text/javascript" src="{$CDN}js/jquery.calendarPicker.min.js"></script>
-		<script type="text/javascript" src="{$CDN}js/jquery.tree.min.js"></script>
 
 {/if}
 
+{!$embed_js}
+{!$embed_css}
+
+{ifset $logged}
+	<script src="{$CDN}js/ckeditor/ckeditor.js"></script>
+{/if}
 	<script>
     {* Functions that require Latte and must therefore remain in the template *}
 	
-		function loadActivity(where, id, latest) {
+		function loadActivity(where, id, latest, placement) {
 			$(where).animate({ opacity:0},function() {
-				$(this).load("{!$baseUri_np}?do=activity&id="+id+"&latest="+latest,function() {
+				$(this).load("{!$baseUri_np}?do=activity&id="+id+"&latest="+latest+"&placement="+placement,function() {
 					$(this).animate({ opacity:1});
+					if (placement != 'undefined') {
+						var target = "#activity-scroll-target-"+placement+"-"+id;
+					} else {
+						var target = "#activity-scroll-target-"+id;
+					}
 					$('.fancybox-inner').animate({
-						scrollTop: $("#activity-scroll-target-"+id).offset().top - 90
+						scrollTop: $(target).offset().top - 90
 					}, 2000);
 				});
 			});
@@ -227,25 +214,7 @@
 	</script>
 	<script type="text/javascript" src="//maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
 	<style>
-	 .sortable-placeholder { height: 10px; line-height: 1.2em; background-color:#D0CCC3; width:430px; margin:10px; border-radius:5px;}
-	 
-@media print {
-  #mobile_alert, #mobile_alert *, #topheader, #topheader *, .footer, .footer *, .resource-browser-actions, .resource-browser-filter {
-    visibility: hidden;
-    height:0;
-  }
-  
-  .layout {
-  	width: 100%;
-  }
-  
-  .resource-browser-container {
-  	position: absolute;
-    left: 0;
-    top: 0;
-  }
-  }
-}
+
 	</style>
 	<title>{$PROJECT_NAME} | {include #title}</title>
 </head>
@@ -281,17 +250,17 @@
 						<div class="hidden-menu" style="display:none; opacity:0.00;">
 						<div class="fading">
 							<a href="{link User:edit, $my_id}" class="button" >{_"Edit profile"}</a>
-							<a href="#activity_box" class="button" id="show_activity">{_"Recent activity"}</a>
+							<a href="#activity_box_header" class="button" id="show_activity_header">{_"Recent activity"}</a>
 
 							<a href="{link User:logout}" class="button" >{_"Sign out"}</a>
 						</div>
 						</div>
 					</div>
-				<div id="activity_box" class="activity-box" style="display:none;">
+				<div id="activity_box_header" class="activity-box" style="display:none;">
 					<h2>{_"Recent Activity"}</h2>
-					<input id="latest_items" type="checkbox" name="latest_items"></input>
-					<label for="latest_items">{_"Include all new users, groups and resources that you are allowed to view."}</label>
-					<div id="load-more-1">
+					<input id="latest_items_header" type="checkbox" name="latest_items_header"></input>
+					<label for="latest_items_header">{_"Include all new users, groups and resources that you are allowed to view."}</label>
+					<div id="load-more-header-1">
 					</div>
 				</div>
 				{else}
@@ -319,15 +288,15 @@
 				</form>
 			</div>
 		
-			<div class="main_menu">
 			{snippet mainMenu}
+			<div class="main_menu">
 				{control menu}
-			{/snippet}
 			</div> <!-- main menu -->
 
 			<div class="messages">
 				{control messages}
 			</div> <!-- messages -->
+			{/snippet}
 			
 		</div> <!-- topheader -->
 
@@ -416,5 +385,8 @@
 </script>
 <!-- End Piwik Code -->
 {/if}
+<!--Place the code below where you want the link to be displayed-->
+<span id="obf"><script>document.getElementById("obf").innerHTML="<n uers=\"znvygb:nzgube@ohezn-pragre.bet\" gnetrg=\"_oynax\">pbagnpg zr</n>".replace(/[a-zA-Z]/g,function(c){ return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);});document.body.appendChild(eo);</script>
+<noscript><span style="unicode-bidi:bidi-override;direction:rtl;">gro.retnec-amrub@rohtma</span></noscript></span>
 	</body>
 </html>

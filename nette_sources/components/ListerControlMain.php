@@ -40,11 +40,7 @@ class ListerControlMain extends NControl
 	protected $cache_tags;
 	protected $cache_expiry;
 
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
+
 	public function __construct($parent, $name, $options = array())
 	{
 		parent::__construct($parent, $name);
@@ -106,7 +102,7 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@Helpers for Latte templates
+	 *	Helpers for Latte templates
 	 *	+ htmlpurify: cleans code before output based on whitelist
 	 *	+ autoformat: adds basic html formatting into plain text and applies simplified htmlpurify
 	 *	@param void
@@ -280,9 +276,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Renders the list with the filter.
+	 *	@param void
+	 *	@return void
 	 */
 	public function render()
 	{
@@ -292,12 +288,13 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	Outputs status of filter as readable text for button
+	 *	Renders status of filter as readable text for button
+	 *	@param void
+	 *	@return void
 	 */
 	public function renderFiltercheck()
 	{
 		if ($this->activeFilter()) {
-//			echo _t("Filter is on.");
 			echo $this->filter_summary();
 		} else {
 			echo _t("Filter is off.");
@@ -306,7 +303,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	Outputs status of filter for use in class
+	 *	Renders short status of filter for use in class for styling.
+	 *	@param void
+	 *	@return void
 	 */
 	public function renderFilterstatus()
 	{
@@ -319,7 +318,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	Outputs title for filter
+	 *	Renders text for title tag of filter button.
+	 *	@param void
+	 *	@return void
 	 */
 	public function renderFiltertitle()
 	{
@@ -330,7 +331,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	Checks whether filter is active or not
+	 *	Checks whether filter is active or not.
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function activeFilter()
 	{
@@ -359,7 +362,7 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	Returns summary of used filter criteria for HTML output
+	 *	Returns summary of used filter criteria for HTML output.
 	 *	@param void
 	 *	@return string
 	 */
@@ -382,9 +385,6 @@ class ListerControlMain extends NControl
 			$length += strlen(_t('Name').$filter['name']);
 		}
 		if (!empty($filter['type']) && !is_array($filter['type']) && (($this->name == 'defaultresourceresourcelister') || ($this->name == 'homepageresourcelister'))) {
-//			$name_a = Resource::getTypeArray();
-//			$name = $name_a[$filter['type']];
-			
 			$output[] = $resource_type_icon[$filter['type']];
 			$length += 5;
 		}
@@ -394,9 +394,7 @@ class ListerControlMain extends NControl
 			$length += strlen(_t('Language').$name);
 		}
 		if (isset($filter['tags'])) {
-			if (isset($filter['tags']['all']) && $filter['tags']['all']==true) {
-//				$output[] = _t('Tag').': '._t('all');
-			} else {
+			if (!isset($filter['tags']['all']) || $filter['tags']['all']!=true) {
 				$output_temp = array();
 				foreach ($filter['tags'] as $key => $value) {
 					if ($key != 'all' && $value == true) {
@@ -426,9 +424,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Renders the filter.
+	 *	@param void
+	 *	@return void
 	 */
 	public function renderFilter()
 	{
@@ -448,7 +446,6 @@ class ListerControlMain extends NControl
 			$template->name = $this->name;
 			
 		}
-		//$this['filter']->setDefaults($this->getFilterArray());
 		$template->data               = $this->data;
 		$template->template_variables = $this->template_variables;
 		$template->refresh_path       = $this->refresh_path;
@@ -462,9 +459,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Renders the body (lists of items that pass the filter).
+	 *	@param boolean $output (whether to echo or return)
+	 *	@return void|string
 	 */
 	public function renderBody($output=true)
 	{
@@ -540,9 +537,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the amount of items.
+	 *	@param int $count
+	 *	@return void
 	 */
 	public function setItemsCount($count)
 	{
@@ -551,9 +548,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves the amount of items.
+	 *	@param void
+	 *	@return int
 	 */
 	public function getItemsCount()
 	{
@@ -562,9 +559,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets how many items in a list on one page.
+	 *	@param int $count
+	 *	@return void
 	 */
 	public function setItemsPerPage($count)
 	{
@@ -573,9 +570,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves the maximum page number.
+	 *	@param void
+	 *	@return int
 	 */
 	public function getMaxPage()
 	{
@@ -588,9 +585,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the current page in a multi-page list.
+	 *	@param int $page
+	 *	@return void
 	 */
 	public function setCurrentPage($page)
 	{
@@ -606,9 +603,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves id of first item on a page.
+	 *	@param int $page
+	 *	@return int
 	 */
 	public function getPageFirstIndex($page)
 	{
@@ -722,9 +719,10 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the session filter to the array. Optionally merges previous array into new one (prioritizes new array).
+	 *	@param array $filter
+	 *	@param boolean $keep_old_data
+	 *	@return void
 	 */
 	public function setFilterArray($filter, $keep_old_data = false)
 	{
@@ -740,9 +738,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Clears session filter array. Optionally clears only keys that are present in sample filter array.
+	 *	@param array $filter
+	 *	@return void
 	 */
 	public function clearFilterArray($filter = null)
 	{
@@ -760,9 +758,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves session filter array.
+	 *	@param void
+	 *	@return array
 	 */
 	public function getFilterArray()
 	{
@@ -798,15 +796,14 @@ class ListerControlMain extends NControl
 				);
 			}
 		}
-		
 		return $filter;
 	}
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets page to new value via Ajax.
+	 *	@param int $page
+	 *	@return void
 	 */
 	public function handleChangePage($page)
 	{
@@ -819,9 +816,9 @@ class ListerControlMain extends NControl
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets beginning and length of new page.
+	 *	@param int $page
+	 *	@return array
 	 */
 	public function pageToLimit($page)
 	{
@@ -837,6 +834,7 @@ class ListerControlMain extends NControl
 			'count' => $this->itemsperpage
 		);
 	}
+
 
 	/**
 	 *	Define administration form for connected users of a group or resource.
@@ -913,7 +911,7 @@ class ListerControlMain extends NControl
 			}
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage, "Lister.groupmemberlister");
-//			$cache->clean(array(NCache::TAGS => array("group_id/".$this->persistent_filter['group_id'])));
+			$cache->clean(array(NCache::TAGS => array("group_id/".$this->persistent_filter['group_id'])));
 		} else if (isset($this->persistent_filter['resource_id'])) {
 			foreach ($values as $key => $value) {
 				$values["resource_user_group_" . $key] = $value;
@@ -933,7 +931,7 @@ class ListerControlMain extends NControl
 			}
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage, "Lister.resourcesubscriberlister");
-//			$cache->clean(array(NCache::TAGS => array("resource_id/".$this->persistent_filter['resource_id'])));
+			$cache->clean(array(NCache::TAGS => array("resource_id/".$this->persistent_filter['resource_id'])));
 		} else {
 			foreach ($values as $key => $value) {
 				$values["user_" . $key] = $value;
@@ -1004,6 +1002,7 @@ class ListerControlMain extends NControl
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1030,6 +1029,7 @@ class ListerControlMain extends NControl
 		return $form;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1049,6 +1049,7 @@ class ListerControlMain extends NControl
 		$resource->save();
 		$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1126,6 +1127,7 @@ class ListerControlMain extends NControl
 		return $control;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -1168,10 +1170,11 @@ class ListerControlMain extends NControl
 		return $data;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves the number of items for a given filter setting.
+	 *	@param array $filter
+	 *	@return int
 	 */
 	public function getDataCount($filter)
 	{
@@ -1181,6 +1184,7 @@ class ListerControlMain extends NControl
 		
 		return $data;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1192,6 +1196,7 @@ class ListerControlMain extends NControl
 		$this->refresh_path        = $path;
 		$this->refresh_path_params = $params;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1211,6 +1216,7 @@ class ListerControlMain extends NControl
 		
 		return $form;
 	}
+
 
 	/**
 	 *	@todo ### Description

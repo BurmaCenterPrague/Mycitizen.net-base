@@ -23,11 +23,13 @@ class StaticModel extends BaseModel {
 
 
    /**
-    *	@todo ### Description
-    *	@param
-    *	@return
+    *	Checks if visitor with an IP address has already visited object. If not, creates entry of visit.
+    *	@param int $type_id 1, 2 or 3
+    *	@param int $object_id
+    *	@param string $ip
+    *	@return boolean
     */
-   public static function ipIsRegistered($type_id,$object_id,$ip) {
+	public static function ipIsRegistered($type_id,$object_id,$ip) {
       $result = dibi::fetchSingle("SELECT `ip_address` FROM `visits` WHERE `type_id` = %i AND `object_id` = %i AND `ip_address` = %s",$type_id,$object_id,trim($ip));
 		if(!empty($result)) {
 			return false;
@@ -35,14 +37,18 @@ class StaticModel extends BaseModel {
 			dibi::query("INSERT INTO `visits`",array('type_id'=>$type_id,'object_id'=>$object_id,'ip_address'=>$ip));
 			return true;
 		}
-      return $languages;
    }
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sends a system message (warnings, friendship-related) to a user.
+	 *	@param constant $message_type
+	 *	@param int @from
+	 *	@param int @to
+	 *	@param string $message
+	 *	@param int @object_type
+	 *	@param int @object_id
+	 *	@return void
 	 */
 	public static function sendSystemMessage($message_type, $from, $to, $message = null, $object_type = null, $object_id = null) {
 		
@@ -156,23 +162,25 @@ class StaticModel extends BaseModel {
 
 
 	/**
-	*	Compatibility with API_Base which receives from the mobile application only the email address.
-	*
-	*/
+	 *	For compatibility with API_Base which receives from the mobile application only the email address.
+	 *	@param string $email
+	 *	@return boolean
+	 */
 	public static function isSpamEmail($email) {
 		return self::isSpamSFS($email);
 	}
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks email address and optionally ip address against www.stopforumspam.com 
+	 *	@param string $email
+	 *	@param string $ip
+	 *	@return boolean
 	 */
 	public static function isSpamSFS($email,$ip = '') {
-	
-		$check_stop_forum_spam = NEnvironment::getVariable("CHECK_STOP_FORUM_SPAM");
-		if (!$check_stop_forum_spam) return true;
+		if (!NEnvironment::getVariable("CHECK_STOP_FORUM_SPAM")) {
+			return true;
+		}
 		
 		if (empty($ip)) {
 			$contents = file_get_contents("http://www.stopforumspam.com/api?email=".$email."&f=json");
@@ -190,9 +198,9 @@ class StaticModel extends BaseModel {
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks whether string is a valid email address.
+	 *	@param string $email
+	 *	@return boolean
 	 */
 	public static function validEmail($email) {
       $isValid = true;
@@ -485,6 +493,7 @@ class StaticModel extends BaseModel {
 		$mail->Subject = $subject;
 		$mail->MsgHTML($body);
 		$mail->CharSet = mb_detect_encoding($body); //'UTF-8';
+//		Hint for future extensions:
 //		$mail->addAttachment("email/attachment.pdf");
 
 		if($mail->Send()) {
@@ -496,7 +505,10 @@ class StaticModel extends BaseModel {
 
 
 	/**
-	 * converts links in markup format to html
+	 *	Converts links in markup format to html.
+	 *	formats:
+	 *		[abc] (http://www.example.com)
+	 *		"abc" (http://www.example.com)
 	 *	@param string $input
 	 *	@return string
 	 */
@@ -506,8 +518,9 @@ class StaticModel extends BaseModel {
 		return $input;
 	}
 
+
    /**
-    *	Makes links (with protocol) clickable
+    *	Converts plain-text links (with prepended protocol) to clickable html.
     *	@param string $input
     *	@return string
     */
@@ -554,7 +567,7 @@ class StaticModel extends BaseModel {
 
 	
 	/**
-	 *	Turns HTML text into a short introduction in plain text
+	 *	Turns beginning of HTML text into a short intro in plain text.
 	 *	@param string $html
 	 *	@return string
 	 */
@@ -594,4 +607,85 @@ class StaticModel extends BaseModel {
 		}
 		return $plain_text;
 	}
+
+
+	/**
+	 *	Adds the user's IP address to the list of failed login attempts.
+	 *	@param void
+	 *	@return boolean
+	 */
+	public static function addLoginFailure()
+	{
+		$ip = ip2long(self::getIpAddress());
+		
+		$data = array('ip' => $ip, 'time' => time(), 'event' => 1);
+		dibi::query('INSERT INTO `failed_logins`', $data);
+
+		$result = dibi::fetchSingle('SELECT COUNT(`failed_logins_id`) FROM `failed_logins` WHERE `event` = 1 AND `ip` = %s AND `time` > %i ', $ip, time()-Settings::getVariable('ip_failure_time_minutes')*60);
+		
+		if ($result > Settings::getVariable('ip_max_failed_logins')) {
+			$data = array('ip' => $ip, 'time' => time(), 'event' => 2);
+			dibi::query('INSERT INTO `failed_logins`', $data);
+		}
+	}
+
+
+	/**
+	 *	Checks if the used IP address is known for more than x failed login attempts in the past hour. Returns true if and only if all is OK and user may proceed.
+	 *	@param void
+	 *	@return boolean
+	 */
+	public static function checkLoginFailures()
+	{
+		$ip = ip2long(self::getIpAddress());
+
+		$result = dibi::fetchSingle('SELECT `failed_logins_id` FROM `failed_logins` WHERE `event` = 2 AND `ip` = %s AND `time` > %i  LIMIT 1', $ip, time()-Settings::getVariable('ip_blocking_time_hours')*3600);
+		if ($result > 0) {
+			return false;
+		} else {
+			return true;
+		}	
+	}
+	
+	
+	/**
+	 *	Returns the visitor's IP address, accounting for possible proxies.
+	 *	supported proxies:
+	 *		Cloudflare
+	 *	@param void
+	 *	@return boolean|string
+	 */
+	public static function getIpAddress()
+	{
+		if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+			// check if IP is actually from Cloudflare
+			if (file_exists(LIBS_DIR.'/proxy_ips/cloudflare.txt')) {
+				// create array with valid IPs
+				$valid_ips = array();
+				$rows = explode("\n", file_get_contents(LIBS_DIR.'/proxy_ips/cloudflare.txt'));
+				foreach ($rows as $row) {
+					if (substr($row,0,1) == '#') continue; // skip comments
+					if (preg_match('#^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$#', $row, $matches)) {
+						 // one address
+						$valid_ips[] = $matches[1];
+					} elseif (preg_match('#^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)(\d{1,3})\/(\d{1,3})$#', $row, $matches)) {
+						// range of addresses
+						for ($i=$matches[2]; $i<=$matches[3]; $i++) {
+							$valid_ips[] = $matches[1].$i;
+						}
+					}
+				}
+				if (in_array($_SERVER["REMOTE_ADDR"], $valid_ips)) {
+					$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+				} else {
+					return false;
+				}
+			} else {
+				// having no data file to check, letting user pass
+				$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+			}
+		}
+		return $_SERVER['REMOTE_ADDR'];
+	}
+
 }

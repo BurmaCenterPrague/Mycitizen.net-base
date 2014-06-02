@@ -81,7 +81,7 @@
 				<div id="{$id}_date" class="chat-time">{$date_formatted}</div>
 					{ifset $template_variables['trash_enabled']}
 						<div class="move-to-trash">
-							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal');"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
+							<a id="totrash-{$id}" href="javascript:void(0);" onClick="moveToTrash({$id});$('#totrash-{$id}').hide();$('#fromtrash-{$id}').show(); markRead({$id});$('#markread-{$id}').hide(); $('#chat_message_{$id}').slideUp('normal'); reloadAbstract();"><b class="icon-message-to-trash" title="{_"move to trash"}"></b></a>	
 						</div>
 
 						<div class="restore-from-trash">

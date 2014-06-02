@@ -72,7 +72,7 @@ class ExternalFilter extends NControl
 		if (isset($options['include_tags'])) {
 			$this->include_tags = true;
 		}
-		
+	
 		if (isset($options['components'])) {
 			$this->components = $options['components'];
 		}
@@ -145,7 +145,7 @@ class ExternalFilter extends NControl
 		if ($this->include_tags) {
 			$template->include_tags = true;
 		}
-		
+	
 		if ($this->include_map) {
 			$template->include_map = true;
 		}
@@ -274,6 +274,7 @@ class ExternalFilter extends NControl
 
 	/**
 	 *	Sets the filter to the settings in the popup window; fallback if Ajax doesn't work.
+	 *	Still needed as fall-back if Ajax fails?
 	 *	@param object $form
 	 *	@return void
 	 */
@@ -300,6 +301,7 @@ class ExternalFilter extends NControl
 			
 			$this->getPresenter()->redirect($this->refresh_path, $this->refresh_path_params);
 		} else if ($form['reset']->isSubmittedBy()) {
+			$session->data['object_id'] = NULL;
 			$defaults['tags']['all'] = 1;
 			foreach (Tag::getTreeArray() as $key => $row) {
 				$defaults['tags'][$row['tag_id']] = 0;

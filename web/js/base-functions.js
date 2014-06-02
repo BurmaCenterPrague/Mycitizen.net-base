@@ -192,11 +192,17 @@ function moveToTrash(resource_id) {
 	if(resource_id != null) {
 		$.post("?do=moveToTrash&resource_id="+resource_id);
 	}
+	if (typeof reloadAbstract === 'function') { 
+		reloadAbstract();
+	}
 }
 
 function moveFromTrash(resource_id) {
 	if(resource_id != null) {
     	$.post("?do=moveFromTrash&resource_id="+resource_id);
+	}
+	if (typeof reloadAbstract === 'function') { 
+		reloadAbstract();
 	}
 }
 
@@ -204,11 +210,17 @@ function markRead(resource_id) {
 	if(resource_id != null) {
    		$.post("?do=markRead&resource_id="+resource_id);
 	}
+	if (typeof reloadAbstract === 'function') { 
+		reloadAbstract();
+	}
 }
 
 function markUnread(resource_id) {
 	if(resource_id != null) {
     	$.post("?do=markUnread&resource_id="+resource_id);
+	}
+	if (typeof reloadAbstract === 'function') { 
+		reloadAbstract();
 	}
 }
 
@@ -435,7 +447,7 @@ $(document).ready(function(){
 
 	
 $(function() {
-	$("#show_activity").fancybox({
+	$("#show_activity_header").fancybox({
 		minWidth:800,
 		minHeight:500,
 		closeBtn : true,
@@ -446,16 +458,16 @@ $(function() {
 			title : null
 		},
 		afterLoad: function() {
-			var latest = $("input[name='latest_items']").prop('checked')?'1':'0';
-			loadActivity("#load-more-1", 2, latest);
+			var latest = $("input[name='latest_items_header']").prop('checked')?'1':'0';
+			loadActivity("#load-more-header-1", 2, latest, 'header');
 		}
 	});
 });
 
 $(document).ready(function(){
-	$("input[name='latest_items']").change(function(){
+	$("input[name='latest_items_header']").change(function(){
 		var latest = $(this).prop('checked')?'1':'0';
-		loadActivity("#load-more-1", 2, latest);
+		loadActivity("#load-more-header-1", 2, latest, 'header');
 	});
 });
 

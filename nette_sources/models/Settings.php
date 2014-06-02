@@ -13,29 +13,29 @@
  
 
 class Settings {
-	public static $labels = array();
+//	public static $labels = array();
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns all variables
+	 *	@param void
+	 *	@return array
 	 */
 	public static function getAllVariables() {
 		$result = dibi::fetchAll("SELECT * FROM `settings`");
 		$data = array();
 		foreach($result as $row) {
 			$data[$row['variable_name']] = $row['variable_value'];
-			self::$labels[$row['variable_name']] = $row['variable_display_label'];
+//			self::$labels[$row['variable_name']] = $row['variable_display_label'];
 		}
 		return $data;
 	}
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the label that will be displayed for a variable.
+	 *	@param string $variable_name
+	 *	@return string
 	 */
 	public static function getVariableLabel($variable_name) {
       $result = dibi::fetchSingle("SELECT `variable_display_label` FROM `settings` WHERE `variable_name` = %s",$variable_name);
@@ -44,9 +44,9 @@ class Settings {
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the value for a variable.
+	 *	@param string $variable_name
+	 *	@return string|boolean
 	 */
 	public static function getVariable($variable_name) {
       $result = dibi::fetchSingle("SELECT `variable_value` FROM `settings` WHERE `variable_name` = %s",$variable_name);
@@ -55,12 +55,19 @@ class Settings {
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Updates one variable, or writes new entry if non-existent.
+	 *	@param string $variable_name
+	 *	@param string $variable_value
+	 *	@return boolean
 	 */
 	public static function setVariable($variable_name,$variable_value) {
-		dibi::query("UPDATE `settings` SET `variable_value` = %s WHERE `variable_name` = %s",$variable_value,$variable_name);
+		$result = dibi::query("UPDATE `settings` SET `variable_value` = %s WHERE `variable_name` = %s",$variable_value,$variable_name);
+		if (!$result) {
+			// This case should not happen but might be the result of a faulty update.
+			$data = array('variable_name' => $variable_name, 'variable_display_label' => $variable_name, 'variable_value' => $variable_value);
+			return dibi::query("INSERT INTO `settings`", $data);
+		} else {
+			return $result;
+		}
 	}
 }
-?>

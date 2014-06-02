@@ -166,6 +166,11 @@ final class UserPresenter extends BasePresenter
 	*/
 	public function actionRegister()
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			$this->flashMessage(_t('Too many failed login attempts. Please try again later.', 'error'));
+			$this->redirect('Homepage:default');
+		}
+
 		if (Settings::getVariable('sign_up_disabled')) {
 			$this->template->sign_up_disabled = true;
 		} else {
@@ -192,6 +197,11 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function actionConfirm($user_id, $control_key, $device = NULL)
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			$this->flashMessage(_t('Too many failed login attempts. Please try again later.', 'error'));
+			$this->redirect('Homepage:default');
+		}
+
 		$user = NEnvironment::getUser();
 		if ($user->isLoggedIn()) {
 			$user->logout();
@@ -234,11 +244,11 @@ final class UserPresenter extends BasePresenter
 		} else {
 		
 			if (isset($device) && $device=="mobile") {
-				echo _t("The registration couldn't be finished! Link is not active anymore.");
+				echo _t("The registration couldn't be finished! The link is not active anymore.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_t("The registration couldn't be finished! Link is not active anymore."), 'error');
+				$this->flashMessage(_t("The registration couldn't be finished! The link is not active anymore."), 'error');
 			
 				$this->redirect('Homepage:default');
 			}
@@ -269,17 +279,17 @@ final class UserPresenter extends BasePresenter
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_t("Email has been succesfully changed."));
+				$this->flashMessage(_t("The email address has been succesfully changed."));
 			
 				$this->redirect('Homepage:default');
 			}
 		} else {
 			if (isset($device) && $device=="mobile") {
-				echo _t("Email couldn't be changed! Link is not active anymore.");
+				echo _t("The email address couldn't be changed! The link is not active anymore.");
 				
 				$this->terminate();
 			} else {
-				$this->flashMessage(_t("Email couldn't be changed! Link is not active anymore."), 'error');
+				$this->flashMessage(_t("The email address couldn't be changed! The link is not active anymore."), 'error');
 			
 				$this->redirect('Homepage:default');
 			}
@@ -300,10 +310,10 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		if (User::finishEmailChangeAdmin($user_id,$user_email)) {
-			$this->flashMessage(_t("Email has been succesfully changed."));			
+			$this->flashMessage(_t("The email address has been succesfully changed."));			
 			$this->redirect("this");
 		} else {
-			$this->flashMessage(_t("Email couldn't be changed!"), 'error');
+			$this->flashMessage(_t("The email couldn't be changed!"), 'error');
 			$this->redirect("this");
 		}
 	}
@@ -430,6 +440,11 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function actionLogin()
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			$this->flashMessage(_t('Too many failed login attempts. Please try again later.', 'error'));
+			$this->redirect('Homepage:default');
+		}
+
 		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = Language::getId($session->language);
 		if ($language == 0) {
@@ -491,6 +506,10 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function actionLostpassword()
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			$this->flashMessage(_t('Too many failed login attempts. Please try again later.', 'error'));
+			$this->redirect('Homepage:default');
+		}
 	}
 
 
@@ -502,6 +521,11 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function actionChangelostpassword($user_id, $control_key)
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			$this->flashMessage(_t('Too many failed login attempts. Please try again later.', 'error'));
+			$this->redirect('Homepage:default');
+		}
+
 		$this->user_id     = $user_id;
 		$this->control_key = $control_key;
 	}
@@ -542,7 +566,13 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function loginformSubmitted(NAppForm $form)
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			die(_t('Too many failed login attempts. Please try again later.'));
+		}
+
 		$values = $form->getValues();
+		
+		if (strlen($values['user_password']) > 72) { die('Password must be 72 characters or less'); }
 		
 		if (Settings::getVariable('sign_in_disabled') && User::getAccessLevelFromLogin($values['user_login']) < 2) {
 			$this->flashMessage(_t("Sign in is disabled. Please try again later."), 'error');
@@ -557,9 +587,11 @@ final class UserPresenter extends BasePresenter
 				$user_e->setExpiration(0); // 0 = Session expires when user closes the browser.
 			}
 
-			// allow email address
-			if (filter_var($values['user_login'], FILTER_VALIDATE_EMAIL)) {
-				$values['user_login'] = User::userloginFromEmail($values['user_login']);
+			if (Settings::getVariable('email_for_username')) {
+				// allow email address
+				if (filter_var($values['user_login'], FILTER_VALIDATE_EMAIL)) {
+					$values['user_login'] = User::userloginFromEmail($values['user_login']);
+				}
 			}
 
 			$user_e->login($values['user_login'], $values['user_password']);
@@ -644,7 +676,11 @@ final class UserPresenter extends BasePresenter
 	protected function createComponentLostpasswordform()
 	{
 		$form = new NAppForm($this, 'lostpasswordform');
-		$form->addText('user_email', _t('Your email:'));
+		if (Settings::getVariable('email_for_username')) {
+			$form->addText('user_email', _t('Your email or username:'));
+		} else {
+			$form->addText('user_email', _t('Your email:'));
+		}
 		$form->addSubmit('send', _t('Request new password'));
 		$form->addProtection(_t('Error submitting form.'));
 		$form->onSubmit[] = array(
@@ -663,15 +699,33 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function lostpasswordformSubmitted(NAppForm $form)
 	{
-		// no authentication because user is not logged in
+		if (StaticModel::checkLoginFailures() === false) {
+			die(_t('Too many failed login attempts. Please try again later.'));
+		}
+
+		// no authentication because user doesn't need to be logged in
 		$values = $form->getValues();
-		$user   = User::getEmailOwner($values['user_email']);
+		if (Settings::getVariable('email_for_username') && !filter_var($values['user_email'], FILTER_VALIDATE_EMAIL)) {
+			// allow username && no valid email entered
+			$user_ids = User::getOwnerIdsFromLogin($values['user_email']);
+			if (isset($user_ids) && is_array($user_ids) && count($user_ids)==1) {
+				$user_id = $user_ids[0];
+				$user = User::create($user_id);
+			} else {
+				$this->flashMessage(_t("This username is not registered in our system!"), 'error');
+				$this->redirect('this');
+			}
+		} else {
+			$user = User::getEmailOwner($values['user_email']);
+		}
+
 		if (!empty($user)) {
 			$user->sendLostpasswordEmail();
 			$this->flashMessage(_t("An email has been sent to you with further instructions."));
-			
+			$this->redirect("Homepage:default");
 		} else {
-			$this->flashMessage(_t("This email is not registered in our system!"), 'error');
+			$this->flashMessage(_t("This email address is not registered in our system!"), 'error');
+			$this->redirect('this');
 		}
 	}
 
@@ -704,6 +758,10 @@ final class UserPresenter extends BasePresenter
 	*/
 	public function changelostpasswordformSubmitted(NAppForm $form)
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			die(_t('Too many failed login attempts. Please try again later.'));
+		}
+
 		// no authentication because user is not logged in
 		$values = $form->getValues();
 		if (User::finishPasswordchange($this->user_id, $this->control_key, $values['user_password'])) {
@@ -712,7 +770,7 @@ final class UserPresenter extends BasePresenter
 			
 			$this->redirect('User:login');
 		} else {
-			$this->flashMessage(_t("Password couldn't be changed! Try again later."), 'error');
+			$this->flashMessage(_t("The password couldn't be changed! Try again later."), 'error');
 			
 			$this->redirect('Homepage:default');
 		}
@@ -905,8 +963,13 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function registerformSubmitted(NAppForm $form)
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			die(_t('Too many failed login attempts. Please try again later.'));
+		}
 
 		$values = $form->getValues();
+		
+		if (strlen($values['user_password']) > 72) { die('Password must be 72 characters or less'); }
 
 		if (Settings::getVariable('sign_up_disabled')) {
 			$this->flashMessage(_t("Sign up is disabled. Please try again later."), 'error');
@@ -936,47 +999,18 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		if (User::emailExists($values['user_email'])) {
-			$this->flashMessage(_t("Email is already registered to another account."), 'error');
+			$this->flashMessage(_t("This email address is already registered with another account."), 'error');
 			$this->redirect('User:register');
 		}
 		
-		if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-			// check if IP is actually from Cloudflare
-			if (file_exists(LIBS_DIR.'/proxy_ips/cloudflare.txt')) {
-				// create array with valid IPs
-				$valid_ips = array();
-				$rows = explode("\n", file_get_contents(LIBS_DIR.'/proxy_ips/cloudflare.txt'));
-				foreach ($rows as $row) {
-					if (substr($row,0,1) == '#') continue; // skip comments
-					if (preg_match('#^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$#', $row, $matches)) {
-						 // one address
-						$valid_ips[] = $matches[1];
-					} elseif (preg_match('#^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)(\d{1,3})\/(\d{1,3})$#', $row, $matches)) {
-						// range of addresses
-						for ($i=$matches[2]; $i<=$matches[3]; $i++) {
-							$valid_ips[] = $matches[1].$i;
-						}
-					}
-				}
-				if (in_array($_SERVER["REMOTE_ADDR"], $valid_ips)) {
-					$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-				} else {
-					$this->flashMessage(_t("Invalid IP address."), 'error');
-					$this->redirect('User:register');
-				}
-
-			} else {
-				// having now data to check
-				$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-			}
-		}
+		$ip = StaticModel::getIpAddress();
 		
 		if (!StaticModel::validEmail($values['user_email'])) {
 			$this->flashMessage(_t("The email address is not valid. Please check it and try again."), 'error');
 			$this->redirect('User:register');
 		}
 		
-		if (StaticModel::isSpamSFS($values['user_email'], $_SERVER['REMOTE_ADDR'])) {
+		if (StaticModel::isSpamSFS($values['user_email'], $ip)) {
 			$this->flashMessage(_t("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
 			$this->redirect('User:register');
 		}
@@ -1040,6 +1074,10 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function securityquestionformSubmitted(NAppForm $form)
 	{
+		if (StaticModel::checkLoginFailures() === false) {
+			die(_t('Too many failed login attempts. Please try again later.'));
+		}
+
 		$values = $form->getValues();
 		
 		if (Settings::getVariable('sign_up_disabled')) {
@@ -1185,11 +1223,11 @@ final class UserPresenter extends BasePresenter
 		if (!empty($user)) {
 			$data = $user->getUserData();
 			if ($data['user_email'] != $values['user_email'] && User::emailExists($values['user_email'])) {
-				$this->flashMessage(_t("This email is already used for another account."), 'error');
+				$this->flashMessage(_t("This email address is already used for another account."), 'error');
 				$this->redirect("this");
 			}
 			if ($data['user_email'] != $values['user_email'] && !StaticModel::validEmail($values['user_email'])) {
-				$this->flashMessage(_t("This email is not valid. Please check it and try again."), 'error');
+				$this->flashMessage(_t("This email address is not valid. Please check it and try again."), 'error');
 				$this->redirect("this");
 			}
 			if ($data['user_email'] != $values['user_email']) {
@@ -2094,13 +2132,13 @@ final class UserPresenter extends BasePresenter
 					// user is new
 					// check email (same user cannot log in with same email with two different methods)
 					if (User::emailExists($user_profile['email'])) {
-						$this->flashMessage(_t("Email is already registered with another account."), 'error');
+						$this->flashMessage(_t("This email address is already registered with another account."), 'error');
 						$this->redirect('Homepage:default');
 					}
 					
 					// spam check
 					if (StaticModel::isSpamSFS($user_profile['email'], '')) {
-						$this->flashMessage(_t("Your email or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
+						$this->flashMessage(_t("Your email address or IP is known at www.stopforumspam.com as spam source and was blocked."), 'error');
 						$this->redirect('Homepage:default');
 					}
 

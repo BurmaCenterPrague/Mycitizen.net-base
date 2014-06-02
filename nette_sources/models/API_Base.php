@@ -6,6 +6,11 @@ class API_Base extends API implements iAPI
 	protected $user_id = null;
 	protected $partner_id = null;
 	public function __construct() {
+	
+		if (StaticModel::checkLoginFailures() === false) {
+			return array('result'=>false,'error'=>'ip_blocked');
+		}
+
 		if((isset($_GET['PASS']) && isset($_GET['USER'])) || (isset($_POST['PASS']) && isset($_POST['USER']))) {
 			$user = NEnvironment::getUser();
       	try {
@@ -323,6 +328,11 @@ class API_Base extends API implements iAPI
 	* @url POST	/Register
 	*/
 	public function postRegister() {
+	
+		if (StaticModel::checkLoginFailures() === false) {
+			return array('result'=>false,'error'=>'ip_blocked');
+		}
+
 		if(!empty($_POST['login']) && !empty($_POST['email']) && !empty($_POST['password'])) {
 			if(User::loginExists($_POST['login'])) {
 				return array('result'=>false,'error'=>'login_exists');

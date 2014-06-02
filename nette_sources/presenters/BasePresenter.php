@@ -13,9 +13,8 @@
 
 abstract class BasePresenter extends NPresenter
 {
-	// needed by Nette FW
+	// Apparently needed by Nette FW.
 	public $oldLayoutMode = FALSE;
-
 
 
 	/**
@@ -29,6 +28,7 @@ abstract class BasePresenter extends NPresenter
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$request = NEnvironment::getHttpRequest();
 		
+/*
 		// we are making history
 		if ($this->isAjax()){
 			if ($request->getQuery('do') != 'historyback' && $request->getQuery('go') != 'back') {
@@ -38,6 +38,7 @@ abstract class BasePresenter extends NPresenter
 		} elseif ($request->getQuery('go') != 'back') {
 			unset($session->history);
 		}
+*/
 		
 		$lang = $request->getQuery("language");
 		if (isset($lang) && !empty($lang) && !$this->isAjax()) {
@@ -78,7 +79,7 @@ abstract class BasePresenter extends NPresenter
 					$session->chat = true;
 				}
 				$message = "error";
-				$message = ($session->chat === true) ? _t("Chat window turned on. If you don't see it, please refresh the page.") : _t("Chat window turned off.");
+				$message = ($session->chat === true) ? _t("Chat window turned on.") : _t("Chat window turned off.");
 				$this->flashMessage($message);
 
 				$this->invalidateControl('popupchat');
@@ -89,8 +90,6 @@ abstract class BasePresenter extends NPresenter
 			$this->template->popup_chat = APP_DIR.'/components/popup_chat.phtml';
 		}
 		
-		setlocale(LC_ALL, $language);
-
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
@@ -103,8 +102,6 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PIWIK_ID = NEnvironment::getVariable("PIWIK_ID");
 		$this->template->PIWIK_TOKEN = NEnvironment::getVariable("PIWIK_TOKEN");
 		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $this->template->load_external_js_css = true;
-		if (NEnvironment::getVariable("USE_TINYMCE_COMPRESSOR")) $this->template->use_tinymce_compressor = true;
-
 		
 		$maintenance_mode = Settings::getVariable('maintenance_mode');
 		if ($maintenance_mode) {
@@ -129,15 +126,13 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 
-		
 		if (!empty($this->template->PIWIK_URL) && !empty($this->template->PIWIK_ID)) {
 			$this->template->piwik_url_bare = preg_replace('/https?(:\/\/.*)/i','$1',$this->template->PIWIK_URL);
 			if (substr($this->template->piwik_url_bare,-1,1)!='/'){
 				$this->template->piwik_url_bare.='/';
 			}
 		}
-		
-		
+
 		$user_env = NEnvironment::getUser();
 		if ($user_env->isLoggedIn()) {
 			$user = $user_env->getIdentity();
@@ -167,10 +162,9 @@ abstract class BasePresenter extends NPresenter
 			$this->template->fullname = trim($userdata['user_name'].' '.$userdata['user_surname']);
 			$this->template->image = User::getImage($this->template->my_id,'icon'); // don't use 2nd param because tooltip interferes with mouseover to keep drawer open
 
-			$user_o = User::create($this->template->my_id);
-			$number_tags = count($user_o->getTags());
-			$first_login = $user_o->firstLogin();
-			$has_position = $user_o->hasPosition();
+			$number_tags = count($user->getTags());
+			$first_login = $user->firstLogin();
+			$has_position = $user->hasPosition();
 			
 			if ($first_login || (empty($this->template->fullname) && ($number_tags == 0) && (!$has_position))) $this->template->incomplete_profile = true;
 		
@@ -189,11 +183,55 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 		$this->registerHelpers();
+
+		// js and css that needs to be combined. Observe right order!
+		$scripts = new Scripts;
+		$scripts->setBaseOriginUrl(NEnvironment::getVariable("CDN"));
+		$scripts->setBaseTargetUrl(NEnvironment::getVariable("URI"));
+		$scripts->setBaseTargetPath(WWW_DIR);
+		$css = array(
+			'css/mycitizen.min.css',
+			'css/jquery.fancybox.min.css'
+			);
+		$scripts->queueScript('css', $css);
+
+		if (empty($this->template->load_external_js_css)) {
+			$scripts->queueScript('js', 'js/jquery-1.10.2.min.js');
+		}
+		$scripts->queueScript('css', 'css/jquery.qtip.min.css');
+		$scripts->queueScript('js', 'js/jquery.qtip.min.js');
+		if (isset($this->template->logged) && empty($this->template->load_external_js_css)) {
+			$scripts->queueScript('js', 'js/fullcalendar.min.js');
+			$scripts->queueScript('js', 'js/gcal.js');
+			$scripts->queueScript('js', 'js/jquery.Jcrop.min.js');
+			$scripts->queueScript('css', 'css/fullcalendar.css');
+			$scripts->queueScript('css', 'css/jquery.Jcrop.min.css');
+		}
+		if (isset($this->template->logged)) {
+			$scripts->queueScript('css', 'css/jquery.tagit.css');
+			$scripts->queueScript('css', 'css/tagit.ui-zendesk.css');
+			$scripts->queueScript('css', 'css/jquery.tree.css');
+			$scripts->queueScript('css', 'css/jquery.calendarPicker.min.css');
+			$scripts->queueScript('js', 'js/jquery.calendarPicker.min.js');
+			$scripts->queueScript('js', 'js/jquery.tree.min.js');
+		}
+		$js = array(
+			'js/jquery-ui-1.10.4.min.js',
+			'js/jquery.nette.js',
+			'js/jquery.fancybox.min.js',
+			'js/base-functions.min.js',
+			'js/jquery.json-2.2.min.js',
+			'js/tag-it.min.js',
+			'js/jquery.fancybox.min.js'
+		);
+		$scripts->queueScript('js', $js);
+		$this->template->embed_js = $scripts->outputScripts('js');
+		$this->template->embed_css = $scripts->outputScripts('css');
 	}
 
 
 	/**
-	 *	@Helpers for Latte templates
+	 *	Helpers for Latte templates
 	 *	+ htmlpurify: cleans code before output based on whitelist
 	 *	+ autoformat: adds basic html formatting into plain text and applies simplified htmlpurify
 	 *	@param void
@@ -366,7 +404,7 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 * Messages component factory.
+	 * Message component factory. For flash messages in @layout.phtml.
 	 * @return mixed
 	 */
 	protected function createComponentMessages()
@@ -526,14 +564,14 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Visitor counter
+	 *	Visitor counter per object.
 	 *	@param int $type_id
 	 *	@param int $object_id
 	 *	@return void
 	 */
 	public function visit($type_id, $object_id)
 	{
-		$ip_address = $_SERVER['REMOTE_ADDR'];
+		$ip_address = StaticModel::getIpAddress(); // $_SERVER['REMOTE_ADDR'];
 		if ($type_id == 1) {
 			$user = User::create($object_id);
 			if (!empty($user)) {
@@ -574,7 +612,8 @@ abstract class BasePresenter extends NPresenter
 	 *	@param bool $redirect
 	 *	@return
 	*/
-	public function handleImage($id, $type, $redirect=true) {
+	public function handleImage($id, $type, $redirect=true)
+	{
 		$image = new Image($id,$type);
 		$result = $image->remove_cache();
 		if ($result !== true) $this->flashMessage($result,'error');
@@ -592,7 +631,7 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Default for accessibility of pages: only with login
+	 *	Default for accessibility of pages: only with login. Can be reverted on a per-page basis.
 	 *	@param void
 	 *	@return boolean
 	 */
@@ -645,14 +684,16 @@ abstract class BasePresenter extends NPresenter
 	
 	
 	/**
-	*	Processes scheduled tasks; sends email notifications;
-	*	needs to be called with /?do=cron&token=xyz
-	*	token is set in config.ini
-	* 	adding &verbose=1 will output some more info
-	 *	@param
+	 *	Processes scheduled tasks; sends email notifications;
+	 *	needs to be called with /?do=cron&token=xyz
+	 *	The token is set in config.ini.
+	 * 	adding &verbose=1 will output some more info
+	 *	@param string $token
+	 *	@param boolean $verbose
 	 *	@return
-	*/
-	public function handleCron($token, $verbose = null) {
+	 */
+	public function handleCron($token, $verbose = null)
+	{
 	
 		// check permission to execute cron
 		$token_config = NEnvironment::getVariable("CRON_TOKEN");
@@ -669,11 +710,12 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	*	uploads images to user's folder on the server, called by ckeditor
+	 *	uploads images to user's folder on the server, called by ckeditor
 	 *	@param void
 	 *	@return void
-	*/
-	public function handleUpload() {
+	 */
+	public function handleUpload()
+	{
 		$user_env = NEnvironment::getUser();
 		if (!$user_env->isLoggedIn()) die('no permission');
 		
@@ -751,12 +793,13 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	deletes files in user's folder on the server, called from file browser
+	 *	Delete files in user's folder on the server, called from file browser.
 	 *	@param string $file_name
 	 *	@param int $user_id
 	 *	@return void
 	 */
-	public function handleDeleteFile($file_name, $user_id) {
+	public function handleDeleteFile($file_name, $user_id)
+	{
 		if (empty($file_name) || empty($user_id))  {
 			die('Empty parameters');
 		}
@@ -791,13 +834,14 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	renames files in user's folder on the server, called from file browser
+	 *	Rename files in user's folder on the server, called from file browser.
 	 *	@param string $old_name
 	 *	@param string $new_name
 	 *	@param int $user_id
 	 *	@return void
 	 */
-	public function handleRenameFile($old_name, $new_name, $user_id) {
+	public function handleRenameFile($old_name, $new_name, $user_id)
+	{
 		if (empty($old_name) || empty($new_name) || empty($user_id)) {
 			die('Empty parameters');
 		}
@@ -844,25 +888,13 @@ abstract class BasePresenter extends NPresenter
 	 *	@param int $id describes time range: today, yesterday, week, month
 	 *	@return void
 	 */
-	public function handleActivity($id = 2, $latest = 0) {
+	public function handleActivity($id = 2, $latest = 0, $placement = 'home')
+	{
 		$user_env = NEnvironment::getUser();
 		if (!$user_env->isLoggedIn()) die('no permission');
 		$user = $user_env->getIdentity();
 		$user_id = $user->getUserId();
 
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage, "Activity.stream");
-		$cache->clean();
-		$cache_key = $user_id.'-'.$id.'-'.$latest;
-		if ($cache->offsetExists($cache_key)) {
-			$output = $cache->offsetGet($cache_key);
-			echo $output;
-			$this->terminate();
-		}
-		
-		$header_time = '';
-		
-		$now = time();
 		// get timeframe from id
 		switch ($id) {
 			case 2: $header_time = _t("Today"); $from = strtotime('today midnight'); $to = null; break;
@@ -871,32 +903,44 @@ abstract class BasePresenter extends NPresenter
 			default: $header_time = _t("Month"); $from = strtotime('1 month ago midnight'); $to = strtotime('7 days ago midnight'); break;
 		}
 
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, "Activity.stream");
+		$cache->clean();
+		$cache_key = $user_id.'-'.$id.'-'.$latest;
+		if ($cache->offsetExists($cache_key)) {
+			$output_list = $cache->offsetGet($cache_key);
+		} else {
+			$activities = Activity::getActivities($user_id, $from, $to, $latest);
+			$output_list = Activity::renderList($activities, $user_id);
+
+			if ($id == 2) $time = time()+120; else $time = time()+3600;
+			$cache->save($cache_key, $output_list, array(NCache::EXPIRE => $time, NCache::TAGS => array("user_id/$user_id", "name/activity")));
+		}
+	
+//		$now = time();
 		$output = '';
 		// for scrolling
-		$output .= '<div id="activity-scroll-target-'.$id.'"></div>';
-		
+		$output .= '<div id="activity-scroll-target-'.$placement.'-'.$id.'"></div>';
 		$output .= "<h3>".$header_time."</h3>";
 
-		$activities = Activity::getActivities($user_id, $from, $to, $latest);
-		$output .= Activity::renderList($activities, $user_id);
-
+		$output .= $output_list;
 		if ($id < 5) {
 			$id_inc = $id +1;
+			$id_tag = 'load-more-'.$placement.'-'.$id;
 			$output .= '
-	<div id="load-more-'.$id .'">
-		<p><a href="javascript:void(0);" id="load_more" class="button">'._t("load more...").'</a></p>
+	<div id="'.$id_tag .'">
+		<p><a href="javascript:void(0);" id="load_more-'.$placement.'" class="button">'._t("load more...").'</a></p>
 	</div>';
 			$output .= '
 	<script>
-		$("#load_more").click(function(){
-			loadActivity("#load-more-'.$id.'", '.$id_inc.', '.$latest.');
+		$("#load_more-'.$placement.'").click(function(){
+			loadActivity("#'.$id_tag.'", '.$id_inc.', '.$latest.', "'.$placement.'");
 		});
 	</script>
 			';
 		}
 		echo $output;
-		if ($id == 2) $time = time()+120; else $time = time()+3600;
-		$cache->save($cache_key, $output, array(NCache::EXPIRE => $time, NCache::TAGS => array("user_id/$user_id", "name/activity")));
+		
 		$this->terminate();
 	}
 
@@ -1067,6 +1111,7 @@ abstract class BasePresenter extends NPresenter
 		die();
 	}
 
+
 	/**
 	 *	Handler to return the online status of users (ListerControlMain_users.phtml)
 	 *	@param int $show_date Whether to show the date when users who is offline was "last seen", or nothing
@@ -1118,7 +1163,8 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Sets the filter for a search
+	 *	Receives a reference and sets the filter for search.
+	 *	References are prepended by @ for users, or multiple @s for groups and resources, and contain names or ids. They are prepended by a # to search for tag names. Names are optionally finished by another @ or #.
 	 *	@param string $string
 	 *	@return void
 	*/
@@ -1202,7 +1248,9 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	receives request to change content of page via Ajax
+	 *	Receives request to change content of page via Ajax.
+	 *	@param void
+	 *	@return void
 	 */
     public function handleClickLink()
     {
@@ -1221,7 +1269,9 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	receives request to change content of page via Ajax
+	 *	Receives request to apply filter via Ajax. Applicable only for main item listers with popup filters.
+	 *	@param void
+	 *	@return void
 	 */
     public function handleAjaxFilter()
     {
@@ -1235,6 +1285,14 @@ abstract class BasePresenter extends NPresenter
 			case 'User': $options['components'] = array('userlister'); break;
 			case 'Group': $options['components'] = array('grouplister'); break;
     		}
+
+			$options['include_tags'] = true;
+			$options['include_type'] = true;
+			$options['include_map'] = true;
+			$options['include_pairing'] = true;
+			$options['include_language'] = true;
+			$options['include_name'] = true;
+		
 			$filter = new ExternalFilter($this, 'filter', $options);
 			$filter->clearFilterArray();
 			$filter->ajaxFilterSubmitted();
@@ -1250,10 +1308,10 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	@todo Change the page from pager via Ajax
+	 *	Change the page through a pager via Ajax.
 	 *	@param int $page
 	 *	@param string $name
-	 *	@return
+	 *	@return void
 	 */
 	public function handleChangePage($page, $name)
 	{
@@ -1267,13 +1325,6 @@ abstract class BasePresenter extends NPresenter
 
 			$data = $session->data;
 
-/*
-			if (!empty($data) && isset($data["object_id"])) {
-				$this->presenter->actionDefault($data["object_id"]);
-			} else {
-				$this->presenter->actionDefault();
-			}
-*/
 			$this->presenter->actionDefault();
 			$this->invalidateControl('mainContent');
             $this->invalidateControl('mainMenu');
@@ -1282,10 +1333,11 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Receives the PM
-	 *	@param
-	 *	@return
-	*/
+	 *	Receives a private message and saves it to database.
+	 *	@param string $pmpop_message_text
+	 *	@param int $recipient_id
+	 *	@return void
+	 */
 	public function handleSubmitPMPOPChat($pmpop_message_text = '', $recipient_id)
 	{
 		$user_env = NEnvironment::getUser();
@@ -1308,8 +1360,9 @@ abstract class BasePresenter extends NPresenter
 		$resource->setResourceData($data);
 		$check = $resource->check_doublette($data, $recipient_id, 1);
 		if ($check === true) {
-			echo json_encode(_t("You have just said that.")); die();
-		}		
+			echo json_encode(_t("You have just said that."));
+			die();
+		}
 		$resource->save();
 		$resource->updateUser($recipient_id, array(
 			'resource_user_group_access_level' => 1
@@ -1337,9 +1390,9 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Creates the form to send off messages; no processig of results, submitted by own AJAX
-	 *	@param
-	 *	@return
+	 *	Creates the form to send off messages; no processing of results, submitted by own AJAX
+	 *	@param	void
+	 *	@return	array
 	 */
 	protected function createComponentPopupmessageform()
 	{
@@ -1352,6 +1405,7 @@ abstract class BasePresenter extends NPresenter
 		$form->addSubmit('send', _t('Send'));
 		$form->addProtection(_t('Error submitting form.'));
 		$form->setDefaults(array('friend_id' => 0));		
+		// next declaration needed by framework?
 		$form->onSubmit[] = array(
 			$this,
 			'popupmessageformSubmitted'
@@ -1360,15 +1414,15 @@ abstract class BasePresenter extends NPresenter
 		return $form;
 	}
 
+
 	/**
-	 *	click on move-to-trash icon in message list
-	 *	@param
-	 *	@return
-	*/
+	 *	Moving message to trash.
+	 *	Permission check in Resource class.
+	 *	@param int $resource_id
+	 *	@return void
+	 */
 	public function handleMoveToTrash($resource_id)
 	{
-		if (!Auth::isAuthorized(3, $resource_id)) die('no permission');
-
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
 
@@ -1376,6 +1430,7 @@ abstract class BasePresenter extends NPresenter
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					Resource::moveToTrash($resource_id);
+
 					$storage = new NFileStorage(TEMP_DIR);
 					$cache = new NCache($storage);
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
@@ -1390,14 +1445,13 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	click on restore-from-trash icon in message list
-	 *	@param
-	 *	@return
-	*/
+	 *	Restoring message from trash.
+	 *	Permission check in Resource class.
+	 *	@param int $resource_id
+	 *	@return void
+	 */
 	public function handleMoveFromTrash($resource_id)
 	{
-		if (!Auth::isAuthorized(3, $resource_id)) die('no permission');
-
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
 
@@ -1405,6 +1459,7 @@ abstract class BasePresenter extends NPresenter
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					Resource::moveFromTrash($resource_id);
+
 					$storage = new NFileStorage(TEMP_DIR);
 					$cache = new NCache($storage);
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
@@ -1419,18 +1474,21 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	*	Marks message as read
-	 *	@param
-	 *	@return
+	 *	Mark message as read.
+	 *	Permission check in Resource class.
+	 *	@param int $resource_id
+	 *	@return void
 	 */
 	public function handleMarkRead($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
+
 		if (!empty($resource)) {
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					$resource->setOpened($user->getUserId(),$resource_id);
+
 					$storage = new NFileStorage(TEMP_DIR);
 					$cache = new NCache($storage);
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
@@ -1445,21 +1503,21 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Marks message as unread
-	 *	@param
-	 *	@return
+	 *	Mark message as unread.
+	 *	Permission check in Resource class.
+	 *	@param int $resource_id
+	 *	@return void
 	 */
 	public function handleMarkUnread($resource_id)
 	{
 		$user     = NEnvironment::getUser()->getIdentity();
 		$resource = Resource::create($resource_id);
-		
-		// cannot mark own messages as unread?
-		
+
 		if (!empty($resource)) {
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					$resource->setUnopened($user->getUserId(),$resource_id);
+
 					$storage = new NFileStorage(TEMP_DIR);
 					$cache = new NCache($storage);
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
@@ -1475,15 +1533,13 @@ abstract class BasePresenter extends NPresenter
 
 	/**
 	 *	Empties the trash.
-	 *	@param
-	 *	@return
+	 *	@param void
+	 *	@return void
 	 */
 	public function handleEmptyTrash()
 	{
 		Resource::emptyTrash();
 
-		$user = NEnvironment::getUser()->getIdentity();
-				
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage);
 		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
@@ -1495,7 +1551,7 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	Experimental; handles back in history while respecting changes by Ajax
+	 *	Experimental for future develoment; handles back in history while respecting changes by Ajax
 	 *	@param
 	 *	@return
 	 */
@@ -1523,15 +1579,16 @@ abstract class BasePresenter extends NPresenter
 		}
 	}
 
+
 	/**
 	 *	Asking for friendship, or confirming
-	 *	@param
+	 *	@param int $friend_id
 	 *	@return
 	 */
 	public function handleUserFriendInsert($friend_id)
 	{
 		if (empty($friend_id)) {
-			print "false";
+			print json_encode("false");
 			$this->terminate();
 		} else {
 			$user   = NEnvironment::getUser()->getIdentity();
@@ -1552,7 +1609,7 @@ abstract class BasePresenter extends NPresenter
 					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagefriendlister")));
 					$cache->clean(array(NCache::TAGS => array("friend_id/$friend_id", "name/homepagerecommendedfriendlister")));
 
-					print "true";
+					print json_encode("true");
 				}
 			}
 		}

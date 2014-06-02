@@ -691,6 +691,7 @@ final class AdministrationPresenter extends BasePresenter
 
 		// adding new languages to database
 		foreach ($dirs as $dir) {
+			$error = '';
 			if ($dir === '.' or $dir === '..') continue;
 
 			if (is_dir(LOCALE_DIR.'/'.$dir)) {
