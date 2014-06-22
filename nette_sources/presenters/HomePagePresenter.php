@@ -15,7 +15,6 @@
 
 final class HomepagePresenter extends BasePresenter
 {
-
 	
 	/**
 	 *	Some basics done by parent class.

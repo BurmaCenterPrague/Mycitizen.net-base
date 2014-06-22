@@ -47,7 +47,7 @@
 
 			{ifset $FB_LOGIN_URL}
 				<tr><td></td>
-					<td><a href="{$FB_LOGIN_URL}"><img src="{$baseUri}/images/fb-sign-in.png" alt="{_"sign in with Facebook"}"/></a></td>
+					<td><a href="{$FB_LOGIN_URL}"><img src="{$baseUri_np}images/fb-sign-in.png" alt="{_"sign in with Facebook"}"/></a></td>
 				</tr>
 			{/if}
 
@@ -56,7 +56,7 @@
 					</td>
 				</tr>
 				<tr><td colspan="2">
-					{? printf(_t("If you are new here, please %s sign up %s."), '<a href="/signup/">', '</a>')}
+					{? printf(_t("If you are new here, please %s sign up %s."), '<a href="{baseUri_np}signup/">', '</a>')}
 				</td></tr>
 
 			</table>

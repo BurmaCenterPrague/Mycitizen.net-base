@@ -149,7 +149,7 @@ $homepage = true;
 				right:  'today agendaDay,agendaWeek,month prev,next'
 			},
 			eventSources: [
-			"/?do=getevents"{ifset $xml_events}{foreach $xml_events as $xml_event}{? $xml_event_data = explode(",", $xml_event)},
+			"{!$baseUri}/?do=getevents"{ifset $xml_events}{foreach $xml_events as $xml_event}{? $xml_event_data = explode(",", $xml_event)},
 			{ url:"{!$xml_event_data[0]}", {if !empty($xml_event_data[1])}backgroundColor: "{!$xml_event_data[1]}", {/if}className:'google-event'}{/foreach}{/if}],
 		    eventRender: function(event, element) {
         		element.qtip({
@@ -160,18 +160,18 @@ $homepage = true;
        		dayClick: function(date, allDay, jsEvent, view) {
 				if (confirm({_"Create a new event?"})) {
 					if (allDay) {
-						window.location = "/resource/create?date="+encodeURIComponent(date)+"&all_day=1"
+						window.location = "{!$baseUri}/resource/create?date="+encodeURIComponent(date)+"&all_day=1"
 					} else {
-						window.location = "/resource/create?date="+encodeURIComponent(date)
+						window.location = "{!$baseUri}/resource/create?date="+encodeURIComponent(date)
 					}
 				}
 			},
 			eventDrop: function(event,dayDelta,minuteDelta,allDay,revertFunc, jsEvent, ui, view) {
 				if (view.name != 'agendaWeek' && view.name != 'agendaDay') allDay=null;
-				if (!$.post("/?do=changeevent&changed=start&resource_id=" +event.id+"&day_delta="+dayDelta+"&minute_delta="+minuteDelta+"&allday="+allDay)) revertFunc();
+				if (!$.post("{!$baseUri}/?do=changeevent&changed=start&resource_id=" +event.id+"&day_delta="+dayDelta+"&minute_delta="+minuteDelta+"&allday="+allDay)) revertFunc();
 			},
 			eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
-				if (!$.post("/?do=changeevent&changed=end&resource_id=" +event.id+"&day_delta="+dayDelta+"&minute_delta="+minuteDelta)) revertFunc();
+				if (!$.post("{!$baseUri}/?do=changeevent&changed=end&resource_id=" +event.id+"&day_delta="+dayDelta+"&minute_delta="+minuteDelta)) revertFunc();
 			},
 			buttonText: {
 				today:	{_"today"},

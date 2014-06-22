@@ -28,14 +28,13 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function __construct($group_id) {
 		if(!empty($group_id)) {
-//			$result = dibi::fetchAll("SELECT * FROM `group` WHERE `group_id` = %i",$group_id);
 			$result = dibi::fetchAll("SELECT `group_id`, `group_author`, `group_name`, `group_description`, `group_language`, `group_visibility_level`, `group_access_level`, `group_status`, `group_viewed`, `group_position_x`, `group_position_y`, `group_last_activity`, `group_portrait`, `group_largeicon`, `group_icon` FROM `group` WHERE `group_id` = %i",$group_id); // , `group_hash`
 			if(sizeof($result) > 2) {
 				return false;
@@ -55,11 +54,11 @@ class Group extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function setGroupData($data) {
 		foreach($data as $key=>$value) {
      		$this->group_data[$key] = $value;
@@ -680,43 +679,13 @@ class Group extends BaseModel {
 		$prev_language = $session->language;
 		_t_set(Language::getFlag($this->group_data['group_language']));
 
-		$resource_name = array(
-			1=>'1',
-			2=>'event',
-			3=>'org',
-			4=>'doc',
-			6=>'website',
-			7=>'7',
-			8=>'8',
-			9=>'friendship',
-			'media_soundcloud'=>'audio',
-			'media_youtube'=>'video',
-			'media_vimeo'=>'video',
-			'media_bambuser'=>'live-video'
-			);
-		$resource_type_labels = array(
-			1=>_t('message'),
-			2=>_t('event'),
-			3=>_t('organization'),
-			4=>_t('document'),
-			6=>_t('link to external resource'),
-			7=>'7',
-			8=>'8',
-			9=>'friendship',
-			'media_soundcloud'=>_t('sound on Soundcloud'),
-			'media_youtube'=>_t('video on YouTube'),
-			'media_vimeo'=>_t('video on Vimeo'),
-			'media_bambuser'=>_t('live-video on Bambuser')
-			);
-			
 		if (!is_array($object_ids)) {
 			if ($object_type == 1) {
 				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/user/?user_id='.$object_ids.'">'.User::getImage($object_ids, 'icon', User::getFullname($object_ids)).' </a>';
 			} elseif ($object_type == 3) {
-				$resource_type = Resource::getResourceType($object_ids);
-				$resource_type_icon = $resource_type == 5 ? $resource_name[Resource::getMediaType($object_ids)] : $resource_name[$resource_type];
-				$resource_type_label = $resource_type == 5 ? $resource_type_labels[Resource::getMediaType($object_ids)] : $resource_type_labels[$resource_type];
-				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_ids.'"><b class="icon-'.$resource_type_icon.'" title="'.$resource_type_label.'" style="float:none; margin:-5px 0 0 10px;" style="margin-top:-5px;"></b>'.Resource::getName($object_ids)."</a>";
+				$resource_type_class = Resource::getIconClass($object_ids);
+				$resource_type_label = Resource::getIconTitle($object_ids);
+				$item_info = '<a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_ids.'"><b class="'.$resource_type_class.'" title="'.$resource_type_label.'" style="margin-top:-5px;"></b>'.Resource::getName($object_ids)."</a>";
 			}
 			switch ($reason) {
 				case 'subscribe': $message_text = _t("The group has subscribed to the resource %s.", $item_info); break;
@@ -735,16 +704,12 @@ class Group extends BaseModel {
 				if ($object_type == 1) {
 					$message_text .= "\n".'<p><a href="'.NEnvironment::getVariable("URI").'/user/?user_id='.$object_id.'">'.User::getImage($object_id, 'icon', User::getFullname($object_id)).' </a></p>';
 				} elseif ($object_type == 3) {
-					$resource_type = Resource::getResourceType($object_id);
-					$resource_type_icon = $resource_type == 5 ? $resource_name[Resource::getMediaType($object_id)] : $resource_name[$resource_type];
-					$resource_type_label = $resource_type == 5 ? $resource_type_labels[Resource::getMediaType($object_id)] : $resource_type_labels[$resource_type];
-					$message_text .= "\n".'<p><a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_id.'"><b class="icon-'.$resource_type_icon.'" title="'.$resource_type_label.'"></b>'.Resource::getName($object_id)."</a></p>";
+					$resource_type_class = Resource::getIconClass($object_id);
+					$resource_type_label = Resource::getIconTitle($object_id);
+					$message_text .= "\n".'<p><a href="'.NEnvironment::getVariable("URI").'/resource/?resource_id='.$object_id.'"><b class="'.$resource_type_class.'" title="'.$resource_type_label.'" style="margin-top:-6px;"></b> '.Resource::getName($object_id)."</a></p>";
 				}
 			}
 		}
-		
-		
-//		$message_text .= "\n</ul>";
 		
 		$resource                = Resource::create();
 		$data                    = array();

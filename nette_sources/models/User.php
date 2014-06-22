@@ -250,7 +250,6 @@ class User extends BaseModel implements IIdentity
 		require(LIBS_DIR.'/Phpass/PasswordHash.php');
 		$hasher = new PasswordHash(8, false);
 		return $hasher->HashPassword($password);
-
 	}
 
 	/**
@@ -1288,7 +1287,7 @@ class User extends BaseModel implements IIdentity
 	 */
 	public static function getAllUsersForCron()
 	{
-		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email`, `user_language`, `user_send_notifications`, `user_last_notification`, `user_last_activity` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
+		$result = dibi::fetchAll("SELECT `user_id`, `user_login`, `user_email`, `user_language`, `user_send_notifications`, `user_last_notification`, `user_last_activity`, `user_access_level` FROM `user` WHERE `user_status` = 1 AND `user_send_notifications` != 0 AND (`user_last_notification` + `user_send_notifications` * 3600 < %i)", time());
 		if (sizeof($result) < 1) {
 			return false;
 		}
@@ -1305,7 +1304,7 @@ class User extends BaseModel implements IIdentity
 	 *	@param
 	 *	@return
 	 */
-	public static function setUserCronSent($user_id)
+	public static function setUserCronQueued($user_id)
 	{
 		dibi::query("UPDATE `user` SET `user_last_notification` = %i WHERE `user_id` = %i", time(), $user_id);
 	}

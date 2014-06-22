@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `access_level` (
   `access_level_name` varchar(255) NOT NULL,
   `access_level_description` text NOT NULL,
   PRIMARY KEY (`access_level_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 INSERT INTO `access_level` (`access_level_id`, `access_level_name`, `access_level_description`) VALUES
 (1, 'normal', 'Basic user'),
@@ -41,10 +41,12 @@ CREATE TABLE IF NOT EXISTS `cron` (
 CREATE TABLE IF NOT EXISTS `failed_logins` (
   `failed_logins_id` int(11) NOT NULL AUTO_INCREMENT,
   `ip` bigint(20) NOT NULL,
+  `event` int(2) NOT NULL,
   `time` int(16) NOT NULL,
-  PRIMARY KEY (`ip`),
-  UNIQUE KEY `failed_logins_id` (`failed_logins_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`failed_logins_id`),
+  KEY `event` (`event`),
+  KEY `ip` (`ip`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `group` (
   `group_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -184,7 +186,7 @@ INSERT INTO `settings` (`variable_name`, `variable_value`, `variable_display_lab
 ('signup_question', '', 'Question that needs to be answered for signup'),
 ('sign_in_disabled', '0', 'Sign in disabled (0 or 1)'),
 ('sign_up_disabled', '0', 'Sign up disabled (0 or 1)'),
-('ip_max_failed_logins', '5', 'Tolerated number of failed logins from the same IP address without one hour.'),
+('ip_max_failed_logins', '5', 'Tolerated number of failed logins from the same IP address within one hour.'),
 ('ip_blocking_time_hours', '1', 'How long to block an IP after too many failed logins'),
 ('ip_failure_time_minutes', '10', 'Time in minutes during which failed logins are counted.');
 
@@ -279,6 +281,7 @@ CREATE TABLE IF NOT EXISTS `visits` (
   `type_id` int(11) NOT NULL,
   `object_id` int(11) NOT NULL,
   `ip_address` varchar(255) NOT NULL DEFAULT '',
-  PRIMARY KEY (`visit_id`)
+  PRIMARY KEY (`visit_id`),
+  KEY `type_id` (`type_id`,`object_id`,`ip_address`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 

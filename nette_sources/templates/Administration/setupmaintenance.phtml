@@ -40,11 +40,13 @@
 	<tr>
 		<td><b>{_"PHP memory limit"}</b></td><td>{? echo ini_get('memory_limit'); }</td>
 	</tr>
+<!--
 	<tr>
 	{? $base = log(memory_get_usage()) / log(1024)}
 	{? $suffix = array("", "k", "M", "G", "T");}
 		<td><b>{_"PHP memory usage"}</b></td><td>{? echo round(pow(1024, $base - floor($base)),1) . $suffix[floor($base)] }</td>
 	</tr>
+-->
 	<tr>
 		<td><b>{_"GD (images) supported"}</b></td><td>{if function_exists("ImageCreateTrueColor")}yes{else}<span style="color:#f00;">no</span>{/if}</td>
 	</tr>

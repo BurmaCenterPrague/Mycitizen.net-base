@@ -18,16 +18,30 @@ abstract class BasePresenter extends NPresenter
 
 
 	/**
-	 *	loads basic parameters from settings, prepares general template variables and checks if user is allowed to view page
+	 *	Load basic parameters from settings, prepares general template variables and checks if user is allowed to view page.
 	 *	@param void
 	 *	@return void
 	 */
 	public function startup()
 	{
 		parent::startup();
-		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
+		$session = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$request = NEnvironment::getHttpRequest();
-		
+
+		$this->presenter->lastModified(time(), null, time()+3600);
+
+/*
+		// solving Firefox cross domain restrictions?
+		$cdn = NEnvironment::getVariable("CDN");
+		if (!empty($cdn) && $cdn != NEnvironment::getVariable("URI")) {
+			if (substr($cdn,0,2) == '//') {
+				header("Access-Control-Allow-Origin: http:".$cdn);
+				header("Access-Control-Allow-Origin: https:".$cdn);
+			} else {
+				header("Access-Control-Allow-Origin: ".$cdn);
+			}
+		}
+*/
 /*
 		// we are making history
 		if ($this->isAjax()){
@@ -39,7 +53,8 @@ abstract class BasePresenter extends NPresenter
 			unset($session->history);
 		}
 */
-		
+
+		/* Setting the interface language */
 		$lang = $request->getQuery("language");
 		if (isset($lang) && !empty($lang) && !$this->isAjax()) {
 			$flag = Language::getFlag($lang);
@@ -57,39 +72,26 @@ abstract class BasePresenter extends NPresenter
 		$this->template->language_name = Language::getLanguageName($language_id);
 		$this->template->language_code = Language::getLanguageCode($language_id);
 
-		if (file_exists(WWW_DIR."/files/".$language."/intro.phtml")) {
-			$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";
-		} else {
-			$this->template->intro = '';
-		}
-		
-		if (file_exists(WWW_DIR."/files/".$language."/footer.phtml")) {
-			$this->template->footer = WWW_DIR."/files/".$language."/footer.phtml";
-		} else {
-			$this->template->footer = '';
-		}
-
+		/* Processing queries */
 		$this->template->nochat = $request->getQuery("nochat");		
 		$toggleChat = $request->getQuery("toggleChat");
 		if (isset($toggleChat)) {
-				$session = NEnvironment::getSession()->getNamespace("GLOBAL");
-				if (isset($session->chat)) {
-					$session->chat = ($session->chat === true) ? false : true;
-				} else {
-					$session->chat = true;
-				}
-				$message = "error";
-				$message = ($session->chat === true) ? _t("Chat window turned on.") : _t("Chat window turned off.");
-				$this->flashMessage($message);
-
-				$this->invalidateControl('popupchat');
-				$this->redirect('this');
+			$session = NEnvironment::getSession()->getNamespace("GLOBAL");
+			if (isset($session->chat)) {
+				$session->chat = ($session->chat === true) ? false : true;
+			} else {
+				$session->chat = true;
+			}
+			$message = "error";
+			$message = ($session->chat === true) ? _t("Chat window turned on.") : _t("Chat window turned off.");
+			$this->flashMessage($message);
 		}
 
 		if (isset($session->chat) && $session->chat) {
 			$this->template->popup_chat = APP_DIR.'/components/popup_chat.phtml';
 		}
 		
+		/* Read variables from settings. */
 		$this->template->PROJECT_NAME = NEnvironment::getVariable("PROJECT_NAME");
 		$this->template->PROJECT_DESCRIPTION = NEnvironment::getVariable("PROJECT_DESCRIPTION");
 		$this->template->PROJECT_VERSION = PROJECT_VERSION;
@@ -102,7 +104,9 @@ abstract class BasePresenter extends NPresenter
 		$this->template->PIWIK_ID = NEnvironment::getVariable("PIWIK_ID");
 		$this->template->PIWIK_TOKEN = NEnvironment::getVariable("PIWIK_TOKEN");
 		if (NEnvironment::getVariable("EXTERNAL_JS_CSS")) $this->template->load_external_js_css = true;
+
 		
+		/* Maintenance Mode */
 		$maintenance_mode = Settings::getVariable('maintenance_mode');
 		if ($maintenance_mode) {
 			if ($maintenance_mode > time()) {
@@ -126,13 +130,8 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 
-		if (!empty($this->template->PIWIK_URL) && !empty($this->template->PIWIK_ID)) {
-			$this->template->piwik_url_bare = preg_replace('/https?(:\/\/.*)/i','$1',$this->template->PIWIK_URL);
-			if (substr($this->template->piwik_url_bare,-1,1)!='/'){
-				$this->template->piwik_url_bare.='/';
-			}
-		}
 
+		/* Checking user log in */
 		$user_env = NEnvironment::getUser();
 		if ($user_env->isLoggedIn()) {
 			$user = $user_env->getIdentity();
@@ -151,8 +150,6 @@ abstract class BasePresenter extends NPresenter
 					$user_env->logout();
 					$this->redirect("User:login");					
 				}
-			} else {
-				// nothing
 			}
 			$user->setLastActivity();
 			$this->template->logged   = true;
@@ -182,18 +179,41 @@ abstract class BasePresenter extends NPresenter
 				$this->redirect("User:login", array("redirect" => $redirect));
 			}
 		}
+		
+		/* Latte helpers */
 		$this->registerHelpers();
 
+		/* Template variables */
+		if (file_exists(WWW_DIR."/files/".$language."/intro.phtml")) {
+			$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";
+		} else {
+			$this->template->intro = '';
+		}
+		
+		if (file_exists(WWW_DIR."/files/".$language."/footer.phtml")) {
+			$this->template->footer = WWW_DIR."/files/".$language."/footer.phtml";
+		} else {
+			$this->template->footer = '';
+		}
+
+		if (!empty($this->template->PIWIK_URL) && !empty($this->template->PIWIK_ID)) {
+			$this->template->piwik_url_bare = preg_replace('/https?(:\/\/.*)/i','$1',$this->template->PIWIK_URL);
+			if (substr($this->template->piwik_url_bare,-1,1)!='/'){
+				$this->template->piwik_url_bare.='/';
+			}
+		}
 		// js and css that needs to be combined. Observe right order!
 		$scripts = new Scripts;
 		$scripts->setBaseOriginUrl(NEnvironment::getVariable("CDN"));
 		$scripts->setBaseTargetUrl(NEnvironment::getVariable("URI"));
 		$scripts->setBaseTargetPath(WWW_DIR);
 		$css = array(
+			'css/jquery.ui.min.css',
 			'css/mycitizen.min.css',
 			'css/jquery.fancybox.min.css'
 			);
 		$scripts->queueScript('css', $css);
+		$scripts->queueScript('css', 'css/OpenSans/OpenSans.css', 'OpenSans');
 
 		if (empty($this->template->load_external_js_css)) {
 			$scripts->queueScript('js', 'js/jquery-1.10.2.min.js');
@@ -209,7 +229,7 @@ abstract class BasePresenter extends NPresenter
 		}
 		if (isset($this->template->logged)) {
 			$scripts->queueScript('css', 'css/jquery.tagit.css');
-			$scripts->queueScript('css', 'css/tagit.ui-zendesk.css');
+			$scripts->queueScript('css', 'css/tagit.ui-mycitizen.css');
 			$scripts->queueScript('css', 'css/jquery.tree.css');
 			$scripts->queueScript('css', 'css/jquery.calendarPicker.min.css');
 			$scripts->queueScript('js', 'js/jquery.calendarPicker.min.js');
@@ -439,7 +459,7 @@ abstract class BasePresenter extends NPresenter
 		);
 		$user_env = NEnvironment::getUser();
 		if ($user_env->isLoggedIn()) {
-			$userObject = NEnvironment::getUser()->getIdentity();
+			$userObject = $user_env->getIdentity();
 			if ($userObject->hasRightsToCreate() || $userObject->getAccessLevel() >= 2) {
 				$menu[3] = array(
 					'title' => _t('create'),
@@ -458,7 +478,7 @@ abstract class BasePresenter extends NPresenter
 		);
 		
 		if ($user_env->isLoggedIn()) {
-			$userObject = NEnvironment::getUser()->getIdentity();
+			$userObject = $user_env->getIdentity();
 			if ($userObject->hasRightsToCreate() || $userObject->getAccessLevel() >= 2) {
 				$menu[6] = array(
 					'title' => _t('create'),
@@ -472,13 +492,13 @@ abstract class BasePresenter extends NPresenter
 				'title' => _t('browse'),
 				'presenter' => 'resource',
 				'action' => 'browse',
-				'parent' => 0
+				'parent' => 4
 			);
 
 		}
 		
 		if ($user_env->isLoggedIn()) {
-			$userObject = NEnvironment::getUser()->getIdentity();
+			$userObject = $user_env->getIdentity();
 			$access_level = $userObject->getAccessLevel();
 			if ($access_level == 3 || $access_level == 2) {
 				$menu[7] = array('title'=>_t('Administration'),
@@ -1255,8 +1275,8 @@ abstract class BasePresenter extends NPresenter
     public function handleClickLink()
     {
 		if ($this->isAjax()) {
-			$session = NEnvironment::getSession()->getNamespace($this->name);
-			$data = $session->data;
+//			$session = NEnvironment::getSession()->getNamespace($this->name);
+//			$data = $session->data;
 
 			$this->presenter->actionDefault();
             $this->invalidateControl('mainContent');
@@ -1293,6 +1313,9 @@ abstract class BasePresenter extends NPresenter
 			$options['include_language'] = true;
 			$options['include_name'] = true;
 		
+			$session = NEnvironment::getSession()->getNamespace($this->name);
+			$session->data['object_id'] = NULL;
+
 			$filter = new ExternalFilter($this, 'filter', $options);
 			$filter->clearFilterArray();
 			$filter->ajaxFilterSubmitted();

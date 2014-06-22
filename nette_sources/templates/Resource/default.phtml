@@ -30,26 +30,12 @@
         	<div class="resource_default_info">
 				{ifset $default_data}
 				<div class="item-resource ajax" onclick='showObjectDetail(2,{$default_data['object_data']['resource_id']},{link Resource:default, $default_data['object_data']['resource_id']})'>
-{*				<div class="item-resource" onclick='window.location={link Resource:default, $default_data['object_data']['resource_id']}'> *}
+
+					{? $resource_class = Resource::getIconClass($default_data['object_data']['resource_id'])}
+					{? $resource_type_label = Resource::getIconTitle($default_data['object_data']['resource_id'])}
+					<div class="resource-image" title="{$resource_type_label}"><b class="{$resource_class}"></b></div>
 				
-					{? $resource_name = array(
-									1=>'1',
-									2=>'event',
-									3=>'org',
-									4=>'doc',
-									6=>'website',
-									7=>'7',
-									8=>'8',
-									9=>'friendship',
-									'media_soundcloud'=>'audio',
-									'media_youtube'=>'video',
-									'media_vimeo'=>'video',
-									'media_bambuser'=>'live-video'
-									)}
-					{? $resource_type = $default_data['object_data']['resource_type']==5 ? $resource_name[$default_data['object_data']['media_type']] : $resource_name[$default_data['object_data']['resource_type']]}
-					<div class="resource-image" title="{$resource_type_label}"><b class="icon-{$resource_type}"></b></div>
-				
-					{if Auth::ADMINISTRATOR == Auth::isAuthorized(3,$default_data['object_data']["resource_id"])}
+					{if Auth::ADMINISTRATOR == Auth::isAuthorized(3,$default_data['object_data']['resource_id'])}
                 	<div class="resource-edit">
 						<a href="{link Resource:edit, $default_data['object_data']["resource_id"]}"><b class="icon-resource-edit" title="{_"edit"}"></b></a>
                		</div>

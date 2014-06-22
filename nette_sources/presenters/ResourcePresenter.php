@@ -196,41 +196,9 @@ final class ResourcePresenter extends BasePresenter
 					$languages = Language::getArray();
 					$this->template->object_language = $languages[$data['object_data']['resource_language']];
 				}
-		
 
-				$resource_name = array(
-					1=>'1',
-					2=>'event',
-					3=>'org',
-					4=>'doc',
-					6=>'website',
-					7=>'7',
-					8=>'8',
-					9=>'friendship',
-					'media_soundcloud'=>'audio',
-					'media_youtube'=>'video',
-					'media_vimeo'=>'video',
-					'media_bambuser'=>'live-video'
-					);
-				$this->template->resource_type = $data['object_data']['resource_type']==5 ? $resource_name[$data['object_data']['media_type']] : $resource_name[$data['object_data']['resource_type']];
-
-				$resource_type_labels = array(
-					1=>_t('message'),
-					2=>_t('event'),
-					3=>_t('organization'),
-					4=>_t('document'),
-					6=>_t('link to external resource'),
-					7=>'7',
-					8=>'8',
-					9=>'friendship',
-					10=>'friendship request',
-					11=>'noticeboard message',
-					'media_soundcloud'=>_t('sound on Soundcloud'),
-					'media_youtube'=>_t('video on YouTube'),
-					'media_vimeo'=>_t('video on Vimeo'),
-					'media_bambuser'=>_t('live-video on Bambuser')
-					);
-				$this->template->resource_type_label  = $data['object_data']['resource_type']==5 ? $resource_type_labels[$data['object_data']['media_type']] : $resource_type_labels[$data['object_data']['resource_type']];
+				$this->template->resource_type_class = Resource::getIconClass($data['object_data']['resource_id']);
+				$this->template->resource_type_title  = Resource::getIconTitle($data['object_data']['resource_id']);
 
 				/* date_default_timezone_set($ ... ) */
 				if (isset($data['object_data']['event_allday']) && $data['object_data']['event_allday']) {
@@ -323,7 +291,7 @@ final class ResourcePresenter extends BasePresenter
 			}
 		}
 		$this->template->available_tags = '"'.implode('","', $tags).'"';
-		if (count($tags) < 35) {
+		if (count($tags) < 200) {
 			$this->template->showAutocompleteOnFocus = true;
 		} else {
 			$this->template->showAutocompleteOnFocus = false;
@@ -336,7 +304,9 @@ final class ResourcePresenter extends BasePresenter
 			$this->template->logged_user = $user->getUserId();
 		}
 
-		
+		$number_of_columns = (int) (count($tags) / 20)+1;
+		$this->template->autocomplete_columns = $number_of_columns;
+		$this->template->autocomplete_width = $number_of_columns * 120;
 	}
 
 
@@ -1102,7 +1072,7 @@ final class ResourcePresenter extends BasePresenter
 			case 5: if (isset($values['media_link']) && !empty($values['media_link'])) {
 						switch ($values['media_type']) {
 							case 'media_soundcloud':  $url = ''; break;
-							case 'media_youtube': $direct_url = 'https://img.youtube.com/vi/'.$values['media_link'].'/1.jpg'; break;
+							case 'media_youtube': $direct_url = 'https://img.youtube.com/vi/'.$values['media_link'].'/0.jpg'; break;
 							case 'media_vimeo': $tmp = unserialize(@file_get_contents("http://vimeo.com/api/v2/video/".$values['media_link'].".php")); $direct_url = $tmp[0]['thumbnail_medium']; break;
 							case 'media_bambuser': break;
 						}
@@ -1508,7 +1478,7 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleUserResourceInsert($user_id, $resource_id)
 	{
-		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) > 2) die('no permission');
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 
 		if (empty($resource_id) || empty($user_id)) {
 			print "false";
@@ -1540,7 +1510,7 @@ final class ResourcePresenter extends BasePresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepageresourcelister")));
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedresourcelister")));
 					
-					print "true";
+					print json_encode("true");
 				}
 			}
 		}
@@ -1555,7 +1525,7 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleUserResourceRemove($user_id, $resource_id)
 	{
-		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) > 2) die('no permission');
+		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 
 		if (empty($resource_id) || empty($user_id)) {
 			print "false";
@@ -1579,7 +1549,7 @@ final class ResourcePresenter extends BasePresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepageresourcelister")));
 					$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/homepagerecommendedresourcelister")));
 
-					print "true";
+					print json_encode("true");
 				}
 			}
 		}

@@ -62,11 +62,15 @@
 
 	{var $fullname => User::getFullName($row['id'])}	
 	{var $avatar => User::getImage($row['id'], 'icon')}
+	{ifset $logged}
 	{ifset $template_variables['show_online_status']}
 		{var $last_activity_a => User::getRelativeLastActivity($row['id'], $format_date_time)}
 		{var $last_activity => $last_activity_a['last_seen']}
 	{/if}
-	
+	{else}
+		{var $last_activity_a => ''}
+		{var $last_activity => ''}
+	{/if}	
     {if $number_displayed==1 && isset($template_variables['top'])}
     	<div class="list-body-top-wrapper">
     {/if}
@@ -100,17 +104,19 @@
 				<div class="online-status" id="status_{$row['id']}" object_id="{$row['id']}" style="display:none;"></div>
 			{/if}
 
-		{ifset $template_variables['your_connections']} {* For home page (my connections) *}
+		{ifset $logged}
+		{ifset $template_variables['show_roles']}
 		{? $user=User::create($row['id']); $access_level=$user->getAccessLevel()}
 			{if $access_level==3}
-				<div class="list-body-permissions">
+				<div class="list-body-roles">
 					<b class="icon-administrator" title="{_"administrator"}"></b>
 				</div>
 			{elseif $access_level==2}
-				<div class="list-body-permissions">
+				<div class="list-body-roles">
 					<b class="icon-moderator" title="{_"moderator"}"></b>
 				</div>
 			{/if}
+		{/if}
 		{/if}
 			
 			{ifset $template_variables['administration']}

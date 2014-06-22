@@ -541,6 +541,11 @@ class Resource extends BaseModel {
 	}
 
 
+	/**
+	 *	Retrieves the class to produce the icon for that resource type.
+	 *	@param int $resource_id
+	 *	@return boolean|string
+	 */
 	public static function getIconClass($resource_id) {
 		$resource_name = array(
 			1=>'message',
@@ -559,14 +564,48 @@ class Resource extends BaseModel {
 			11 => ''
 			);
 		$resource = self::create($resource_id);
-		$data = $resource->getResourceData();
 		if (!empty($resource)) {
+			$data = $resource->getResourceData();
 			$resource_type = $data['resource_type']==5 ? $resource_name[$data['media_type']] : $resource_name[$data['resource_type']];
 			return "icon-".$resource_type;
 		} else {
 			return false;
 		}
 	}
+
+
+	/**
+	 *	Retrieves the label for the title tag according that resource type.
+	 *	@param int $resource_id
+	 *	@return boolean|string
+	 */
+	public static function getIconTitle($resource_id) {
+				$resource_type_labels = array(
+					1=>_t('message'),
+					2=>_t('event'),
+					3=>_t('organization'),
+					4=>_t('document'),
+					6=>_t('link to external resource'),
+					7=>'7',
+					8=>'8',
+					9=>'friendship',
+					10=>'friendship request',
+					11=>'noticeboard message',
+					'media_soundcloud'=>_t('sound on Soundcloud'),
+					'media_youtube'=>_t('video on YouTube'),
+					'media_vimeo'=>_t('video on Vimeo'),
+					'media_bambuser'=>_t('live-video on Bambuser')
+					);
+		$resource = self::create($resource_id);
+		if (!empty($resource)) {
+			$data = $resource->getResourceData();
+			$resource_label = $data['resource_type']==5 ? $resource_type_labels[$data['media_type']] : $resource_type_labels[$data['resource_type']];
+			return $resource_label;
+		} else {
+			return false;
+		}
+	}
+
 
 	/**
 	 *	@todo ### Description
@@ -774,9 +813,9 @@ class Resource extends BaseModel {
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Empties the trash of the logged-in user.
+	 *	@param void
+	 *	@return void
 	 */
 	public static function emptyTrash() {
 		$user = NEnvironment::getUser()->getIdentity();

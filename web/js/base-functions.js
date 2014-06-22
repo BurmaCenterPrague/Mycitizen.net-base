@@ -36,11 +36,6 @@ function showObjectDetail(object_type,object_id,url) {
 	window.history.pushState("void", "Title", url);
 }
 
-function toggleChat(url) {
-	$("#progressbar").delay(2000).fadeIn(1000);
-	$.getJSON("?toggleChat");
-}
-
 function changePageUrl(name,page,url) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	var urlq = url + (url.split('?')[1] ? '&':'?') + "do=changePage";
@@ -101,6 +96,7 @@ function userInsert_Resource(user_id,resource_id,refresh_path) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	$.getJSON("?user_id="+user_id+"&resource_id="+resource_id+"&do=userResourceInsert",function(payload) {
 		if (refresh_path!='') location.href=refresh_path;
+		$("#progressbar").fadeOut(1000);
 	});
 }
 
@@ -108,10 +104,11 @@ function userRemove_Resource(user_id,resource_id,refresh_path) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	$.getJSON("?user_id="+user_id+"&resource_id="+resource_id+"&do=userResourceRemove",function(payload){
 		if (refresh_path!='') location.href=refresh_path;
+		$("#progressbar").fadeOut(1000);
 	});
 }
 
-/* in use ? */
+/*
 function groupInsert_Resource(group_id,resource_id,refresh_path) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	$.getJSON("?group_id="+group_id+"&resource_id="+resource_id+"&do=groupResourceInsert",function(payload){
@@ -119,14 +116,14 @@ function groupInsert_Resource(group_id,resource_id,refresh_path) {
 	});
 }
 
-/* in use ? */
+
 function groupRemove_Resource(group_id,resource_id,refresh_path) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	$.getJSON("?group_id="+group_id+"&resource_id="+resource_id+"&do=groupResourceRemove",function(payload){
 		location.href=refresh_path;
 	});
 }
-
+*/
 function groupInsert_User(group_id,user_id,refresh_path) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	$.getJSON("?group_id="+group_id+"&user_id="+user_id+"&do=groupUserInsert",function(payload){
@@ -180,14 +177,6 @@ function removeGroupAvatar(group_id) {
    });
 }
 
-/*
-function visit(type_id,object_id) {
-   $.getJSON("/widget/visit/?type_id="+type_id+"&object_id="+object_id,function(payload){
-      //location.href=refresh_path;
-   });
-}
-*/
-
 function moveToTrash(resource_id) {
 	if(resource_id != null) {
 		$.post("?do=moveToTrash&resource_id="+resource_id);
@@ -224,6 +213,7 @@ function markUnread(resource_id) {
 	}
 }
 
+/* used? */
 function deactivate(object_type,object_id) {
    if(object_type != null && object_id != null) {
       $.post("?object_type="+object_type+"&object_id="+object_id+"&do=disableObject");
@@ -238,6 +228,7 @@ function deactivate(object_type,object_id) {
    }
 }
 
+/* used? */
 function revokepermission(object_type,object_id) {
    if(object_type != null && object_id != null) {
       $.post("?object_type="+object_type+"&object_id="+object_id+"&do=revokePermission");
@@ -265,7 +256,6 @@ function deletereport(report_id) {
 function warning(object_type,object_id,warning_type) {
    if(object_type != null && object_id != null) {
       $.post("?object_type="+object_type+"&object_id="+object_id+"&warning_type="+warning_type+"&do=sendWarning");
-		//location.href=self.location.href;
 		if(object_type == 1) {
          $("#message").html("Warning sent to user");
       } else if(object_type == 2) {
@@ -334,9 +324,15 @@ $(document).ready(function(){
 	});
 
 	$(document).on('click', 'a.ajax', function(){
-		var url = this.href;
-		var urlNoHash = url.split('#')[0];
-		var urlq = urlNoHash + (urlNoHash.split('?')[1] ? '&':'?') + "do=clickLink";
+		if (this.href.search('toggleChat')>=0) {
+			var url = self.location.href;
+			var urlq = url + (url.split('?')[1] ? '&':'?') + "do=clickLink&toggleChat";
+		} else {
+			var url = this.href;
+			var urlNoHash = url.split('#')[0];
+			var urlq = urlNoHash + (urlNoHash.split('?')[1] ? '&':'?') + "do=clickLink";
+		}
+		
 		$("#progressbar").delay(2000).fadeIn(1000);
 		$.ajax(urlq,
 			function(payload){
@@ -346,6 +342,8 @@ $(document).ready(function(){
 				}
 			}
 		});
+		url=url.replace('&toggleChat', '');
+		url=url.replace('toggleChat&', ''); // ?toggleChat&abc=xyz
 		window.history.pushState(null, null, url);
 		return false;
 	});

@@ -1,5 +1,4 @@
-
-/* Optional scoped theme for tag-it which mimics the zendesk widget. */
+/* Theme modified from tag-it for mycitizen.net. */
 
 
 ul.tagit {
@@ -12,10 +11,10 @@ ul.tagit li.tagit-choice {
     -moz-border-radius: 6px;
     border-radius: 6px;
     -webkit-border-radius: 6px;
-    border: 1px solid #CAD8F3;
+    border: 1px solid #d0ccc3;
 
     background: none;
-    background-color: #DEE7F8;
+    background-color: #eae9e3;
 
     font-weight: normal;
 }

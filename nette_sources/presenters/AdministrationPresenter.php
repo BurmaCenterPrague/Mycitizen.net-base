@@ -1190,11 +1190,28 @@ final class AdministrationPresenter extends BasePresenter
 			$this->terminate();
 		}
 
+		// clean all cache
+		// 1. properly via NCache
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage);
 		$cache->clean(array(NCache::ALL));
-		
-		$this->flashMessage("Cache purged.");		
-		$this->reload('this');
+
+		// 2. remove the rest in TEMP_DIR, including subdirectories
+		foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(TEMP_DIR, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $path) {
+			$path->isDir() ? rmdir($path->getPathname()) : unlink($path->getPathname());
+		}
+
+		// 3. delete js and css combined files
+		$files_js = glob(WWW_DIR.'/js/combined-*.js');
+		$files_css = glob(WWW_DIR.'/css/combined-*.css');
+		$files = array_merge($files_js, $files_css);
+		if ( is_array ( $files ) && count($files) ) {
+			foreach($files as $file) {
+				unlink($file);
+			}
+		}
+
+		$this->flashMessage("Cache purged.");
+		$this->redirect('this');
 	}	
 }

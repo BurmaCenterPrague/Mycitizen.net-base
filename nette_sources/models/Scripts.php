@@ -17,13 +17,13 @@ class Scripts {
 	private $base_origin_url = '/';
 	private $base_target_url = '/';
 	private $base_target_path;
-	private $script_url = array();
+	private $script_items = array();
 
 
 	public function __construct()
 	{
-		$this->script_url['js'] = array();
-		$this->script_url['css'] = array();
+		$this->script_items['js'] = array();
+		$this->script_items['css'] = array();
 	}
 
 
@@ -51,7 +51,7 @@ class Scripts {
 	 	if (substr($url,-1,1) != '/') {
 	 		$url .= '/';
 	 	}
-	 	$this->base_target_url = $url;
+	 	$this->base_target_url = preg_replace('#^https?://#', '//', $url);
 	 }
 
 
@@ -74,7 +74,7 @@ class Scripts {
 	 *	@param string|array $url
 	 *	@param string @type ('css' or 'js')
 	 */
-	public function queueScript($type, $url)
+	public function queueScript($type, $url, $local=false)
 	{
 		$allowed_types = array('js', 'css');
 		if (!in_array($type, $allowed_types)) {
@@ -82,10 +82,14 @@ class Scripts {
 		}
 
 		if (is_array($url)) {
-			array_walk($url, array($this, 'addBase'));
-			$this->script_url[$type] = array_merge($this->script_url[$type], $url);
+//			array_walk($url, array($this, 'addBase'));
+			$url_a = array();
+			foreach ($url as $url_item) {
+				$url_a[] = array('url' => $this->addBase($url_item), 'local_url' => $local);
+			}
+			$this->script_items[$type] = array_merge($this->script_items[$type], $url_a);
 		} else {
-			$this->script_url[$type][] = $this->addBase($url);
+			$this->script_items[$type][] = array('url' => $this->addBase($url), 'local_url' => $local);
 		}
 	}
 
@@ -108,7 +112,7 @@ class Scripts {
 	/**
 	 *	Returns a link for HTML pointing to a file that combines all given scripts. Wrapped in html tags to be echoed in the <head> section.
 	 *	Errors will be rendered as comments enclosed in <!-- and -->.
-	 *	Files must be complete in themselves and not pointing to other folders or files (URL).
+	 *	URL-defined relative links content in css files will be made absolute. (Files must be in subdir js or css below the dir defined by setBaseOriginUrl.)
 	 *	@param string $type ('css' or 'js')
 	 *	@param bool $force Forces re-write of cached file.
 	 *	@return void
@@ -119,26 +123,37 @@ class Scripts {
 		if (!in_array($type, $allowed_types)) {
 			return false;
 		}
-		if (count($this->script_url[$type]) == 0) return;
+		if (count($this->script_items[$type]) == 0) return;
 		
 		$output = array();
-		$cache_key = md5(json_encode($this->script_url[$type]));
+		$cache_key = md5(json_encode($this->script_items[$type]));
 		$file_path = $this->base_target_path.$type.'/combined-'.$cache_key.'.'.$type;
 		$file_url = $this->base_target_url.$type.'/combined-'.$cache_key.'.'.$type;
 		if (!file_exists($file_path) || $force) {
 			// load all file contents
-			foreach ($this->script_url[$type] as $script) {
-				if (substr($script,0,2) == '//') {
-					$script = 'http:'.$script;
+
+			foreach ($this->script_items[$type] as $script_item) {
+				$script_url = $script_item['url'];
+				$script_base = $script_item['local_url'] ? $script_item['local_url'] : $this->base_origin_url.$type;
+				if (substr($script_url,0,2) == '//') {
+					$script_url = 'http:'.$script_url;
 				}
-				$data[] = "\n\n/* source: ".$script." */\n\n";
-				if ($content = @file_get_contents($script)) {
+				$data[] = "\n\n/* source: ".$script_url." */\n\n";
+				if ($content = @file_get_contents($script_url)) {
 					$content = preg_replace('#^//@ sourceMappingURL=.*$#', '', $content);
+					if ($type == 'css') {
+						// url(../images
+						$content = preg_replace("#(url\(['\"]?)\.\./#i", '$1'.$script_base.'/../', $content);
+						// url(./ckeditor
+						$content = preg_replace("#(url\(['\"]?)\./#i", '$1'.$script_base.'/', $content);
+						// url(myfont.ttf but excluding url(data:...
+						$content = preg_replace("#(url\(['\"]?)((?!data:)[A-Za-z_]+)#i", '$1'.$script_base.'/$2', $content);
+					}
 					$data[] = $content;
 					$data[] = "\n";
 				} else {
 					$data[] = "\n/* Error: Source file not found. */\n\n";
-					$output[] = "<!-- Error reading ".$script." -->\n";
+					$output[] = "<!-- Error reading ".$script_url." -->\n";
 				}
 			}
 			// write them into one file
@@ -153,7 +168,6 @@ class Scripts {
 		}
 		$output[] = "\n";
 		$this->script_url[$type] = array();
-		
 		return implode("\n", $output);
 	}
 }

@@ -38,12 +38,15 @@ class Activity extends BaseModel {
 	const NOTICEBOARD_MESSAGE = 23;
 
 	/**
-	*	adds an activity to the database
-	*	
-	*	If $affected_user_id is NULL then this activity will be listed for all users that have view permissions for that object.
-	*/
-	public static function addActivity($activity, $object_id, $object_type, $affected_user_id = null) {
-  		
+	 *	Add an activity to the database.
+	 *	@param const $activity
+	 *	@param int $object_id
+	 *	@param int $object_type
+	 *	@param int $affected_user_id If $affected_user_id is NULL then this activity will be listed for all users that have view permissions for that object.
+	 *	@return boolean
+	 */
+	public static function addActivity($activity, $object_id, $object_type, $affected_user_id = null)
+	{
   		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage);
 		if ($object_type == 1) {
@@ -70,9 +73,12 @@ class Activity extends BaseModel {
 
 
 	/**
-	*	removes an activity from the database
-	*	
-	*/
+	 *	Remove an activity from the database
+	 *	@param const $activity
+	 *	@param int $object_id
+	 *	@param int $object_type
+	 *	@return boolean
+	 */
 	public static function removeActivity($activity, $object_id, $object_type) {
   		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage);
@@ -88,16 +94,16 @@ class Activity extends BaseModel {
 
 
 	/**
-	*	reads activities from the database for which the user has permissions to view
-	*
-	*	@params	
-	*	$user_id is the user for whome the list is being compiled
-	*	$min_timestamp, $max_timestamp specify the time frame
-	*
-	*	note: Only groups and resources listed because friends' activities should be considered private.
-	*/
-  	public static function getActivities($user_id, $min_timestamp = 0, $max_timestamp = null, $latest = 0) {
-
+	 *	Read activities from the database for which the user has permissions to view.
+	 *	note: Only groups and resources listed because friends' activities should be considered private.
+	 *	@param int $user_id - the user for whome the list is being compiled
+	 *	@param int $min_timestamp
+	 *	@param int $max_timestamp specify the time frame
+	 *	@param int $include_all_latest
+	 *	@return array
+	 */
+  	public static function getActivities($user_id, $min_timestamp = 0, $max_timestamp = null, $include_all_latest = 0)
+  	{
   		if ($max_timestamp == null) $max_timestamp = time();
   		
   		// get all connections of this user
@@ -128,7 +134,7 @@ class Activity extends BaseModel {
   		}
 
   		// retrieve relevant items from database
-  		if ($latest) {
+  		if ($include_all_latest) {
 			$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
 			`timestamp` > %i AND `timestamp` < %i AND
 			(
@@ -199,36 +205,39 @@ class Activity extends BaseModel {
 			}
 		}
 
-  		if ($latest) {
+  		if ($include_all_latest) {
   			// remove notifications about items that user is not allowed to see
-			if (isset($data) && is_array($data)) {
-				foreach ($data as $key=>$row) {
-					if ($row['activity'] == Activity::NOTICEBOARD_MESSAGE) continue;
-					switch ($row['object_type']) {
-						case 1:
-							if ($row['object_id'] == $user_id || $row['affected_user_id'] == $user_id) continue 2;
-							$object = User::create($row['object_id']);
-						break;
-						case 2:
-							$object = Group::create($row['object_id']);
-						break;
-						case 3:
-							$object = Resource::create($row['object_id']);
-						break;
-					}
-					if (empty($object) || !$object->isActive() || Auth::isAuthorized($row['object_type'],$row['object_id']) == Auth::UNAUTHORIZED) {
-						unset($data[$key]);
-					}
-					unset($object);
-				}			
-			}		
+  			$user = User::create($user_id);
+			if ($user->getAccessLevel() < 2) {
+	  			// moderators and administrators have no restrictions regarding visibility
+				if (isset($data) && is_array($data)) {
+					foreach ($data as $key=>$row) {
+						if ($row['activity'] == Activity::NOTICEBOARD_MESSAGE) continue;
+						switch ($row['object_type']) {
+							case 1:
+								if ($row['object_id'] == $user_id || $row['affected_user_id'] == $user_id) continue 2;
+								$object = User::create($row['object_id']);
+							break;
+							case 2:
+								$object = Group::create($row['object_id']);
+							break;
+							case 3:
+								$object = Resource::create($row['object_id']);
+							break;
+						}
+						if (empty($object) || !$object->isActive() || Auth::isAuthorized($row['object_type'],$row['object_id']) == Auth::UNAUTHORIZED) {
+							unset($data[$key]);
+						}
+					}			
+				}
+			}
   		} else {
 			// remove notifications about items that date before making connection (starting from latest)
 			if (isset($data) && is_array($data)) {
 				foreach ($data as $row) {
 					if ($row['activity'] == Activity::FRIENDSHIP_YES || $row['activity'] == Activity::GROUP_JOINED || $row['activity'] == Activity::RESOURCE_SUBSCRIBED) {
 						foreach ($data as $key=>$row2) {
-							if ($row2['activity_id'] != $row['activity_id'] &&  $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT &&   $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED  && $row2['object_id'] == $row['object_id'] && $row2['timestamp']<$row['timestamp']) {
+							if ($row2['timestamp']<$row['timestamp'] && $row2['activity_id'] != $row['activity_id'] && $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT && $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED && $row2['object_id'] == $row['object_id']) {
 								unset($data[$key]);
 							}
 						}
@@ -242,12 +251,14 @@ class Activity extends BaseModel {
 
 
 	/**
-	 *	Renders the list of activities
-	 *	@param array $activities
+	 *	Render the list of activities into string (HTML-formatted).
+	 *	@param array $activities The activities in the shape of an array.
+	 *	@param int $user_id The recipient for whome the list is made.
+	 *	@param boolean $email Whether to use formatting for email output. (<table> instead of <div>)
 	 *	@return string
 	 */
-	public static function renderList($activities, $user_id, $email=false) {
-
+	public static function renderList($activities, $user_id, $email=false)
+	{
 		if ($email) {
 			$output = '<table style="width:100%;">';
 		} else {
@@ -255,22 +266,7 @@ class Activity extends BaseModel {
 		}
 		
 		if (isset($activities) && count($activities)) {
-			$resource_name = array(
-				1=>'1',
-				2=>'event',
-				3=>'org',
-				4=>'doc',
-				6=>'website',
-				7=>'7',
-				8=>'8',
-				9=>'friendship',
-				'media_soundcloud'=>'audio',
-				'media_youtube'=>'video',
-				'media_vimeo'=>'video',
-				'media_bambuser'=>'live-video'
-				);
 			foreach ($activities as $activity) {
-			
 				if ($activity['activity'] != Activity::NOTICEBOARD_MESSAGE) {
 					switch ($activity['object_type']) {
 						case 1:
@@ -288,7 +284,7 @@ class Activity extends BaseModel {
 						break;
 						case 3:
 							$object_link = NEnvironment::getVariable("URI").'/resource/?resource_id='.$activity['object_id'];
-							$object_icon = '<b class="icon-' . $resource_name[Resource::getResourceType($activity['object_id'])] . '"></b>';
+							$object_icon = '<b class="'.Resource::getIconClass($activity['object_id']).'"></b>';
 							$object_name = Resource::getName($activity['object_id']);;
 							$time = self::relativeTime($activity['timestamp']);
 						break;
@@ -398,11 +394,12 @@ class Activity extends BaseModel {
 
 
 	/**
-	 *	Translates recent dates into "today" and "yesterday".
+	 *	Translate recent dates into "today" and "yesterday".
 	 *	@param int $timestamp Unix timestamp
 	 *	@return string
 	 */
-	public static function relativeTime($timestamp) {
+	public static function relativeTime($timestamp)
+	{
 	
 		if (date('Ymd') == date('Ymd', $timestamp)) {
 			return _t('Today');
@@ -414,8 +411,5 @@ class Activity extends BaseModel {
 		
 		return date('j M Y', $timestamp);
 	}
-
-
-
 
 }

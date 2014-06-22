@@ -5,21 +5,28 @@ define('PROJECT_DATE', '20140526');
 
 session_set_cookie_params(1209600);
 
+// require Nette Framework
 require_once LIBS_DIR . '/Nette/loader.php';
+
 // load configuration from config.ini file
 NEnvironment::loadConfig(BOOTSTRAP_DIR . '/config.ini');
 
+// displaying or catching exceptions
 $application = NEnvironment::getApplication();
+$IPs = explode(",", NEnvironment::getConfig('debug')->IPs);
 
 if (NEnvironment::getConfig('debug')->showErrors) {
-	NDebug::enable(NDebug::DEVELOPMENT);
-//	NDebug::enableProfiler();
+	NDebug::enable($IPs);
+	NDebug::enableProfiler();
 	$application->catchExceptions = false;
 } else {
 	$application->catchExceptions = true;
 	$application->errorPresenter = 'Error';
+	NDebug::enable(NDebug::PRODUCTION, NULL, NEnvironment::getConfig('debug')->logEmail);
+	NEnvironment::setMode('production', TRUE);
 }
 
+// settings for the database
 ini_set('session.name', NEnvironment::getVariable('SESSION_NAME'));
 dibi::connect(array(
     'driver'   => NEnvironment::getConfig('database')->driver,
@@ -33,16 +40,14 @@ dibi::connect(array(
 
 $router = $application->getRouter();
 
-/**
-*	See class SessionDatabaseHandler in SessionDatabaseHandler.php
-*/
+//	see class SessionDatabaseHandler in SessionDatabaseHandler.php
 session_set_save_handler(array('SessionDatabaseHandler', 'open'), array('SessionDatabaseHandler', 'close'),
             array('SessionDatabaseHandler', 'read'), array('SessionDatabaseHandler', 'write'),
             array('SessionDatabaseHandler', 'destroy'), array('SessionDatabaseHandler', 'clean'));
 $session = NEnvironment::getSession();
 $session->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration);
 
-// enforce secure connections
+// enforce secure connections according to config.ini
 if (NEnvironment::getConfig('variable')->SECURED == 1) {
 	$flag = NRoute::SECURED;
 	$flag_all = NULL;
@@ -98,7 +103,8 @@ $router[] = new NSimpleRouter(array(
 	'action' => 'default',
 	),$flag);
 
-
+// require functions for Gettext substitute
 require_once(LIBS_DIR.'/TranslationHelper/TranslationHelper.php');
 
+// all done, we can run the application
 $application->run();

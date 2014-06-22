@@ -15,18 +15,13 @@ class ErrorPresenter extends BasePresenter
 {
 
 	/**
-	 * @param  Exception
+	 * Processes errors
+	 * @param Exception
 	 * @return void
 	 * from Nette Framework
 	 */
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function renderDefault($exception)
-	{
+	{ die('here');
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = $session->language;
 		if (empty($language)) {
@@ -43,8 +38,7 @@ class ErrorPresenter extends BasePresenter
 
 		} elseif (isset($exception)) {
 			$code = $exception->getCode();
-
-			$this->setView(in_array($code, array(403, 404, 405, 410, 500)) ? $code: '4xx');
+			$this->setView(in_array($code, array(403, 404, 500)) ? $code: '4xx'); //405, 410, 
 			NDebug::processException($exception, false);
 
 		} else {
@@ -54,9 +48,9 @@ class ErrorPresenter extends BasePresenter
 	}
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Makes sure that the error pages are visible without login
+	 *	@param void
+	 *	@return boolean true
 	 */
 	protected function isAccessible()
 	{

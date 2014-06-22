@@ -24,7 +24,7 @@
 		<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
 		<link href='//fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
 {else}
-		<link href='{$CDN}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'>
+{*		<link href='{$CDN}css/OpenSans/OpenSans.css' rel='stylesheet' type='text/css'> *}
 {/if}
 
 {ifset $load_external_js_css_deactivated}
@@ -238,7 +238,7 @@
 				<div class="login" style="{ifset $logged}min-height:70px;{/if}min-width:170px;">
 				{ifset $logged}
 					<a href="{link User:default, $my_id}" class="user-info" title="{_"go to your profile"}">{!$image} {$username}</a>
-					<div><a href="?toggleChat=toggle" target="_top" id="external_chat" title="{_"chat window"}"><img src="{!$CDN}images/new-window.png" style="float:right; padding-top:6px; cursor:pointer;"/></a>
+					<div><a href="?toggleChat" class="ajax" target="_top" id="external_chat" title="{_"toggle chat window"}"><img src="{!$CDN}images/new-window.png" style="float:right; padding-top:6px; cursor:pointer;"/></a>
 				<script>
 					$(document).ready(function(){
 						if (top.location != location) {
@@ -327,16 +327,18 @@
 	    });
 	});
 </script>
-{/snippet}
-			<div class="cleaner"></div>
-		</div>
 
-{snippet popupchat}
 {ifset $logged}
 {ifset $popup_chat}
 	{include $popup_chat}
 {/if}
 {/if}
+
+{/snippet}
+			<div class="cleaner"></div>
+		</div>
+
+{snippet popupchat}
 {/snippet}
 
 		<div class="footer">
@@ -385,8 +387,5 @@
 </script>
 <!-- End Piwik Code -->
 {/if}
-<!--Place the code below where you want the link to be displayed-->
-<span id="obf"><script>document.getElementById("obf").innerHTML="<n uers=\"znvygb:nzgube@ohezn-pragre.bet\" gnetrg=\"_oynax\">pbagnpg zr</n>".replace(/[a-zA-Z]/g,function(c){ return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);});document.body.appendChild(eo);</script>
-<noscript><span style="unicode-bidi:bidi-override;direction:rtl;">gro.retnec-amrub@rohtma</span></noscript></span>
 	</body>
 </html>

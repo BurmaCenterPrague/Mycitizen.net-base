@@ -45,7 +45,15 @@
 			});
 		});
 		
-
+		
+		$('ul.tagit-autocomplete').css({
+		    'columns': "{$autocomplete_columns}",
+		    '-webkit-columns': "{$autocomplete_columns}",
+		    '-moz-columns': "{$autocomplete_columns}",
+		    'width': "auto",
+		    'max-height': "600px"
+		});
+		
 	});
 
 	var timeoutId;
@@ -61,7 +69,14 @@
 			tags.push($(this).text().slice(0,-1));
 		});
 		tags = tags.slice(0,-1);
-		if (tags.length == 0) return false;
+		if (tags.length == 0) {
+			$('input.ui-autocomplete-input').attr("placeholder", {_"tag1, tag2, ..."});
+			$('#item_header').html('');
+			$('#item_container_1').html('<h4>'+{_"Please enter some tags."}+'</h4>');
+			$('#item_container_2').html('');
+			return false;
+		}
+		$('input.ui-autocomplete-input').attr("placeholder", "");
 		var sort = $('#sort_order').val();
 		var map = $('#mapcontainer').val();
 		var type = $('#type').val();

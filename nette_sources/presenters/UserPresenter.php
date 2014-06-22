@@ -1459,7 +1459,8 @@ final class UserPresenter extends BasePresenter
 				'selected_row' => $selected_row,
 				'show_extended_columns' => true,
 				'user_group_resource_page' => true,
-				'show_online_status' => true
+				'show_online_status' => true,
+				'show_roles' => true
 			)
 		);
 		$control = new ListerControlMain($this, $name, $options);		

@@ -432,14 +432,18 @@ class StaticModel extends BaseModel {
  		// check if text is html formatted
 		if (strip_tags($text) != $text) {
 			// html
-	 		$text .= "<br>Yours,<br><br>".$deployment_name."<br><br>";
+	 		$text .= "<br>"._t('Yours,')."<br><br>".$deployment_name."<br><br>";
 			$html_text = $text;
+			// create plain text version
+			$text = preg_replace("/</td>/", "$0\t", $text);
+			$regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+			$text = preg_replace("/$regexp/siU", "$3 ($2)", $text);
 		} else {
+	 		$text .= "\r\n\r\n"._t('Yours,')."\r\n\r\n".$deployment_name."\r\n\r\n";
 			// convert line breaks to <br> tag
-	 		$text .= "\r\n\r\nYours,\r\n\r\n".$deployment_name."\r\n\r\n";
 			$html_text = nl2br($text);
 			$html_text = self::markup_links($html_text);
-			// convert tabs to &nbsp;
+			// convert other entities to corresponding tags
 			$html_text = preg_replace("/\t/", " &nbsp;&nbsp;&nbsp;&nbsp;", $html_text);
 			$html_text = preg_replace("/----/", "<hr>", $html_text);
 			$html_text = self::make_links_clickable($html_text);

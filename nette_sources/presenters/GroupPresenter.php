@@ -17,19 +17,20 @@ final class GroupPresenter extends BasePresenter
 	protected $group;
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Startup in BasePresenter
+	 *	@param void
+	 *	@return void
 	 */
 	public function startup()
 	{
 		parent::startup();
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Prepares the template for the User Default and User Detail screens
+	 *	@param int $group_id
+	 *	@return void
 	 */
 	public function actionDefault($group_id = null)
 	{
@@ -145,9 +146,9 @@ final class GroupPresenter extends BasePresenter
 		if (isset($data) && isset($data['object_data']['group_language'])) {
 			$languages = Language::getArray();
 			if (isset($languages[$data['object_data']['group_language']])) $this->template->object_language = $languages[$data['object_data']['group_language']];
-		}
-		
+		}	
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -167,6 +168,7 @@ final class GroupPresenter extends BasePresenter
 
 		$this->group = $group;
 	}
+
 
 	/**
 	 *	@todo ### Description

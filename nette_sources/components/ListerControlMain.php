@@ -486,6 +486,7 @@ class ListerControlMain extends NControl
 		$user                         = NEnvironment::getUser()->getIdentity();
 		if (!empty($user)) {
 			$template->user_id = $user->getUserId();
+			$template->logged = true;
 		}
 		
 		$template->currentpage = $this->currentpage;

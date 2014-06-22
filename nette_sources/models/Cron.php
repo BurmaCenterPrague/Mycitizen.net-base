@@ -74,8 +74,14 @@ class Cron extends BaseModel
 				// sending activity only for time since last logout
 				$min_time = ($user_a['user_last_notification'] > strtotime($user_a['user_last_activity'])) ? $user_a['user_last_notification'] : strtotime($user_a['user_last_activity']);
 
+				// admins and mods are notified about new items
+				if ($user_a['user_access_level'] > 1) {
+					$include_all_latest = 1;
+				} else {
+					$include_all_latest = 0;
+				}
 				// new activity
-				$data = Activity::getActivities($user_a['user_id'], $min_time);
+				$data = Activity::getActivities($user_a['user_id'], $min_time, $include_all_latest);
 				if (!empty($data)) {
 					if (!empty($email_text)) {
 						$email_text .= "<p>&nbsp;</p>\r\n"; //'<hr><p>&nbsp;</p>';
@@ -98,7 +104,7 @@ class Cron extends BaseModel
 						Cron::addCron(time() - 1, 1, $user_a['user_id'], $email_text, 4, 0);
 					}
 
-					User::setUserCronSent($user_a['user_id']);
+					User::setUserCronQueued($user_a['user_id']);
 				}
 
 			}
@@ -251,6 +257,50 @@ class Cron extends BaseModel
 			}
 			
 		}
+
+		if (isset($this->verbose)) {
+			echo date("r").': '.' ... done<br/>';
+		}
+		
+		if (isset($this->verbose)) {
+			echo date("r").': '.'Removing old combined scripts ...<br/>';
+		}
+
+		// Clean up old .js and .css cached files, will be re-created on next use.
+		$files_js = glob(WWW_DIR.'/js/combined-*.js');
+		$files_css = glob(WWW_DIR.'/css/combined-*.css');
+		$files = array_merge($files_js, $files_css);
+		if ( is_array ( $files ) && count($files) ) {
+			foreach($files as $file) {
+				// ... older than 7 days
+				if (time() - filemtime($file) > 3600*24*7) {
+					unlink($file);
+					if (isset($this->verbose)) {
+						echo date("r").': Deleted file '.$file;
+					}
+				}
+			}
+		}
+
+		if (isset($this->verbose)) {
+			echo date("r").': '.' ... done<br/>';
+		}
+
+		if (isset($this->verbose)) {
+			echo date("r").': '.'Checking exception notification lock ...<br/>';
+		}
+
+		// Removes the file php_error.log.monitor to re-enable sending error reports by email, if lock is older than 1 week
+		$file = BOOTSTRAP_DIR.'/php_error.log.monitor';
+		if (file_exists($file)) {
+			if (time() - filemtime($file) > 3600*24*7) {		
+				unlink($file);
+				if (isset($this->verbose)) {
+					echo date("r").': Removed lock';
+				}
+			}
+		}
+
 
 		if (isset($this->verbose)) {
 			echo date("r").': '.' ... done<br/>';
