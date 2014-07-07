@@ -435,7 +435,7 @@ class StaticModel extends BaseModel {
 	 		$text .= "<br>"._t('Yours,')."<br><br>".$deployment_name."<br><br>";
 			$html_text = $text;
 			// create plain text version
-			$text = preg_replace("/</td>/", "$0\t", $text);
+			$text = preg_replace("#</td>#", "$0\t", $text);
 			$regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
 			$text = preg_replace("/$regexp/siU", "$3 ($2)", $text);
 		} else {

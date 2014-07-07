@@ -85,6 +85,7 @@ abstract class BasePresenter extends NPresenter
 			$message = "error";
 			$message = ($session->chat === true) ? _t("Chat window turned on.") : _t("Chat window turned off.");
 			$this->flashMessage($message);
+			$this->invalidateControl('popupchat');
 		}
 
 		if (isset($session->chat) && $session->chat) {
@@ -992,13 +993,17 @@ abstract class BasePresenter extends NPresenter
   		
   		$array_feed_items = array();
 		foreach ($events as $event) {
-			$event_start = strtotime($event["resource_data"]['event_timestamp']);
-			$event_end = strtotime($event["resource_data"]['event_timestamp_end']);
+			$event_start = strtotime($event['resource_data']['event_timestamp']);
+			if (isset($event['resource_data']['event_timestamp_end'])) {
+				$event_end = strtotime($event['resource_data']['event_timestamp_end']);
+			} else {
+				$event_end = $event_start;
+			}
   			if (!isset($start) || ($event_start > $start && $event_end < $end)) {
 				$array_feed_item['id'] = $event['id'];
 				$array_feed_item['title'] = $event['name'];
 				
-				if (isset($event['resource_data']['event_allday']) && $event["resource_data"]['event_allday']) {
+				if (isset($event['resource_data']['event_allday']) && $event['resource_data']['event_allday']) {
 					$array_feed_item['start'] = strtotime("midnight",$event_start);
 					$array_feed_item['end'] = $event_end;
 				} else {
@@ -1006,7 +1011,7 @@ abstract class BasePresenter extends NPresenter
 					$array_feed_item['end'] = $event_end;
 				}
 				
-				$array_feed_item['allDay'] = (bool) $event["resource_data"]['event_allday'];
+				$array_feed_item['allDay'] = (bool) $event['resource_data']['event_allday'];
 				
 				if ($user_id == $event['author']) {
 					$array_feed_item['color'] = '#E13C20';
@@ -1033,7 +1038,7 @@ abstract class BasePresenter extends NPresenter
 				} else {
 					$start_h_m = date(_t('g:ia'),$event_start);
 					$timezone = date("e",$event_start);
-					if ($event["resource_data"]['event_timestamp'] != $event["resource_data"]['event_timestamp_end']) {
+					if ($event['resource_data']['event_timestamp'] != $event['resource_data']['event_timestamp_end']) {
 						$end_h_m = date(_t('g:ia'),$event_end);
 					} else {
 						$end_h_m = '';

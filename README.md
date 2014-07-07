@@ -28,7 +28,7 @@ included packages
 - [FullCalendar](http://arshaw.com/fullcalendar/) 1.6.4 (MIT License)
 - [GettextExtractor](https://github.com/karelklima/gettext-extractor) 2.0 (modified) New BSD License
 - [Gettext Translator](http://addons.nettephp.com/gettext-translator) 0.4 New BSD License
-- [GrabzIt API](http://grabz.it/api/php/) 2.0.9 (MIT License)
+- [GrabzIt API](http://grabz.it/api/php/) 2.1.5 (MIT License)
 - [HTML Purifier](http://htmlpurifier.org/) 4.6.0 (GNU Lesser General Public
     License)
 - [jCrop](https://github.com/tapmodo/Jcrop) 0.9.12 (MIT License)
@@ -66,5 +66,10 @@ installation
 
 see http://mycitizen.net/web:start
 
+
+sponsors
+--------
+
+This project is supported from the resources of the Ministry of Foreign Affairs of the Czech Republic within its Transition Promotion Program.
 
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=burmablog&url=https://github.com/BurmaCenterPrague/MyCitizen.net&title=mycitizen.net&language=en&tags=github&category=software) 

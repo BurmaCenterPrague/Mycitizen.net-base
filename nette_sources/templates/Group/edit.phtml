@@ -126,7 +126,7 @@
 <script>
     jQuery(function($) {
         $('#crop').Jcrop({
-        	minSize: [{!$min_size_x},{!$min_size_y}],
+			{ifset $min_size_x}{ifset $min_size_y}minSize: [{!$min_size_x},{!$min_size_y}],{/if}{/if}
         	aspectRatio: 4/5,
         	onChange: enableCrop,
 			onSelect: enableCrop

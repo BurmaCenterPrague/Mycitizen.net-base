@@ -327,18 +327,16 @@
 	    });
 	});
 </script>
-
-{ifset $logged}
-{ifset $popup_chat}
-	{include $popup_chat}
-{/if}
-{/if}
-
 {/snippet}
 			<div class="cleaner"></div>
 		</div>
 
 {snippet popupchat}
+{ifset $logged}
+{ifset $popup_chat}
+	{include $popup_chat}
+{/if}
+{/if}
 {/snippet}
 
 		<div class="footer">
@@ -352,7 +350,7 @@
 				</ul>
 			</div>			
 			<div class="software-info">
-				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>.
+				<a href="https://www.mycitizen.net" target="_blank">mycitizen.net</a> {_"is a product of"} <a href="http://www.burma-center.org" target="_blank">Burma Center Prague</a> - <a href="http://mycitizen.net/about:license">{_"license"}</a>. <!-- Hide link until ECN approves promotion. <a href="http://www.ecn.cz" target="_blank">webdesign, css - econnect</a>. --> webdesign, css - econnect
 				<div class="cleaner"></div>
 				<h4>Stay Connected</h4>
 				<a href="https://www.facebook.com/mycitizen.net" target="_blank"><img src="{$CDN}/images/facebook_icon.png" style="height:16px; width:16px;float:left;padding:0 5px;"/></a>

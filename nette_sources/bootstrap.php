@@ -22,7 +22,7 @@ if (NEnvironment::getConfig('debug')->showErrors) {
 } else {
 	$application->catchExceptions = true;
 	$application->errorPresenter = 'Error';
-	NDebug::enable(NDebug::PRODUCTION, NULL, NEnvironment::getConfig('debug')->logEmail);
+	NDebug::enable(NDebug::PRODUCTION, '%logDir%/php_error.log', NEnvironment::getConfig('debug')->logEmail);
 	NEnvironment::setMode('production', TRUE);
 }
 

@@ -291,7 +291,7 @@ class Cron extends BaseModel
 		}
 
 		// Removes the file php_error.log.monitor to re-enable sending error reports by email, if lock is older than 1 week
-		$file = BOOTSTRAP_DIR.'/php_error.log.monitor';
+		$file = LOG_DIRECTORY.'*.monitor';
 		if (file_exists($file)) {
 			if (time() - filemtime($file) > 3600*24*7) {		
 				unlink($file);

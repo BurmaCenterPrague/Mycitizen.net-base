@@ -32,19 +32,19 @@ $(document).ready(function(){
 	});
 
 	$('#toggle_open').click(function(){
+		if (!$('#chat_overlay').is(":visible")) {
+			if ($('#no_popup_chat').length > 0) {
+				alert({_"The chat window is not available."});
+				return false;
+			}			
+		}	
 		$('#chat_overlay').fadeToggle(500, function(){
-			$('#chat_abstract').show();
 			if ($(this).is(":visible")) {
-				if ($('#no_popup_chat').val() != 'undefined') {
-					// We are closing the chat in the main window
-					var url = location.href;
-					var urlq = url + (url.split('?')[1] ? '&':'?') + "do=clicklink&nochat=1";
-					$.getJSON(urlq);
-				}
-
 				$('#chat_abstract').hide();
 				pmpop_loadEditor();
 				pmpop_reloadChat();
+			} else {
+				$('#chat_abstract').show();
 			}
 		});
 	});

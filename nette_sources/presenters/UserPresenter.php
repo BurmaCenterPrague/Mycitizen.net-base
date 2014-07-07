@@ -1889,7 +1889,6 @@ final class UserPresenter extends BasePresenter
 	 *	@return
 	*/
 	public function handleCrop() {
-		if (Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 		$request = NEnvironment::getHttpRequest();
 
 		$factor = $request->getQuery("factor");
@@ -1902,6 +1901,12 @@ final class UserPresenter extends BasePresenter
 		$h = $request->getQuery("h") * $factor;
 		$user_id = $request->getQuery("user_id");
 
+		if (empty($user_id)) {
+			$this->flashMessage("Internal error", 'error');
+			$this->redirect("User:default");
+		}
+		
+		if (Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 
 		if ($user_id == 0 || Auth::isAuthorized(Auth::TYPE_USER, $user_id) < 2) {
 			$this->flashMessage(_t("You are not allowed to edit this user."), 'error');
@@ -1909,18 +1914,20 @@ final class UserPresenter extends BasePresenter
 		}
 		
 		// remove from cache
-		$image = Image::createimage($user_id,1);
-		$image->remove_cache();
-		$image->crop($x, $y, $w, $h);
-		$image->save_data();
-		$result = $image->create_cache();
-		if ($result !== true) $this->flashMessage($result, 'error');
-		$this->flashMessage(_t("Finished cropping and resizing."));
-		Activity::addActivity(Activity::USER_UPDATED, $user_id, 1);
+		$image = Image::createimage($user_id, 1);
+		if (!empty($image)) {
+			$image->remove_cache();
+			$image->crop($x, $y, $w, $h);
+			$image->save_data();
+			$result = $image->create_cache();
+			if ($result !== true) $this->flashMessage($result, 'error');
+			$this->flashMessage(_t("Finished cropping and resizing."));
+			Activity::addActivity(Activity::USER_UPDATED, $user_id, 1);
 		
-		$storage = new NFileStorage(TEMP_DIR);
-		$cache = new NCache($storage);
-		$cache->clean(array(NCache::TAGS => array("user_id/$user_id")));
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id")));
+		}
 
 		$this->redirect("User:edit",$user_id);
 	}

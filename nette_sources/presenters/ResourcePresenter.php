@@ -1478,7 +1478,7 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleUserResourceInsert($user_id, $resource_id)
 	{
-		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
+		if (Auth::isAuthorized(3, $resource_id) < Auth::USER || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 
 		if (empty($resource_id) || empty($user_id)) {
 			print "false";
@@ -1525,7 +1525,7 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function handleUserResourceRemove($user_id, $resource_id)
 	{
-		if (Auth::isAuthorized(3, $resource_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
+		if (Auth::isAuthorized(3, $resource_id) < Auth::USER || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 
 		if (empty($resource_id) || empty($user_id)) {
 			print "false";
