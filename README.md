@@ -1,5 +1,5 @@
-mycitizen.net
-=============
+mycitizen.net - base
+====================
 
 (c) 2012ff. Burma Center Prague - more information at http://www.mycitizen.org
 

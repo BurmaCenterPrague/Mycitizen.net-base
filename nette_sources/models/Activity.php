@@ -302,21 +302,21 @@ class Activity extends BaseModel {
 							if ($activity['object_id'] != $user_id) {
 								$description = sprintf(_t('User %s requested your friendship.'),$object_name);
 							} else {
-								$description = sprintf(_t('You requested %s\'s friendship.'),$object_name);
+								$description = sprintf(_t("You requested %s's friendship."),$object_name);
 							}
 						break;
 						case Activity::FRIENDSHIP_YES:
 							if ($activity['object_id'] != $user_id) {
 								$description = sprintf(_t('User %s accepted your friendship.'),$object_name);
 							} else {
-								$description = sprintf(_t('You accepted %s\'s friendship.'),$object_name);
+								$description = sprintf(_t("You accepted %s's friendship."),$object_name);
 							}
 						break;
 						case Activity::FRIENDSHIP_NO:
 							if ($activity['object_id'] != $user_id) {
 								$description = sprintf(_t('User %s rejected your friendship.'),$object_name);
 							} else {
-								$description = sprintf(_t('You rejected %s\'s friendship.'),$object_name);
+								$description = sprintf(_t("You rejected %s's friendship."),$object_name);
 							}
 						break;
 						case Activity::FRIENDSHIP_END:
