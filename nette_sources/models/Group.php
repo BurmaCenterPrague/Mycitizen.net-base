@@ -35,7 +35,7 @@ class Group extends BaseModel {
 	*/
 	public function __construct($group_id) {
 		if(!empty($group_id)) {
-			$result = dibi::fetchAll("SELECT `group_id`, `group_author`, `group_name`, `group_description`, `group_language`, `group_visibility_level`, `group_access_level`, `group_status`, `group_viewed`, `group_position_x`, `group_position_y`, `group_last_activity`, `group_portrait` FROM `group` WHERE `group_id` = %i",$group_id); // , `group_hash`, , `group_largeicon`, `group_icon`
+			$result = dibi::fetchAll("SELECT `group_id`, `group_author`, `group_name`, `group_description`, `group_language`, `group_visibility_level`, `group_access_level`, `group_status`, `group_viewed`, `group_position_x`, `group_position_y`, `group_last_activity`, `group_portrait` FROM `group` WHERE `group_id` = %i", $group_id);
 			if(sizeof($result) > 2) {
 				return false;
 				throw new Exception("More than one group with the same id found.");
@@ -164,6 +164,7 @@ class Group extends BaseModel {
       return $this->group_data['group_visibility_level'];
    }
 
+
 	/**
 	 *	@todo Returns the access level
 	 *	@param
@@ -172,6 +173,7 @@ class Group extends BaseModel {
 	public function getAccessLevel() {
 		return $this->group_data['group_access_level'];
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -185,6 +187,7 @@ class Group extends BaseModel {
 		}
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -197,13 +200,15 @@ class Group extends BaseModel {
       }
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
 	 *	@return
 	 */
 	public function getTags() {
-		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `group_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
+//		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `group_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
+		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt, `tag` t WHERE t.`tag_id` = gt.`tag_id` AND `group_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
 		$array = array();
 		foreach($result as $row) {
 			$data = $row->toArray();
@@ -226,16 +231,13 @@ class Group extends BaseModel {
 		}
 		return $result;
 	}
-	
-	/**
-	*		Groups tags according to their parent and sorts them by parent, then child
-	*/
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+
+	/**
+	 *		Groups tags according to their parent and sorts them by parent, then child
+	 *	@param
+	 *	@return
+	 */
 	public function groupSortTags($tags) {
 
 		uasort($tags, function($a,$b){
@@ -277,6 +279,7 @@ class Group extends BaseModel {
 		return $tags;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -305,9 +308,11 @@ class Group extends BaseModel {
          $filter_o[] = array('%or',array(array('`user_login` LIKE %~like~',$filter['name']),array('`user_name` LIKE %~like~',$filter['name']),array('`user_surname` LIKE %~like~',$filter['name'])));
       }
       if(!is_null($limit) && !is_null($count)) {
-         $result = dibi::fetchAll("SELECT u.`user_id`,u.`user_email`,u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and LIMIT %i,%i",$filter_o,$limit,$count);
+//         $result = dibi::fetchAll("SELECT u.`user_id`, u.`user_email`, u.`user_login`, u.`user_name`, u.`user_surname`, gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and LIMIT %i,%i",$filter_o,$limit,$count);
+         $result = dibi::fetchAll("SELECT u.`user_id`, u.`user_email`, u.`user_login`, u.`user_name`, u.`user_surname`, gu.* FROM `group_user` gu, `user` u WHERE gu.`user_id` = u.`user_id` AND %and LIMIT %i,%i", $filter_o, $limit, $count);
       } else {
-         $result = dibi::fetchAll("SELECT u.`user_id`,u.`user_email`,u.`user_login`,u.`user_name`,u.`user_surname`,gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and",$filter_o);
+//         $result = dibi::fetchAll("SELECT u.`user_id`, u.`user_email`, u.`user_login`, u.`user_name`, u.`user_surname`, gu.* FROM `group_user` gu LEFT JOIN `user` u ON (gu.`user_id` = u.`user_id`) WHERE %and",$filter_o);
+         $result = dibi::fetchAll("SELECT u.`user_id`, u.`user_email`, u.`user_login`, u.`user_name`, u.`user_surname`, gu.* FROM `group_user` gu, `user` u WHERE gu.`user_id` = u.`user_id` AND %and",$filter_o);
       }
       $users = array();
       foreach($result as $row) {
@@ -527,7 +532,8 @@ class Group extends BaseModel {
 	*/
 	public function getSubscribedResources() {
 		$group_id = $this->numeric_id;
-        $result = dibi::fetchAll("SELECT * FROM `resource_user_group` LEFT JOIN `resource` ON `resource_user_group`.`resource_id` = `resource`.`resource_id` WHERE `resource`.`resource_type` IN (2,3,4,5,6) AND `resource`.`resource_status` = '1' AND `resource_user_group`.`member_id` = %i AND `resource_user_group`.`member_type` = 2",$group_id);
+//        $result = dibi::fetchAll("SELECT * FROM `resource_user_group` LEFT JOIN `resource` ON `resource_user_group`.`resource_id` = `resource`.`resource_id` WHERE `resource`.`resource_type` IN (2,3,4,5,6) AND `resource`.`resource_status` = '1' AND `resource_user_group`.`member_id` = %i AND `resource_user_group`.`member_type` = 2",$group_id);
+        $result = dibi::fetchAll("SELECT * FROM `resource_user_group`, `resource` WHERE `resource_user_group`.`resource_id` = `resource`.`resource_id` AND `resource`.`resource_type` IN (2,3,4,5,6) AND `resource`.`resource_status` = '1' AND `resource_user_group`.`member_id` = %i AND `resource_user_group`.`member_type` = 2",$group_id);
       return $result;
    }
 

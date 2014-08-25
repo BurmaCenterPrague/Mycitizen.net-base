@@ -78,185 +78,10 @@ class Administration extends BaseModel
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public static function getAllUsers($filter)
-	{
-		$limit    = null;
-		$count    = null;
-		$filter_o = array();
-		if (isset($filter['limit'])) {
-			$limit = $filter['limit'];
-			unset($filter['limit']);
-		}
-		if (isset($filter['count'])) {
-			$count = $filter['count'];
-			unset($filter['count']);
-		}
-		if (isset($filter['user_access_level']) && $filter['user_access_level'] != 'null') {
-			$filter_o['user_access_level'] = $filter['user_access_level'];
-		}
-		if (isset($filter['user_status']) && $filter['user_status'] != 'null') {
-			$filter_o['user_status'] = $filter['user_status'];
-		}
-		if (isset($filter['name']) && $filter['name'] != "") {
-			$filter_o[] = array(
-				'%or',
-				array(
-					array(
-						'`user_login` LIKE %~like~',
-						$filter['name']
-					),
-					array(
-						'`user_name` LIKE %~like~',
-						$filter['name']
-					),
-					array(
-						'`user_surname` LIKE %~like~',
-						$filter['name']
-					)
-				)
-			);
-		}
-		if (!is_null($limit) && !is_null($count)) {
-			$result = dibi::fetchAll("SELECT * FROM `user` WHERE %and LIMIT %i,%i", $filter_o, $limit, $count);
-		} else {
-			$result = dibi::fetchAll("SELECT * FROM `user` WHERE %and", $filter_o);
-		}
-		$users = array();
-		foreach ($result as $row) {
-			$data      = $row->toArray();
-			$result_2  = dibi::fetchAll("SELECT `resource_id` FROM `resource_user_group` WHERE `member_id` = %i AND `member_type` = 1", $data['user_id']);
-			$resources = array();
-			foreach ($result_2 as $r2_row) {
-				$res         = $r2_row->toArray();
-				$resources[] = $res['resource_id'];
-			}
-			$data['registered_resources'] = $resources;
-			$users[]                      = $data;
-		}
-		return $users;
-	}
-
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public static function getAllGroups($filter)
-	{
-		$limit    = null;
-		$count    = null;
-		$filter_o = array();
-		if (isset($filter['limit'])) {
-			$limit = $filter['limit'];
-			unset($filter['limit']);
-		}
-		if (isset($filter['count'])) {
-			$count = $filter['count'];
-			unset($filter['count']);
-		}
-		if (isset($filter['group_status']) && $filter['group_status'] != 'null') {
-			$filter_o['group_status'] = $filter['group_status'];
-		}
-		if (isset($filter['name']) && $filter['name'] != "") {
-			$filter_o[] = array(
-				array(
-					'`group_name` LIKE %~like~',
-					$filter['name']
-				)
-			);
-		}
-		if (!is_null($limit) && !is_null($count)) {
-			$result = dibi::fetchAll("SELECT * FROM `group` g WHERE %and GROUP BY g.`group_id` LIMIT %i,%i", $filter_o, $limit, $count);
-		} else {
-			$result = dibi::fetchAll("SELECT * FROM `group` g WHERE %and GROUP BY g.`group_id`", $filter_o);
-		}
-		$groups = array();
-		foreach ($result as $row) {
-			
-			$data         = $row->toArray();
-			$group_object = Group::create($data['group_id']);
-			$user         = NEnvironment::getUser()->getIdentity();
-			if (!empty($user)) {
-				if ($group_object->userIsRegistered($user->getUserId())) {
-					$data['logged_user_member'] = 1;
-				} else {
-					$data['logged_user_member'] = 0;
-				}
-			} else {
-				$data['logged_user_member'] = -1;
-			}
-			$result_2  = dibi::fetchAll("SELECT `resource_id` FROM `resource_user_group` WHERE `member_id` = %i AND `member_type` = 2", $data['group_id']);
-			$resources = array();
-			foreach ($result_2 as $r2_row) {
-				$res         = $r2_row->toArray();
-				$resources[] = $res['resource_id'];
-			}
-			$data['registered_resources'] = $resources;
-			$groups[]                     = $data;
-		}
-		return $groups;
-	}
-
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
-	 */
-	public static function getAllResources($filter)
-	{
-		$limit    = null;
-		$count    = null;
-		$filter_o = array();
-		if (isset($filter['limit'])) {
-			$limit = $filter['limit'];
-			unset($filter['limit']);
-		}
-		if (isset($filter['count'])) {
-			$count = $filter['count'];
-			unset($filter['count']);
-		}
-		if (isset($filter['resource_status']) && $filter['resource_status'] != 'null') {
-			$filter_o['resource_status'] = $filter['resource_status'];
-		}
-		if (isset($filter['name']) && $filter['name'] != "") {
-			$filter_o[] = array(
-				array(
-					'`resource_name` LIKE %~like~',
-					$filter['name']
-				)
-			);
-		}
-		if (isset($filter['resource_type'])) {
-			$filter_o[] = array(
-				array(
-					'`resource_type` = %i',
-					$filter['resource_type']
-				)
-			);
-		}
-		if (!is_null($limit) && !is_null($count)) {
-			$result = dibi::fetchAll("SELECT * FROM `resource` r WHERE %and GROUP BY r.`resource_id` LIMIT %i,%i", $filter_o, $limit, $count);
-		} else {
-			$result = dibi::fetchAll("SELECT * FROM `resource` r WHERE %and GROUP BY r.`resource_id`", $filter_o);
-		}
-		$groups = array();
-		foreach ($result as $row) {
-			$groups[] = $row->toArray();
-		}
-		return $groups;
-	}
-
-
-	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves all tags that match the given filter
+	 *
+	 *	@param array $filter
+	 *	@return array
 	 */
 	public static function getAllTags($filter)
 	{
@@ -295,11 +120,12 @@ class Administration extends BaseModel
 
 
 	/**
-	 *	Retrieves listings from database
+	 *	Retrieves lists of users, groups or resources from database, according to a filter
+	 *
 	 *	@param array $types
 	 *	@param array $filter
-	 *	@param boolean $counter_mode
-	 *	@param boolean $reduce_data_volume
+	 *	@param boolean $counter_mode Returns only the number.
+	 *	@param boolean $reduce_data_volume For low-speed mobile connections: retrieve smaller images.
 	 *	@return array|int
 	 */
 	public static function getData($types, $filter, $counter_mode = false, $reduce_data_volume = false)
@@ -709,11 +535,14 @@ class Administration extends BaseModel
 					$sql .= " )";
 				} else {
 					if (isset($filter['order_by'])) {
-						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+//						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+						$sql .= " " . $filter['order_by'].")";
 					} elseif (isset($filter['sort_by_activity'])) {
-						$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
+//						$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
+						$sql .= " ORDER BY status DESC, last_activity DESC)";
 					} else {
-						$sql .= " GROUP BY `id` ORDER BY links DESC)";
+//						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC)";
+						$sql .= " ORDER BY status DESC, links DESC)";
 					}
 				}	
 			}
@@ -729,11 +558,14 @@ class Administration extends BaseModel
 					$sql .= " )";
 				} else {
 					if (isset($filter['order_by'])) {
-						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+//						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+						$sql .= " ".$filter['order_by'].")";
 					} elseif (isset($filter['sort_by_activity'])) {
-						$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
+//						$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
+						$sql .= " ORDER BY status DESC, last_activity DESC)";
 					} else {
-						$sql .= " GROUP BY `id` ORDER BY links DESC)";
+//						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC)";
+						$sql .= " ORDER BY status DESC, links DESC)";
 					}
 				}	
 			}
@@ -765,14 +597,18 @@ class Administration extends BaseModel
 							$filter['type'] = array(2, 3, 4, 5, 6);
 						}
 						if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
-							$sql .= " GROUP BY `id` ORDER BY `resource`.`resource_creation_date` DESC)";
+//							$sql .= " GROUP BY `id` ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
+							$sql .= " ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
 						} else {
 							if (isset($filter['order_by'])) {
-								$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+//								$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+								$sql .= " ".$filter['order_by'].")";
 							} elseif (isset($filter['sort_by_activity'])) {
-								$sql .= " GROUP BY `id` ORDER BY last_activity DESC)";
+//								$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
+								$sql .= " ORDER BY status DESC, last_activity DESC)";
 							} else {
-								$sql .= " GROUP BY `id` ORDER BY links DESC, `resource`.`resource_creation_date` DESC,opened.`resource_opened_by_user` ASC)";
+//								$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
+								$sql .= " ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
 							}
 						}
 					}
@@ -798,7 +634,8 @@ class Administration extends BaseModel
 					if ($counter_mode) {
 						$sql .= " )";
 					} else {
-						$sql .= " GROUP BY `id` ORDER BY links DESC,`resource`.`resource_creation_date` DESC )";
+//						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC,`resource`.`resource_creation_date` DESC )";
+						$sql .= " ORDER BY status DESC, links DESC,`resource`.`resource_creation_date` DESC )";
 					}
 					
 				}
@@ -836,7 +673,7 @@ class Administration extends BaseModel
 			// get subscribed resources
 			if ($data['type_name'] == "user") {
 				$resources = array();
-				$result_2  = dibi::fetchAll("SELECT `resource_id` FROM `resource_user_group` WHERE `member_id` = %i AND `member_type` = 1", $data['id']);
+				$result_2  = dibi::fetchAll("SELECT `resource_id` FROM `resource_user_group` WHERE `member_id` = %i AND `member_type` = 1 ORDER BY resource_user_group_status DESC", $data['id']);
 		
 				$resources = array();
 				foreach ($result_2 as $r2_row) {
@@ -865,7 +702,7 @@ class Administration extends BaseModel
 				} else {
 					$data['logged_user_member'] = -1;
 				}
-				$result_2  = dibi::fetchAll("SELECT `resource_id` FROM `resource_user_group` WHERE `member_id` = %i AND `member_type` = 2", $data['id']);
+				$result_2  = dibi::fetchAll("SELECT `resource_id` FROM `resource_user_group` WHERE `member_id` = %i AND `member_type` = 2 ORDER BY resource_user_group_status DESC", $data['id']);
 				
 				$resources = array();
 				foreach ($result_2 as $r2_row) {

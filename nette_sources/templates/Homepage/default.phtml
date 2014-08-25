@@ -15,7 +15,7 @@ $homepage = true;
 ?>
 {block title}Homepage{/block}
 {block content}
-
+{? StaticModel::logTime('Started template Homepage/default.phtml')}
 <div class="homepage_default_A">
 
 <div class="wrapper-intro">
@@ -84,6 +84,7 @@ $homepage = true;
 			</div>
 		</div>
 	</div>
+{? StaticModel::logTime('Homepage/default.phtml: Finished My Conncetions')}
 
 	<div id="recommendations">
 		<img src="{$baseUri}/images/help.png" class="help-icon" title="{_"You see only item that you are not connected to."} {_"If these recommendations are not precise, you could try to find better tags to describe your interests. You can change your tags on your profile page."}" style="margin-bottom:-8px; float:right;"/>
@@ -112,6 +113,7 @@ $homepage = true;
 		</div>
 		<div class="cleaner"></div>
 	</div>
+{? StaticModel::logTime('Homepage/default.phtml: Finished Recommendations')}
 
 	<div id="activity">
 	<div id="activity_box_home" class="activity-box">
@@ -129,6 +131,7 @@ $homepage = true;
 		});
 	</script>
 	</div>
+{? StaticModel::logTime('Homepage/default.phtml: Finished Activity')}
 
 	<div id="events">
 		<div class="calendar-info" style="padding:1em;">
@@ -192,6 +195,7 @@ $homepage = true;
 		<iframe id='slide_{$home_tab_data[0]}' src="" style="width:90%;height:700px;border:none;"></iframe>
 {/foreach}{/if}
 </div>
+{? StaticModel::logTime('Homepage/default.phtml: Finished Calendar')}
 </div>
 <script>
 	$(document).ready(function() {
@@ -233,7 +237,6 @@ $(document).ready(function(){
 	}
 });
 </script>
-
 <!-- END Filter for my connections -->
 
 {else}{* Users who are not logged in see "top" items. *}
@@ -252,4 +255,5 @@ $(document).ready(function(){
 	</div>
 </div>
 {/if}
+{? StaticModel::logTime('Finished template Homepage/default.phtml')}
 {/block}

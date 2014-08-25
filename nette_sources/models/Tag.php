@@ -19,24 +19,25 @@ class Tag extends BaseModel
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Creates the object
+	 *	@param int $tag_id
+	 *	@return object
 	 */
 	public static function create($tag_id = null)
 	{
 		return new Tag($tag_id);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	contructor: retrieves a tag as array into property
+	 *	@param int $tag_id
+	 *	@return boolean
 	 */
 	public function __construct($tag_id)
 	{
 		if (!empty($tag_id)) {
-			$result = dibi::fetchAll("SELECT * FROM `tag` WHERE `tag_id` = %i", $tag_id);
+			$result = dibi::fetchAll("SELECT `tag_id`, `tag_name`, `tag_position`, `tag_parent_id` FROM `tag` WHERE `tag_id` = %i", $tag_id);
 			if (sizeof($result) > 2) {
 				throw new Exception("More than one tag with the same id found.");
 			}
@@ -52,10 +53,11 @@ class Tag extends BaseModel
 		return true;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Changes the data of a tag to the property
+	 *	@param array $data
+	 *	@return void
 	 */
 	public function setTagData($data)
 	{
@@ -64,10 +66,11 @@ class Tag extends BaseModel
 		}
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves the data of the tag object.
+	 *	@param void
+	 *	@return array
 	 */
 	public function getTagData()
 	{
@@ -75,10 +78,11 @@ class Tag extends BaseModel
 		return $data;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the id of the object's parent tag, or null if tag is on top level.
+	 *	@param void
+	 *	@return int|null
 	 */
 	public function getParentTag()
 	{
@@ -89,10 +93,11 @@ class Tag extends BaseModel
 		return null;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Saves the property with the tag data to the database, calculating the position.
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function save()
 	{
@@ -126,30 +131,33 @@ class Tag extends BaseModel
 		return true;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the id of the tag.
+	 *	@param void
+	 *	@return int
 	 */
 	public function getTagId()
 	{
 		return $this->numeric_id;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the name of the tag.
+	 *	@param void
+	 *	@return string
 	 */
 	public function getName()
 	{
 		return $this->tag_data['tag_name'];
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns path (string of parents) of tag
+	 *	@param void
+	 *	@return array
 	 */
 	public function getPath()
 	{
@@ -163,10 +171,11 @@ class Tag extends BaseModel
 		return array_reverse($path);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns path (string of parents) of tag, containing id and name
+	 *	@param void
+	 *	@return array
 	 */
 	public function getIdWithPath()
 	{
@@ -188,9 +197,9 @@ class Tag extends BaseModel
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns path of all tags
+	 *	@param void
+	 *	@return array
 	 */
 	public static function getTreeArray()
 	{
@@ -280,35 +289,39 @@ class Tag extends BaseModel
 	 *	@param
 	 *	@return
 	 */
+/*
 	public static function delete($tag_id)
 	{
 		dibi::query("DELETE FROM `tag` WHERE `tag_id` = %i", $tag_id);
 	}
+*/
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Removes a tag and updates other tags and users, groups and resources, if necessary
+	 *	@param int $tag_id
+	 *	@return void
 	 */
 	public static function remove($tag_id)
 	{
-		$tag = Tag::create($tag_id);
-		if ($tag) {
-			$data      = $tag->getTagData();
-			$parent_id = $data['tag_parent_id'];
-			dibi::query("DELETE FROM `tag` WHERE `tag_id` = %i", $tag_id);
-			dibi::query("UPDATE `tag` SET `tag_parent_id` = %i WHERE `tag_parent_id` = %i", $parent_id, $tag_id);
-			
-			dibi::query("DELETE FROM `user_tag` WHERE `tag_id` = %i", $tag_id);
-			dibi::query("DELETE FROM `group_tag` WHERE `tag_id` = %i", $tag_id);
-			dibi::query("DELETE FROM `resource_tag` WHERE `tag_id` = %i", $tag_id);
-		}
+
+//		$tag = Tag::create($tag_id);
+//		if ($tag) {
+//			$data      = $tag->getTagData();
+//			$parent_id = $data['tag_parent_id'];
+//		dibi::query("UPDATE `tag` SET `tag_parent_id` = %i WHERE `tag_parent_id` = %i", $parent_id, $tag_id);
+
+		dibi::query("DELETE FROM `tag` WHERE `tag_id` = %i", $tag_id);
+		dibi::query("UPDATE `tag` SET `tag_parent_id` = 0 WHERE `tag_parent_id` = %i", $tag_id);
+		dibi::query("DELETE FROM `user_tag` WHERE `tag_id` = %i", $tag_id);
+		dibi::query("DELETE FROM `group_tag` WHERE `tag_id` = %i", $tag_id);
+		dibi::query("DELETE FROM `resource_tag` WHERE `tag_id` = %i", $tag_id);
+//		}
 	}
 
 
 	/**
-	 *	Tries to retrieve ID from tag
+	 *	Tries to retrieve ID from tag name (no partial match, but capitalization-invariant)
 	 *	@param string $tag
 	 *	@return array
 	 */
@@ -335,5 +348,20 @@ class Tag extends BaseModel
 		
 		return array('tag_ids' => $tag_ids, 'message' => $message);
 	}
-	
+
+
+	/**
+	 *	Returns the number of items where this tag is used.
+	 *	@param int $tag_id
+	 *	@return int
+	 */
+	public static function get_number($tag_id)
+	{
+		$number = array();
+		$number['user'] = dibi::fetchSingle("SELECT COUNT(`user_tag_id`) FROM `user_tag` WHERE `tag_id` = %i", $tag_id);
+		$number['group'] = dibi::fetchSingle("SELECT COUNT(`group_tag_id`) FROM `group_tag` WHERE `tag_id` = %i", $tag_id);
+		$number['resource'] = dibi::fetchSingle("SELECT COUNT(`resource_tag_id`) FROM `resource_tag` WHERE `tag_id` = %i", $tag_id);
+		$number['total'] = $number['user'] + $number['group'] + $number['resource'];
+		return $number;
+	}	
 }

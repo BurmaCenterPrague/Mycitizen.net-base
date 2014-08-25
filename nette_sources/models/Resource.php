@@ -29,14 +29,14 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function __construct($resource_id) {
 		if(!empty($resource_id)) {
-			$result = dibi::fetchAll("SELECT * FROM `resource` WHERE `resource_id` = %i",$resource_id);
+			$result = dibi::fetchAll("SELECT `resource_id`, `resource_parent_id`, `resource_author`, `resource_type`, `resource_name`, `resource_description`, `resource_data`, `resource_visibility_level`, `resource_language`, `resource_status`, `resource_viewed`, `resource_position_x`, `resource_position_y`, `resource_creation_date`, `resource_trash`, `resource_last_activity` FROM `resource` WHERE `resource_id` = %i", $resource_id);
 			if(sizeof($result) > 2) {
 				return false;
 				throw new Exception("More than one resource with the same id found.");
@@ -56,11 +56,11 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function setResourceData($data) {
 		if(isset($data['resource_parent_id'])) {
 			unset($data['resource_parent_id']);
@@ -71,11 +71,11 @@ class Resource extends BaseModel {
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function getResourceData() {
 		
 		$data = $this->resource_data;
@@ -248,8 +248,8 @@ class Resource extends BaseModel {
 	 *	@return
 	 */
 	public function getTags() {
-		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `resource_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `resource_id` = %i",$this->numeric_id);
-		// ORDER BY (SELECT `resource_parent_id` FROM `resource` r LEFT JOIN `resource_tag` rt ON (r.`resource_id` = rt.`resource_id`) ORDER BY `resource`.`resource_id` ASC LIMIT 1), t.`tag_name` ASC
+//		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `resource_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `resource_id` = %i",$this->numeric_id);
+		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `resource_tag` gt, `tag` t WHERE t.`tag_id` = gt.`tag_id` AND `resource_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
 		$array = array();
 		foreach($result as $row) {
 			$data = $row->toArray();
@@ -664,16 +664,17 @@ class Resource extends BaseModel {
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Returns the number of unread messages of the logged-in user.
+	 *	@param void
+	 *	@return int
 	 */
 	public static function getUnreadMessages() {
 		$user = NEnvironment::getUser()->getIdentity();
 		if(!empty($user)) {
 			$user_id = $user->getUserId();
-			$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource` LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND (`resource`.`resource_type` = 1 OR `resource`.`resource_type` = 9 OR `resource`.`resource_type` = 10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0",$user_id,$user_id);
-			return $count;
+/*			$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource` LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND `resource`.`resource_type` IN (1,9,10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0",$user_id,$user_id);
+			return $count; */
+			return User::getUnreadMessages($user_id);
 		} else {
 			return 0;
 		}

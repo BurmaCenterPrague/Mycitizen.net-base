@@ -15,6 +15,15 @@
 {var load_js_css_zxcvbn => true}
 {block title}{_"User Signup"}{/block}
 {block content}
+<script>
+	$(document).ready(function(){
+		$("#progressbar").fadeOut(1000);
+		$('#frmregisterform-register').click(function(){
+			$("#progressbar").delay(2000).fadeIn(1000);
+		});
+	});
+</script>
+
 <div class="wrapper-text">
 {ifset $logged}
 	<a href="{link Homepage:logout}" class="button">{_"Sign out"}</a>

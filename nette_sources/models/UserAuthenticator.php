@@ -27,7 +27,7 @@ class UserAuthenticator extends BaseModel implements IAuthenticator {
         $result = dibi::fetchAll("SELECT * FROM `user` WHERE `user_login` = %sN", $username);
 		
        	if (!$result || !$result[0]) {
-           	throw new NAuthenticationException("User '".$username."' not found.", self::IDENTITY_NOT_FOUND);
+           	throw new NAuthenticationException(_t("User %s not found.", $username), self::IDENTITY_NOT_FOUND);
        	}
 
 		if ($credentials['extra'] != 'facebook') {		

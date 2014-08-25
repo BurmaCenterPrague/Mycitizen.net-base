@@ -761,10 +761,10 @@ final class AdministrationPresenter extends BasePresenter
 		
 		// removing old locales
 		foreach ($languages as $lang) {
-			if (!in_array($lang,$dirs)) {
+			if (!in_array($lang, $dirs)) {
 				$this->flashMessage(sprintf(_t("Found unused locale '%s', removing from database."),$lang));
 				
-				if (!Language::removeCode($lang)) {
+				if (!Language::removeFlag($lang)) {
 					$this->flashMessage(_t("Database error."), 'error');
 				}	
 			}

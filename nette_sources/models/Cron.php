@@ -356,7 +356,8 @@ class Cron extends BaseModel
 		}
 				
 	}
-	
+
+
 	/**
 	*	updates time (UNIX timestamp) of last run in database
 	 *	@param void

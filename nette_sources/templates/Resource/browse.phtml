@@ -14,6 +14,9 @@
 {block title}{_"Browse Resources"}{/block}
 {block content}
 <script type="text/javascript">
+
+	var amount_hidden_items = 0;
+	
 	$(document).ready(function() {
 		$("#listOfTags").tagit({
 			availableTags: [{!$available_tags}],
@@ -37,14 +40,33 @@
 			}
 		});
 		
-		$('#cleanup').click(function(){
-			$('.browse-item').each(function(){
+		function hide_items() {
+			$('.browse-item:visible').each(function(){
 				if ($(this).css('opacity') < 1) {
 					$(this).slideUp();
+					amount_hidden_items++;
 				}
 			});
-		});
+			if (amount_hidden_items>0) {
+				$('#hidden_items').html("<h4>"+{_"Hidden:"}+" "+amount_hidden_items+"</h4>");
+			}
+		}
 		
+		$('#cleanup').click(function(){
+			hide_items();
+		});
+
+		$(window).keydown(function(e) {
+			switch (e.keyCode) {
+				case 8: case 46: // backspace or delete
+					var id = document.activeElement.id;
+					if (id != 'tag_input_field' && id != 'name') {
+						hide_items();
+						return false;
+					}
+			}
+			return;
+		});
 		
 		$('ul.tagit-autocomplete').css({
 		    'columns': "{$autocomplete_columns}",
@@ -53,6 +75,7 @@
 		    'width': "auto",
 		    'max-height': "600px"
 		});
+		$('#listOfTags input').attr('id','tag_input_field');
 		
 	});
 
@@ -82,6 +105,9 @@
 		var type = $('#type').val();
 		var name = $('#name').val();
 		var data = { 'tags':tags, 'type':type, 'name':name, 'sort':sort, 'map':map };
+		
+		$('#hidden_items').html('');
+		amount_hidden_items = 0;
 		$("#progressbar").delay(2000).fadeIn(1000);
 		
 		$.post('?do=browseresources',
@@ -254,11 +280,11 @@ $(document).ready(function(){
 </div>
 	<div class="resource-browser-actions">
 		<a href="javascript:window.print()" id="print" class="button">{_"print"}</a>
-		<a href="javascript:void(0)" id="cleanup" class="button" title="{_"Remove all faded items."}">{_"clean up"}</a>
+		<a href="javascript:void(0)" id="cleanup" class="button" title="{_"Remove all faded items."}<br /> {_"keyboard shortcuts: <b>backspace</b> or <b>delete</b>"}">{_"clean up"}</a>
 	</div>
 
-<div id="item_header">
-</div>
+<div id="item_header"></div>
+<div id="hidden_items" style="padding: 0 20px;"></div>
 <div id="item_container_1" class="items">
 <h4>{_"Please enter some tags."}</h4>
 </div>

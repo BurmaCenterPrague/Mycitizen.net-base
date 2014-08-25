@@ -156,6 +156,7 @@ final class UserPresenter extends BasePresenter
 			if (isset($data['object_data']['user_language']) && isset($languages[$data['object_data']['user_language']])) $this->template->object_language = $languages[$data['object_data']['user_language']];
 		}
 
+		StaticModel::logTime('Finished UserPresenter->actionDefault()');
 	}
 
 
@@ -455,6 +456,7 @@ final class UserPresenter extends BasePresenter
 		if ($user->isLoggedIn()) {
 			$user->logout();
 			NEnvironment::getSession()->destroy();
+			$this->redirect('this');
 		}
 		
 		if (Settings::getVariable('sign_in_disabled')) {
@@ -1607,7 +1609,7 @@ final class UserPresenter extends BasePresenter
 
 		// check if it is a message
 		$resource_type = Resource::getResourceType($message_id);
-		if ($resource_type != 1 && $resource_type != 9) {
+		if ($resource_type != 1 && $resource_type != 9 && $resource_type != 10) {
 			echo "false";
 			$this->terminate();
 		}

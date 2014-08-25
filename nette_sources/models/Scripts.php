@@ -124,14 +124,12 @@ class Scripts {
 			return false;
 		}
 		if (count($this->script_items[$type]) == 0) return;
-		
 		$output = array();
 		$cache_key = md5(json_encode($this->script_items[$type]));
 		$file_path = $this->base_target_path.$type.'/combined-'.$cache_key.'.'.$type;
 		$file_url = $this->base_target_url.$type.'/combined-'.$cache_key.'.'.$type;
 		if (!file_exists($file_path) || $force) {
 			// load all file contents
-
 			foreach ($this->script_items[$type] as $script_item) {
 				$script_url = $script_item['url'];
 				$script_base = $script_item['local_url'] ? $script_item['local_url'] : $this->base_origin_url.$type;
@@ -142,12 +140,12 @@ class Scripts {
 				if ($content = @file_get_contents($script_url)) {
 					$content = preg_replace('#^//@ sourceMappingURL=.*$#', '', $content);
 					if ($type == 'css') {
+						// url(myfont.ttf but excluding url(data:...; must be processed before others
+						$content = preg_replace("#(url\(['\"]?)((?!data:)[A-Za-z_]+)#i", '$1'.$script_base.'/$2', $content);
 						// url(../images
 						$content = preg_replace("#(url\(['\"]?)\.\./#i", '$1'.$script_base.'/../', $content);
 						// url(./ckeditor
 						$content = preg_replace("#(url\(['\"]?)\./#i", '$1'.$script_base.'/', $content);
-						// url(myfont.ttf but excluding url(data:...
-						$content = preg_replace("#(url\(['\"]?)((?!data:)[A-Za-z_]+)#i", '$1'.$script_base.'/$2', $content);
 					}
 					$data[] = $content;
 					$data[] = "\n";

@@ -15,7 +15,7 @@
 
 </div>
 <div class="lister-body">
-	<table class="admin-table" cellspacing="0" cellpaddin="5" style="width:700px;">
+	<table class="admin-table" cellspacing="0" cellpadding="5" style="width:700px;">
     <tr>
         <th>
         	<h3>Name</h3>
@@ -28,6 +28,9 @@
         </th>
         <th>
         	<h3>Position</h3>
+        </th>
+        <th>
+        	<h3>Usage</h3>
         </th>
     </tr>
    {foreach $data as $tag}
@@ -49,6 +52,14 @@
             	<p><a class="button" href="?do=move&tag_id={$tag['tag_id']}&direction=up">{_"move up"}</a></p>
             	<p><a class="button" href="?do=move&tag_id={$tag['tag_id']}&direction=down">{_"move down"}</a></p>
             {/if}
+			</td>
+			<td>
+				<table cellspacing="0" style="background-color:white; font-size:10px; margin:5px 10px;">
+				<tr><td>Users:</td><td>{$tag['tag_number']['user']}</td></tr>
+				<tr><td>Groups:</td><td>{$tag['tag_number']['group']}</td></tr>
+				<tr><td>Resources:</td><td>{$tag['tag_number']['resource']}</td></tr>
+				<tr><td><b>Total:</b></td><td><b>{$tag['tag_number']['total']}</b></td></tr>
+				</table>
 			</td>
         {control $formName end}
         </tr>

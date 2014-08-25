@@ -87,10 +87,6 @@ class Image extends BaseModel
 	
 	
 	/**
-	 *	Removes the cached images from the folder.
-	 *	@param int $id object id
-	 *	@param int $type user, group or resource
-	 *	@return void
 	 */
 	public function __construct()
 	{

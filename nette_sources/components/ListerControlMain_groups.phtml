@@ -270,7 +270,7 @@
     	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {else}
-   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
     	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}

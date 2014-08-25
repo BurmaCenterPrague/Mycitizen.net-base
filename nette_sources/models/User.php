@@ -40,14 +40,14 @@ class User extends BaseModel implements IIdentity
 	public function __construct($user_id)
 	{
 		if (!empty($user_id)) {
-			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` FROM `user` WHERE `user_id` = %i", $user_id); // ,`user_hash`
+			$result = dibi::fetchAll("SELECT `user_id`,`user_password`,`user_name`,`user_surname`,`user_login`,`user_description`,`user_email`,`user_phone`,`user_phone_imei`,`user_position_x`,`user_position_y`,`user_language`,`user_visibility_level`,`user_access_level`,`user_status`,`user_registration_confirmed`,`user_creation_rights`,`user_send_notifications`,`user_url`,`user_portrait` FROM `user` WHERE `user_id` = %i", $user_id);
 			if (sizeof($result) > 2) {
 				return false;
-				throw new Exception(_t("More than one user with the same id found."));
+				throw new Exception("More than one user with the same id found.");
 			}
 			if (sizeof($result) < 1) {
 				return false;
-				throw new Exception(_t("Specified user not found."));
+				throw new Exception("Specified user not found.");
 			}
 			$data_array       = $result[0]->toArray();
 			$this->numeric_id = $data_array['user_id'];
@@ -350,7 +350,8 @@ class User extends BaseModel implements IIdentity
 	 */
 	public function getTags()
 	{
-		$result = dibi::fetchAll("SELECT ut.`tag_id`,t.`tag_name` FROM `user_tag` ut LEFT JOIN `tag` t ON (t.`tag_id` = ut.`tag_id`) WHERE `user_id` = %i ORDER BY t.`tag_name` ASC", $this->numeric_id);
+//		$result = dibi::fetchAll("SELECT ut.`tag_id`,t.`tag_name` FROM `user_tag` ut LEFT JOIN `tag` t ON (t.`tag_id` = ut.`tag_id`) WHERE `user_id` = %i ORDER BY t.`tag_name` ASC", $this->numeric_id);
+		$result = dibi::fetchAll("SELECT ut.`tag_id`,t.`tag_name` FROM `user_tag` ut, `tag` t WHERE t.`tag_id` = ut.`tag_id` AND `user_id` = %i ORDER BY t.`tag_name` ASC", $this->numeric_id);
 		$array  = array();
 		foreach ($result as $row) {
 			$data                   = $row->toArray();
@@ -361,14 +362,10 @@ class User extends BaseModel implements IIdentity
 	}
 	
 	/**
-	*		Groups tags according to their parent and sorts them by parent, then child
+	 *		Groups tags according to their parent and sorts them by parent, then child
+	 *	@param
+	 *	@return
 	*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function groupSortTags($tags) {
 	
 		uasort($tags, function($a,$b){
@@ -431,6 +428,7 @@ class User extends BaseModel implements IIdentity
 		}
 		return $pass;
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -588,6 +586,7 @@ class User extends BaseModel implements IIdentity
 
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -607,19 +606,12 @@ class User extends BaseModel implements IIdentity
 		$link  = "http://" . $_SERVER['HTTP_HOST'] . "/user/emailchange/?user_id=" . $id . "&control_key=" . $hash . "&language=" . $language;
 		$body  = sprintf(_t("Hello %s,\n\nYou have requested an email change on Mycitizen.net.\nTo finish your request click [here] (%s), or copy the following link to your browser:\n\n%s"), $name, $link, $link );
 		
-/*
-		$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
-		mail($email, '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
-*/
 		StaticModel::send_email($name, $email, _t('Email change on Mycitizen.net'), $body);
 		
 		if ($email != $this->user_data['user_email']) {
 			$support_url = NEnvironment::getVariable("SUPPORT_URL");
 			$body  = sprintf(_t("Hello %s,\n\nSomebody has requested an email change on Mycitizen.net. The new email will be: %s\n\nIf you think that this is wrong, please [contact the support] (%s)."), $name, $email, $support_url ) . "\n\n " . $link;
-/*
-			$headers = 'From: Mycitizen.net <' . Settings::getVariable("reply_email") . '>' . "\n" . "MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: 8bit";
-			mail($this->user_data['user_email'], '=?UTF-8?B?' . base64_encode(_t('Email change on Mycitizen.net')) . '?=', $body, $headers);
-*/
+
 			StaticModel::send_email($name, $this->user_data['user_email'], _t('Email change on Mycitizen.net'), $body);
 		}
 		return $body;
@@ -635,7 +627,7 @@ class User extends BaseModel implements IIdentity
 	{
 		$result = dibi::fetchSingle("SELECT `user_email_new` FROM `user` WHERE `user_id` = %i AND `user_hash` = %s", $user_id, $control_key);
 		if (!empty($result) && $result != "") {
-			dibi::query("UPDATE `user` SET `user_email` = `user_email_new`,`user_email_new` = '' WHERE `user_id` = %i", $user_id);
+			dibi::query("UPDATE `user` SET `user_email` = `user_email_new`, `user_email_new` = '' WHERE `user_id` = %i", $user_id);
 			return true;
 		}
 		return false;
@@ -756,11 +748,11 @@ class User extends BaseModel implements IIdentity
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function reverseFriendsStatus($user_id)
 	{
 		$result = dibi::fetchSingle("SELECT `user_friend_status` FROM `user_friend` WHERE (`user_id` = %i AND `friend_id` = %i) ", $user_id, $this->numeric_id);
@@ -822,19 +814,15 @@ class User extends BaseModel implements IIdentity
 	}
 
 	/**
-	*	reject a friendship request
-	*
-	*	status:
-	*	1:	requested
-	*	2:	accepted
-	*	3:	rejected/blocked
-	*/	
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	 *	reject a friendship request
+	 *
+	 *	status:
+	 *	1:	requested
+	 *	2:	accepted
+	 *	3:	rejected/blocked
+	 *	@param
+	 *	@return
+	 */
 	public function removeFriend($user_id)
 	{
 		try {
@@ -872,6 +860,7 @@ class User extends BaseModel implements IIdentity
 		dibi::commit();
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -897,7 +886,8 @@ class User extends BaseModel implements IIdentity
 	 */
 	public function getFriends()
 	{
-		$friends = dibi::fetchAll("SELECT `user_friend`.`friend_id`,`user`.`user_login` FROM `user_friend` LEFT JOIN `user` ON (`user`.`user_id` = `user_friend`.`friend_id`) WHERE `user_friend`.`user_id` = %i AND `user_friend`.`user_friend_status` = '2' AND EXISTS (SELECT f.`user_id` FROM `user_friend` f WHERE f.`user_id` = `user_friend`.`friend_id` AND f.`friend_id` = `user_friend`.`user_id` AND f.`user_friend_status` = '2')", $this->numeric_id);
+//		$friends = dibi::fetchAll("SELECT `user_friend`.`friend_id`,`user`.`user_login` FROM `user_friend` LEFT JOIN `user` ON (`user`.`user_id` = `user_friend`.`friend_id`) WHERE `user_friend`.`user_id` = %i AND `user_friend`.`user_friend_status` = '2' AND EXISTS (SELECT f.`user_id` FROM `user_friend` f WHERE f.`user_id` = `user_friend`.`friend_id` AND f.`friend_id` = `user_friend`.`user_id` AND f.`user_friend_status` = '2')", $this->numeric_id);
+		$friends = dibi::fetchAll("SELECT `user_friend`.`friend_id`,`user`.`user_login` FROM `user_friend`, `user` WHERE `user`.`user_id` = `user_friend`.`friend_id` AND `user_friend`.`user_id` = %i AND `user_friend`.`user_friend_status` = '2' AND EXISTS (SELECT f.`user_id` FROM `user_friend` f WHERE f.`user_id` = `user_friend`.`friend_id` AND f.`friend_id` = `user_friend`.`user_id` AND f.`user_friend_status` = '2')", $this->numeric_id);
 		$result  = array();
 		foreach ($friends as $row) {
 			$data                       = $row->toArray();
@@ -996,13 +986,14 @@ class User extends BaseModel implements IIdentity
 	}
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks whether the username (login) is already registered.
+	 *	@param string $login
+	 *	@return boolean
 	 */
 	public static function loginExists($login)
 	{
-		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_login` = %s", $login);
+		
+		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_login` = %sN", $login);
 		if (empty($result)) {
 			return false;
 		}
@@ -1012,13 +1003,13 @@ class User extends BaseModel implements IIdentity
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks whether the email address is already registered.
+	 *	@param string $email
+	 *	@return boolean
 	 */
 	public static function emailExists($email)
 	{
-		$result = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_email` = %s", $email);
+		$result = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_email` = %sN", $email);
 		if (empty($result)) {
 			return false;
 		}
@@ -1028,19 +1019,20 @@ class User extends BaseModel implements IIdentity
 
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Obtains the username (login) from an email address.
+	 *	@param string $email
+	 *	@return string|boolean
 	 */
 	public static function userloginFromEmail($email)
 	{
 		return dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_email` = %s", $email);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks whether the user has set a geographic position.
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function hasPosition()
 	{
@@ -1052,11 +1044,11 @@ class User extends BaseModel implements IIdentity
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	Returns the position of the user.
+	 *	@param void
+	 *	@return array
+	*/
 	public function getPosition()
 	{
 		$result = dibi::fetchAll("SELECT  `user_position_x`, `user_position_y` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
@@ -1064,6 +1056,7 @@ class User extends BaseModel implements IIdentity
 			$data[] = $row->toArray();
 		return $data[0];
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -1079,10 +1072,11 @@ class User extends BaseModel implements IIdentity
 		}
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Revokes the user's rights to create groups and resources
+	 *	@param void
+	 *	@return void
 	 */
 	public function revokeCreationRights()
 	{
@@ -1091,10 +1085,11 @@ class User extends BaseModel implements IIdentity
 		}
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves the date of last activity of a user.
+	 *	@param void
+	 *	@return string
 	 */
 	public function getLastActivity()
 	{
@@ -1102,10 +1097,12 @@ class User extends BaseModel implements IIdentity
 		return $result;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Retrieves the date of last activity of a user, with relative formatting for recent times.
+	 *	@param int $user_id
+	 *	@param string $format How to format the time if absolute value.
+	 *	@return array
 	 */
 	public static function getRelativeLastActivity($user_id, $format = 'r')
 	{
@@ -1137,33 +1134,34 @@ class User extends BaseModel implements IIdentity
 		}
 		return array('last_seen' => $result, 'online' => $online);
 	}
-	
-	
+
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the user's date of last activity to now.
+	 *	@param void
+	 *	@return void
 	 */
 	public function setLastActivity()
 	{
 		dibi::query("UPDATE `user` SET `user_last_activity` = NOW() WHERE `user_id` = %i", $this->numeric_id);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Sets the user's date of registration to now.
+	 *	@param void
+	 *	@return void
 	 */
 	public function setRegistrationDate()
 	{
 		dibi::query("UPDATE `user` SET `user_registration` = NOW() WHERE `user_id` = %i", $this->numeric_id);
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks whether a user has the right to create groups and resources by checking the minimum time since confirming the registration and possibly revoked permissions.
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function hasRightsToCreate()
 	{
@@ -1178,10 +1176,11 @@ class User extends BaseModel implements IIdentity
 		return false;
 	}
 
+
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Checks whether the user of this object is identical with the logged-in user who is performing this action.
+	 *	@param void
+	 *	@return boolean
 	 */
 	public function thatsMe() {
 		$logged_user = NEnvironment::getUser()->getIdentity();
@@ -1213,48 +1212,6 @@ class User extends BaseModel implements IIdentity
 	 *	@param
 	 *	@return
 	 */
-/*
-	public static function saveImage($id) {
-##### needed? ##### 
-		$object = User::create($id);
-		
-		if (isset($object)) {
-		
-			$sizes = array('img', 'icon', 'large_icon');
-		
-			foreach ( $sizes as $size) {
-		
-				switch ($size) {
-					case 'img': $src = $object->getAvatar(); break;
-					case 'icon': $src = $object->getIcon(); break;
-					case 'large_icon': $src = $object->getLargeIcon(); break;
-				}
-	
-				if (!empty($src)) {
-					$hash=md5($src);
-		
-					$link = WWW_DIR . '/images/cache/user/'.$id.'-'.$size.'-'.$hash.'.jpg';
-		
-					if(!file_exists($link)) {
-						$img_r = @imagecreatefromstring(base64_decode($src));
-						if (!imagejpeg($img_r, $link)) {
-							die(_t("Error writing image: ").$link);
-						};
-					}
-				}
-
-			}
-
-		}
-		
-	}
-*/
-
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
 	public function getLanguage()
 	{
 		$result = dibi::fetchSingle("SELECT `user_language` FROM `user` WHERE `user_id` = %i ", $this->numeric_id);
@@ -1317,7 +1274,8 @@ class User extends BaseModel implements IIdentity
 	 */
 	public static function getUnreadMessages($user_id)
 	{
-		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`  LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND (`resource`.`resource_type` = 1 OR `resource`.`resource_type` = 9 OR `resource`.`resource_type` = 10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0",$user_id,$user_id);
+//		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`  LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND `resource`.`resource_type` IN (1,9,10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0", $user_id, $user_id);
+		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`, `resource_user_group` WHERE `resource`.`resource_id` = `resource_user_group`.`resource_id` AND `resource_user_group`.`resource_opened_by_user` = 0 AND `resource`.`resource_type` IN (1,9,10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0", $user_id, $user_id);
 		if (isset($count)) {
 			return $count;
 		} else {
@@ -1336,11 +1294,11 @@ class User extends BaseModel implements IIdentity
 	}
 
 
-/**
- *	@todo ### Description
- *	@param
- *	@return
-*/
+	/**
+	 *	@todo ### Description
+	 *	@param
+	 *	@return
+	*/
 	public function setNotificationSetting($value)
 	{
 		dibi::query("UPDATE `user` SET `user_send_notifications` = %i WHERE `user_id` = %i", $value, $this->numeric_id);

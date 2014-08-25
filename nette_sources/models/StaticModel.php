@@ -644,7 +644,7 @@ class StaticModel extends BaseModel {
 		$ip = ip2long(self::getIpAddress());
 
 		$result = dibi::fetchSingle('SELECT `failed_logins_id` FROM `failed_logins` WHERE `event` = 2 AND `ip` = %s AND `time` > %i  LIMIT 1', $ip, time()-Settings::getVariable('ip_blocking_time_hours')*3600);
-		if ($result > 0) {
+		if (!empty($result)) {
 			return false;
 		} else {
 			return true;
@@ -691,5 +691,34 @@ class StaticModel extends BaseModel {
 		}
 		return $_SERVER['REMOTE_ADDR'];
 	}
+
+
+	/**
+	 *	Adds a new entry to the time logger, or returns the log
+	 *
+	 *	@param string $text
+	 *	@return string|void
+	 */
+	 public static function logTime($text = null)
+	 {
+		static $time_log_start = null;
+		static $time_log = '';
+		static $last_time = 0.0;
+		
+		
+		if (!NEnvironment::getVariable("LOG_TIME")) return;
+
+		if (empty($text)) return "\n<!--\nTime Log:".htmlspecialchars($time_log)."\n-->\n";
+
+		if ($time_log_start == null) $time_log_start = microtime();
+
+		$time = microtime() - $time_log_start;
+
+		$time_log .= sprintf("\n%.3f: %s (+%.3f)", $time, $text, $last_time-$time);
+		
+		$last_time = $time;
+		
+	 }
+
 
 }

@@ -133,15 +133,19 @@ abstract class BasePresenter extends NPresenter
 
 
 		/* Checking user log in */
+		StaticModel::logTime('Checking user authorization');
+
 		$user_env = NEnvironment::getUser();
 		if ($user_env->isLoggedIn()) {
 			$user = $user_env->getIdentity();
 			if (!$user->isActive()) {
 				if ($user->isConfirmed()) {
+					/* 1st case: user properly confirmed, but deactivated */
 					$this->flashMessage(sprintf(_t("Your account has been deactivated. If you think that this is a mistake, please contact the support at %s."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
 					$user_env->logout();
 					$this->redirect("User:login");
 				} else {
+					/* 2nd case: user not yet confirmed */
 					$this->flashMessage(sprintf(_t("You first need to confirm your registration. Please check your email account and click on the link of the confirmation email."),NEnvironment::getVariable("SUPPORT_URL")), 'error');
 					
 					if ($user->sendConfirmationEmail()) {
@@ -154,25 +158,29 @@ abstract class BasePresenter extends NPresenter
 			}
 			$user->setLastActivity();
 			$this->template->logged   = true;
+			
+			$user_id = $user->getUserId();
 			$userdata                 = $user->getUserData();
+			
 			$this->template->username = $userdata['user_login'];
-			$this->template->my_id	= $user->getUserId();
-			$this->template->fullname = trim($userdata['user_name'].' '.$userdata['user_surname']);
+			$this->template->my_id	= $user_id;
+			$this->template->fullname = User::getFullName($user_id); //trim($userdata['user_name'].' '.$userdata['user_surname']);
 			$this->template->image = User::getImage($this->template->my_id,'icon'); // don't use 2nd param because tooltip interferes with mouseover to keep drawer open
 
-			$number_tags = count($user->getTags());
 			$first_login = $user->firstLogin();
 			$has_position = $user->hasPosition();
 			
-			if ($first_login || (empty($this->template->fullname) && ($number_tags == 0) && (!$has_position))) $this->template->incomplete_profile = true;
+			/* encouraging new users to complete their profile */
+			if ($first_login || empty($this->template->fullname) || empty($userdata['tags'])) $this->template->incomplete_profile = true;
 		
-
-			$this->template->messages = Resource::getUnreadMessages();
-			$this->template->messages = $this->template->messages ? '<b class="icon-message"></b>'._t("New messages").': '.$this->template->messages : '<b class="icon-no-message"></b>'._t("New messages").': 0';
+			/* message indicator in the header */
+			StaticModel::logTime('Retrieving unread messages');
+			$this->template->messages = User::getUnreadMessages($user_id);
+			$this->template->messages = $this->template->messages ? '<b class="icon-message"></b>'._t('New messages').': '.$this->template->messages : '<b class="icon-no-message"></b>'._t('New messages').': 0';
 			
 		} else {
 			if (!$this->isAccessible()) {
-				$this->flashMessage("Please sign in first.");
+				$this->flashMessage(_t('Please sign in first.'));
 				$redirect = urlencode($_SERVER['REQUEST_URI']);
 				if (preg_match('/^\/(signin)|(signup)|(user\/logout)\//i', $redirect) === true) {
 					$redirect = '';
@@ -182,9 +190,11 @@ abstract class BasePresenter extends NPresenter
 		}
 		
 		/* Latte helpers */
+		StaticModel::logTime('Registering Latte helpers');
 		$this->registerHelpers();
 
 		/* Template variables */
+		StaticModel::logTime('Loading template files');
 		if (file_exists(WWW_DIR."/files/".$language."/intro.phtml")) {
 			$this->template->intro = WWW_DIR."/files/".$language."/intro.phtml";
 		} else {
@@ -204,6 +214,7 @@ abstract class BasePresenter extends NPresenter
 			}
 		}
 		// js and css that needs to be combined. Observe right order!
+		StaticModel::logTime('Concatenating scripts (js + css)');
 		$scripts = new Scripts;
 		$scripts->setBaseOriginUrl(NEnvironment::getVariable("CDN"));
 		$scripts->setBaseTargetUrl(NEnvironment::getVariable("URI"));
@@ -248,6 +259,9 @@ abstract class BasePresenter extends NPresenter
 		$scripts->queueScript('js', $js);
 		$this->template->embed_js = $scripts->outputScripts('js');
 		$this->template->embed_css = $scripts->outputScripts('css');
+		
+		StaticModel::logTime('Finished BasePresenter->startup()');
+		
 	}
 
 
@@ -556,14 +570,16 @@ abstract class BasePresenter extends NPresenter
 	 *	@return int
 	 */
 	private function translate_number($in) {
-		function translate_array( $matches ) {
-			$number = '';
-			foreach ((array)array_shift($matches) as $match) {
-				$number .= _t($match);
-			}
-			return $number;
-		}
-		return preg_replace_callback("/(\d)/u","translate_array",strval($in));
+		return preg_replace_callback(
+			"/(\d)/u",
+			function ( $matches ) {
+				$number = '';
+				foreach ((array)array_shift($matches) as $match) {
+					$number .= _t($match);
+				}
+				return $number;
+			},
+			strval($in));
 	}
 
 
@@ -635,12 +651,19 @@ abstract class BasePresenter extends NPresenter
 	*/
 	public function handleImage($id, $type, $redirect=true)
 	{
-		$image = new Image($id,$type);
+		$image = Image::createimage($id, $type);
 		$result = $image->remove_cache();
-		if ($result !== true) $this->flashMessage($result,'error');
-		$result = $image->create_cache();
-		if ($result !== true) $this->flashMessage($result,'error');
-
+		if (is_string($result)) {
+			$this->flashMessage($result,'error');
+		} else {
+			$result = $image->create_cache();
+			if (is_string($result)) {
+				$this->flashMessage($result,'error');
+			} else {
+				$this->flashMessage('Image cache regenerated.');
+			}
+		}
+		
 		if ($redirect) {
 			if ($type == 1 ) {
 				$this->redirect("User:default", $id);
@@ -1146,40 +1169,42 @@ abstract class BasePresenter extends NPresenter
 	public function handleOnlineStatus($show_date = 1, $span = 1)
 	{
 		$user = NEnvironment::getUser();
-		if (!$user->isLoggedIn()) die('no permission');
+		if (!$user->isLoggedIn()) {
+			die('no permission');
+		}
 		$queries = NEnvironment::getHttpRequest()->getQuery();
 		if (!isset($queries['data'])) {
-			echo "false";
+			echo json_encode(false);
 			die();
 		}
 		
 		$data = json_decode($queries['data']);
 
-		if (!isset($data) || count($data) < 1) {
-			echo "false";
+		if (empty($data) || !is_array($data)) {
+			echo json_encode(false);
 			die();
 		}
 		
-		foreach ($data AS $object_id => &$value) {
+		foreach ($data AS $object_id => $value) {
 			if (Auth::USER <= Auth::isAuthorized(1, $object_id)) {
-					$format_date_time = _t("j.n.Y");
-					$last_activity = User::getRelativeLastActivity($object_id, $format_date_time);
+				$format_date_time = _t("j.n.Y");
+				$last_activity = User::getRelativeLastActivity($object_id, $format_date_time);
 
-					if ($span == 0) {
-						$value = $last_activity['last_seen'];
-					} elseif ($last_activity['online']) {
-						if ($show_date) {
-							$value = ' ';
-						} else {
-							$value = '<span style="color:#37AB44;font-size:2em;margin-top:-4px;" title="'._t('now online').'">&#149</span>';
-						}
+				if ($span == 0) {
+					$data[$object_id] = $last_activity['last_seen'];
+				} elseif ($last_activity['online']) {
+					if ($show_date) {
+						$data[$object_id] = ' ';
 					} else {
-						if ($show_date) {
-							$value = '<span style="top:5px;position:relative;" id="activity_'.$object_id.'">'.$last_activity['last_seen'].'</span>';
-						} else {
-							$value = ' ';
-						}
+						$data[$object_id] = '<span style="color:#37AB44;font-size:2em;margin-top:-4px;" title="'._t('now online').'">&#149</span>';
 					}
+				} else {
+					if ($show_date) {
+						$data[$object_id] = '<span style="top:5px;position:relative;" id="activity_'.$object_id.'">'.$last_activity['last_seen'].'</span>';
+					} else {
+						$data[$object_id] = ' ';
+					}
+				}
 			}
 		}
 		echo json_encode($data);

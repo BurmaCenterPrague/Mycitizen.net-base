@@ -9,41 +9,77 @@ class API_Base extends API implements iAPI
 	
 	public function __construct()
 	{
-		
+		// block repeated login failures
 		if (StaticModel::checkLoginFailures() === false) {
 			return array(
 				'result' => false,
 				'error' => 'ip_blocked'
 			);
 		}
-		
+
 		if ((isset($_GET['PASS']) && isset($_GET['USER'])) || (isset($_POST['PASS']) && isset($_POST['USER']))) {
 			$user = NEnvironment::getUser();
 			try {
 				if (isset($_GET['USER'])) {
-					$user->login($_GET['USER'], $_GET['PASS']);
+					$username = $_GET['USER'];
+					$password = $_GET['PASS'];
 				} else {
-					$user->login($_POST['USER'], $_POST['PASS']);
-					
+					$username = $_POST['USER'];
+					$password = $_POST['PASS'];
 				}
+				$user->login($username, $password);
+				
 				if ($user->getIdentity()->firstLogin()) {
 					$user->getIdentity()->registerFirstLogin();
 					$user->getIdentity()->setLastActivity();
 				} else {
 					$user->getIdentity()->setLastActivity();
 				}
-				
+				$this->isLoggedIn();
 			}
 			catch (Exception $e) {
-				
+				if (defined('LOG_REQUESTS') && LOG_REQUESTS) $this->writeLog('Failed login with username '.$username.' and password '.$password);
 			}
 		}
-		$this->isLoggedIn();
+		if (defined('LOG_REQUESTS') && LOG_REQUESTS) $this->writeLog();
 		$this->setFormat();
 		$this->setSpeed();
 	}
 
 
+	/**
+	 *	Adds entry into log file
+	 *
+	 */
+	protected function writeLog($text = null)
+	{
+		if (!defined('LOG_DIR')) return;
+
+		// If no text is given, output all parameters apart from username and password
+		if (empty($text)) {
+			$parameters = $_POST;
+			unset($parameters['PASS']);
+			
+			// try to prevent flooding
+			if (count($parameters) > 10) {
+				$text = 'Too many parameters: ('.count($parameters).')';
+			} elseif (strlen(implode($parameters))>500) {
+				$text = 'Too much data.';
+			} else {
+				$text = print_r($parameters, true);
+			}
+		}
+		
+		$text = preg_replace('/(\s)+/', '', $text);
+		$data = date('r')."\n\t".$_SERVER['REQUEST_URI']."\n\t".$text."\n\n";
+		file_put_contents(LOG_DIR.'/API.log', $data, FILE_APPEND|LOCK_EX);
+	}
+
+
+	/**
+	 *	Sets format for returned data
+	 *
+	 */
 	protected function setFormat()
 	{
 		if (!empty($_GET['format'])) {
@@ -63,13 +99,12 @@ class API_Base extends API implements iAPI
 	 */
 	protected function setSpeed()
 	{
-		if (!empty($_GET['speed']) && $_GET['speed'] == 0) {
+		if (isset($_GET['speed']) && $_GET['speed'] == 0) {
 			$this->slow_connection = true;
 		}
-		if (!empty($_POST['speed']) && $_POST['speed'] == 0) {
+		if (isset($_POST['speed']) && $_POST['speed'] == 0) {
 			$this->slow_connection = true;
 		}
-		
 	}
 	
 	protected function checkTime($time)
@@ -89,8 +124,8 @@ class API_Base extends API implements iAPI
 
 	protected function isLoggedIn()
 	{
-		$user_id = NEnvironment::getUser()->getIdentity();
-		if (empty($user_id)) {
+		$user_o = NEnvironment::getUser()->getIdentity();
+		if (empty($user_o)) {
 			return false;
 		}
 		
@@ -98,7 +133,7 @@ class API_Base extends API implements iAPI
 			
 			return false;
 		}
-		$this->userId = $user_id->getUserId();
+		$this->userId = $user_o->getUserId();
 		
 		$request = array_merge($_GET, $_POST);
 
@@ -162,7 +197,154 @@ class API_Base extends API implements iAPI
 		if (!empty($_POST['filter'])) {
 			$filter = $_POST['filter'];
 		}
-		return Administration::getData($types, $filter, false, $this->slow_connection);
+
+		// Translate language_iso_639_3 to language id
+		if (!empty($filter['language_iso_639_3'])) {
+			$filter['language'] = Language::getIdFromCode($filter['language_iso_639_3']);
+			unset ($filter['language_iso_639_3']);
+		}
+		
+		if ((isset($filter['type']) && $filter['type'] == 'all') || (!isset($filter['type']))) {
+				$filter['type'] = array(
+					2,
+					3,
+					4,
+					5,
+					6
+				);
+			}
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, 'API');
+		$cache->clean();
+	
+		$speed_key = $this->slow_connection ? 'slow' : 'fast';
+		$user_o = NEnvironment::getUser()->getIdentity();
+		if (!empty($user_o)) {
+			$user_id = $user_o->getUserId();
+		} else {
+			$user_id = 0;
+		}
+		
+		$cache_key = $user_id.'-'.$speed_key.'-'.md5(json_encode($types).json_encode($filter));
+
+		if ($cache->offsetExists($cache_key) ) {
+			$data = $cache->offsetGet($cache_key);
+		} else {
+			$data = Administration::getData($types, $filter, false, $this->slow_connection);		
+
+			// check permissions, remove items that user may not view
+			// cannot use unset for invisible items (error in app)
+			foreach ($data as $key => $data_row) {
+				if ($data_row['type_name'] == "user") {
+					if (Auth::isAuthorized(1,$data_row['id'])==0) {
+						$data[$key]['name'] = _t('hidden user');
+						$data[$key]['avatar'] = null;
+						$data[$key]['description'] = null;
+						$data[$key]["registered_resources"] = null;
+						$data[$key]["last_activity"] = null;
+						$data[$key]["date"] = null;
+					}
+					unset($data[$key]['description']);
+					unset($data[$key]["registered_resources"]);
+					unset($data[$key]["last_activity"]);
+					unset($data[$key]["date"]);
+					unset($data[$key]['viewed']);
+					unset($data[$key]['status']);
+				}
+				if ($data_row['type_name'] == "group") {
+					if (Auth::isAuthorized(2,$data_row['id'])==0) {
+						$data[$key]['name'] = _t('hidden group');
+						$data[$key]['avatar'] = null;
+						$data[$key]['description'] = null;
+						$data[$key]["registered_resources"] = null;
+						$data[$key]["last_activity"] = null;
+						$data[$key]["date"] = null;
+					}
+					unset($data[$key]['description']);
+					unset($data[$key]["registered_resources"]);
+					unset($data[$key]["last_activity"]);
+					unset($data[$key]["date"]);
+					unset($data[$key]['viewed']);
+					unset($data[$key]['links']);
+					unset($data[$key]['access_level']);
+					unset($data[$key]['status']);
+				}
+				if ($data_row['type_name'] == "resource") {
+					if (Auth::isAuthorized(3,$data_row['id'])==0) {
+						$data[$key]['name'] = _t('hidden resource');
+						$data[$key]['description'] = null;
+						$data[$key]["registered_resources"] = null;
+						$data[$key]["last_activity"] = null;
+						$data[$key]["date"] = null;
+						$data[$key]['resource_data']['text_information'] = null;
+						$data[$key]['resource_data']['organization_information'] = null;
+						$data[$key]['resource_data']['event_description'] = null;
+						$data[$key]['resource_data']['media_link'] = null;
+						$data[$key]['resource_data']['event_url'] = null;
+						$data[$key]['resource_data']['event_timestamp'] = null;
+						$data[$key]['resource_data']['event_alert'] = null;
+						$data[$key]['resource_data']['organization_url'] = null;
+						$data[$key]['resource_data']['text_information_url'] = null;
+						$data[$key]['resource_data']['other_url'] = null;
+					}
+					unset($data[$key]['description']);
+					unset($data[$key]["registered_resources"]);
+					unset($data[$key]["last_activity"]);
+					unset($data[$key]['text_information']);
+					unset($data[$key]['organization_information']);
+					unset($data[$key]['event_description']);
+					unset($data[$key]['media_link']);
+					unset($data[$key]['event_url']);
+					unset($data[$key]['event_timestamp']);
+					unset($data[$key]['event_alert']);
+					unset($data[$key]['organization_url']);
+					unset($data[$key]['text_information_url']);
+					unset($data[$key]['other_url']);
+
+/* can we remove that without app crashing?
+					unset($data[$key]['resource_data']['text_information']);
+					unset($data[$key]['resource_data']['organization_information']);
+					unset($data[$key]['resource_data']['event_description']);
+					unset($data[$key]['resource_data']['media_link']);
+					unset($data[$key]['resource_data']['event_url']);
+					unset($data[$key]['resource_data']['event_timestamp']);
+					unset($data[$key]['resource_data']['event_alert']);
+					unset($data[$key]['resource_data']['organization_url']);
+					unset($data[$key]['resource_data']['text_information_url']);
+					unset($data[$key]['resource_data']['other_url']);
+*/
+// temporary solution: set all to null if we don't need information in the lists
+
+						$data[$key]['resource_data']['text_information'] = null;
+						$data[$key]['resource_data']['organization_information'] = null;
+						$data[$key]['resource_data']['event_description'] = null;
+						$data[$key]['resource_data']['media_link'] = null;
+						$data[$key]['resource_data']['event_url'] = null;
+						$data[$key]['resource_data']['event_timestamp'] = null;
+						$data[$key]['resource_data']['event_alert'] = null;
+						$data[$key]['resource_data']['organization_url'] = null;
+						$data[$key]['resource_data']['text_information_url'] = null;
+						$data[$key]['resource_data']['other_url'] = null;
+// keep message text
+
+					unset($data[$key]['viewed']);
+					unset($data[$key]['links']);
+					unset($data[$key]['access_level']);
+					unset($data[$key]['status']);
+				}
+			}
+
+			if ($this->slow_connection) {
+				$settings = array(NCache::EXPIRE => time()+300);
+			} else {
+				$settings = array(NCache::EXPIRE => time()+120);
+			}
+			$cache->save($cache_key, $data, $settings);
+
+		}
+
+		return $data;
 	}
 
 
@@ -180,7 +362,7 @@ class API_Base extends API implements iAPI
 			$user_id = $_POST['user_id'];
 		}
 		
-		if (Auth::isAuthorized(1, $_POST['user_id']) == Auth::ADMINISTRATOR || Auth::isAuthorized(1, $_POST['user_id']) != Auth::UNAUTHORIZED) {
+		if (Auth::isAuthorized(1, $_POST['user_id']) >= Auth::UNAUTHORIZED) {
 			$user = User::create($user_id);
 			$data = $user->getUserData();
 			if (empty($data)) {
@@ -194,6 +376,8 @@ class API_Base extends API implements iAPI
 			
 			$data['logged_user_user'] = $user_friend_relationship;
 			$data['user_logged_user'] = $friend_user_relationship;
+
+			$data['user_language_iso_639_3'] = Language::getLanguageCode($data['user_language']);
 			
 			// Serve small image as portrait on slow connections
 			if ($this->slow_connection) {
@@ -238,6 +422,9 @@ class API_Base extends API implements iAPI
 			} else {
 				$data['logged_user_member'] = 0;
 			}
+			
+			$data['group_language_iso_639_3'] = Language::getLanguageCode($data['group_language']);
+
 			
 			// Serve small image as portrait on slow connections
 			if ($this->slow_connection) {
@@ -294,7 +481,11 @@ class API_Base extends API implements iAPI
 			if (isset($data['media_type']) && $data['media_type'] == 'media_bambuser') {
 				$data['media_link'] = 'http://bambuser.com/v/' . $data['media_link'];
 			}
+			
+			$data['resource_language_iso_639_3'] = Language::getLanguageCode($data['resource_language']);
+						
 			/* end changed */
+			
 			
 			
 			return $data;
@@ -393,7 +584,6 @@ class API_Base extends API implements iAPI
 	 */
 	public function postRegister()
 	{
-		
 		if (StaticModel::checkLoginFailures() === false) {
 			return array(
 				'result' => false,
@@ -413,8 +603,7 @@ class API_Base extends API implements iAPI
 				return array(
 					'result' => false,
 					'error' => 'email_exists'
-				);
-				
+				);	
 			}
 			
 			if (StaticModel::isSpamEmail($_POST['email'])) {
@@ -422,7 +611,6 @@ class API_Base extends API implements iAPI
 					'result' => false,
 					'error' => 'spam_email'
 				);
-				
 			}
 			
 			if (!StaticModel::validEmail($_POST['email'])) {
@@ -439,10 +627,13 @@ class API_Base extends API implements iAPI
 			$password = User::encodePassword($_POST['password']);
 			$hash     = User::generateHash();
 			
-			$language = dibi::fetchSingle("SELECT `language_id` FROM `language` WHERE `language_code` = %s", $_POST['language']);
+			if (!empty($_POST['language_iso_639_3'])) {
+				$language = Language::getIdFromCode($_POST['language_iso_639_3']);
+			} else {
+				$language = dibi::fetchSingle("SELECT `language_id` FROM `language` WHERE `language_code` = %s", $_POST['language']);
+				if (!$language) $language = 1;
+			}
 			
-			if (!$language)
-				$language = 1;
 			
 			$values = array(
 				'user_login' => $_POST['login'],
@@ -784,7 +975,7 @@ class API_Base extends API implements iAPI
 	}
 	
 	/**
-	 *Comment
+	 * Comment
 	 * @url POST     /AcceptFriendship
 	 */
 	public function postAcceptFriendship()
@@ -809,7 +1000,7 @@ class API_Base extends API implements iAPI
 	}
 	
 	/**
-	 *Comment
+	 * Comment
 	 * @url POST     /DeclineFriendship
 	 */
 	public function postDeclineFriendship()
@@ -848,7 +1039,11 @@ class API_Base extends API implements iAPI
 		$group_gpsx        = $_POST['position_gpsx'];
 		$group_gpsy        = $_POST['position_gpsy'];
 		$group_tags        = $_POST['tags'];
-		$group_language    = $_POST['language'];
+		if (!empty($_POST['language_iso_639_3'])) {
+			$group_language = Language::getIdFromCode($_POST['language_iso_639_3']);
+		} else {
+			$group_language    = $_POST['language'];
+		}
 		$tags              = explode(',', $group_tags);
 		if (Auth::MODERATOR > $user->getAccessLevel()) {
 			if (!$user->hasRightsToCreate()) {

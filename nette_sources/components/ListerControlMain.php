@@ -460,10 +460,10 @@ class ListerControlMain extends NControl
 
 	/**
 	 *	Renders the body (lists of items that pass the filter).
-	 *	@param boolean $output (whether to echo or return)
+	 *	@param boolean $echo (whether to echo or return)
 	 *	@return void|string
 	 */
-	public function renderBody($output=true)
+	public function renderBody($echo=true)
 	{
 		$template = $this->template;
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
@@ -499,11 +499,17 @@ class ListerControlMain extends NControl
 		$cache = new NCache($storage, "Lister.render.".$this->name);
 		$cache->clean();
 		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
+		$user_o = NEnvironment::getUser()->getIdentity();
+		if (!empty($user_o)) {
+			$user_id = $user_o->getUserId();
+		} else {
+			$user_id = 0;
+		}
 		if (in_array($this->name, $no_filter)) {
 			$cache_key = $language.'-general';
 		} else {
 			$filter = $this->getFilterArray();
-			$cache_key = $language.'-'.md5(json_encode($filter).json_encode($this->template_variables));
+			$cache_key = $user_id.'-'.$language.'-'.md5(json_encode($filter).json_encode($this->template_variables));
 		}
 		if ($cache->offsetExists($cache_key)) {
 			$output = $cache->offsetGet($cache_key);
@@ -516,7 +522,11 @@ class ListerControlMain extends NControl
 			ob_start();
 			$template->render();
 			$output = ob_get_contents();
-			ob_end_clean();
+			if ($echo) {
+				ob_end_flush();
+			} else {
+				ob_end_clean();
+			}
 			if (isset($this->cache_expiry)) {
 				$settings = array(NCache::EXPIRE => time()+$this->cache_expiry);
 			} else {
@@ -528,9 +538,7 @@ class ListerControlMain extends NControl
 			}
 			$settings[NCache::TAGS][] = "name/$this->name";
 			$cache->save($cache_key, $output, $settings);
-			if ($output) {
-				echo $output;
-			} else {
+			if (!$echo) {
 				return $output;
 			}
 		}
@@ -655,14 +663,23 @@ class ListerControlMain extends NControl
 			$language          = $session->language;
 		}
 		
+/*
+	We are caching this list because it may appear identically on default and detail pages, no need to recreate when user clicks from default to detail view.
+*/
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.".$this->name);
-		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
 		$cache->clean();
+		$no_filter = array('userHomepage','groupHomepage','resourceHomepage');
+		$user_o = NEnvironment::getUser()->getIdentity();
+		if (!empty($user_o)) {
+			$user_id = $user_o->getUserId();
+		} else {
+			$user_id = 0;
+		}
 		if (in_array($this->name, $no_filter)) {
 			$cache_key = $language.'-general';
 		} else {
-			$cache_key = $language.'-'.md5(json_encode($filter));
+			$cache_key = $user_id.'-'.$language.'-'.md5(json_encode($filter));
 		}
 		if ($cache->offsetExists($cache_key)) {
 			$this->data = $cache->offsetGet($cache_key);
@@ -773,12 +790,18 @@ class ListerControlMain extends NControl
 		}
 		//allowed types only
 		if (isset($this->template_variables['all_types'])) {
-			if (isset($filter['type']) && $filter['type'] == 'all') {
+/*
+			if ((isset($filter['type']) && $filter['type'] == 'all') {
 				$filter['type'] = 'all';
 			} elseif (!isset($filter['type'])) {
 				$filter['type'] = 'all';
 			}
+*/
+			if (!isset($filter['type'])) {
+				$filter['type'] = 'all';
+			}
 		} else {
+/*
 			if (isset($filter['type']) && $filter['type'] == 'all') {
 				$filter['type'] = array(
 					2,
@@ -788,6 +811,16 @@ class ListerControlMain extends NControl
 					6
 				);
 			} elseif (!isset($filter['type'])) {
+				$filter['type'] = array(
+					2,
+					3,
+					4,
+					5,
+					6
+				);
+			}
+*/
+			if ((isset($filter['type']) && $filter['type'] == 'all') || (!isset($filter['type']))) {
 				$filter['type'] = array(
 					2,
 					3,

@@ -71,13 +71,13 @@ final class HomepagePresenter extends BasePresenter
 			if (file_exists(WWW_DIR . '/files/xml-calendars.txt')) {
 				$xml_events = file(WWW_DIR . '/files/xml-calendars.txt', FILE_IGNORE_NEW_LINES);
 				if (!empty($xml_events)) {
-					$this->template->xml_events = $xml_events;
+					$this->template->xml_events = array_map('trim', $xml_events);
 				}
 			}
 			if (file_exists(WWW_DIR . '/files/home-tabs.txt')) {
 				$home_tabs = file(WWW_DIR . '/files/home-tabs.txt', FILE_IGNORE_NEW_LINES);
 				if (!empty($home_tabs)) {
-					$this->template->home_tabs = $home_tabs;
+					$this->template->home_tabs = array_map('trim', $home_tabs);
 				}
 			}
 		}
@@ -85,9 +85,9 @@ final class HomepagePresenter extends BasePresenter
 	}
 
 	/**
-	 *	@todo ### Description
-	 *	@param
-	 *	@return
+	 *	Filter for My Connections
+	 *	@param string $name
+	 *	@return object
 	 */
 	protected function createComponentFilter($name)
 	{	
@@ -430,7 +430,7 @@ final class HomepagePresenter extends BasePresenter
 		$user = NEnvironment::getUser()->getIdentity();
 		$user_id = $user->getUserId();
 		$key = $user_id.'-'.$radius_multiplicator;
-		
+/*		
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Filter.suggest");
 		$cache->clean();
@@ -438,9 +438,9 @@ final class HomepagePresenter extends BasePresenter
 			$filter = $cache->offsetGet($key);
 			return $filter;
 		}
-
+*/
 		if (!empty($user)) {
-			$user_data = $user->getUserData();
+//			$user_data = $user->getUserData();
 			$tags = $user->getTags();
 			if (count($tags) == 0) {
 				$defaults['tags']['all'] = 1;
@@ -481,11 +481,11 @@ final class HomepagePresenter extends BasePresenter
 		$defaults['name']           = "";
 		$defaults['status']         = NULL;
 		$defaults['trash']          = NULL;
-		$defaults['language']       = $user_data['user_language'];
+		$defaults['language']       = User::getUserLanguage($user_id);
 		$defaults['type']           = "all";
 		$defaults['exclude_connections_user_id'] = $user_id;
 		
-		$cache->save($key, $defaults, array(NCache::EXPIRE => time()+300, NCache::TAGS => array("user_id/$user_id")));
+//		$cache->save($key, $defaults, array(NCache::EXPIRE => time()+300, NCache::TAGS => array("user_id/$user_id")));
 		return $defaults;
 	}
 

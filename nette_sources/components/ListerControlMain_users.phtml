@@ -63,13 +63,19 @@
 	{var $fullname => User::getFullName($row['id'])}	
 	{var $avatar => User::getImage($row['id'], 'icon')}
 	{ifset $logged}
-	{ifset $template_variables['show_online_status']}
+	{if isset($template_variables['show_online_status']) || isset($template_variables['show_last_activity'])}
 		{var $last_activity_a => User::getRelativeLastActivity($row['id'], $format_date_time)}
 		{var $last_activity => $last_activity_a['last_seen']}
+		{if $last_activity_a['online']}
+			{var $now_online => '<span style="color:#37AB44;font-size:2em;margin-top:-4px;" title="'._t('now online').'">&#149</span>'}
+		{else}
+			{var $now_online => ''}
+		{/if}
 	{/if}
 	{else}
 		{var $last_activity_a => ''}
 		{var $last_activity => ''}
+		{var $now_online => ''}
 	{/if}	
     {if $number_displayed==1 && isset($template_variables['top'])}
     	<div class="list-body-top-wrapper">
@@ -95,12 +101,12 @@
         	       		{/if}
 					{/if}
 					{ifset $template_variables['show_online_status']}
-							<div class="online-status-small" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;"></div>
+							<div class="online-status-small" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;">{!$now_online}</div>
 					{/if}
 				</div>
 
 			{ifset $template_variables['show_last_activity']}
-				<div class="online-status-small" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;"></div>
+				<div class="online-status-small" object_id="{$row['id']}" style="display:inline;padding:3px 5px;position:absolute;bottom:0;">{!$now_online}</div>
 				<div class="online-status" id="status_{$row['id']}" object_id="{$row['id']}" style="display:none;"></div>
 			{/if}
 
@@ -289,7 +295,7 @@
     	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {else}
-   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
     	<a href="javascript:void(0)" {if $currentpage!=$i}onclick="changePageUrl({$template_variables['name']}, {$i}, {link this});"{/if}" class="pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}

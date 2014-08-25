@@ -140,6 +140,7 @@ class TagListerControl extends NControl
 		return $form;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -163,6 +164,7 @@ class TagListerControl extends NControl
 		$this->getPresenter()->redirect("Administration:tags");
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -183,6 +185,7 @@ class TagListerControl extends NControl
 		return $form;
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -202,6 +205,7 @@ class TagListerControl extends NControl
 		$this->getPresenter()->redirect("Administration:tags");
 	}
 
+
 	/**
 	 *	@todo ### Description
 	 *	@param
@@ -212,6 +216,7 @@ class TagListerControl extends NControl
 		$data = Administration::getAllTags($filter);
 		return count($data);
 	}
+
 
 	/**
 	 *	@todo ### Description
@@ -227,6 +232,9 @@ class TagListerControl extends NControl
 		$filter['limit'] = $limit['from'];
 		$filter['count'] = $limit['count'];
 		$data            = Administration::getAllTags($filter);
+		foreach ($data as $key=>$tag) {
+			$data[$key]['tag_number'] = Tag::get_number($tag['tag_id']);
+		}
 		return $data;
 	}
 

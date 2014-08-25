@@ -62,12 +62,6 @@ class Settings {
 	 */
 	public static function setVariable($variable_name,$variable_value) {
 		$result = dibi::query("UPDATE `settings` SET `variable_value` = %s WHERE `variable_name` = %s",$variable_value,$variable_name);
-		if (!$result) {
-			// This case should not happen but might be the result of a faulty update.
-			$data = array('variable_name' => $variable_name, 'variable_display_label' => $variable_name, 'variable_value' => $variable_value);
-			return dibi::query("INSERT INTO `settings`", $data);
-		} else {
-			return $result;
-		}
+		return $result;
 	}
 }

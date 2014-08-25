@@ -31,7 +31,7 @@ class PHPMailer
      * The PHPMailer Version number.
      * @type string
      */
-    public $Version = '5.2.7';
+    public $Version = '5.2.8';
 
     /**
      * Email priority.
@@ -567,9 +567,6 @@ class PHPMailer
      */
     public function __construct($exceptions = false)
     {
-        if (version_compare(PHP_VERSION, '5.0.0', '<')) {
-            exit("Sorry, PHPMailer will only run on PHP version 5 or greater!\n");
-        }
         $this->exceptions = ($exceptions == true);
         //Make sure our autoloader is loaded
         if (version_compare(PHP_VERSION, '5.1.2', '>=')) {

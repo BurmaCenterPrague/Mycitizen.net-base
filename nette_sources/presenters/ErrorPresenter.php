@@ -21,7 +21,7 @@ class ErrorPresenter extends BasePresenter
 	 * from Nette Framework
 	 */
 	public function renderDefault($exception)
-	{ die('here');
+	{
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = $session->language;
 		if (empty($language)) {

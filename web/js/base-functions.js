@@ -309,18 +309,20 @@ function readCookie(name) {
 
 $(document).ready(function(){
 	$('.user-info').mouseenter(function(){
-		$('.hidden-menu').filter(":hidden").slideDown("normal", function(){ //fade
-			$(this).fadeTo("normal", 1.00, function() { //slide up
+		$('.hidden-menu').filter(":hidden").slideDown("normal", function(){
+			$(this).fadeTo("normal", 1.00, function() {
+				$(this).clearQueue();
 			});
 		});
 	});
 
 	$('.header').mouseleave(function(){
-		$('.hidden-menu').filter(":visible").fadeTo("normal", 0.00, function(){ //fade
-			$(this).slideUp("normal", function() { //slide up
+		$('.hidden-menu').filter(":visible").fadeTo("normal", 0.00, function(){
+			$(this).slideUp("normal", function() {
+				$(this).clearQueue();
 			});
 		});
-		$(this).clearQueue();
+		
 	});
 
 	$(document).on('click', 'a.ajax', function(){

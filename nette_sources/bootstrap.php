@@ -49,19 +49,19 @@ $session->setExpiration(NEnvironment::getConfig('variable')->sessionExpiration);
 
 // enforce secure connections according to config.ini
 if (NEnvironment::getConfig('variable')->SECURED == 1) {
-	$flag = NRoute::SECURED;
+	$flag_sensitive = NRoute::SECURED;
 	$flag_all = NULL;
 } elseif (NEnvironment::getConfig('variable')->SECURED == 2) {
-	$flag = NRoute::SECURED;
+	$flag_sensitive = NRoute::SECURED;
 	$flag_all = NRoute::SECURED;
 } else {
-	$flag = NULL;
+	$flag_sensitive = NULL;
 	$flag_all = NULL;
 }
 
 $rewrite_base = NEnvironment::getConfig('variable')->RewriteBase;
 if (substr($rewrite_base, 0, 1) == '/') $rewrite_base = substr($rewrite_base, 1);
-if ($rewrite_base != '') $rewrite_base .= '/';
+if (!empty($rewrite_base) && substr($rewrite_base, -1, 1) != '/') $rewrite_base .= '/';
 
 $router[] = new NRoute($rewrite_base . 'index.php', array(
 	'presenter' => 'Homepage',
@@ -71,40 +71,42 @@ $router[] = new NRoute($rewrite_base . 'index.php', array(
 $router[] = new NRoute($rewrite_base . 'signin/', array(
     'presenter' => 'User',
     'action' => 'login',
-    ),$flag);
+    ), $flag_sensitive);
 
 $router[] = new NRoute($rewrite_base . 'signup/', array(
     'presenter' => 'User',
     'action' => 'register',
-    ),$flag);
+    ), $flag_sensitive);
 
 $router[] = new NRoute($rewrite_base . 'browse/', array(
     'presenter' => 'Widget',
     'action' => 'browse',
-    ),$flag_all);
+    ), $flag_all);
 
 $router[] = new NRoute($rewrite_base . 'mobilecaptcha/', array(
     'presenter' => 'Widget',
     'action' => 'mobilecaptcha',
-    ),$flag_all);
+    ), $flag_all);
 
 $router[] = new NRoute($rewrite_base . 'chat/', array(
     'presenter' => 'Widget',
     'action' => 'messagepopup',
-    ),$flag_all);
+    ), $flag_all);
 
 $router[] = new NRoute($rewrite_base . '<presenter>/<action>/', array(
     'presenter' => 'Homepage',
     'action' => 'default',
-    ),$flag_all);
+    ), $flag_all);
 
 $router[] = new NSimpleRouter(array(
 	'presenter' => 'Homepage',
 	'action' => 'default',
-	),$flag);
+	), $flag_sensitive);
 
 // require functions for Gettext substitute
 require_once(LIBS_DIR.'/TranslationHelper/TranslationHelper.php');
+
+StaticModel::logTime('Finished bootstrap.php');
 
 // all done, we can run the application
 $application->run();

@@ -14,6 +14,15 @@
 {var $robots => "noindex,nofollow"}
 {block title}{_"User signin"}{/block}
 {block content}
+<script>
+	$(document).ready(function(){
+		$("#progressbar").fadeOut(1000);
+		$('#frmloginform-signin').click(function(){
+			$("#progressbar").delay(2000).fadeIn(1000);
+		});
+	});
+</script>
+
 <div class="wrapper-text">
 	{ifset $logged}
 		<a href="{link Homepage:logout}" class="button">{_"Sign out"}</a>
@@ -56,7 +65,7 @@
 					</td>
 				</tr>
 				<tr><td colspan="2">
-					{? printf(_t("If you are new here, please %s sign up %s."), '<a href="{baseUri_np}signup/">', '</a>')}
+					{? printf(_t("If you are new here, please %s sign up %s."), '<a href="'.$baseUri_np.'signup/">', '</a>')}
 				</td></tr>
 
 			</table>

@@ -310,7 +310,7 @@
     	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}
    {else}
-   {? if ($currentpage+2 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
+   {? if ($currentpage+4 < $max_page) $end=$currentpage+2; else $end=$max_page-1}
    {for $i = $currentpage-2; $i <= $end; $i++}
     	<a href="{if $currentpage==$i}#{else}{link changePage, page => $i}{/if}" class="ajax pager-number{if $currentpage == $i} active{/if}">{$i}</a>
    {/for}

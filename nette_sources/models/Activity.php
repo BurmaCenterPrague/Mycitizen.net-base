@@ -37,6 +37,7 @@ class Activity extends BaseModel {
 	const RESOURCE_PERMISSION_CHANGE = 22;
 	const NOTICEBOARD_MESSAGE = 23;
 
+
 	/**
 	 *	Add an activity to the database.
 	 *	@param const $activity
@@ -114,10 +115,8 @@ class Activity extends BaseModel {
   		// extract IDs
   		$connections = array();
   		$data = array();
-  		
 
-
-  		if (count($groups)) {
+  		if (!empty($groups)) {
 	  		foreach ($groups as $item) {
   				$connections[2][] = $item['id'];
   			}
@@ -125,7 +124,7 @@ class Activity extends BaseModel {
   			$connections[2][] = 0;
   		}
   		
-  		if (count($resources)) {
+  		if (!empty($resources)) {
 	  		foreach ($resources as $item) {
   				$connections[3][] = $item['id'];
   			}
@@ -135,7 +134,8 @@ class Activity extends BaseModel {
 
   		// retrieve relevant items from database
   		if ($include_all_latest) {
-			$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
+			$result = dibi::fetchAll('SELECT `activity_id`, `timestamp`, `activity`, `object_type`, `object_id`, `affected_user_id`
+			FROM `activity` WHERE
 			`timestamp` > %i AND `timestamp` < %i AND
 			(
 				(`affected_user_id` = %i)
@@ -162,9 +162,9 @@ class Activity extends BaseModel {
 				(`activity` = %i)
 			)	
 			ORDER BY `timestamp` DESC', $min_timestamp, $max_timestamp, $user_id, $user_id, $user_id, $connections[2], $connections[3], Activity::USER_JOINED, Activity::GROUP_CREATED, Activity::RESOURCE_CREATED, Activity::NOTICEBOARD_MESSAGE);
-
   		} else {
-			$result = dibi::fetchAll('SELECT * FROM `activity` WHERE
+			$result = dibi::fetchAll('SELECT `activity_id`, `timestamp`, `activity`, `object_type`, `object_id`, `affected_user_id`
+			FROM `activity` WHERE
 			`timestamp` > %i AND `timestamp` < %i AND
 			(
 				(`affected_user_id` = %i)
@@ -191,10 +191,23 @@ class Activity extends BaseModel {
 			$data[] = $row->toArray();
 		}
 		
-		// remove multiple notifications from same day (starting from latest)
+
+		// We need to remove certain items to make the list more useful:
+		$unduplicate_activities = array(Activity::GROUP_CHAT, Activity::RESOURCE_COMMENT, Activity::LOGIN_FAILED, Activity::USER_UPDATED, Activity::GROUP_UPDATED, Activity::RESOURCE_UPDATED, Activity::GROUP_RESOURCE_ADDED, Activity::GROUP_RESOURCE_REMOVED, Activity::FRIENDSHIP_REQUEST, Activity::FRIENDSHIP_YES, Activity::FRIENDSHIP_NO, Activity::FRIENDSHIP_END);
+		$first_viewing_events = array(Activity::FRIENDSHIP_YES, Activity::GROUP_JOINED, Activity::RESOURCE_SUBSCRIBED);
+
 		if (isset($data) && is_array($data)) {
-			$unduplicate_activities = array(Activity::GROUP_CHAT, Activity::RESOURCE_COMMENT, Activity::LOGIN_FAILED, Activity::USER_UPDATED, Activity::GROUP_UPDATED, Activity::RESOURCE_UPDATED, Activity::GROUP_RESOURCE_ADDED, Activity::GROUP_RESOURCE_REMOVED, Activity::FRIENDSHIP_REQUEST, Activity::FRIENDSHIP_YES, Activity::FRIENDSHIP_NO, Activity::FRIENDSHIP_END);
 			foreach ($data as $row) {
+				// remove notifications about items that date before making connection (starting from latest)
+				if (in_array($row['activity'], $first_viewing_events)) {
+					foreach ($data as $key=>$row2) {
+						if ($row2['timestamp'] < $row['timestamp'] && $row2['activity_id'] != $row['activity_id'] && $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT && $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED && $row2['object_id'] == $row['object_id']) {
+							unset($data[$key]);
+						}
+					}
+				}
+
+				// remove multiple identical notifications from same day (keeping the latest)
 				if (in_array($row['activity'], $unduplicate_activities)) {
 					foreach ($data as $key=>$row2) {
 						if ($row2['activity_id'] < $row['activity_id'] && $row2['activity'] == $row['activity'] && $row2['object_id'] == $row['object_id'] && strtotime("midnight",$row2['timestamp']) == strtotime("midnight",$row['timestamp'])) {
@@ -206,7 +219,7 @@ class Activity extends BaseModel {
 		}
 
   		if ($include_all_latest) {
-  			// remove notifications about items that user is not allowed to see
+  			// remove notifications about items that user is not allowed to view
   			$user = User::create($user_id);
 			if ($user->getAccessLevel() < 2) {
 	  			// moderators and administrators have no restrictions regarding visibility
@@ -219,9 +232,11 @@ class Activity extends BaseModel {
 								$object = User::create($row['object_id']);
 							break;
 							case 2:
+								if (in_array($row['object_id'], $connections[2])) continue 2;
 								$object = Group::create($row['object_id']);
 							break;
 							case 3:
+								if (in_array($row['object_id'], $connections[3])) continue 2;
 								$object = Resource::create($row['object_id']);
 							break;
 						}
@@ -231,20 +246,7 @@ class Activity extends BaseModel {
 					}			
 				}
 			}
-  		} else {
-			// remove notifications about items that date before making connection (starting from latest)
-			if (isset($data) && is_array($data)) {
-				foreach ($data as $row) {
-					if ($row['activity'] == Activity::FRIENDSHIP_YES || $row['activity'] == Activity::GROUP_JOINED || $row['activity'] == Activity::RESOURCE_SUBSCRIBED) {
-						foreach ($data as $key=>$row2) {
-							if ($row2['timestamp']<$row['timestamp'] && $row2['activity_id'] != $row['activity_id'] && $row2['activity'] != Activity::FRIENDSHIP_END && $row2['activity'] != Activity::GROUP_LEFT && $row2['activity'] != Activity::RESOURCE_UNSUBSCRIBED && $row['activity'] != Activity::FRIENDSHIP_YES && $row['activity'] != Activity::GROUP_JOINED && $row['activity'] != Activity::RESOURCE_SUBSCRIBED && $row2['object_id'] == $row['object_id']) {
-								unset($data[$key]);
-							}
-						}
-					}
-				}
-			}
-		}
+  		}
 		
   		return $data;
   	}
