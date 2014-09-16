@@ -36,6 +36,7 @@ class Activity extends BaseModel {
 	const GROUP_PERMISSION_CHANGE = 21;
 	const RESOURCE_PERMISSION_CHANGE = 22;
 	const NOTICEBOARD_MESSAGE = 23;
+	const FRIEND_INVITED = 24;
 
 
 	/**
@@ -346,6 +347,14 @@ class Activity extends BaseModel {
 						case Activity::USER_PW_CHANGE: $description = _t('Your password was changed.'); break;
 						case Activity::GROUP_PERMISSION_CHANGE: $description = _t('Your permissions of the group were changed.'); break;
 						case Activity::RESOURCE_PERMISSION_CHANGE: $description = _t('Your permissions of the resource were changed.'); break;
+						case Activity::FRIEND_INVITED:
+							if ($activity['object_id'] != $user_id) {
+								$description = sprintf(_t('%s invited you to a group.'),$object_name);
+							} else {
+								$description = sprintf(_t('You invited %s to a group.'),$object_name);
+							}
+						break;
+						
 						default: $description = 'Unspecified activity'; break;
 					}
 				}

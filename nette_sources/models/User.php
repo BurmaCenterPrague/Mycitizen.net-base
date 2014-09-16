@@ -993,7 +993,7 @@ class User extends BaseModel implements IIdentity
 	public static function loginExists($login)
 	{
 		
-		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_login` = %sN", $login);
+		$result = dibi::fetchSingle("SELECT `user_login` FROM `user` WHERE `user_login` = %sN", trim($login));
 		if (empty($result)) {
 			return false;
 		}

@@ -1,4 +1,4 @@
--- mycitizen.net version 0.11
+-- mycitizen.net version 0.12
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -285,4 +285,4 @@ INSERT INTO `status` (`status_id`, `status_name`, `status_description`) VALUES
 
 INSERT INTO `system` (`id`, `name`, `value`) VALUES
 (1, 'cron_last_run', '0'),
-(2, 'database_version', '0.11');
+(2, 'database_version', '0.12');

@@ -163,6 +163,13 @@ function selectLanguage(language) {
    });
 }
 
+function clearFilter(name) {
+	$("#progressbar").delay(2000).fadeIn(1000);
+	$.getJSON("?do=clearFilter&name="+name,function(){
+		location.href=self.location.href;
+   });
+}
+
 function removeAvatar(user_id) {
 	$("#progressbar").delay(2000).fadeIn(1000);
 	$.getJSON("?do=removeAvatar&user_id="+user_id,function(payload){

@@ -173,6 +173,23 @@
 				</script>
 			{/if}
 			</div>
+
+			{if $default_data['object_data']['logged_user_member'] == 1}
+            <div class="group-invite">
+	            <span id="invite_friends_header" style="cursor:pointer;" class="button">{_"Invite your friends"}</span>
+				<div id="invite_friends_body" style="display:none;text-align:left;">
+					<p>{_"Select one or more friends to send them invitations."}</p>
+					{control invitefriendsform}
+				</div>
+				<script>
+				$(document).ready(function(){
+					$('#invite_friends_header').click(function(){
+						$('#invite_friends_body').slideToggle(500);
+					});
+				});
+				</script>
+			</div>
+			{/if}
          {/if}
     </div>
     {/if}

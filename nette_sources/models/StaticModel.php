@@ -399,7 +399,7 @@ class StaticModel extends BaseModel {
 				'<3' => 'heart.png'
 			);
 		array_walk($smileys, function(&$value, $key){
-			$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+			$value='<img src="'.NEnvironment::getVariable("CDN").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
 		});
 		return strtr($text, $smileys);	
 	}

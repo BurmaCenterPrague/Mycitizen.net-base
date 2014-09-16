@@ -596,10 +596,7 @@ class Administration extends BaseModel
 						if (isset($filter['type']) && !is_array($filter['type'])) {
 							$filter['type'] = array(2, 3, 4, 5, 6);
 						}
-						if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
-//							$sql .= " GROUP BY `id` ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
-							$sql .= " ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
-						} else {
+						
 							if (isset($filter['order_by'])) {
 //								$sql .= " GROUP BY `id` ".$filter['order_by'].")";
 								$sql .= " ".$filter['order_by'].")";
@@ -607,10 +604,15 @@ class Administration extends BaseModel
 //								$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
 								$sql .= " ORDER BY status DESC, last_activity DESC)";
 							} else {
+								if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
+//							$sql .= " GROUP BY `id` ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
+									$sql .= " ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
+								} else {
 //								$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
-								$sql .= " ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
+									$sql .= " ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
+								}
 							}
-						}
+
 					}
 				} else {
 					$logged_user_groups = "";

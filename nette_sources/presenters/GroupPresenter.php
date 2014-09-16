@@ -717,7 +717,7 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function handleGroupUserInsert($group_id, $user_id)
 	{
-		if (Auth::isAuthorized(2, $group_id) < Auth::MODERATOR || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
+		if (Auth::isAuthorized(2, $group_id) < Auth::USER || Auth::isAuthorized(1, $user_id) < Auth::MODERATOR) die('no permission');
 		
 		if (empty($group_id) || empty($user_id)) {
 			print "false";
@@ -1139,7 +1139,7 @@ final class GroupPresenter extends BasePresenter
 						'resource_opened_by_user' => 0
 					));				
 				}
-				unset($resource);
+//				unset($resource);
 //				unset($user_o);
 			}	
 			
@@ -1184,7 +1184,7 @@ final class GroupPresenter extends BasePresenter
 		}
 
 		if (empty($resource_selection))  {
-			$form->addMultiSelect('resource_id', '', array('0'=>"Not subscribed to any resource."));
+			$form->addMultiSelect('resource_id', '', array('0'=>_t("Not subscribed to any resource.")));
 			return;
 		}
 		
@@ -1283,6 +1283,127 @@ final class GroupPresenter extends BasePresenter
 		}
 		
 		unset($resource);
+	
+	}
+
+
+	/**
+	*	Form on group detail pages that lists the friends and offers to invite them.
+	*
+	*/
+	protected function createComponentInvitefriendsform()
+	{
+		$resource_selection = array();
+
+		$form = new NAppForm($this, 'invitefriendsform');		
+		$user = NEnvironment::getUser()->getIdentity();
+		$filter = array(
+				'enabled' => 1
+			);
+			
+		$members = array();
+		$members_tmp = $this->group->getAllUsers($filter);
+		foreach($members_tmp as $member) {
+			$members[] = $member['user_id'];
+		}
+		$friends = $user->getFriends();
+		foreach($friends as $friend_id => $friend_username) {
+			if (!in_array($friend_id, $members)) {
+				$friend_selection[$friend_id] = $friend_username;
+			}
+		}
+
+		if (empty($friend_selection))  {
+			$form->addMultiSelect('friend_id', '', array('0'=>_t("All friends are members.")));
+			return;
+		}
+		
+		$form->addMultiSelect('friend_id', '', $friend_selection);
+		$form->addSubmit('send', _t('Invite'));
+		$form->addProtection(_t('Error submitting form.'));
+		
+		$form->onSubmit[] = array(
+			$this,
+			'invitefriendsformSubmitted'
+		);
+		
+		return $form;
+	}
+
+
+	/**
+	*	Processing and receiving return values to invite friends.
+	*
+	*/
+	public function invitefriendsformSubmitted(NAppForm $form)
+	{
+	
+		if (Auth::isAuthorized(Auth::TYPE_GROUP, $this->group->getGroupId()) < Auth::USER) {
+			$this->redirect('this');
+		}
+		
+		$user = NEnvironment::getUser()->getIdentity();
+		$values = $form->getValues();
+		$group_id = $this->group->getGroupId();
+		
+		if (is_array($values['friend_id'])) {
+			foreach ($values['friend_id'] as $friend_id) {
+				$this->invitefriend($friend_id);
+			}
+		} else {
+			$this->invitefriend($values['friend_id']);
+		}
+
+		$this->redirect("Group:default", array(
+				'group_id' => $this->group->getGroupId()
+			));
+		
+	}
+
+
+	/**
+	 *	Doing the actual invitation of friends for invitefriendsformSubmitted().
+	 *	@param int $friend_id
+	 */
+	private function invitefriend($friend_id) {
+
+		$group_id = $this->group->getGroupId();
+		$data = $this->group->getGroupData();
+		$group_name = $data['group_name'];
+
+		if (empty($friend_id) || $friend_id<1) {
+			$this->terminate();
+		}
+		
+		$user_id = NEnvironment::getUser()->getIdentity()->getUserId();
+		$sender_name = User::getFullName($user_id);
+		$resource                          = Resource::create();
+		$data                              = array();
+		$data['resource_author']           = $user_id;
+		$data['resource_type']             = 1;
+		$data['resource_visibility_level'] = 3;
+		$data['resource_name'] = '<invitation>';
+		$data['resource_data']             = json_encode(array(
+			'message_text' => '<p>'.sprintf(_t('Your friend %s invites you to the group %s.'),
+			$sender_name, '<a href="'.$URI.'/group/?group_id='.$this->group->getGroupId().'">"'.$group_name.'"</a>').'</p>'
+		));
+
+		$resource->setResourceData($data);
+		$resource->save();
+		if ($user_id == $friend_id ) {
+			$resource->updateUser($friend_id, array(
+				'resource_user_group_access_level' => 1,
+				'resource_opened_by_user' => 1
+			));
+		} else {
+			$resource->updateUser($friend_id, array(
+				'resource_user_group_access_level' => 1,
+				'resource_opened_by_user' => 0
+			));				
+		}
+		Activity::addActivity(Activity::FRIEND_INVITED, $user_id, 1, $friend_id);
+		$friend_name = User::getFullName($friend_id);
+		$this->flashMessage(_t("The invitation was sent to your friend %s.", $friend_name));
 	
 	}
 

@@ -629,7 +629,6 @@ final class ResourcePresenter extends BasePresenter
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage);
 		$cache->clean(array(NCache::TAGS => array("resource_id/".$this->resource->getResourceId(), "name/chatlisterresource")));
-		$cache->clean(array(NCache::TAGS => array("resource_id/".$this->resource->getResourceId(), "name/chatlisterresource")));
 
 		$this->redirect("Resource:default", array(
 			'resource_id' => $this->resource->getResourceId()
@@ -1068,15 +1067,16 @@ final class ResourcePresenter extends BasePresenter
 			case 2: if (isset($values['event_url']) && !empty($values['event_url'])) $url = $values['event_url']; break;
 			case 3: if (isset($values['organization_url']) && !empty($values['organization_url'])) $url = $values['organization_url']; break;
 			case 4: if (isset($values['text_information_url']) && !empty($values['text_information_url'])) $url = $values['text_information_url']; break;
-			case 6: if (isset($values['other_url']) && !empty($values['other_url'])) $url = $values['other_url']; break;
 			case 5: if (isset($values['media_link']) && !empty($values['media_link'])) {
 						switch ($values['media_type']) {
 							case 'media_soundcloud':  $url = ''; break;
-							case 'media_youtube': $direct_url = 'https://img.youtube.com/vi/'.$values['media_link'].'/0.jpg'; break;
+//							case 'media_youtube': $direct_url = 'https://img.youtube.com/vi/'.$values['media_link'].'/0.jpg'; break;
+							case 'media_youtube': $url_gif = 'https://www.youtube.com/watch?v='.$values['media_link']; break;
 							case 'media_vimeo': $tmp = unserialize(@file_get_contents("http://vimeo.com/api/v2/video/".$values['media_link'].".php")); $direct_url = $tmp[0]['thumbnail_medium']; break;
 							case 'media_bambuser': break;
 						}
 					}
+			case 6: if (isset($values['other_url']) && !empty($values['other_url'])) $url = $values['other_url']; break;
 			break;
 
 		}
@@ -1119,7 +1119,8 @@ final class ResourcePresenter extends BasePresenter
 				if (!file_exists($filepath)) {
 					try
 					{
-						$this->grabzIt->SetImageOptions($url,$md5);
+						$this->grabzIt->SetImageOptions($url, $md5);
+						
 						if ($this->grabzIt->Save($callback)) {
 							$this->flashMessage(_t("Screenshot processing."));
 						}
@@ -1131,6 +1132,47 @@ final class ResourcePresenter extends BasePresenter
 				} else $this->flashMessage(_t("Screenshot already exists."));
 			}
 					
+		} elseif (isset($url_gif) && !empty($url_gif) && isset($this->grabzIt)) {
+			// Grabz.it needs some time to process the screenshot
+			$headers = @get_headers($url_gif);
+			if(!$headers || strpos($headers[0], '404 Not Found')!==false) {
+				$this->flashMessage(_t("URL doesn't seem to exist"),'error');
+			} else {
+				// delete previous versions
+				// We keep screenshots up to 1 day old, assuming that usually the views of websites don't change fundamentally during that time.
+				$files = glob(WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-*.gif');
+				if ( is_array ( $files ) && count($files) ) {
+					foreach($files as $file) {
+						if (time() - filemtime($file) > 3600*24) {
+							unlink($file);
+						}
+					}
+				}
+
+				$md5 = md5($url_gif);						
+				$ssl = NEnvironment::getVariable("GRABZIT_HTTPS");
+				$s = &$_SERVER;
+				// $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true:false;
+				$host = isset($s['HTTP_X_FORWARDED_HOST']) ? $s['HTTP_X_FORWARDED_HOST'] : isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME'];
+				// $callback = 'http'. (($ssl) ? 's' : '').'://'. $host. "/?do=savescreenshot&resource_id=". $resource_id. "&md5=". $md5;
+				$callback = NEnvironment::getVariable("URI") . "/?do=savescreenshot&resource_id=". $resource_id. "&md5=". $md5;
+				// check existence of screenshot to avoid unneccessary API calls
+				$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.gif';
+				if (!file_exists($filepath)) {
+					try
+					{
+						$this->grabzIt->SetAnimationOptions($url_gif, $md5);
+						
+						if ($this->grabzIt->Save($callback)) {
+							$this->flashMessage(_t("Screenshot processing."));
+						}
+					}
+					catch(GrabzItException $e)
+					{
+						$this->flashMessage(_t("Error processing screenshot.").' Code: '.$e->getCode(), "error");
+					}
+				} else $this->flashMessage(_t("Screenshot already exists."));
+			}
 		}
 
 		// set reminder for all users

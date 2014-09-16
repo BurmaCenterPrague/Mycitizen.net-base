@@ -349,7 +349,7 @@ abstract class BasePresenter extends NPresenter
 					'<3' => 'heart.png'
 				);
 			array_walk($smileys, function(&$value, $key){
-				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+				$value='<img src="'.NEnvironment::getVariable("CDN").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
 			});
 			$text = strtr($text, $smileys);
 
@@ -429,7 +429,7 @@ abstract class BasePresenter extends NPresenter
 					'<3' => 'heart.png'
 				);
 			array_walk($smileys, function(&$value, $key){
-				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+				$value='<img src="'.NEnvironment::getVariable("CDN").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
 			});
 			$output = strtr($output, $smileys);
 			
@@ -693,7 +693,7 @@ abstract class BasePresenter extends NPresenter
 	 *	@param string $md5 own identifier
 	 *	@return void
 	 */
-	public function handleSaveScreenshot($id = null, $resource_id = null, $md5 = null) {
+	public function handleSaveScreenshot($id = null, $resource_id = null, $md5 = null, $filename = 'image.jpg') {
 		if (isset($id)) {
 			if (isset($md5) && isset($resource_id)) {
 				$resource_id = (int) $resource_id;
@@ -708,7 +708,10 @@ abstract class BasePresenter extends NPresenter
 			
 					$result = $grabzIt->GetResult($id);
 					if ($result) {
-						$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.jpg';
+						// get extension
+						$ext = pathinfo($filename, PATHINFO_EXTENSION);
+						
+						$filepath = WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-'.$md5.'.'.$ext;
 						file_put_contents($filepath, $result);
 						echo "true";
 					}
@@ -857,10 +860,12 @@ abstract class BasePresenter extends NPresenter
 		}
 
 		$allowed_extensions = array('jpg','jpeg','gif','png', 'pdf', 'odt', 'doc', 'docx', 'xls', 'ods', 'txt', 'rtf', 'ppt', 'pptx', 'odp');
-		
-		$ext = pathinfo($file_name, PATHINFO_EXTENSION);
-		if (empty($ext) || in_array($ext, $allowed_extensions)===false) {
-			die('Wrong extension.');
+
+		if ($user->getAccessLevel() < 2) {
+			$ext = pathinfo($file_name, PATHINFO_EXTENSION);
+			if (empty($ext) || in_array($ext, $allowed_extensions)===false) {
+				die('Wrong extension.');
+			}
 		}
 
 		$file_name = pathinfo($file_name, PATHINFO_FILENAME).'.'.$ext;
@@ -1281,6 +1286,8 @@ abstract class BasePresenter extends NPresenter
 		
 		if (NEnvironment::getVariable("GLOBAL_FILTER")) {
 			$name='defaultresourceresourcelister';
+		} else {
+			$name = 'GENERAL';
 		}
 		$filter = new ExternalFilter($this,$name);
 		$session = NEnvironment::getSession()->getNamespace($name);
@@ -1670,4 +1677,23 @@ abstract class BasePresenter extends NPresenter
 		$this->terminate();
 	}
 
+
+
+	/**
+	 *	Clears the filter
+	 *	@param void
+	 *	@return
+	 */
+	public function handleClearFilter($name)
+	{
+		if (NEnvironment::getVariable("GLOBAL_FILTER")) {
+			$name='defaultresourceresourcelister';
+		}
+		$filter = new ExternalFilter($this, $name);
+		$session = NEnvironment::getSession()->getNamespace($name);
+		unset($session->filterdata);
+		$filter->clearFilterArray();
+
+		$this->redirect('this');	
+	}
 }

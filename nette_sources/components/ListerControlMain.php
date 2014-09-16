@@ -133,7 +133,7 @@ class ListerControlMain extends NControl
 					'<3' => 'heart.png'
 				);
 			array_walk($smileys, function(&$value, $key){
-				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+				$value='<img src="'.NEnvironment::getVariable("CDN").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
 			});
 			$dirty_html = strtr($dirty_html, $smileys);
 			
@@ -266,7 +266,7 @@ class ListerControlMain extends NControl
 					'<3' => 'heart.png'
 				);
 			array_walk($smileys, function(&$value, $key){
-				$value='<img src="'.NEnvironment::getVariable("URI").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
+				$value='<img src="'.NEnvironment::getVariable("CDN").'/js/ckeditor/plugins/smiley/images/'.$value.'"/>';
 			});
 			$output = strtr($output, $smileys);
 			
@@ -417,7 +417,7 @@ class ListerControlMain extends NControl
 			$output[] = '<img src="'.NEnvironment::getVariable("URI").'/images/icon-map.png" title="'._t('Map').'" style="vertical-align:-4px;"/>';
 		}
 		
-		return '<span style="margin: 0 5px; padding:5px 7px; background-color:#EAE9E3;">'.implode(' | ', $output).'</span><b class="icon-cancel" onclick="$(\'#filter_box_a\').attr(\'id\',\'\');$(\'#frmfilter-reset\').click();" title="'._t("Reset the filter and show the entire list.").'" style="vertical-align:-5px;"></b>';
+		return '<span style="margin: 0 5px; padding:5px 7px; background-color:#EAE9E3;">'.implode(' | ', $output).'</span><b class="icon-cancel" onclick="$(\'#filter_box_a\').attr(\'href\',\'javascript:void(0)\');clearFilter(\''.$this->name.'\');" title="'._t("Reset the filter and show the entire list.").'" style="vertical-align:-5px;"></b>';
 		
 	}
 

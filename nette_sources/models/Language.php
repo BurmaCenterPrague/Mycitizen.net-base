@@ -20,14 +20,29 @@
 
 
 class Language extends BaseModel {
+
 	public static function getArray() {
-      $result = dibi::fetchAll("SELECT * FROM `language`");
-      $languages = array();
-      foreach($result as $row) {
+    	$result = dibi::fetchAll("SELECT * FROM `language`");
+    	$languages = array();
+    	foreach($result as $row) {
 			$data = $row->toArray();
-         $languages[$data['language_id']] = $data['language_name'];
-      }
-      return $languages;
+        	$languages[$data['language_id']] = $data['language_name'];
+    	}
+    	return $languages;
+	}
+
+
+	public static function getArrayAPI() {
+    	$result = dibi::fetchAll("SELECT * FROM `language`");
+    	$languages = array();
+    	foreach($result as $row) {
+			$data = $row->toArray();
+        	$languages[$data['language_id']] = array(
+        		'name' => $data['language_name'],
+        		'iso_code' => self::getLanguageCode($data['language_id'])
+        	);
+    	}
+    	return $languages;
 	}
 
 

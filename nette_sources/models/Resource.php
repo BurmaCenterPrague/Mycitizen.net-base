@@ -944,7 +944,8 @@ class Resource extends BaseModel {
 			case 5: if (isset($data['media_link']) && !empty($data['media_link'])) {
 						switch ($data['media_type']) {
 							case 'media_soundcloud':  $final_url = 'http://soundcloud.com/'.$data['media_link']; break;
-							case 'media_youtube': $final_url = 'https://img.youtube.com/vi/'.$data['media_link'].'/1.jpg'; break;
+//							case 'media_youtube': $final_url = 'https://img.youtube.com/vi/'.$data['media_link'].'/1.jpg'; break;
+							case 'media_youtube': $url = 'https://www.youtube.com/watch?v='.$data['media_link']; break;
 							case 'media_vimeo': $tmp = unserialize(@file_get_contents("http://vimeo.com/api/v2/video/".$data['media_link'].".php"));$final_url = $tmp[0]['thumbnail_medium']; break;
 							case 'media_bambuser': break;
 							// 'http://static.bambuser.com/modules/b/ui/bambuser_ui/no-preview-140x115.png'
@@ -956,7 +957,11 @@ class Resource extends BaseModel {
 
 		if (empty($final_url)) {
 			$md5 = md5($url);
-			$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';	
+			if ($data['resource_type'] == 5) {
+				$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.gif';
+			} else {
+				$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';
+			}
 			$filepath = WWW_DIR.$link;
 			if (file_exists($filepath)) {
 				$final_url = NEnvironment::getVariable("URI") . $link;

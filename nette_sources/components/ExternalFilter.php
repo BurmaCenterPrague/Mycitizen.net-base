@@ -507,11 +507,10 @@ class ExternalFilter extends NControl
 			$this->components[]='userlister';
 			$this->components[]='grouplister';
 		}
-
 		foreach ($this->components as $component_name) {
 			$session = NEnvironment::getSession()->getNamespace($component_name);
 			$session->data['object_id'] = NULL;
-			
+
 			if ($component_name == 'userlister') $name = 'User';
 			if ($component_name == 'grouplister') $name = 'Group';
 			if ($component_name == 'defaultresourceresourcelister') $name = 'Resource';
@@ -526,6 +525,7 @@ class ExternalFilter extends NControl
 				unset($session->filterdata['status']);
 				unset($session->filterdata['type']);
 				unset($session->filterdata['mapfilter']);
+				unset($session->filterdata['tags']);
 			} else {
 				if ($session->filterdata !== NULL) {
 					foreach ($filter as $key => $value) {

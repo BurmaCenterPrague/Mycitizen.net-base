@@ -58,20 +58,26 @@ class API_Base extends API implements iAPI
 		// If no text is given, output all parameters apart from username and password
 		if (empty($text)) {
 			$parameters = $_POST;
-			unset($parameters['PASS']);
-			
+			if (isset($parameters['PASS'])) $parameters['PASS'] = '*******';
 			// try to prevent flooding
-			if (count($parameters) > 10) {
+			if (count($parameters) > 20) {
 				$text = 'Too many parameters: ('.count($parameters).')';
-			} elseif (strlen(implode($parameters))>500) {
-				$text = 'Too much data.';
 			} else {
+
+				foreach ($parameters as $key => $value) {
+					if (strlen(json_encode($value))>500) {
+						$parameter[$key] = null;
+					}
+				}
+
 				$text = print_r($parameters, true);
 			}
+			
 		}
 		
-		$text = preg_replace('/(\s)+/', '', $text);
-		$data = date('r')."\n\t".$_SERVER['REQUEST_URI']."\n\t".$text."\n\n";
+		$ip = StaticModel::getIpAddress();
+//		$text = preg_replace('/(\s)+/', '', $text);
+		$data = date('r')."\n".$ip."\n".$_SERVER['REQUEST_URI']."\n".$text."\n\n";
 		file_put_contents(LOG_DIR.'/API.log', $data, FILE_APPEND|LOCK_EX);
 	}
 
@@ -164,6 +170,12 @@ class API_Base extends API implements iAPI
 		$user = User::create($this->userId);
 		$data = $user->getUserData();
 		
+		// low speed -> smaller portrait?
+		$data['user_portrait'] = null;
+		
+		$data['user_language_iso_639_3'] = Language::getLanguageCode($data['user_language']);
+		unset($data['user_language']);
+
 		return array(
 			'result' => true,
 			'user_id' => $this->userId,
@@ -214,6 +226,8 @@ class API_Base extends API implements iAPI
 				);
 			}
 		
+		$is_message = false;
+		
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, 'API');
 		$cache->clean();
@@ -228,22 +242,41 @@ class API_Base extends API implements iAPI
 		
 		$cache_key = $user_id.'-'.$speed_key.'-'.md5(json_encode($types).json_encode($filter));
 
-		if ($cache->offsetExists($cache_key) ) {
+		if ($cache->offsetExists($cache_key)) {
 			$data = $cache->offsetGet($cache_key);
 		} else {
-			$data = Administration::getData($types, $filter, false, $this->slow_connection);		
+			if (isset($filter['type'])) {
+				if ((is_array($filter['type']) && count(array_intersect($filter['type'], array(1,8,9)))) || in_array($filter['type'], array(1,8,9))) {
+					$is_message = true;
+					$filter['order_by'] = 'ORDER BY `resource`.`resource_creation_date` ASC';
+				}
+			}
 
+			$data = Administration::getData($types, $filter, false, $this->slow_connection);		
+			$logged_user = NEnvironment::getUser()->getIdentity();
+			
 			// check permissions, remove items that user may not view
 			// cannot use unset for invisible items (error in app)
 			foreach ($data as $key => $data_row) {
 				if ($data_row['type_name'] == "user") {
-					if (Auth::isAuthorized(1,$data_row['id'])==0) {
+					if (Auth::isAuthorized(1,$data_row['id']) == Auth::UNAUTHORIZED) {
 						$data[$key]['name'] = _t('hidden user');
 						$data[$key]['avatar'] = null;
 						$data[$key]['description'] = null;
 						$data[$key]["registered_resources"] = null;
 						$data[$key]["last_activity"] = null;
 						$data[$key]["date"] = null;
+					} else {
+						$user_id = $data_row['id'];
+						$user = User::create($user_id);
+						if (!empty($user)) {
+							$user_data = $user->getUserData();
+							$data[$key]['user_position_x'] = $user_data['user_position_x'];
+							$data[$key]['user_position_y'] = $user_data['user_position_y'];
+							$data[$key]['user_logged_user'] = $user->friendsStatus($logged_user->getUserId());
+							$data[$key]['logged_user_user'] = $logged_user->friendsStatus($user_id);
+							$data[$key]['tags'] = $user_data['tags'];
+						}
 					}
 					unset($data[$key]['description']);
 					unset($data[$key]["registered_resources"]);
@@ -253,13 +286,27 @@ class API_Base extends API implements iAPI
 					unset($data[$key]['status']);
 				}
 				if ($data_row['type_name'] == "group") {
-					if (Auth::isAuthorized(2,$data_row['id'])==0) {
+					if (Auth::isAuthorized(2,$data_row['id']) == Auth::UNAUTHORIZED) {
 						$data[$key]['name'] = _t('hidden group');
 						$data[$key]['avatar'] = null;
 						$data[$key]['description'] = null;
 						$data[$key]["registered_resources"] = null;
 						$data[$key]["last_activity"] = null;
 						$data[$key]["date"] = null;
+					} else {
+						$group_id = $data_row['id'];
+						$group = Group::create($group_id);
+						if (!empty($group)) {
+							$group_data = $group->getGroupData();
+							$data[$key]['group_position_x'] = $group_data['group_position_x'];
+							$data[$key]['group_position_y'] = $group_data['group_position_y'];
+							if ($group->userIsRegistered($logged_user->getUserId())) {
+								$data[$key]['logged_user_member'] = 1;
+							} else {
+								$data[$key]['logged_user_member'] = 0;
+							}
+							$data[$key]['tags'] = $group_data['tags'];
+						}
 					}
 					unset($data[$key]['description']);
 					unset($data[$key]["registered_resources"]);
@@ -270,8 +317,8 @@ class API_Base extends API implements iAPI
 					unset($data[$key]['access_level']);
 					unset($data[$key]['status']);
 				}
-				if ($data_row['type_name'] == "resource") {
-					if (Auth::isAuthorized(3,$data_row['id'])==0) {
+				if ($data_row['type_name'] == "resource") {					
+					if (Auth::isAuthorized(3,$data_row['id']) == Auth::UNAUTHORIZED) {
 						$data[$key]['name'] = _t('hidden resource');
 						$data[$key]['description'] = null;
 						$data[$key]["registered_resources"] = null;
@@ -287,6 +334,33 @@ class API_Base extends API implements iAPI
 						$data[$key]['resource_data']['organization_url'] = null;
 						$data[$key]['resource_data']['text_information_url'] = null;
 						$data[$key]['resource_data']['other_url'] = null;
+					} else {
+						$resource_id = $data_row['id'];
+						$resource = Resource::create($resource_id);
+						if (!empty($resource)) {
+							$resource_data = $resource->getResourceData();
+							$data[$key]['resource_position_x'] = $resource_data['resource_position_x'];
+							$data[$key]['resource_position_y'] = $resource_data['resource_position_y'];
+							if ($resource->userIsRegistered($logged_user->getUserId())) {
+								$data[$key]['logged_user_member'] = 1;
+							} else {
+								$data[$key]['logged_user_member'] = 0;
+							}
+							$data[$key]['tags'] = $resource_data['tags'];
+							
+							$data[$key]['owner_portrait'] = null;
+							if ($is_message) {
+								$owner = User::create($resource_data['resource_author']);
+								if (!empty($owner)) {
+									if ($this->slow_connection) {
+										$image = $owner->getIcon();
+									} else {
+										$image = $owner->getLargeIcon();
+									}
+									$data[$key]['owner_portrait'] = ($image) ? $image : null;
+								}
+							}
+						}
 					}
 					unset($data[$key]['description']);
 					unset($data[$key]["registered_resources"]);
@@ -335,7 +409,9 @@ class API_Base extends API implements iAPI
 				}
 			}
 
-			if ($this->slow_connection) {
+			if ($is_message) {
+				$settings = array(NCache::EXPIRE => time()+10);
+			} elseif ($this->slow_connection) {
 				$settings = array(NCache::EXPIRE => time()+300);
 			} else {
 				$settings = array(NCache::EXPIRE => time()+120);
@@ -362,7 +438,7 @@ class API_Base extends API implements iAPI
 			$user_id = $_POST['user_id'];
 		}
 		
-		if (Auth::isAuthorized(1, $_POST['user_id']) >= Auth::UNAUTHORIZED) {
+		if (Auth::isAuthorized(1, $user_id) > Auth::UNAUTHORIZED) {
 			$user = User::create($user_id);
 			$data = $user->getUserData();
 			if (empty($data)) {
@@ -370,14 +446,32 @@ class API_Base extends API implements iAPI
 			}
 			$logged_user = NEnvironment::getUser()->getIdentity();
 			
-			$user                     = User::Create($_POST['user_id']);
+			// hide some data of other users
+			if ($logged_user->getUserId() != $user_id) {
+				$data['user_send_notifications'] = null;
+				$data['user_registration_confirmed'] = null;
+				$data['user_creation_rights'] = null;
+				$data['user_phone_imei'] = null;
+			}
+			
+			$user                     = User::create($user_id);
 			$friend_user_relationship = $user->friendsStatus($logged_user->getUserId());
-			$user_friend_relationship = $logged_user->friendsStatus($user->getUserId());
+			$user_friend_relationship = $logged_user->friendsStatus($user_id);
 			
 			$data['logged_user_user'] = $user_friend_relationship;
 			$data['user_logged_user'] = $friend_user_relationship;
+			
+			$format_date_time = _t("j.n.Y");
+			$last_activity = User::getRelativeLastActivity($user_id, $format_date_time);
+			$data['last_activity'] = $last_activity['last_seen'];
+			if ($last_activity['online']) {
+				$data['now_online'] = true;
+			} else {
+				$data['now_online'] = false;
+			}
 
 			$data['user_language_iso_639_3'] = Language::getLanguageCode($data['user_language']);
+			unset($data['user_language']);
 			
 			// Serve small image as portrait on slow connections
 			if ($this->slow_connection) {
@@ -408,7 +502,8 @@ class API_Base extends API implements iAPI
 		if (!empty($_POST['group_id'])) {
 			$group_id = $_POST['group_id'];
 		}
-		if (Auth::isAuthorized(2, $_POST['group_id']) == Auth::ADMINISTRATOR || Auth::isAuthorized(2, $_POST['group_id']) != Auth::UNAUTHORIZED) {
+//		if (Auth::isAuthorized(2, $group_id) == Auth::ADMINISTRATOR || Auth::isAuthorized(2, $group_id) != Auth::UNAUTHORIZED) {
+		if (Auth::isAuthorized(2, $group_id) > Auth::UNAUTHORIZED) {
 			$logged_user = NEnvironment::getUser()->getIdentity();
 			
 			$group = Group::create($group_id);
@@ -455,7 +550,8 @@ class API_Base extends API implements iAPI
 		if (!empty($_POST['resource_id'])) {
 			$resource_id = $_POST['resource_id'];
 		}
-		if (Auth::isAuthorized(3, $_POST['resource_id']) == Auth::ADMINISTRATOR || Auth::isAuthorized(3, $_POST['resource_id']) != Auth::UNAUTHORIZED) {
+//		if (Auth::isAuthorized(3, $_POST['resource_id']) == Auth::ADMINISTRATOR || Auth::isAuthorized(3, $_POST['resource_id']) != Auth::UNAUTHORIZED) {
+		if (Auth::isAuthorized(3, $resource_id) > Auth::UNAUTHORIZED) {
 			$logged_user = NEnvironment::getUser()->getIdentity();
 			
 			$resource = Resource::create($resource_id);
@@ -529,7 +625,7 @@ class API_Base extends API implements iAPI
 			$logged_user = NEnvironment::getUser()->getIdentity();
 			
 			if ($_POST['objectType'] == "user") {
-				$user = User::Create($_POST['objectId']);
+				$user = User::create($_POST['objectId']);
 				if ($_POST['objectAction'] == 1) {
 					$logged_user->updateFriend($_POST['objectId'], array());
 				} else if ($_POST['objectAction'] == 0) {
@@ -708,19 +804,23 @@ class API_Base extends API implements iAPI
 		if (!empty($_POST['objectType']) && !empty($_POST['objectId']) && !empty($_POST['message'])) {
 			$logged_user = NEnvironment::getUser()->getIdentity();
 			
+			$storage = new NFileStorage(TEMP_DIR);
+			$cache = new NCache($storage);
+
 			if ($_POST['objectType'] == 'user') {
 				$resource                          = Resource::create();
 				$data                              = array();
 				$data['resource_author']           = $logged_user->getUserId();
 				$data['resource_type']             = 1;
 				$data['resource_visibility_level'] = 3;
-				$data['resource_name']             = $_POST['message'];
+				$data['resource_name']             = '<PM>';//$_POST['message'];
 				/* begin changed */
 				//      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
 				$data['resource_data']             = json_encode(array(
 					'message_text' => '<p>' . nl2br($_POST['message']) . '</p>'
 				));
 				$check                             = $resource->check_doublette($data, $logged_user->getUserId(), 1);
+
 				if ($check === true) {
 					return array(
 						'result' => false
@@ -737,12 +837,21 @@ class API_Base extends API implements iAPI
 					'resource_user_group_access_level' => 1,
 					'resource_opened_by_user' => 1
 				));
+
+				$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidget")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$_POST['objectId'], "name/pmwidget")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmwidgetslim")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$_POST['objectId'], "name/pmwidgetslim")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/messagelisteruser")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$_POST['objectId'], "name/messagelisteruser")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$logged_user->getUserId(), "name/pmabstract")));
+				$cache->clean(array(NCache::TAGS => array("user_id/".$_POST['objectId'], "name/pmabstract")));
 			} else if ($_POST['objectType'] == "group") {
 				$resource                = Resource::create();
 				$data                    = array();
 				$data['resource_author'] = $logged_user->getUserId();
 				$data['resource_type']   = 8;
-				$data['resource_name']   = $_POST['message'];
+				$data['resource_name']   = '<chat>';//$_POST['message'];
 				/* begin changed */
 				//      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
 				$data['resource_data']   = json_encode(array(
@@ -766,13 +875,15 @@ class API_Base extends API implements iAPI
 					'resource_user_group_access_level' => 1
 				));
 				
+				$cache->clean(array(NCache::TAGS => array("group_id/".$_POST['objectId'], "name/chatwidget")));
+				
 			} else if ($_POST['objectType'] == "resource") {
 				$object_resource         = Resource::Create($_POST['objectId']);
 				$resource                = Resource::create();
 				$data                    = array();
 				$data['resource_author'] = $logged_user->getUserId();
 				$data['resource_type']   = 8;
-				$data['resource_name']   = $_POST['message'];
+				$data['resource_name']   = '<comment>';//$_POST['message'];
 				/* begin changed */
 				//      				$data['resource_data'] = json_encode(array('message_text'=>$_POST['message']));
 				$data['resource_data']   = json_encode(array(
@@ -794,7 +905,14 @@ class API_Base extends API implements iAPI
 				$resource->updateUser($logged_user->getUserId(), array(
 					'resource_user_group_access_level' => 1
 				));
+
+				$cache->clean(array(NCache::TAGS => array("resource_id/".$object_resource->getResourceId(), "name/chatlisterresource")));
+
 				
+			} else {
+				return array(
+					'result' => false
+				);			
 			}
 			return array(
 				'result' => true
@@ -814,49 +932,64 @@ class API_Base extends API implements iAPI
 	 */
 	public function postChangeProfile()
 	{
+		if (!$this->isLoggedIn()) {
+			throw new RestException('401', null);
+		}
 		
-		$values['user_name']             = $_POST['firstName'];
-		$values['user_surname']          = $_POST['lastName'];
-		$email                           = $_POST['email'];
-		$values['user_visibility_level'] = $_POST['visibility'];
-		$values['user_description']      = $_POST['description'];
-		$values['user_position_x']       = $_POST['position_gpsx'];
-		$values['user_position_y']       = $_POST['position_gpsy'];
-		if ($_POST['image'] != "") {
+		if (!empty($_POST['firstName'])) $values['user_name']             = $_POST['firstName'];
+		if (!empty($_POST['lastName'])) $values['user_surname']          = $_POST['lastName'];
+		if (!empty($_POST['user_send_notifications'])) $values['user_send_notifications']          = $_POST['user_send_notifications'];
+		if (!empty($_POST['url'])) $values['user_url']          = $_POST['url'];
+		if (!empty($_POST['visibility'])) $values['user_visibility_level'] = $_POST['visibility'];
+		if (!empty($_POST['description'])) $values['user_description']      = $_POST['description'];
+		if (!empty($_POST['position_gpsx'])) $values['user_position_x']       = $_POST['position_gpsx'];
+		if (!empty($_POST['position_gpsy'])) $values['user_position_y']       = $_POST['position_gpsy'];
+		if (!empty($_POST['image'])) {
 			$image                   = $_POST['image'];
 			$image                   = preg_replace("/[-]/", "+", $image);
 			$image                   = preg_replace("/[_]/", "/", $image);
 			$values['user_portrait'] = $image;
 		}
+		
+		if (!empty($_POST['language_iso_639_3'])) {
+			// Translate language_iso_639_3 to language id
+			$values['user_language'] = Language::getIdFromCode($filter['language_iso_639_3']);
+		}
+
 		$logged_user = NEnvironment::getUser()->getIdentity();
-		$user        = User::Create($logged_user->getUserId());
+		$user        = User::create($logged_user->getUserId());
 		$data        = $user->getUserData();
-		if ($data['user_email'] != $email && User::emailExists($email)) {
-			return array(
-				'result' => false,
-				'error' => 'email_exists'
-			);
-		}
-		if ($data['user_email'] != $email && !StaticModel::validEmail($email)) {
-			return array(
-				'result' => false,
-				'error' => 'invalid_email'
-			);
-		}
-		if ($data['user_email'] != $email) {
-			$access = $user->getAccessLevel();
-			if ($access < 2) {
-				$values['user_email_new'] = $email;
-				$values['user_email']     = $data['user_email'];
+
+		if (!empty($_POST['email'])) {
+			$email = $_POST['email'];
+			
+			if ($data['user_email'] != $email && User::emailExists($email)) {
+				return array(
+					'result' => false,
+					'error' => 'email_exists'
+				);
+			}
+			if ($data['user_email'] != $email && !StaticModel::validEmail($email)) {
+				return array(
+					'result' => false,
+					'error' => 'invalid_email'
+				);
+			}
+			if ($data['user_email'] != $email) {
+				$access = $user->getAccessLevel();
+				if ($access < 2) {
+					$values['user_email_new'] = $email;
+					$values['user_email']     = $data['user_email'];
 				
-				$user->sendEmailchangeEmail();
+					$user->sendEmailchangeEmail();
+				}
 			}
 		}
 		$user->setUserData($values);
 		$user->save();
 		
 		/* begin added */
-		if ($_POST['image'] != "") {
+		if (!empty($_POST['image'])) {
 			$image_o = Image::createimage($logged_user->getUserId(), 1);
 			$image_o->remove_cache()->fill_canvas()->crop(0, 0, 160, 200)->save_data()->create_cache();
 		}
@@ -923,6 +1056,13 @@ class API_Base extends API implements iAPI
 	{
 		$user = NEnvironment::getUser()->getIdentity();
 		Resource::emptyTrash();
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage);
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+		$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
 		return array(
 			'result' => true
 		);
@@ -942,6 +1082,12 @@ class API_Base extends API implements iAPI
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					Resource::moveToTrash($resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
 				}
 			}
 		}
@@ -965,6 +1111,12 @@ class API_Base extends API implements iAPI
 			if (!empty($user)) {
 				if ($resource->userIsRegistered($user->getUserId())) {
 					Resource::moveFromTrash($resource_id);
+					$storage = new NFileStorage(TEMP_DIR);
+					$cache = new NCache($storage);
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/messagelisteruser")));
+					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
 				}
 			}
 		}
@@ -1045,8 +1197,15 @@ class API_Base extends API implements iAPI
 			$group_language    = $_POST['language'];
 		}
 		$tags              = explode(',', $group_tags);
+
+		if (NEnvironment::getVariable("APK_GROUP_CREATE_MIN_ROLE") > 0) {
+			$min_access_level = NEnvironment::getVariable("APK_GROUP_CREATE_MIN_ROLE");
+		} else {
+			$min_access_level = Auth::USER;
+		}
+
 		if (Auth::MODERATOR > $user->getAccessLevel()) {
-			if (!$user->hasRightsToCreate()) {
+			if ($min_access_level > $user->getAccessLevel() || !$user->hasRightsToCreate()) {
 				return array(
 					'result' => false,
 					'message' => 'no_rights'
@@ -1056,6 +1215,12 @@ class API_Base extends API implements iAPI
 		
 		$group = Group::create();
 		
+		if (empty($group_name) || empty($group_description) || empty($group_visibility) || empty($group_language)) {
+			return array(
+				'result' => false,
+				'message' => 'empty_fields'
+			);
+		}
 		$values['group_name']             = $group_name;
 		$values['group_description']      = $group_description;
 		$values['group_visibility_level'] = $group_visibility;
@@ -1087,6 +1252,7 @@ class API_Base extends API implements iAPI
 		
 	}
 	
+
 	/**
 	 * Comment
 	 *
@@ -1104,5 +1270,62 @@ class API_Base extends API implements iAPI
 			'unread_messages' => $messages
 		); //Allready checked by common authorize function in rest server
 	}
+
+
+	/**
+	 * Comment
+	 *
+	 * @url POST    /Deployment
+	 */
+	public function getDeploymentData()
+	{
+		// also available if not logged in
+				
+		$db_version = dibi::fetchSingle("SELECT `value` FROM `system` WHERE `name`= 'database_version'");
+		
+		$data = array(
+			'name' => NEnvironment::getVariable("PROJECT_NAME"),
+			'description' => NEnvironment::getVariable("PROJECT_DESCRIPTION"),
+			'db_version' => $db_version,
+			'terms_url' => NEnvironment::getVariable("TC_URL"),
+			'privacy_url' => NEnvironment::getVariable("PP_URL"),
+			'support_url' => NEnvironment::getVariable("SUPPORT_URL"),
+			'languages' => Language::getArrayAPI(),
+			'logo_url' => NEnvironment::getVariable("URI") . '/images/logo.png'
+		);
+		
+		return $data;
+	}
 	
+	
+	/**
+	 * Comment
+	 *
+	 * @url POST    /CanCreateGroups
+	 */
+	public function getGroupCreationRights()
+	{
+		if (!$this->isLoggedIn()) {
+			throw new RestException('401', null);
+		}
+
+		$user = NEnvironment::getUser()->getIdentity();
+		
+		if (NEnvironment::getVariable("APK_GROUP_CREATE_MIN_ROLE") > 0) {
+			$min_access_level = NEnvironment::getVariable("APK_GROUP_CREATE_MIN_ROLE");
+		} else {
+			$min_access_level = Auth::USER;
+		}
+
+		if ((Auth::MODERATOR > $user->getAccessLevel()) && ($min_access_level > $user->getAccessLevel() || !$user->hasRightsToCreate())) {
+			$group_creation_rights = false;
+		} else {
+			$group_creation_rights = true;
+		}
+
+		return array(
+			'result' => true,
+			'group_creation_rights' => $group_creation_rights
+		);
+	}
 }
