@@ -196,6 +196,7 @@ class ExternalFilter extends NControl
 		}
 		
 		$form = new NAppForm($this, "filter");
+		$defaults = array();
 		$form->addRadioList('filter_pairing', _t('Connect filters with'), array(
 			'and' => 'AND',
 			'or' => 'OR'
@@ -207,23 +208,26 @@ class ExternalFilter extends NControl
 			'0' => _t('inactive')
 		);
 
+
 		$logged_user = NEnvironment::getUser()->getIdentity();
 		if (isset($logged_user)) {
 			$logged_user_id = $logged_user->getUserId();
 			$count_unread = User::getUnreadMessages($logged_user_id);
 			if ($count_unread) {
 				$trash['2'] = _t('Unread');
+				$trash['0'] = _t('Read');
+				$trash['1'] = _t('Trash');
 				$defaults['trash'] = '2';
+			} else {
+				$trash['0'] = _t('Mailbox');
+				$trash['1'] = _t('Trash');
+				$defaults['trash'] = '0';
 			}
+			$form->addRadioList('trash', '', $trash)->getSeparatorPrototype()->setName(NULL);
+			$form['trash']->getControlPrototype()->class('trash-radio');
 		}
-		$trash['0'] = _t('Mailbox');
-		$trash['1'] = _t('Trash');
 		
 		$form->addSelect('status', _t('Status'), $enabled);
-		$form->addRadioList('trash', '', $trash)->getSeparatorPrototype()->setName(NULL);
-//		$form['trash']->setDefaultValue('0');
-		$form['trash']->getControlPrototype()->class('trash-radio');
-				
 		$form->addCheckbox("all", _t("all tags"));
 		
 		$language    = Language::getArray();

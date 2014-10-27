@@ -86,13 +86,14 @@ class User extends BaseModel implements IIdentity
 		if (!empty($data)) {
 			$data['user_email'] = dibi::fetchSingle("SELECT `user_email` FROM `user` WHERE `user_id` = %i", $this->numeric_id);
 			$tags = $this->getTags();
+
 			$data['tags'] = array();
 			foreach($tags as $tagO) {
 				$tag_data = $tagO->getTagData();
 				$tag_data['id'] = $tagO->getTagId();
 				$data['tags'][] = $tag_data;
 			}
-
+			// $data['tags'] = Tag::sortTags($data['tags'], true);
 		}
 		return $data;
 	}
@@ -351,7 +352,7 @@ class User extends BaseModel implements IIdentity
 	public function getTags()
 	{
 //		$result = dibi::fetchAll("SELECT ut.`tag_id`,t.`tag_name` FROM `user_tag` ut LEFT JOIN `tag` t ON (t.`tag_id` = ut.`tag_id`) WHERE `user_id` = %i ORDER BY t.`tag_name` ASC", $this->numeric_id);
-		$result = dibi::fetchAll("SELECT ut.`tag_id`,t.`tag_name` FROM `user_tag` ut, `tag` t WHERE t.`tag_id` = ut.`tag_id` AND `user_id` = %i ORDER BY t.`tag_name` ASC", $this->numeric_id);
+		$result = dibi::fetchAll("SELECT ut.`tag_id`, t.`tag_name`, t.`tag_position`, t.`tag_parent_id` FROM `user_tag` ut, `tag` t WHERE t.`tag_id` = ut.`tag_id` AND `user_id` = %i ORDER BY t.`tag_position`, t.`tag_parent_id`, t.`tag_id`", $this->numeric_id);
 		$array  = array();
 		foreach ($result as $row) {
 			$data                   = $row->toArray();
@@ -1272,10 +1273,29 @@ class User extends BaseModel implements IIdentity
 	 *	@param int $user_id
 	 *	@return int
 	 */
-	public static function getUnreadMessages($user_id)
+	public static function getUnreadMessages($user_id, $other_user_id = null)
 	{
-//		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`  LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND `resource`.`resource_type` IN (1,9,10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0", $user_id, $user_id);
-		$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource`, `resource_user_group` WHERE `resource`.`resource_id` = `resource_user_group`.`resource_id` AND `resource_user_group`.`resource_opened_by_user` = 0 AND `resource`.`resource_type` IN (1,9,10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0", $user_id, $user_id);
+
+		if (!empty($other_user_id)) {
+			$filter['all_members_only'] = array(
+					array(
+						'type' => 1,
+						'id' => $user_id
+					),
+					array(
+						'type' => 1,
+						'id' => $other_user_id
+					)
+				);
+			$filter['type'] = array(
+					1, // private messages
+					10 // friendship requests
+				);
+			$filter['opened'] = '0';
+			$count = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter, true);
+		} else {
+			$count = dibi::fetchSingle("SELECT COUNT(`resource`.`resource_id`) FROM `resource` LEFT JOIN `resource_user_group` ON `resource`.`resource_id` = `resource_user_group`.`resource_id` WHERE `resource_user_group`.`resource_opened_by_user` = 0 AND `resource`.`resource_type` IN (1,9,10) AND `resource`.`resource_author` <> %i AND `resource_user_group`.`member_type` = 1 AND `resource_user_group`.`member_id` = %i AND `resource`.`resource_status` <> 0", $user_id, $user_id);
+		}
 		if (isset($count)) {
 			return $count;
 		} else {

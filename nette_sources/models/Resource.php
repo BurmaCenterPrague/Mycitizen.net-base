@@ -98,6 +98,7 @@ class Resource extends BaseModel {
 				$tag_data['id'] = $tagO->getTagId();
 				$data['tags'][] = $tag_data;
 			}
+			//$data['tags'] = Tag::sortTags($data['tags'], true);
 
 		}
 		return $data;
@@ -249,7 +250,7 @@ class Resource extends BaseModel {
 	 */
 	public function getTags() {
 //		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `resource_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `resource_id` = %i",$this->numeric_id);
-		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `resource_tag` gt, `tag` t WHERE t.`tag_id` = gt.`tag_id` AND `resource_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
+		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name`,t.`tag_position` FROM `resource_tag` gt, `tag` t WHERE t.`tag_id` = gt.`tag_id` AND `resource_id` = %i ORDER BY t.`tag_position`, t.`tag_parent_id`, t.`tag_id`",$this->numeric_id);
 		$array = array();
 		foreach($result as $row) {
 			$data = $row->toArray();
@@ -554,7 +555,7 @@ class Resource extends BaseModel {
 			4=>'doc',
 			6=>'website',
 			7=>'report',
-			8=>'message',
+			8=>'message', // group chat, comment
 			9=>'friendship',
 			'media_soundcloud'=>'audio',
 			'media_youtube'=>'video',
@@ -778,7 +779,7 @@ class Resource extends BaseModel {
 	public static function moveToTrash($resource_id) {
 		$user = NEnvironment::getUser()->getIdentity();
     	if(!empty($user)) {
-			dibi::query("UPDATE `resource_user_group` SET `resource_trash` = '1' WHERE `resource_id` = %i AND `member_type` = '1' AND `member_id` = %i",$resource_id,$user->getUserId());
+			return dibi::query("UPDATE `resource_user_group` SET `resource_trash` = '1' WHERE `resource_id` = %i AND `member_type` = '1' AND `member_id` = %i",$resource_id,$user->getUserId());
 		}
 	}
 
@@ -952,7 +953,8 @@ class Resource extends BaseModel {
 							// 'http://bambuser.com/v/'.$data['media_link']
 						}
 					}
-			break;			case 6: if (isset($data['other_url']) && !empty($data['other_url'])) $url = $data['other_url']; break;
+			break;
+			case 6: if (isset($data['other_url']) && !empty($data['other_url'])) $url = $data['other_url']; break;
 		}
 
 		if (empty($final_url)) {
@@ -962,11 +964,12 @@ class Resource extends BaseModel {
 			} else {
 				$link = '/images/cache/resource/'.$this->numeric_id.'-screenshot-'.$md5.'.jpg';
 			}
-			$filepath = WWW_DIR.$link;
-			if (file_exists($filepath)) {
+//			$filepath = WWW_DIR.$link;
+//			if (file_exists($filepath)) {
 				$final_url = NEnvironment::getVariable("URI") . $link;
-			}
+//			}
 		}
+
 		return $final_url;
 	
 	}
@@ -978,21 +981,25 @@ class Resource extends BaseModel {
 	 *	@param boolean $placeholder
 	 *	@return string
 	*/
-	public function getScreenshot($title=null, $placeholder=false, $size=250) {
+	public function getScreenshot($title=null, $placeholder=false, $size=250, $fancybox=true) {
 		$image = '';
 		$url = $this->getThumbnailUrl();
-		if (!empty($url)) {
-			$size_div = $size+10;
+		if (empty($url)) return '';
+		
+		$fancybox_a = $fancybox ? '<a href="'.$url.'" target="_blank" class="fancybox">': '';
+		$fancybox_b = $fancybox ? '</a>': '';
+		if ($placeholder) {
 			if (isset($title)) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:'.$size_div.'px;"><a href="'.$url.'" target="_blank" class="fancybox"><img id="screenshot" src="'.$url.'" style="width:'.$size.'px;border:solid 1px #ccc;" title="'.$title.'"/></a></div>';
-			} else {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:'.$size_div.'px;"><a href="'.$url.'" target="_blank" class="fancybox"><img id="screenshot" src="'.$url.'" style="width:'.$size.'px;border:solid 1px #ccc;"/></a></div>';
-			}
-		} elseif ($placeholder) {
-			if (isset($title)) {
-				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><a href="'.$url.'" target="_blank" class="fancybox"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$url.'" style="max-width:250px;" title="'.$title.'"/></a></div>';
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$url.'" style="max-width:250px;" title="'.$title.'"/></div>';
 			} else {
 				$image = '<div class="screenshot" style="padding:5px;background:#fff;"><img id="screenshot" src="' . NEnvironment::getVariable("URI") . '/images/ajax-loader.gif" newsrc="'.$url.'" style="max-width:250px;"/></div>';
+			}
+		} else {
+			$size_div = $size+10;
+			if (isset($title)) {
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:'.$size_div.'px;">'.$fancybox_a.'<img id="screenshot" src="'.$url.'" style="width:'.$size.'px;border:solid 1px #ccc;" title="'.$title.'"/>'.$fancybox_b.'</div>';
+			} else {
+				$image = '<div class="screenshot" style="padding:5px;background:#fff;width:'.$size_div.'px;">'.$fancybox_a.'<img id="screenshot" src="'.$url.'" style="width:'.$size.'px;border:solid 1px #ccc;"/>'.$fancybox_b.'</div>';
 			}
 		}
 

@@ -45,6 +45,8 @@ final class HomepagePresenter extends BasePresenter
 
 		$user_o = NEnvironment::getUser()->getIdentity();
 		if (!empty($user_o)) {
+			$this->template->load_google_maps = true;
+			
 			$access_level = $user_o->getAccessLevel();
 			switch ($access_level) {
 				case 1: break;

@@ -142,9 +142,30 @@ final class WidgetPresenter extends BasePresenter
 		$owner_name = $request->getQuery('owner');
 		$page = $request->getQuery('page');
 		$trash = $request->getQuery('trash');
-
-		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 		
+		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
+
+		if (User::getUnreadMessages($logged_user_id, $user_id)) {
+			if ($trash == 'undefined') {
+				$trash = 2;
+				$opened = 0;
+			}
+		} else {
+			if ($trash == 2) {
+				$trash = 0;
+				$opened = 1;
+			}
+		}
+		if ($trash == 'undefined') {
+			$trash = 0;
+			$opened = 1;
+		}
+		if ($trash == 1) {
+			unset($opened);
+		}
+
+
+		// for search by name
 		if (!empty($owner_name)) {
 			$owner_ids = User::getOwnerIdsFromLogin($owner_name);
 			$owner_ids_with_logged = $owner_ids;
@@ -182,6 +203,7 @@ final class WidgetPresenter extends BasePresenter
 		
 		
 		if ($user_id == NULL ) {
+			// messages
 			if ($owner_ids != NULL) {
 				$options['filter']['all_members_only'] = array(
 						array(
@@ -199,7 +221,7 @@ final class WidgetPresenter extends BasePresenter
 							'type' => 1,
 							'id' => $logged_user_id
 						)
-					);			
+					);
 			}
 			$options['filter']['type'] = array(
 					1, // private messages
@@ -224,29 +246,17 @@ final class WidgetPresenter extends BasePresenter
 				);
 		}
 
-		$session = NEnvironment::getSession()->getNamespace($name);
-		
-		if ($trash == NULL) {
-			if (!isset($session['filterdata']['trash'])) {
-				if (is_array($session->filterdata)) {
-					$session->filterdata = array_merge($session->filterdata, array('trash' => 2));
-				} else {
-					$session->filterdata = array('trash' => 2);
-				}
-			}
-		} else {
-			if (is_array($session->filterdata)) {
-				$session->filterdata = array_merge($session->filterdata, array('trash' => $trash));
-			} else {
-				$session->filterdata = array('trash' => $trash);
-			}
-		}
-		
-		$control = new ListerControlMain($this, $name, $options);
-			
-		
+		if (!empty($trash)) $options['filter']['trash'] = $trash;
+		if (!empty($opened)) $options['filter']['opened'] = $opened;
+
 		// retrieve time of most recent post for http header
-		$data = $control->getPageData($control->getFilterArray($options['filter']));
+//		$data = $control->getPageData($control->getFilterArray($options['filter']));
+//		$row = reset($data);
+		
+		$filter = $options['filter'];
+/*		$filter['limit'] = 0;
+		$filter['count'] = 1;*/
+		$data = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter);
 		$row = reset($data);
 		$res = Resource::Create($row['id']);
 		$r_data = $res->getResourceData();
@@ -267,6 +277,7 @@ final class WidgetPresenter extends BasePresenter
 
 		$httpResponse->setHeader('Cache-Control', 'no-cache');
 
+		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
 
@@ -315,10 +326,12 @@ final class WidgetPresenter extends BasePresenter
 			'cache_expiry' => 60
 		);
 		
-		$control = new ListerControlMain($this, 'pmabstract', $options);
-		
 		// retrieve time of most recent post for http header
-		$data = $control->getPageData($control->getFilterArray($options['filter']));
+//		$data = $control->getPageData($control->getFilterArray($options['filter']));
+		$filter = $options['filter'];
+/*		$filter['limit'] = 0;
+		$filter['count'] = 1; */
+		$data = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter);
 		$row = reset($data);
 		$res = Resource::Create($row['id']);
 		$r_data = $res->getResourceData();
@@ -339,6 +352,7 @@ final class WidgetPresenter extends BasePresenter
 
 		$httpResponse->setHeader('Cache-Control', 'no-cache');
 
+		$control = new ListerControlMain($this, 'pmabstract', $options);
 		$control->renderBody();
 		
 		$this->terminate();
@@ -360,7 +374,21 @@ final class WidgetPresenter extends BasePresenter
 		$trash = $request->getQuery('trash');
 
 		$logged_user_id = NEnvironment::getUser()->getIdentity()->getUserId();
-		
+
+		if (User::getUnreadMessages($logged_user_id, $user_id)) {
+			if (!isset($trash) || $trash == 'undefined') {
+				$trash = 2;
+			}
+		} else {
+			if ($trash == 2) {
+				$trash = 0;
+			}
+		}
+		if ($trash == 'undefined') {
+			$trash = 0;
+		}
+
+
 		if (!empty($owner_name)) {
 			$owner_ids = User::getOwnerIdsFromLogin($owner_name);
 			$owner_ids_with_logged = $owner_ids;
@@ -440,8 +468,12 @@ final class WidgetPresenter extends BasePresenter
 				);
 		}
 
-		$session = NEnvironment::getSession()->getNamespace($name);
+		if (isset($trash)) $options['filter']['trash'] = $trash;
+		if (isset($opened)) $options['filter']['opened'] = $opened;
 		
+/*		
+		$session = NEnvironment::getSession()->getNamespace($name);
+
 		if ($trash == NULL) {
 			if (!isset($session['filterdata']['trash'])) {
 				if (is_array($session->filterdata)) {
@@ -457,11 +489,15 @@ final class WidgetPresenter extends BasePresenter
 				$session->filterdata = array('trash' => $trash);
 			}
 		}
-		
-		$control = new ListerControlMain($this, $name, $options);
+*/
+
 
 		// retrieve time of most recent post for http header
-		$data = $control->getPageData($control->getFilterArray($options['filter']));
+//		$data = $control->getPageData($control->getFilterArray($options['filter']));
+		$filter = $options['filter'];
+/*		$filter['limit'] = 0;
+		$filter['count'] = 1; */
+		$data = Administration::getData(array(ListerControlMain::LISTER_TYPE_RESOURCE), $filter);
 		$row = reset($data);
 		$res = Resource::Create($row['id']);
 		$r_data = $res->getResourceData();
@@ -482,6 +518,7 @@ final class WidgetPresenter extends BasePresenter
 
 		$httpResponse->setHeader('Cache-Control', 'no-cache');
 
+		$control = new ListerControlMain($this, $name, $options);
 		return $control;
 	}
 

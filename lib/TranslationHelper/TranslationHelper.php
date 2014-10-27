@@ -19,7 +19,7 @@
  */
 function _t_set($language) {
 	global $t;
-	if (empty($language)) {
+	if (empty($language) || !file_exists(LOCALE_DIR . '/' . $language . '/LC_MESSAGES/messages.mo')) {
 		$language = 'en_US';
 	}
 	$session  = NEnvironment::getSession()->getNamespace("GLOBAL");

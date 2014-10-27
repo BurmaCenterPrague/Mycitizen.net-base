@@ -186,6 +186,11 @@ abstract class BasePresenter extends NPresenter
 					$redirect = '';
 				}
 				$this->redirect("User:login", array("redirect" => $redirect));
+			} else {
+				$user_id = $request->getQuery('user_id');
+				$user = User::create($user_id);
+				$user_data = $user->getUserData();
+				$this->template->username = $user_data['user_login'];
 			}
 		}
 		
@@ -1183,7 +1188,7 @@ abstract class BasePresenter extends NPresenter
 			die();
 		}
 		
-		$data = json_decode($queries['data']);
+		$data = json_decode($queries['data'], true);
 
 		if (empty($data) || !is_array($data)) {
 			echo json_encode(false);
@@ -1497,9 +1502,12 @@ abstract class BasePresenter extends NPresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+					echo json_encode('true');
+					$this->terminate();	
 				}
 			}
 		}
+		echo json_encode('false');
 		$this->terminate();
 	}
 
@@ -1526,9 +1534,12 @@ abstract class BasePresenter extends NPresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+					echo json_encode('true');
+					$this->terminate();	
 				}
 			}
 		}
+		echo json_encode('false');
 		$this->terminate();
 	}
 
@@ -1555,9 +1566,12 @@ abstract class BasePresenter extends NPresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+					echo json_encode('true');
+					$this->terminate();	
 				}
 			}
 		}
+		echo json_encode('false');
 		$this->terminate();
 	}
 
@@ -1584,9 +1598,12 @@ abstract class BasePresenter extends NPresenter
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidget")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmwidgetslim")));
 					$cache->clean(array(NCache::TAGS => array("user_id/".$user->getUserId(), "name/pmabstract")));
+					echo json_encode('true');
+					$this->terminate();
 				}
 			}
 		}
+		echo json_encode('false');
 		$this->terminate();
 	}
 

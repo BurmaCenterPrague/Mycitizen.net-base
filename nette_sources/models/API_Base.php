@@ -155,10 +155,10 @@ class API_Base extends API implements iAPI
 	public function getLogin()
 	{
 		if (!$this->isLoggedIn()) {
-			$error   = "unkonwn_user";
-			$user_id = NEnvironment::getUser()->getIdentity();
-			if (!empty($user_id)) {
-				if (!NEnvironment::getUser()->getIdentity()->isActive()) {
+			$error   = "unknown_user";
+			$user = NEnvironment::getUser()->getIdentity();
+			if (!empty($user)) {
+				if (!$user->isActive()) {
 					$error = "not_active";
 				}
 			}
@@ -167,15 +167,29 @@ class API_Base extends API implements iAPI
 				'error' => $error
 			);
 		}
-		$user = User::create($this->userId);
-		$data = $user->getUserData();
 		
-		// low speed -> smaller portrait?
-		$data['user_portrait'] = null;
-		
-		$data['user_language_iso_639_3'] = Language::getLanguageCode($data['user_language']);
-		unset($data['user_language']);
 
+		
+		$storage = new NFileStorage(TEMP_DIR);
+		$cache = new NCache($storage, 'API');
+		$cache->clean();
+		$cache_key = 'Login-'.$this->userId;
+		if ($cache->offsetExists($cache_key)) {
+			$data = $cache->offsetGet($cache_key);
+		} else {
+		
+			$user = User::create($this->userId);
+			$data = $user->getUserData();
+		
+			// don't need here
+			$data['user_portrait'] = null;
+		
+			$data['user_language_iso_639_3'] = Language::getLanguageCode($data['user_language']);
+	//		unset($data['user_language']);
+			$settings = array(NCache::EXPIRE => time()+120);
+			$cache->save($cache_key, $data, $settings);
+		}
+		
 		return array(
 			'result' => true,
 			'user_id' => $this->userId,
@@ -206,10 +220,24 @@ class API_Base extends API implements iAPI
 			);
 		}
 		$filter = array();
+		$allowed_filters = array('language_iso_639_3', 'language', 'type', 'limit', 'count', 'trash', 'opened', 'user_id', 'group_id', 'resource_id', 'tags', 'mapfilter', 'status', 'name', 'all_members_only');
 		if (!empty($_POST['filter'])) {
 			$filter = $_POST['filter'];
+			
+			foreach ($filter as $key => $value) {
+				if (!in_array($key, $allowed_filters)) {
+					unset($filter[$key]);
+					$filter = array_values($filter);
+				}
+			}
 		}
 
+
+		if ($this->slow_connection) {
+			$items_per_page = 10;
+		} else {
+			$items_per_page = 20;
+		}
 		// Translate language_iso_639_3 to language id
 		if (!empty($filter['language_iso_639_3'])) {
 			$filter['language'] = Language::getIdFromCode($filter['language_iso_639_3']);
@@ -239,21 +267,87 @@ class API_Base extends API implements iAPI
 		} else {
 			$user_id = 0;
 		}
+
+		if (isset($filter['type'])) {
+			if ((is_array($filter['type']) && count(array_intersect($filter['type'], array(1,8,9,10)))) || in_array($filter['type'], array(1,8,9,10))) {
+				$is_message = true;
+					$filter['order_by'] = 'ORDER BY `resource`.`resource_creation_date` ASC';
+//				$filter['order_by'] = 'ORDER BY `resource`.`resource_creation_date` DESC';
+
+				if (isset($filter['trash']) && $filter['trash'] != 0) {
+					$filter['trash'] = '1';
+				} else {
+					if ($filter['type'] != 8) {
+						$filter['trash'] = '0';
+					}
+				}
+				
+				if (isset($filter['opened']) && $filter['opened'] != 0) {
+					$filter['opened'] = '0';
+				}
+				
+				if (isset($filter['all_members_only'])) {
+					unset($filter['opened']);
+				}
+			}
+		}
 		
+		// limiting number of returned items
+		
+		$filter_retrieve_all = $filter;
+		$filter['limit'] = 0;
+		if (empty($filter['count'])) {
+			$filter['count'] = $items_per_page;
+		}
+//		if (defined('LOG_REQUESTS') && LOG_REQUESTS) $this->writeLog('count: '.$filter['count']);
+			
 		$cache_key = $user_id.'-'.$speed_key.'-'.md5(json_encode($types).json_encode($filter));
 
+		$more_available = false;
+		
 		if ($cache->offsetExists($cache_key)) {
 			$data = $cache->offsetGet($cache_key);
 		} else {
-			if (isset($filter['type'])) {
-				if ((is_array($filter['type']) && count(array_intersect($filter['type'], array(1,8,9)))) || in_array($filter['type'], array(1,8,9))) {
-					$is_message = true;
-					$filter['order_by'] = 'ORDER BY `resource`.`resource_creation_date` ASC';
+			
+			if ($is_message) {
+	
+				// get number of items
+				$count = Administration::getData($types, $filter_retrieve_all, true);
+			
+
+				$filter['limit'] = $count-$filter['count'];
+				if ($filter['limit'] < 0) $filter['limit'] = 0;
+				
+				if ($filter['limit'] > 0) {
+					$more_available = true;
+				} else {
+					$more_available = false;
+				}
+
+/*
+				if ($count > $filter['limit'] + $filter['count']) {
+					$more_available = true;
+				} else {
+					$more_available = false;
+				}
+
+*/	
+			} else {
+
+				// get number of items
+				$count = Administration::getData($types, $filter_retrieve_all, true);
+
+				if ($count > $filter['limit'] + $filter['count']) {
+					$more_available = true;
+				} else {
+					$more_available = false;
 				}
 			}
 
 			$data = Administration::getData($types, $filter, false, $this->slow_connection);		
 			$logged_user = NEnvironment::getUser()->getIdentity();
+			$logged_user_language = Language::getFlag($logged_user->getLanguage());
+			_t_set($logged_user_language);
 			
 			// check permissions, remove items that user may not view
 			// cannot use unset for invisible items (error in app)
@@ -261,11 +355,13 @@ class API_Base extends API implements iAPI
 				if ($data_row['type_name'] == "user") {
 					if (Auth::isAuthorized(1,$data_row['id']) == Auth::UNAUTHORIZED) {
 						$data[$key]['name'] = _t('hidden user');
-						$data[$key]['avatar'] = null;
-						$data[$key]['description'] = null;
-						$data[$key]["registered_resources"] = null;
-						$data[$key]["last_activity"] = null;
-						$data[$key]["date"] = null;
+						unset($data[$key]['avatar']);
+						unset($data[$key]['description']);
+						unset($data[$key]["registered_resources"]);
+						unset($data[$key]["last_activity"]);
+						unset($data[$key]["date"]);
+						unset($data[$key]['now_online']);
+						$data[$key]['hidden'] = '1';
 					} else {
 						$user_id = $data_row['id'];
 						$user = User::create($user_id);
@@ -276,7 +372,16 @@ class API_Base extends API implements iAPI
 							$data[$key]['user_logged_user'] = $user->friendsStatus($logged_user->getUserId());
 							$data[$key]['logged_user_user'] = $logged_user->friendsStatus($user_id);
 							$data[$key]['tags'] = $user_data['tags'];
+							$format_date_time = _t("j.n.Y");
+							$last_activity = User::getRelativeLastActivity($user_id, $format_date_time);
+							$data[$key]['last_activity'] = $last_activity['last_seen'];
+							if ($last_activity['online']) {
+								$data[$key]['now_online'] = "1";
+							} else {
+								$data[$key]['now_online'] = "0";
+							}
 						}
+						$data[$key]['hidden'] = '0';
 					}
 					unset($data[$key]['description']);
 					unset($data[$key]["registered_resources"]);
@@ -288,11 +393,12 @@ class API_Base extends API implements iAPI
 				if ($data_row['type_name'] == "group") {
 					if (Auth::isAuthorized(2,$data_row['id']) == Auth::UNAUTHORIZED) {
 						$data[$key]['name'] = _t('hidden group');
-						$data[$key]['avatar'] = null;
-						$data[$key]['description'] = null;
-						$data[$key]["registered_resources"] = null;
-						$data[$key]["last_activity"] = null;
-						$data[$key]["date"] = null;
+						unset($data[$key]['avatar']);
+						unset($data[$key]['description']);
+						unset($data[$key]["registered_resources"]);
+						unset($data[$key]["last_activity"]);
+						unset($data[$key]["date"]);
+						$data[$key]['hidden'] = '1';
 					} else {
 						$group_id = $data_row['id'];
 						$group = Group::create($group_id);
@@ -307,6 +413,7 @@ class API_Base extends API implements iAPI
 							}
 							$data[$key]['tags'] = $group_data['tags'];
 						}
+						$data[$key]['hidden'] = '0';
 					}
 					unset($data[$key]['description']);
 					unset($data[$key]["registered_resources"]);
@@ -317,23 +424,25 @@ class API_Base extends API implements iAPI
 					unset($data[$key]['access_level']);
 					unset($data[$key]['status']);
 				}
-				if ($data_row['type_name'] == "resource") {					
+				if ($data_row['type_name'] == "resource") { 
 					if (Auth::isAuthorized(3,$data_row['id']) == Auth::UNAUTHORIZED) {
 						$data[$key]['name'] = _t('hidden resource');
-						$data[$key]['description'] = null;
-						$data[$key]["registered_resources"] = null;
-						$data[$key]["last_activity"] = null;
-						$data[$key]["date"] = null;
-						$data[$key]['resource_data']['text_information'] = null;
-						$data[$key]['resource_data']['organization_information'] = null;
-						$data[$key]['resource_data']['event_description'] = null;
-						$data[$key]['resource_data']['media_link'] = null;
-						$data[$key]['resource_data']['event_url'] = null;
-						$data[$key]['resource_data']['event_timestamp'] = null;
-						$data[$key]['resource_data']['event_alert'] = null;
-						$data[$key]['resource_data']['organization_url'] = null;
-						$data[$key]['resource_data']['text_information_url'] = null;
-						$data[$key]['resource_data']['other_url'] = null;
+						unset($data[$key]['description']);
+						unset($data[$key]["registered_resources"]);
+						unset($data[$key]["last_activity"]);
+						unset($data[$key]["date"]);
+						unset($data[$key]['resource_data']['text_information']);
+						unset($data[$key]['resource_data']['organization_information']);
+						unset($data[$key]['resource_data']['event_description']);
+						unset($data[$key]['resource_data']['media_link']);
+						unset($data[$key]['resource_data']['event_url']);
+						unset($data[$key]['resource_data']['event_timestamp']);
+						unset($data[$key]['resource_data']['event_alert']);
+						unset($data[$key]['resource_data']['organization_url']);
+						unset($data[$key]['resource_data']['text_information_url']);
+						unset($data[$key]['resource_data']['other_url']);
+						$data[$key]['resource_data']['message_text'] = 'not allowed';
+						$data[$key]['hidden'] = '1';
 					} else {
 						$resource_id = $data_row['id'];
 						$resource = Resource::create($resource_id);
@@ -347,20 +456,72 @@ class API_Base extends API implements iAPI
 								$data[$key]['logged_user_member'] = 0;
 							}
 							$data[$key]['tags'] = $resource_data['tags'];
-							
 							$data[$key]['owner_portrait'] = null;
 							if ($is_message) {
-								$owner = User::create($resource_data['resource_author']);
-								if (!empty($owner)) {
-									if ($this->slow_connection) {
-										$image = $owner->getIcon();
+								switch ($data[$key]['type']) {
+								case 1: // private message
+									// add additional info
+									$author_username = User::getUserLogin($resource_data['resource_author']);
+									if ($resource_data['resource_author'] == $logged_user->getUserId()) {
+										// add recipient name
+										$all_recipient_data = $resource->getAllMembers(array('resource_id'=>$resource_id));
+										$recipient_data = $all_recipient_data[0];
+										$recipient_id = $recipient_data['member_id'];
+										$recipient_name = User::getUserLogin($recipient_id);
+									
+									
 									} else {
-										$image = $owner->getLargeIcon();
+										// add own name
+										$recipient_name = User::getUserLogin($logged_user->getUserId());
 									}
-									$data[$key]['owner_portrait'] = ($image) ? $image : null;
+									$date=(array)$resource_data['resource_creation_date'];
+									date_default_timezone_set($date['timezone']);
+									$date_formatted = strftime('%e.%m.%Y %H:%M:%S',strtotime($date['date']));
+									$data[$key]['resource_data']['message_text'] = '<small><b>'.$author_username." → ".$recipient_name.", ".$date_formatted.":</b></small>".$data[$key]['resource_data']['message_text'];
+								
+									$owner = User::create($resource_data['resource_author']);
+									if (!empty($owner)) {
+										if ($this->slow_connection) {
+											$image = $owner->getIcon();
+										} else {
+											$image = $owner->getLargeIcon();
+										}
+										$data[$key]['owner_portrait'] = ($image) ? $image : null;
+									}
+								break;
+								case 8: // group chat message
+									$author_username = User::getUserLogin($resource_data['resource_author']);
+									$date=(array)$resource_data['resource_creation_date'];
+									date_default_timezone_set($date['timezone']);
+									$date_formatted = strftime('%e.%m.%Y %H:%M:%S',strtotime($date['date']));
+									$data[$key]['resource_data']['message_text'] = '<small><b>'.$author_username.", ".$date_formatted.":</b></small>".$data[$key]['resource_data']['message_text'];
+								
+									$owner = User::create($resource_data['resource_author']);
+									if (!empty($owner)) {
+										if ($this->slow_connection) {
+											$image = $owner->getIcon();
+										} else {
+											$image = $owner->getLargeIcon();
+										}
+										$data[$key]['owner_portrait'] = ($image) ? $image : null;
+									}
+								break;
+								case 9: // system message
+									$data[$key]['resource_data']['message_text'] = "<small><b>System message:</b></small></div>".$data[$key]['resource_data']['message_text'];
+								break;
+								case 10: // friendship request
+									$data[$key]['resource_data']['message_text'] = "<small><b>Friendship request:</b></small></div>".$data[$key]['resource_data']['message_text'];
+								break;
 								}
+							} else {
+								// $data[$key]['resource_data']['message_text'] = "";
 							}
+							
+							// mark all messages as read if they have been displayed on the phone
+							$resource->setOpened($logged_user->getUserId());
+							
 						}
+						$data[$key]['hidden'] = '0';
 					}
 					unset($data[$key]['description']);
 					unset($data[$key]["registered_resources"]);
@@ -390,16 +551,16 @@ class API_Base extends API implements iAPI
 */
 // temporary solution: set all to null if we don't need information in the lists
 
-						$data[$key]['resource_data']['text_information'] = null;
-						$data[$key]['resource_data']['organization_information'] = null;
-						$data[$key]['resource_data']['event_description'] = null;
-						$data[$key]['resource_data']['media_link'] = null;
-						$data[$key]['resource_data']['event_url'] = null;
-						$data[$key]['resource_data']['event_timestamp'] = null;
-						$data[$key]['resource_data']['event_alert'] = null;
-						$data[$key]['resource_data']['organization_url'] = null;
-						$data[$key]['resource_data']['text_information_url'] = null;
-						$data[$key]['resource_data']['other_url'] = null;
+					$data[$key]['resource_data']['text_information'] = null;
+					$data[$key]['resource_data']['organization_information'] = null;
+					$data[$key]['resource_data']['event_description'] = null;
+					$data[$key]['resource_data']['media_link'] = null;
+					$data[$key]['resource_data']['event_url'] = null;
+					$data[$key]['resource_data']['event_timestamp'] = null;
+					$data[$key]['resource_data']['event_alert'] = null;
+					$data[$key]['resource_data']['organization_url'] = null;
+					$data[$key]['resource_data']['text_information_url'] = null;
+					$data[$key]['resource_data']['other_url'] = null;
 // keep message text
 
 					unset($data[$key]['viewed']);
@@ -409,8 +570,57 @@ class API_Base extends API implements iAPI
 				}
 			}
 
+			if ($more_available) {
+				$last['id'] = 0;
+
+/*
+				if ($this->slow_connection) {
+					$plus_icon = "/9j/4AAQSkZJRgABAQEASABIAAD//gA7Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2NjIpLCBxdWFsaXR5ID0gOTAK/9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/9sAQwEDBAQFBAUJBQUJFA0LDRQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/8IAEQgAFAAUAwERAAIRAQMRAf/EABgAAAIDAAAAAAAAAAAAAAAAAAYHBAUI/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEAMQAAABKStDsBCSLkfAhzYh/8QAGhAAAgMBAQAAAAAAAAAAAAAABAYCAwUHJP/aAAgBAQABBQL39E1s9LBMrV3WB2al58DMpQULAL4KRT0c6q4Z1SlAl6PEEpAG/8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwEf/8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwEf/8QAJxAAAgIBAgUEAwEAAAAAAAAAAgQBAwUAERIhIkFRBhNh4SQxcfD/2gAIAQEABj8CcAHLcfgE7Jp/HnY2C78/H1p6304+/jXk2CXkrLOkzHz8f7bRRlZFPIr2FReE9yjvp/05a81j3knCMpVs9uwx8/MfWsi45kcmnWs/YUQd3BXeEbdZ8urfvOsll0zmpW1o4r35cUedFlRK5TIrDuLCx8BT/dGnl8k7erXO/tRbtBbedVrr1jTTXHCID+o1/8QAHxAAAgICAwADAAAAAAAAAAAAAREAITFBYZGxgdHh/9oACAEBAAE/IbbVSm/0WwjR4a0XMvJQZNi+yxDxZrACLAcvsHU1IvamGVv32JZg2+MBGi+ggSxMsV0vn6DMZADkKBK/eVNmYFNgVfsGfOHQJ//aAAwDAQACAAMAAAAQkkkkH//EABQRAQAAAAAAAAAAAAAAAAAAADD/2gAIAQMBAT8QH//EABQRAQAAAAAAAAAAAAAAAAAAADD/2gAIAQIBAT8QH//EABwQAQEAAwEAAwAAAAAAAAAAAAERACExQVFhof/aAAgBAQABPxBdr9HvNdAiQOipc2TU4QV6tCvuLbRvikmZYQE4Q8YrbYzFO2oVYeWlEwRUQi0AAKKcmMbZTEyiF2j8AdjjJUzyQrIB0kBrwwRvkWYSj57oWiO8hgISfAP1Xaqqq5//2Q==";
+				} else {
+					$plus_icon = "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";
+				}
+*/
+				if ($is_message) {
+					$last['type'] = 1;
+					$last['resource_data']['message_text'] = _t('load older messages...');
+					$last['name'] = _t('load older messages...');
+					$last['owner_portrait'] = null;// $plus_icon;
+					$last['author'] = 0;
+				} else {
+					$last['name'] = _t('load more...');
+					$last["type"] = 0;
+				}
+					
+				$last['description'] = null;
+				$last["last_activity"] = null;
+				$last["registered_resources"] = null;
+				$last["date"] = null;
+				$last["now_online"] = null;
+				
+				if (isset($_POST['type']) && is_array($_POST['type']) && in_array(1,$_POST['type'])) {
+					$last["type_name"] = 'user';
+				}
+				if (isset($_POST['type']) && is_array($_POST['type']) && in_array(2,$_POST['type'])) {
+					$last["type_name"] = 'group';
+				}
+				if (isset($_POST['type']) && is_array($_POST['type']) && in_array(3,$_POST['type'])) {
+					$last["type_name"] = 'resource';
+				}
+
+//				$last['new_count'] = $filter['count'] + $items_per_page;
+
+
+				if ($is_message) {
+					array_unshift($data, $last);
+//					array_push($data, $last);
+				} else {
+					array_push($data, $last);
+				}
+				
+			}
+
 			if ($is_message) {
-				$settings = array(NCache::EXPIRE => time()+10);
+				$settings = array(NCache::EXPIRE => time()+20);
 			} elseif ($this->slow_connection) {
 				$settings = array(NCache::EXPIRE => time()+300);
 			} else {
@@ -465,9 +675,9 @@ class API_Base extends API implements iAPI
 			$last_activity = User::getRelativeLastActivity($user_id, $format_date_time);
 			$data['last_activity'] = $last_activity['last_seen'];
 			if ($last_activity['online']) {
-				$data['now_online'] = true;
+				$data['now_online'] = "1";
 			} else {
-				$data['now_online'] = false;
+				$data['now_online'] = "0";
 			}
 
 			$data['user_language_iso_639_3'] = Language::getLanguageCode($data['user_language']);
@@ -488,7 +698,8 @@ class API_Base extends API implements iAPI
 		}
 		
 	}
-	
+
+
 	/**
 	 * Comment
 	 *
@@ -565,8 +776,18 @@ class API_Base extends API implements iAPI
 				$data['logged_user_member'] = 0;
 			}
 			/* begin changed */
+			if (isset($data['resource_type']) && $data['resource_type'] != 5) {
+				$data['media_type'] = "";
+			}
+			
+			if (isset($data['resource_type']) && $data['resource_type'] == 2) {
+				// todo: make $data['event_timestamp'] more readable
+			} else {
+				$data['event_timestamp'] = null;
+			}
+			
 			if (isset($data['media_type']) && $data['media_type'] == 'media_youtube') {
-				$data['media_link'] = 'https://www.youtube.com/watch?v=' . $data['media_link'];
+				$data['media_link'] = $data['media_link']; // Android YouTube library wants only ID
 			}
 			if (isset($data['media_type']) && $data['media_type'] == 'media_vimeo') {
 				$data['media_link'] = 'http://vimeo.com/' . $data['media_link'];
@@ -784,6 +1005,11 @@ class API_Base extends API implements iAPI
 			throw new RestException('401', null);
 		}
 		
+		if (!empty($this->userId)) {
+			$user = User::create($this->userId);
+			$user->setLastActivity();
+		}
+
 		return array(
 			'result' => true,
 			'message_count' => Resource::getUnreadMessages()
@@ -1293,6 +1519,11 @@ class API_Base extends API implements iAPI
 			'languages' => Language::getArrayAPI(),
 			'logo_url' => NEnvironment::getVariable("URI") . '/images/logo.png'
 		);
+		
+		if (!empty($this->userId)) {
+			$user = User::create($this->userId);
+			$user->setLastActivity();
+		}
 		
 		return $data;
 	}

@@ -72,6 +72,9 @@ final class UserPresenter extends BasePresenter
 		$image_type = null;
 		$data = null;
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
+
+		$this->template->load_google_maps = true;
+
 				
 		if (!is_null($user_id)) {
 			$this->setView('detail');
@@ -348,6 +351,7 @@ final class UserPresenter extends BasePresenter
 	{
 		$this->template->load_js_css_jcrop = true;
 		$this->template->load_js_css_tree = true;
+		$this->template->load_google_maps = true;
 		
 		$query = NEnvironment::getHttpRequest();
 		$do = $query->getQuery("do");
@@ -1603,26 +1607,26 @@ final class UserPresenter extends BasePresenter
 	 */
 	public function handleRemoveMessage($message_id)
 	{
-		if (Auth::isAuthorized(3,$message_id) < Auth::MODERATOR) {
+		if (Auth::isAuthorized(3,$message_id) < Auth::USER) {
 			die('no permission');
 		}
 
 		// check if it is a message
 		$resource_type = Resource::getResourceType($message_id);
 		if ($resource_type != 1 && $resource_type != 9 && $resource_type != 10) {
-			echo "false";
+			echo json_encode("false");
 			$this->terminate();
 		}
 
 		$user_id = NEnvironment::getUser()->getIdentity()->getUserId();
 
-		if (Resource::removeMessage($message_id)) {
+		if (Resource::moveToTrash($message_id) !== false) {
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage);
 			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/messagelisteruser")));
-			echo "true";
+			echo json_encode("true");
 		} else {
-			echo "false";
+			echo json_encode("false");
 		}
 
 		$this->terminate();	
@@ -1874,7 +1878,7 @@ final class UserPresenter extends BasePresenter
 			
 			$storage = new NFileStorage(TEMP_DIR);
 			$cache = new NCache($storage);
-			$cache->clean(array(NCache::TAGS => array("user_id/$user_id")));
+			$cache->clean(array(NCache::TAGS => array("user_id/$user_id", "name/userlister", "name/homepagefriendlister")));
 				
 			$this->redirect("User:default");
 		}

@@ -359,10 +359,14 @@ class Administration extends BaseModel
 			foreach ($types as $object) {
 				if ($object == "resource") {
 					if (!empty($user)) {
-						if ($filter['trash'] < 2) {
-							$filter_o[$object]['opened.resource_trash'] = $filter['trash'];
+						if ($filter['trash'] == 0) {
+							$filter_o[$object]['opened.resource_opened_by_user'] = '1';
+							$filter_o[$object]['opened.resource_trash'] = '0';
+						} elseif($filter['trash'] == 1) {
+							$filter_o[$object]['opened.resource_trash'] = '1';
 						} else {
 							$filter_o[$object]['opened.resource_opened_by_user'] = '0';
+//							$filter_o[$object]['opened.resource_trash'] = '0';
 						}
 					}
 				}
@@ -525,7 +529,8 @@ class Administration extends BaseModel
 						$logged_user_groups = "1=2";
 					}
 					
-					$sql .= " AND (`resource_user_group`.`resource_user_group_status` = '1' OR (`resource_user_group`.`resource_user_group_status` IN('0','2') AND EXISTS (SELECT `member_id` FROM `resource_user_group` e WHERE e.`resource_id` = '" . $filter['resource_id'] . "' AND e.`resource_user_group_access_level` > 1 AND ((e.`member_type` = '1' AND e.`member_id` = '" . $logged_user_id . "') OR (e.`member_type` = '2' AND (" . $logged_user_groups . "))))))";
+//					$sql .= " AND (`resource_user_group`.`resource_user_group_status` = '1' OR (`resource_user_group`.`resource_user_group_status` IN('0','2') AND EXISTS (SELECT `member_id` FROM `resource_user_group` e WHERE e.`resource_id` = '" . $filter['resource_id'] . "' AND e.`resource_user_group_access_level` > 1 AND ((e.`member_type` = '1' AND e.`member_id` = '" . $logged_user_id . "') OR (e.`member_type` = '2' AND (" . $logged_user_groups . "))))))";
+					$sql .= " AND (`resource_user_group`.`resource_user_group_status` = '1' OR (`resource_user_group`.`resource_user_group_status` IN('0','2') AND EXISTS (SELECT `member_id` FROM `resource_user_group` e WHERE e.`resource_id` = '" . $filter['resource_id'] . "' AND e.`resource_user_group_access_level` > 1 AND ((e.`member_type` = '1' AND e.`member_id` = '" . $logged_user_id . "')))))";
 				}
 				
 				if (!empty($filter_tag['user']) && count($filter_tag['user']) > 0) {
@@ -535,14 +540,14 @@ class Administration extends BaseModel
 					$sql .= " )";
 				} else {
 					if (isset($filter['order_by'])) {
-//						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
-						$sql .= " " . $filter['order_by'].")";
+						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+//						$sql .= " " . $filter['order_by'].")";
 					} elseif (isset($filter['sort_by_activity'])) {
-//						$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
-						$sql .= " ORDER BY status DESC, last_activity DESC)";
+						$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
+//						$sql .= " ORDER BY status DESC, last_activity DESC)";
 					} else {
-//						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC)";
-						$sql .= " ORDER BY status DESC, links DESC)";
+						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC)";
+//						$sql .= " ORDER BY status DESC, links DESC)";
 					}
 				}	
 			}
@@ -558,14 +563,14 @@ class Administration extends BaseModel
 					$sql .= " )";
 				} else {
 					if (isset($filter['order_by'])) {
-//						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
-						$sql .= " ".$filter['order_by'].")";
+						$sql .= " GROUP BY `id` ".$filter['order_by'].")";
+//						$sql .= " ".$filter['order_by'].")";
 					} elseif (isset($filter['sort_by_activity'])) {
-//						$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
-						$sql .= " ORDER BY status DESC, last_activity DESC)";
+						$sql .= " GROUP BY `id` ORDER BY status DESC, last_activity DESC)";
+//						$sql .= " ORDER BY status DESC, last_activity DESC)";
 					} else {
-//						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC)";
-						$sql .= " ORDER BY status DESC, links DESC)";
+						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC)";
+//						$sql .= " ORDER BY status DESC, links DESC)";
 					}
 				}	
 			}
@@ -585,7 +590,8 @@ class Administration extends BaseModel
 						$logged_user_groups = "1=2";
 					}
 					
-					$sql .= "(" . $sql_resource . " WHERE " . $filter_pairing . " AND `resource_language` IN (" . $language . ") AND ((`resource_visibility_level` IN (" . $access_level . ")) OR (`resource_visibility_level` = '3' AND EXISTS (SELECT `member_id` FROM `resource_user_group` a WHERE a.`resource_id` = `resource_id` AND ((a.`member_type` = '1' AND a.`member_id` = '" . $logged_user_id . "') OR (a.`member_type` = '2' AND (" . $logged_user_groups . "))))))";
+//					$sql .= "(" . $sql_resource . " WHERE " . $filter_pairing . " AND `resource_language` IN (" . $language . ") AND ((`resource_visibility_level` IN (" . $access_level . ")) OR (`resource_visibility_level` = '3' AND EXISTS (SELECT `member_id` FROM `resource_user_group` a WHERE a.`resource_id` = `resource_id` AND ((a.`member_type` = '1' AND a.`member_id` = '" . $logged_user_id . "') OR (a.`member_type` = '2' AND (" . $logged_user_groups . "))))))";
+					$sql .= "(" . $sql_resource . " WHERE " . $filter_pairing . " AND `resource_language` IN (" . $language . ") AND ((`resource_visibility_level` IN (" . $access_level . ")) OR (`resource_visibility_level` = '3' AND EXISTS (SELECT `member_id` FROM `resource_user_group` a WHERE a.`resource_id` = `resource_id` AND ((a.`member_type` = '1' AND a.`member_id` = '" . $logged_user_id . "')))))";
 					if (!empty($filter_tag['resource']) && count($filter_tag['resource']) > 0) {
 						$sql .= " ".$pairing_operator." EXISTS (SELECT `resource_tag`.`resource_id` FROM `resource_tag` WHERE `resource_tag`.`resource_id` = `resource`.`resource_id` AND (%or))";
 					}
@@ -605,11 +611,11 @@ class Administration extends BaseModel
 								$sql .= " ORDER BY status DESC, last_activity DESC)";
 							} else {
 								if (in_array(1,$filter['type']) || in_array(9,$filter['type'])) {
-//							$sql .= " GROUP BY `id` ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
-									$sql .= " ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
+							$sql .= " GROUP BY `id` ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
+//									$sql .= " ORDER BY status DESC, `resource`.`resource_creation_date` DESC)";
 								} else {
-//								$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
-									$sql .= " ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
+								$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
+//									$sql .= " ORDER BY status DESC, links DESC, `resource`.`resource_creation_date` DESC, opened.`resource_opened_by_user` ASC)";
 								}
 							}
 
@@ -627,7 +633,8 @@ class Administration extends BaseModel
 					if ($logged_user_groups == "") {
 						$logged_user_groups = "1=2";
 					}
-					$sql .= "(" . $sql_resource . " WHERE " . $filter_pairing . " AND `resource_language` IN (" . $language . ") AND ((`resource_visibility_level` IN (" . $access_level . ")) OR (`resource_visibility_level` = '3' AND EXISTS (SELECT `member_id` FROM `resource_user_group` a WHERE a.`resource_id` = `resource_id` AND ((a.`member_type` = '1' AND a.`member_id` = '" . $logged_user_id . "') OR (a.`member_type` = '2' AND (" . $logged_user_groups . "))))))";
+//					$sql .= "(" . $sql_resource . " WHERE " . $filter_pairing . " AND `resource_language` IN (" . $language . ") AND ((`resource_visibility_level` IN (" . $access_level . ")) OR (`resource_visibility_level` = '3' AND EXISTS (SELECT `member_id` FROM `resource_user_group` a WHERE a.`resource_id` = `resource_id` AND ((a.`member_type` = '1' AND a.`member_id` = '" . $logged_user_id . "') OR (a.`member_type` = '2' AND (" . $logged_user_groups . "))))))";
+					$sql .= "(" . $sql_resource . " WHERE " . $filter_pairing . " AND `resource_language` IN (" . $language . ") AND ((`resource_visibility_level` IN (" . $access_level . ")) OR (`resource_visibility_level` = '3' AND EXISTS (SELECT `member_id` FROM `resource_user_group` a WHERE a.`resource_id` = `resource_id` AND ((a.`member_type` = '1' AND a.`member_id` = '" . $logged_user_id . "')))))";
 					if (isset($filter_tag['resource']) && count($filter_tag['resource']) > 0) {
 						$sql .= " ".$pairing_operator." EXISTS (SELECT `resource_tag`.`resource_id` FROM `resource_tag` WHERE `resource_tag`.`resource_id` = `resource`.`resource_id` AND (%or))";
 					}
@@ -636,8 +643,8 @@ class Administration extends BaseModel
 					if ($counter_mode) {
 						$sql .= " )";
 					} else {
-//						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC,`resource`.`resource_creation_date` DESC )";
-						$sql .= " ORDER BY status DESC, links DESC,`resource`.`resource_creation_date` DESC )";
+						$sql .= " GROUP BY `id` ORDER BY status DESC, links DESC,`resource`.`resource_creation_date` DESC )";
+//						$sql .= " ORDER BY status DESC, links DESC,`resource`.`resource_creation_date` DESC )";
 					}
 					
 				}

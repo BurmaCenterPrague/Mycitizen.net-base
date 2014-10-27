@@ -286,9 +286,20 @@
 
 		{if $data['resource_type'] == 5}
 		{if $data['media_type'] == 'media_youtube'}
-			<div id="player"></div>
+			{ifset $screenshot_no_popup}<div id="screenshot_toggle" style="cursor:pointer; padding:10px;"><h2>{_"Preview"}</h2>{!$screenshot_no_popup}</div>{/if}
 
+			
+			<div id="player"{ifset $screenshot_no_popup} style="display:none;"{/if}></div>
 			<script>
+			{ifset $screenshot_no_popup}
+			$(document).ready(function(){
+				$('#screenshot_toggle').click(function(){
+					$('#player').slideToggle();
+					$(this).slideToggle();
+				});
+			});
+			{/if}
+			
 			  // 2. This code loads the IFrame Player API code asynchronously.
 			  var tag = document.createElement('script');
 			  tag.src = "//www.youtube.com/iframe_api";

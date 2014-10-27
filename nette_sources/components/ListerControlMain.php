@@ -494,6 +494,13 @@ class ListerControlMain extends NControl
 		$template->lister_type = $this->lister_type;
 		$template->active_filter = $this->activeFilter();
 		$template->baseUri = NEnvironment::getVariable("URI") . '/';
+		
+		$filter = $this->getFilterArray();
+		if (isset($filter['trash'])) {
+			$template->trash = $filter['trash'];
+		} else {
+			$template->trash = 0;
+		}
 
 		$storage = new NFileStorage(TEMP_DIR);
 		$cache = new NCache($storage, "Lister.render.".$this->name);
@@ -636,6 +643,8 @@ class ListerControlMain extends NControl
 
 		$filter = $this->getFilterArray();
 
+
+/*
 		if (isset($filter['trash']) && $filter['trash'] == 2) {
 			$logged_user = NEnvironment::getUser()->getIdentity();
 			if (isset($logged_user)) {
@@ -655,6 +664,7 @@ class ListerControlMain extends NControl
 				unset($logged_user);
 			}
 		}
+*/
 
 		$session  = NEnvironment::getSession()->getNamespace("GLOBAL");
 		$language = $session->language;

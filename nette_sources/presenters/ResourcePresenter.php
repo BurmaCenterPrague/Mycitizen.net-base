@@ -48,7 +48,9 @@ final class ResourcePresenter extends BasePresenter
 //		$query = NEnvironment::getHttpRequest();
 //		$do = $query->getQuery("do");
 //		if ($this->isAjax() && $do!='defaultPage' && $do!='detailPage' && $do!='changePage' && $do!='clickLink') return;
-		
+
+		$this->template->load_google_maps = true;
+
 		$session = NEnvironment::getSession()->getNamespace('defaultresourceresourcelister');
 		$this->template->baseUri = NEnvironment::getVariable("URI") . '/';
 		$acceptable_resource_types = array(2, 3, 4, 5, 6);
@@ -122,6 +124,8 @@ final class ResourcePresenter extends BasePresenter
 				
 				$image = $this->resource->getScreenshot();
 				if (!empty($image)) $this->template->screenshot = $image;
+				$image = $this->resource->getScreenshot('Click to play', false, 180, false);
+				if (!empty($image)) $this->template->screenshot_no_popup = $image;
 			}
 			
 		}
@@ -527,6 +531,8 @@ final class ResourcePresenter extends BasePresenter
 	 */
 	public function actionEdit($resource_id = null)
 	{
+		$this->template->load_google_maps = true;
+
 		if (Auth::isAuthorized(3,$resource_id) < Auth::ADMINISTRATOR) {
 			$this->flashMessage("You are not allowed to edit this resource.","error");
 			$this->redirect("Resource:default", $resource_id);
@@ -549,10 +555,13 @@ final class ResourcePresenter extends BasePresenter
 			}
 			
 			$screenshot_url = $resource->getThumbnailUrl();
-			If (!empty($screenshot_url)) $this->template->screenshot_url = $screenshot_url;
-			$image = $resource->getScreenshot(_t('View big screenshot'),true);
-			if (!empty($image)) $this->template->screenshot = $image;
+			
+			If (!empty($screenshot_url)) {
+//				$this->template->screenshot_url = $screenshot_url;
+				$image = $resource->getScreenshot(null,true);
+				if (!empty($image)) $this->template->screenshot = $image;
 
+			}
 			
 			$this->template->resource_tags = $this->resource->groupSortTags($this->resource->getTags());
 		} else {
@@ -1161,7 +1170,7 @@ final class ResourcePresenter extends BasePresenter
 				if (!file_exists($filepath)) {
 					try
 					{
-						$this->grabzIt->SetAnimationOptions($url_gif, $md5);
+						$this->grabzIt->SetAnimationOptions($url_gif, $md5, 180, 120, 0, null, 1, 0.5, 0, false, '', 30);
 						
 						if ($this->grabzIt->Save($callback)) {
 							$this->flashMessage(_t("Screenshot processing."));
@@ -1918,7 +1927,7 @@ final class ResourcePresenter extends BasePresenter
 			$this->redirect("Resource:default", $resource_id);
 		}
 
-		$files = glob(WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-*.jpg');
+		$files = glob(WWW_DIR.'/images/cache/resource/'.$resource_id.'-screenshot-*.*');
 		$done = false;
 		if ( is_array ( $files ) && count($files) ) {
 			foreach($files as $file) {

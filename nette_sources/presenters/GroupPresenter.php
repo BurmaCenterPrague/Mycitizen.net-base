@@ -34,6 +34,9 @@ final class GroupPresenter extends BasePresenter
 	 */
 	public function actionDefault($group_id = null)
 	{
+
+		$this->template->load_google_maps = true;
+
 		$query = NEnvironment::getHttpRequest();
 		
 		if ($query->getQuery("do")=='invitation') return;
@@ -179,6 +182,7 @@ final class GroupPresenter extends BasePresenter
 	{
 		$this->template->load_js_css_jcrop = true;
 		$this->template->load_js_css_tree = true;
+		$this->template->load_google_maps = true;
 
 		$query = NEnvironment::getHttpRequest();
 		$do = $query->getQuery("do");
@@ -1403,7 +1407,7 @@ final class GroupPresenter extends BasePresenter
 		}
 		Activity::addActivity(Activity::FRIEND_INVITED, $user_id, 1, $friend_id);
 		$friend_name = User::getFullName($friend_id);
-		$this->flashMessage(_t("The invitation was sent to your friend %s.", $friend_name));
+		$this->flashMessage(_t("An invitation was sent to your friend %s.", $friend_name));
 	
 	}
 

@@ -203,7 +203,7 @@ class Tag extends BaseModel
 	 */
 	public static function getTreeArray()
 	{
-		$result = dibi::fetchAll("SELECT * FROM `tag` ORDER BY `tag_parent_id`,`tag_position`,`tag_id`");
+		$result = dibi::fetchAll("SELECT * FROM `tag` ORDER BY `tag_position`,`tag_parent_id`,`tag_id`");
 		$tags   = array();
 		foreach ($result as $row) {
 			$data                                   = $row->toArray();
@@ -212,10 +212,35 @@ class Tag extends BaseModel
 			$tags[$data['tag_id']]['tag_name']      = $data['tag_name'];
 		}
 		
+		return self::sortTags($tags);
+	}
+
+##### deprecated??? #####
+/*
+todo:
+remove sorting with result like:
+
+ {
+   "level":0,
+   "tag_name":"Labor",
+   "tag_parent_id":0,
+   "tag_id":99
+  },
+  {
+   "level":1,
+   "tag_name":"Child Labor",
+   "tag_parent_id":99,
+   "tag_id":103
+  },
+
+
+
+*/
+	public static function sortTags($tags, $need_id = false)
+	{
 		$tag_array = array();
 		$sort_1    = array();
 		$sort_2    = array();
-
 		foreach ($tags as $key => $tag) {
 			$level  = 0;
 			$parent = $tag['tag_parent_id'];
@@ -243,19 +268,24 @@ class Tag extends BaseModel
 				$index++;
 			}
 			$index++;
-			array_splice($tag_array, $index, 0, array(
-				array(
-					'tag_id' => $tag['tag_id'],
-					'level' => $level,
-					'tag_name' => $tag['tag_name'],
-					'tag_parent_id' => $tag['tag_parent_id']
-				)
-			));
+			$tag_to_add = array(
+				'level' => $level,
+				'tag_name' => $tag['tag_name'],
+				'tag_parent_id' => $tag['tag_parent_id']
+			);
+			
+			// workaround: User, Group and Resource want "id" as key
+			if ($need_id) {
+				$tag_to_add['id'] = $tag['tag_id'];
+			} else {
+				$tag_to_add['tag_id'] = $tag['tag_id'];
+			}
+			array_splice($tag_array, $index, 0, array($tag_to_add));
 		}
 		
 		return $tag_array;
 	}
-
+	
 
 	/**
 	 *	@todo ### Description

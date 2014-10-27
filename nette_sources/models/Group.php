@@ -102,6 +102,7 @@ class Group extends BaseModel {
 				$tag_data['id'] = $tagO->getTagId();
 				$data['tags'][] = $tag_data;
 			}
+			//$data['tags'] = Tag::sortTags($data['tags'], true);
 		}
 
 		return $data;
@@ -208,7 +209,7 @@ class Group extends BaseModel {
 	 */
 	public function getTags() {
 //		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt LEFT JOIN `tag` t ON (t.`tag_id` = gt.`tag_id`) WHERE `group_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
-		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt, `tag` t WHERE t.`tag_id` = gt.`tag_id` AND `group_id` = %i ORDER BY t.`tag_name` ASC",$this->numeric_id);
+		$result = dibi::fetchAll("SELECT gt.`tag_id`,t.`tag_name` FROM `group_tag` gt, `tag` t WHERE t.`tag_id` = gt.`tag_id` AND `group_id` = %i ORDER BY t.`tag_position`, t.`tag_parent_id`, t.`tag_id`",$this->numeric_id);
 		$array = array();
 		foreach($result as $row) {
 			$data = $row->toArray();

@@ -28,7 +28,7 @@ included packages
 - [FullCalendar](http://arshaw.com/fullcalendar/) 1.6.4 (MIT License)
 - [GettextExtractor](https://github.com/karelklima/gettext-extractor) 2.0 (modified) New BSD License
 - [Gettext Translator](http://addons.nettephp.com/gettext-translator) 0.4 New BSD License
-- [GrabzIt API](http://grabz.it/api/php/) 2.1.5 (MIT License)
+- [GrabzIt API](http://grabz.it/api/php/) 2.2.0 (MIT License)
 - [HTML Purifier](http://htmlpurifier.org/) 4.6.0 (GNU Lesser General Public
     License)
 - [jCrop](https://github.com/tapmodo/Jcrop) 0.9.12 (MIT License)
@@ -38,7 +38,7 @@ included packages
 - [Mobile-Detect](http://mobiledetect.net) 2.7.6 (MIT License)
 - [Nette Framework](http://nette.org/) 0.9.7, PHP 5.2 prefixed ("N"), (New BSD License or GPL version 2 or 3)
 - [phpass](http://www.openwall.com/phpass/) 0.3 (public domain)
-- [PHPMailer](https://raw.github.com/PHPMailer/PHPMailer/master/examples/images/phpmailer.png) 5.2.7, (LGPL 2.1 License)
+- [PHPMailer](https://raw.github.com/PHPMailer/PHPMailer/master/examples/images/phpmailer.png) 5.2.8, (LGPL 2.1 License)
 - [qTip2](http://qtip2.com/) 2.1.1, (MIT License or GPLv2)
 - [Tag-it](http://aehlke.github.com/tag-it/) 2.0 (MIT License)
 - [Treeview](http://docs.jquery.com/Plugins/Treeview) 1.4.1 (MIT license or GPL)

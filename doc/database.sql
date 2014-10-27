@@ -154,7 +154,8 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `variable_name` varchar(255) NOT NULL,
   `variable_value` varchar(255) NOT NULL,
   `variable_display_label` varchar(255) NOT NULL,
-  UNIQUE KEY `variable_name` (`variable_name`)
+  UNIQUE KEY `variable_name_2` (`variable_name`),
+  KEY `variable_name` (`variable_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `status` (
@@ -274,9 +275,9 @@ INSERT INTO `settings` (`variable_name`, `variable_value`, `variable_display_lab
 ('signup_question', '', 'Question that needs to be answered for signup'),
 ('sign_in_disabled', '0', 'Sign in disabled (0 or 1)'),
 ('sign_up_disabled', '0', 'Sign up disabled (0 or 1)'),
-('ip_max_failed_logins', '5', 'Tolerated number of failed logins from the same IP address within one hour.'),
-('ip_blocking_time_hours', '1', 'How long to block an IP after too many failed logins'),
-('ip_failure_time_minutes', '10', 'Time in minutes during which failed logins are counted.');
+('ip_max_failed_logins', '5', 'Tolerated number of failed logins from the same IP address within the given time'),
+('ip_blocking_time_hours', '1', 'How many hours to block an IP after it exceeded the number of failed logins'),
+('ip_failure_time_minutes', '10', 'Time in minutes during which failed logins are counted');
 
 INSERT INTO `status` (`status_id`, `status_name`, `status_description`) VALUES
 (1, 'active', 'User/Group/Resource is active'),
