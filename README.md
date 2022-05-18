@@ -14,7 +14,7 @@ latest version
 
 authors
 -------
-code:	Jan Fišer (original code base), [Christoph Amthor](http://mycitizen.net) (since 2013)
+code:	Jan Fišer (original code base), [Christoph Amthor](https://c-amthor.de) (since 2013)
 
 design:	[Šárka Vašků](http://www.ecn.cz)
 
